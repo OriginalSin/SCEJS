@@ -44,6 +44,14 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
+	 * getVFPs
+	 * @returns {Object}
+	 */
+	this.getVFPs = function() {
+		return clglWork.vertexFragmentPrograms;
+	};
+	
+	/**
 	* @param {String} argument Argument to set
 	* @param {Function} fnvalue
 	* @param {Array<Float>} [splits=[array.length]]
@@ -55,6 +63,14 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
+	 * getArgs
+	 * @returns {Object} 
+	 */
+	this.getArgs = function() {
+		return args;
+	};
+	
+	/**
 	* @param {String} argument Argument to set
 	* @param {Bool} value
 	*/
@@ -63,11 +79,27 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
+	 * getBuffers
+	 * @returns {Array<WebCLGLBuffer>}
+	 */
+	this.getBuffers = function() {
+		return clglWork.buffers;
+	};
+	
+	/**
 	* @param {Function} fnvalue 
 	* @param {Array<Float>} [splits=[array.length]]
 	*/
 	this.setIndices = function(fnvalue, splits) {
 		clglWork.setIndices(fnvalue(), splits); 
+	};
+	
+	/**
+	 * getIndices
+	 * @returns {WebCLGLBuffer}
+	 */
+	this.getIndices = function() {
+		return clglWork.CLGL_bufferIndices;
 	};
 	
 	/**
@@ -82,11 +114,11 @@ ComponentRenderer = function() { Component.call(this);
 				clglWork.setArg(key, args[key].fnvalue());
 			}
 		}
-		for(var key in clglWork.vertexFragmentPrograms) {
+		for(var key in this.getVFPs()) {
 			var destArg = null;
 			var comp_screenEffects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
 			if(comp_screenEffects != undefined) {
-				destArg = comp_screenEffects.getBuffers()[clglWork.vertexFragmentPrograms[key].argBufferDestination];
+				destArg = comp_screenEffects.getBuffers()[this.getVFPs()[key].argBufferDestination];
 			} else console.log("ComponentScreenEffects not exists in camera"); 
 			
 			gl.bindFramebuffer(gl.FRAMEBUFFER, destArg.items[0].fBuffer);

@@ -62,7 +62,8 @@ var includesF = [//'/StormMathMin.class.js',
 				'/Project.class.js',
 				'/UI/UI.class.js',
 				'/UI/PanelListNodes.class.js',
-				'/UI/PanelNode.class.js'];
+				'/UI/PanelNode.class.js',
+				'/UI/UIComponentRenderer.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
 
 //***********
@@ -72,6 +73,7 @@ for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="t
 if(window.jQuery == undefined) {
 	document.write('<link rel="stylesheet" type="text/css" href="'+sceDirectory+'/UI/JQuery/ui/jquery-ui.min.css" />');
 }
+document.write('<link rel="stylesheet" type="text/css" href="'+sceDirectory+'/UI/style.css" />');
 document.write('<link rel="stylesheet" type="text/css" href="'+sceDirectory+'/UI/fileMenu/fileMenu.css" />');
 document.write('<link rel="stylesheet" type="text/css" href="'+sceDirectory+'/UI/stormPanel/stormPanel.css" />');
 

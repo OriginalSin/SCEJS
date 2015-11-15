@@ -30,7 +30,7 @@ Node = function() {
 	
 	/**
 	 * getComponent
-	 * @param {Int} COMPONENT_TYPES
+	 * @param {COMPONENT_TYPES} COMPONENT_TYPES
 	 * @returns {Component}
 	 */
 	this.getComponent = function(COMPONENT_TYPES) {

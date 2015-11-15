@@ -9,8 +9,8 @@ PanelNode = function() {
 				'<div id="DIVID_StormEditNode_edits"></div>';
 	var panel = new StormPanel({"id": 'DIVID_StormPanelEditNode',
 								"paneltitle": 'NODE',
-								"html": html});
-	
+								"html": html}); 
+		
 	/**
 	 * show
 	* @param {Node} selectedNode
@@ -31,14 +31,24 @@ PanelNode = function() {
 			$('#DIVID_StormEditNode_name').html("");
 			$('#DIVID_StormEditNode_edits').html('');
 		} else {
-			if(selectedNode.name != undefined) $('#DIVID_StormEditNode_name').html(selectedNode.getName());
+			if(selectedNode.getName() != undefined) $('#DIVID_StormEditNode_name').html(selectedNode.getName());
 			$('#DIVID_StormEditNode_edits').html('');
 			
-			for(var compType in Constants.COMPONENT_TYPES) {
-				for(var nodeComp in selectedNode.getComponents()) {
-					if(nodeComp == Constants.COMPONENT_TYPES[compType]) {
-						var str = 	"<div>"+compType+"</div>";						
+			for(var compTypeKey in Constants.COMPONENT_TYPES) {
+				for(var nodeCompKey in selectedNode.getComponents()) {
+					if(nodeCompKey == Constants.COMPONENT_TYPES[compTypeKey]) {
+						var str = 	"<div id='DIVID_component_"+compTypeKey+"' class='component StormShadow02 StormRound'>"+
+										compTypeKey+
+									"</div>";						
 						$('#DIVID_StormEditNode_edits').append(str);
+						
+						if(nodeCompKey == Constants.COMPONENT_TYPES.RENDERER) {
+							new UIComponentRenderer(compTypeKey, selectedNode);							
+						} else if(nodeCompKey == Constants.COMPONENT_TYPES.SCREEN_EFFECTS) {
+							
+						} else if(nodeCompKey == Constants.COMPONENT_TYPES.PROJECTION) {
+							
+						}
 					}
 				}	
 			}
