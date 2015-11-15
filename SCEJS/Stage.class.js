@@ -49,7 +49,7 @@ Stage = function() {
 	this.addNode = function(node) {
 		nodes.push(node);
 		
-		node.setWebGLContext(gl);
+		node.initialize("node "+(nodes.length-1).toString(), gl);
 	};
 		
 	/**

@@ -13,26 +13,36 @@ PanelNode = function() {
 	
 	/**
 	 * show
-	* @type Void
+	* @param {Node} selectedNode
 	*/
-	this.show = function() {
+	this.show = function(selectedNode) {
 		panel.show();
+		
+		updateNearNode(selectedNode);
 	};
 
 	/**
 	* updateNearNode
+	* @param {Node} selectedNode
 	* @private
 	*/
-	var updateNearNode = function() {
+	var updateNearNode = function(selectedNode) {
 		if(selectedNode == undefined) {
 			$('#DIVID_StormEditNode_name').html("");
 			$('#DIVID_StormEditNode_edits').html('');
 		} else {
-			if(selectedNode.name != undefined) $('#DIVID_StormEditNode_name').html(selectedNode.name);
+			if(selectedNode.name != undefined) $('#DIVID_StormEditNode_name').html(selectedNode.getName());
 			$('#DIVID_StormEditNode_edits').html('');
 			
-			
-			
+			for(var compType in Constants.COMPONENT_TYPES) {
+				for(var nodeComp in selectedNode.getComponents()) {
+					if(nodeComp == Constants.COMPONENT_TYPES[compType]) {
+						var str = 	"<div>"+compType+"</div>";						
+						$('#DIVID_StormEditNode_edits').append(str);
+					}
+				}	
+			}
+				
 		
 		}
 	};

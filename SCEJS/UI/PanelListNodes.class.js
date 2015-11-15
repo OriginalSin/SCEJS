@@ -35,7 +35,7 @@ PanelListNodes = function() {
 		for(var n=0, f = nodes.length; n < f; n++) {
 				var colorBg = (selectedNode != undefined && selectedNode == nodes[n]) ? '#444' : '#000';
 				var colorText = (nodes[n].isEnabled() == true) ? '#FFF': '#999';
-				str = "<div id='TDID_StormObjectNum_nodes"+n+"' style='background-color:"+colorBg+";color:"+colorText+";'>"+nodes[n].name+"</div>";
+				str = "<div id='TDID_StormObjectNum_nodes"+n+"' style='background-color:"+colorBg+";color:"+colorText+";'>"+nodes[n].getName()+"</div>";
 				$('#DIVID_StormPanelListObjects_content').append(str);
 				
 				var e = document.getElementById("TDID_StormObjectNum_nodes"+n);

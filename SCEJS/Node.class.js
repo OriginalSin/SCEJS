@@ -5,22 +5,27 @@
 Node = function() {
 	"use strict";
 	
-	var components = {};
+	var _components = {};
+	var _name = null;
+	var _gl = null;
 	
+	var _enabled = true;
+	
+	/**
+	 * onTick
+	 * 
+	 */
 	this.onTick = null;
-	var gl = null;
-	
-	var enabled = true;
 	
 	/**
 	 * addComponent
 	 * @param {Component} component
 	 */
 	this.addComponent = function(component) {
-		components[component.type] = component;
+		_components[component.type] = component;
 		
-		if(components[component.type].initialize != null)
-			components[component.type].initialize(this, gl);
+		if(_components[component.type].initialize != null)
+			_components[component.type].initialize(this, _gl);
 	};
 	
 	/**
@@ -29,7 +34,7 @@ Node = function() {
 	 * @returns {Component}
 	 */
 	this.getComponent = function(COMPONENT_TYPES) {
-		return components[COMPONENT_TYPES];
+		return _components[COMPONENT_TYPES];
 	};
 	
 	/**
@@ -37,7 +42,7 @@ Node = function() {
 	 * @returns {Object}
 	 */
 	this.getComponents = function() {
-		return components;
+		return _components;
 	};
 	
 	/**
@@ -45,7 +50,7 @@ Node = function() {
 	* @param {Bool} enable.
 	*/
 	this.setEnabled = function(enable) {
-		enabled = enable;
+		_enabled = enable;
 	};
 	
 	/**
@@ -53,16 +58,34 @@ Node = function() {
 	* @returns {Bool}
 	*/
 	this.isEnabled = function() {
-		return enabled;
+		return _enabled;
 	};
 	
 	/**
-	* setWebGLContext
+	* setName
+	* @param {String} name.
+	*/
+	this.setName = function(name) {
+		_name = name;
+	};
+	
+	/**
+	* getName
+	* @returns {String}
+	*/
+	this.getName = function() {
+		return _name;
+	};
+	
+	/**
+	* initialize
+	* @param {String} name.
 	* @param {WebGLRenderingContext} glCtx.
 	* @private
 	*/
-	this.setWebGLContext = function(glCtx) {
-		gl = glCtx;
+	this.initialize = function(name, glCtx) {
+		_name = name;
+		_gl = glCtx;
 	};
 };
 

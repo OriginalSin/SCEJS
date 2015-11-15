@@ -68,11 +68,13 @@ UI = function(project) {
 		DGE("TOPMENU_view_PanelListNodes").addEventListener("click", (function() {
 			panel_ListNodes.show(_project.getActiveStage().getNodes(), _project.getActiveStage().getSelectedNode(), function(node) {
 				_project.getActiveStage().setSelectedNode(node);
+				
+				panel_Node.show(_project.getActiveStage().getSelectedNode());
 			});
 		}).bind(this));
 		
 		DGE("TOPMENU_view_PanelNode").addEventListener("click", (function() {
-			panel_Node.show(_project);
+			panel_Node.show(_project.getActiveStage().getSelectedNode());
 		}).bind(this));
 	}; 
 };
