@@ -10,6 +10,8 @@ Node = function() {
 	this.onTick = null;
 	var gl = null;
 	
+	var enabled = true;
+	
 	/**
 	 * addComponent
 	 * @param {Component} component
@@ -36,6 +38,22 @@ Node = function() {
 	 */
 	this.getComponents = function() {
 		return components;
+	};
+	
+	/**
+	* setEnabled
+	* @param {Bool} enable.
+	*/
+	this.setEnabled = function(enable) {
+		enabled = enable;
+	};
+	
+	/**
+	* setEnabled
+	* @returns {Bool}
+	*/
+	this.isEnabled = function() {
+		return enabled;
 	};
 	
 	/**

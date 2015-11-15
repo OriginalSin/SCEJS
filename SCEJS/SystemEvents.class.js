@@ -33,9 +33,9 @@ SystemEvents = function(project, target) {
 	var callComponentEvent = (function(componentType, eventType, evt) {
 		if(_project != undefined) {
 			var stage = _project.getActiveStage();
-			for(var n=0, fn = stage.nodes.length; n < fn; n++) {
-				for(var key in stage.nodes[n].getComponents()) {
-					var component = stage.nodes[n].getComponent(key);
+			for(var n=0, fn = stage.getNodes().length; n < fn; n++) {
+				for(var key in stage.getNodes()[n].getComponents()) {
+					var component = stage.getNodes()[n].getComponent(key);
 					
 					if(component.type == componentType) {
 						if(eventType == Constants.EVENT_TYPES.KEY_DOWN && component.onkeydown != undefined)

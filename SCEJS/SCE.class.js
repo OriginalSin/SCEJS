@@ -21,14 +21,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  */
-	
-// includes
+
+//***********
+// APP CLASSES
+//***********
 var sceDirectory = document.querySelector('script[src$="SCE.class.js"]').getAttribute('src');
 var page = sceDirectory.split('/').pop(); 
 sceDirectory = sceDirectory.replace('/'+page,"");
 
-var includesF = [//'/ActionHelpers.class.js',
-                 //'/StormMathMin.class.js',
+var includesF = [//'/StormMathMin.class.js',
                 '/StormMath.class.js',
                 '/Utils.class.js',
 				/*'/WebCLGL_2.0.Min.class.js',*/
@@ -58,9 +59,30 @@ var includesF = [//'/ActionHelpers.class.js',
 				'/ComponentMouseEvents.class.js',
 				'/Node.class.js',
 				'/Stage.class.js',
-				'/Project.class.js'];
+				'/Project.class.js',
+				'/UI/UI.class.js',
+				'/UI/PanelListNodes.class.js',
+				'/UI/PanelNode.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
 
+//***********
+//UI LIBRARIES
+//***********
+//CSS
+if(window.jQuery == undefined) {
+	document.write('<link rel="stylesheet" type="text/css" href="'+sceDirectory+'/UI/JQuery/ui/jquery-ui.min.css" />');
+}
+document.write('<link rel="stylesheet" type="text/css" href="'+sceDirectory+'/UI/fileMenu/fileMenu.css" />');
+document.write('<link rel="stylesheet" type="text/css" href="'+sceDirectory+'/UI/stormPanel/stormPanel.css" />');
+
+//JS
+if(window.jQuery == undefined) {
+	document.write('<script type="text/javascript" src="'+sceDirectory+'/UI/JQuery/jquery-1.11.3.js"></script>');	
+	document.write('<script type="text/javascript" src="'+sceDirectory+'/UI/JQuery/ui/jquery-ui.min.js"></script>');
+}
+document.write('<script type="text/javascript" src="'+sceDirectory+'/UI/fileMenu/fileMenu.js"></script>');
+document.write('<script type="text/javascript" src="'+sceDirectory+'/UI/stormPanel/stormPanel.js"></script>');
+document.write('<script type="text/javascript" src="'+sceDirectory+'/UI/ActionHelpers.class.js"></script>');
 
 /**
 * Engine contructor
@@ -70,27 +92,35 @@ for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="t
 SCE = function() {	
 	"use strict";
 			
-	var target;
-	var project;		
-	var gl;
+	var target = null,
+	project = null,	
+	dimensions = null,
+	canvas = null,
+	gl = null,
+	_UI = null;
 	
 	/**
 	* Init WebGL Context
 	* @type Void
 	* @param {Object} jsonIn
-	* 	@param {HTMLCanvasElement} jsonIn.target
+	* @param {HTMLDivElement} jsonIn.target
+	* @param {Object} jsonIn.dimensions
 	*/
 	this.initialize = function(jsonIn) {
 		target = (jsonIn != undefined && jsonIn.target != undefined) ? jsonIn.target : undefined;
+		dimensions = (jsonIn != undefined && jsonIn.dimensions != undefined) ? jsonIn.dimensions : {"width": 512, "height": 512};
 			
-		if(target != undefined) {
-			if(!(gl = new Utils().getWebGLContextFromCanvas(target))) {
+		if(target != null) {
+			canvas = document.createElement("canvas");
+			canvas.setAttribute("width", dimensions.width);
+			canvas.setAttribute("height", dimensions.height);
+			target.appendChild(canvas);
+			
+			if(!(gl = new Utils().getWebGLContextFromCanvas(canvas))) {
 				alert("No WebGLRenderingContext");
 				return false; 
 			}
-		} else {
-			alert('Target canvas required');
-		}
+		} else alert('Target DIV required');
 	};
 	
 	/**
@@ -101,7 +131,8 @@ SCE = function() {
 		project = prj; 
 		project.setWebGLContext(gl);
 		
-		new SystemEvents(project, target).initialize();
+		_UI = new UI(project).render(target);
+		new SystemEvents(project, canvas).initialize();
 	};
 	
 	/**

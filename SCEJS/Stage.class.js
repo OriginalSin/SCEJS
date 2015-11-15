@@ -5,8 +5,9 @@
 Stage = function() {
 	"use strict";
 	
-	this.nodes = [];
+	var nodes = [];
 	var activeCamera = null;
+	var selectedNode = null;
 	var gl = null;
 	
 	/**
@@ -26,13 +27,37 @@ Stage = function() {
 	};
 	
 	/**
+	 * setSelectedNode
+	 * @param {Node} node
+	 */
+	this.setSelectedNode = function(node) {
+		selectedNode = node;
+	};
+	
+	/**
+	 * getSelectedNode
+	 * @returns {Node}
+	 */
+	this.getSelectedNode = function() {
+		return selectedNode;
+	};
+	
+	/**
 	* addNode
 	* @param {Node} node.
 	*/
 	this.addNode = function(node) {
-		this.nodes.push(node);
+		nodes.push(node);
 		
 		node.setWebGLContext(gl);
+	};
+		
+	/**
+	* getNodes
+	* @returns {Array<Nodes>}
+	*/
+	this.getNodes = function() {
+		return nodes;
 	};
 	
 	/**
@@ -63,15 +88,15 @@ Stage = function() {
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
 			
-			for(var n=0, fn = this.nodes.length; n < fn; n++) {
-				for(var key in this.nodes[n].getComponents()) {
-					var component = this.nodes[n].getComponent(key);
+			for(var n=0, fn = nodes.length; n < fn; n++) {
+				for(var key in nodes[n].getComponents()) {
+					var component = nodes[n].getComponent(key);
 					
 					if(component.tick != null && component.type != Constants.COMPONENT_TYPES.SCREEN_EFFECTS)
 						component.tick(activeCamera);
 				}
 				
-				if(this.nodes[n].onTick != null)  this.nodes[n].onTick();
+				if(nodes[n].onTick != null)  nodes[n].onTick();
 			}
 			
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
