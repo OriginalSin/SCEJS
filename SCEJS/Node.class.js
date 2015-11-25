@@ -30,11 +30,11 @@ Node = function() {
 	
 	/**
 	 * getComponent
-	 * @param {COMPONENT_TYPES} COMPONENT_TYPES
+	 * @param {COMPONENT_TYPES} type
 	 * @returns {Component}
 	 */
-	this.getComponent = function(COMPONENT_TYPES) {
-		return _components[COMPONENT_TYPES];
+	this.getComponent = function(type) {
+		return _components[type];
 	};
 	
 	/**

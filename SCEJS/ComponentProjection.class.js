@@ -13,8 +13,8 @@ ComponentProjection = function() { Component.call(this);
 	var mProjectionMatrix = $M16([1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]);
 	
 	var proy = 1; // projection type 1=perspective 2=ortho
-	var width = 512;	
-	var height = 512;
+	var _width = 512;	
+	var _height = 512;
 	var fov = 45;
 	var fovOrtho = 20;	
 	var near = 0.1;
@@ -54,19 +54,17 @@ ComponentProjection = function() { Component.call(this);
 	 * @param {Int} height
 	 */
 	this.setResolution = function(width, height) {
-		width = width;
-		height = height;
+		_width = width;
+		_height = height;
 		updateProjectionMatrix();
-		
-		//nodeTarget.glScreenBuffers.updateGLScreenBuffers();
 	};
 	/**
 	 * getResolution
 	 * @returns {Object}
 	 */
 	this.getResolution = function() {
-		return {"width": width,
-				"height": height};
+		return {"width": _width,
+				"height": _height};
 	};
 	/**
 	 * @param {Float} fov
@@ -115,13 +113,10 @@ ComponentProjection = function() { Component.call(this);
 	 */
 	var updateProjectionMatrix = (function() {		
 		var fovy = (proy == 1) ? fov : fovOrtho;
-		var aspect = width / height;
+		var aspect = _width / _height;
 		
 		if(proy == 1) mProjectionMatrix = $M16().setPerspectiveProjection(fovy, aspect, near, far);
 		else mProjectionMatrix = $M16().setOrthographicProjection(-aspect*fovy, aspect*fovy, -fovy, fovy, near, far);
-			
-		//if(proy == 1) Matrix.perspectiveM(mProjectionMatrix, 0, fovy, aspect, near, far);
-		//else Matrix.orthoM(mProjectionMatrix, 0, -aspect*fovy, aspect*fovy, -fovy, fovy, near, far);
 	}).bind(this);
 };
 ComponentProjection.prototype = Object.create(Component.prototype);

@@ -13,6 +13,7 @@ ComponentRenderer = function() { Component.call(this);
 	var clglWork;
 	
 	var args = {};
+	var vfps = {};
 	
 	/**
 	 * initialize
@@ -31,16 +32,34 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
-	 * @param {VFP} vfp
+	 * getWebCLGL
+	 * @returns {WebCLGL}
 	 */
-	this.addVFP = function(vfp) {
+	this.getWebCLGL = function() {
+		return webCLGL;
+	};
+	
+	/**
+	 * @param {String} name
+	 * @param {VFP} vfp
+	 * @param {String} seArgDestination
+	 * @param {Int} drawMode
+	 * @param {Function} onPostTick
+	 */
+	this.addVFP = function(name, vfp, seArgDestination, drawMode, onPostTick) {
 		var arg = vfp.getSrc();
 		var vfProgram = webCLGL.createVertexFragmentProgram();
 		vfProgram.setVertexSource(arg[1][0], arg[0][0]);
 		vfProgram.setFragmentSource(arg[3][0], arg[2][0]);
-		clglWork.addVertexFragmentProgram(vfProgram, vfp.constructor.name);
+		clglWork.addVertexFragmentProgram(vfProgram, seArgDestination);
 		
-		vfProgram.argBufferDestination = vfp.constructor.name;
+		vfProgram.argBufferDestination = seArgDestination;
+		
+		vfps[name] = {	"enabled": true,
+						"vfp": vfProgram,
+						"argBufferDestination": seArgDestination,
+						"drawMode": drawMode,
+						"onPostTick": onPostTick};
 	};
 	
 	/**
@@ -48,7 +67,34 @@ ComponentRenderer = function() { Component.call(this);
 	 * @returns {Object}
 	 */
 	this.getVFPs = function() {
-		return clglWork.vertexFragmentPrograms;
+		return vfps;
+	};
+	
+	/**
+	* enableVfp
+	* @param {String} name
+	*/
+	this.enableVfp = function(name) {
+		vfps[name].enabled = true;
+	};
+	
+	/**
+	* disableVfp
+	* @param {String} name
+	*/
+	this.disableVfp = function(name) {
+		vfps[name].enabled = false;
+	};
+	
+	/**
+	 * @param {KERNEL} k
+	 * @param {String} argDestination
+	 */
+	this.addKernel = function(k, argDestination) {
+		var arg = k.getSrc();
+		var kernel = webCLGL.createKernel();
+		kernel.setKernelSource(arg[1][0], arg[0][0]);
+		clglWork.addKernel(kernel, argDestination);
 	};
 	
 	/**
@@ -87,6 +133,14 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
+	 * getTempBuffers
+	 * @returns {Array<WebCLGLBuffer>}
+	 */
+	this.getTempBuffers = function() {
+		return clglWork.buffers_TEMP;
+	};
+	
+	/**
 	* @param {Function} fnvalue 
 	* @param {Array<Float>} [splits=[array.length]]
 	*/
@@ -114,20 +168,31 @@ ComponentRenderer = function() { Component.call(this);
 				clglWork.setArg(key, args[key].fnvalue());
 			}
 		}
-		for(var key in this.getVFPs()) {
-			var destArg = null;
-			var comp_screenEffects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-			if(comp_screenEffects != undefined) {
-				destArg = comp_screenEffects.getBuffers()[this.getVFPs()[key].argBufferDestination];
-			} else console.log("ComponentScreenEffects not exists in camera"); 
+		
+		clglWork.enqueueNDRangeKernel();
 			
-			gl.bindFramebuffer(gl.FRAMEBUFFER, destArg.items[0].fBuffer);
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, destArg.items[0].textureData, 0);			
+		
+		var comp_screenEffects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+		if(comp_screenEffects != undefined) {	
+			var resolution = activeCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution();
+			gl.viewport(0, 0, resolution.width, resolution.height);
 			
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
-			
-			clglWork.enqueueVertexFragmentProgram(undefined, key, (function() {}).bind(this), 4);
-		}
+			for(var key in this.getVFPs()) {
+				if(this.getVFPs()[key].enabled == true) {
+					var destArg = comp_screenEffects.getBuffers()[this.getVFPs()[key].vfp.argBufferDestination];	
+					if(destArg != undefined) {
+						gl.bindFramebuffer(gl.FRAMEBUFFER, destArg.items[0].fBuffer);
+						gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, destArg.items[0].textureData, 0);
+					} else {
+						gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+					}
+					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, (function() {}).bind(this), vfps[key].drawMode);
+					
+					if(vfps[key].onPostTick != undefined)
+						vfps[key].onPostTick();
+				}
+			}
+		} else console.log("ComponentScreenEffects not exists in camera"); 
 	};	
 };
 ComponentRenderer.prototype = Object.create(Component.prototype);

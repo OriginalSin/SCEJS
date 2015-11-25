@@ -27,7 +27,7 @@ THE SOFTWARE.
 * @constructor
 * @param {WebGLRenderingContext} [webglcontext=undefined] your WebGLRenderingContext
 */
-function WebCLGL(webglcontext) { 
+WebCLGL = function(webglcontext) { 
 	this.utils = new WebCLGLUtils();
 	
 	// WEBGL CONTEXT

@@ -12,6 +12,8 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	var gl = null;
 	
 	
+	var comp_transformTarget;
+	
 	var forward = 0;
 	var backward = 0;
 	var left = 0;
@@ -39,7 +41,7 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 		node = nod;
 		gl = glCtx;
 		
-		var comp_transformTarget = node.getComponent("ComponentTransformTarget");
+		comp_transformTarget = node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
 	};	
 	
 	/**

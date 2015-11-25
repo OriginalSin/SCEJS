@@ -32,17 +32,17 @@ ComponentScreenEffects = function() { Component.call(this);
 
 	/**
 	 * @param {SE} se
+	 * @param {Int} width
+	 * @param {Int} height
 	 */
-	this.addSE = function(se) {
+	this.addSE = function(se, width, height) {
 		var source = se.getSrc();
 		var kernel = webCLGL.createKernel(); 
 		kernel.setKernelSource(source[1][0], source[0][0]);				
 		clglWork.addKernel(kernel, undefined); // undefined=output to principal buffer
 		
 		for(var n=0, fn=se.dependencies.length; n < fn; n++) {
-			var w = node.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution().width;
-			var h = node.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution().height;
-			this.setArg(se.dependencies[n], function(){return new Float32Array(w*h*4);});
+			this.setArg(se.dependencies[n], function(){return new Float32Array(width*height*4);}, undefined, [width, height]);
 		}
 	};
 	
@@ -51,11 +51,14 @@ ComponentScreenEffects = function() { Component.call(this);
 	* @param {String} argument Argument to set
 	* @param {Function} fnvalue
 	* @param {Array<Float>} [splits=[array.length]]
+	* @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
 	*/
-	this.setArg = function(argument, fnvalue, splits) {
-		clglWork.setArg(argument, fnvalue(), splits);
+	this.setArg = function(argument, fnvalue, splits, overrideDimensions) {
+		clglWork.setArg(argument, fnvalue(), splits, overrideDimensions);
 		args[argument] = {	"fnvalue": fnvalue,
-							"updatable": null};
+							"updatable": null,
+							"splits": splits,
+							"overrideDimensions": overrideDimensions};
 	};
 	
 	/**
@@ -74,10 +77,20 @@ ComponentScreenEffects = function() { Component.call(this);
 	this.tick = function() {
 		for(var key in args) {
 			if(args[key].updatable == true) {
-				clglWork.setArg(key, args[key].fnvalue());
+				var arg = args[key];
+				clglWork.setArg(key, arg.fnvalue(), arg.splits, arg.overrideDimensions);
 			}
 		}
 		clglWork.enqueueNDRangeKernel();
+		
+		for(var key in this.getBuffers()) {			
+			var destArg = this.getBuffers()[key];
+			
+			gl.bindFramebuffer(gl.FRAMEBUFFER, destArg.items[0].fBuffer);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, destArg.items[0].textureData, 0);
+			
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
+		}		
 	};	
 };
 ComponentScreenEffects.prototype = Object.create(Component.prototype);

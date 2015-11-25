@@ -43,6 +43,11 @@ var includesF = [//'/StormMathMin.class.js',
 				'/WebCLGL.class.js',
 				'/VFP.class.js',
 				'/VFP_RGB.class.js',
+				'/VFP_NODE.class.js',
+				'/VFP_NODEPICKDRAG.class.js',
+				'/KERNEL_DIR.class.js',
+				'/KERNEL_POSBYDIR.class.js',
+				'/KERNEL_POS_OPPOSITE.class.js',
 				'/SE.class.js',
 				'/SE_RGB.class.js',
                 '/Mesh.class.js',
@@ -61,7 +66,7 @@ var includesF = [//'/StormMathMin.class.js',
 				'/Stage.class.js',
 				'/Project.class.js',
 				'/UI/UI.class.js',
-				'/UI/PanelListNodes.class.js',
+				'/UI/PanelStage.class.js',
 				'/UI/PanelNode.class.js',
 				'/UI/UIComponentRenderer.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
@@ -106,7 +111,7 @@ SCE = function() {
 	* @type Void
 	* @param {Object} jsonIn
 	* @param {HTMLDivElement} jsonIn.target
-	* @param {Object} jsonIn.dimensions
+	* @param {Object} [jsonIn.dimensions={width: Int, height: Int}]
 	*/
 	this.initialize = function(jsonIn) {
 		target = (jsonIn != undefined && jsonIn.target != undefined) ? jsonIn.target : undefined;
@@ -114,9 +119,8 @@ SCE = function() {
 			
 		if(target != null) {
 			canvas = document.createElement("canvas");
-			canvas.setAttribute("width", dimensions.width);
-			canvas.setAttribute("height", dimensions.height);
 			target.appendChild(canvas);
+			this.setDimensions(dimensions.width, dimensions.height);
 			
 			if(!(gl = new Utils().getWebGLContextFromCanvas(canvas))) {
 				alert("No WebGLRenderingContext");
@@ -143,6 +147,33 @@ SCE = function() {
 	 */
 	this.getLoadedProject = function() {
 		return project;
+	};
+	
+	/**
+	 * getCanvas
+	 * @returns {HTMLCanvasElement}
+	 */
+	this.getCanvas = function() {
+		return canvas;
+	};
+	
+	/**
+	 * setDimensions
+	 * @param {Int} width
+	 * @param {Int} height
+	 */
+	this.setDimensions = function(width, height) {
+		dimensions = {"width": width, "height": height};
+		 
+		canvas.setAttribute("width", dimensions.width);
+		canvas.setAttribute("height", dimensions.height); 
+		
+		if(project != null && project.getActiveStage() != null && project.getActiveStage().getActiveCamera() != null) {
+			project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).setResolution(dimensions.width, dimensions.width);
+			
+			var cse = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+			cse.addSE(new SE_RGB(), dimensions.width, dimensions.width);
+		}
 	};
 };
 

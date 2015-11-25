@@ -59,18 +59,53 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 	// arguments
 	for(var argKey in comp.getArgs()) {	
 		var arg = comp.getArgs()[argKey];
+		console.log(arg);
 		
 		var str = 	"<div id='DIVID_"+argKey+"' style='background:rgba(0,0,0,0.5);padding:5px;margin-bottom:4px' class='StormShadow02 StormRound'>"+
 					"<div>"+argKey+"</div>"+
+					"<form><textarea id='code_"+argKey+"' name='code_"+argKey+"'>"+
+					"</textarea></form>"+
 					"<div>"+arg.fnvalue+"</div>"+
 				"</div>";						
 		$('#component_arguments').append(str);
 		
+		
+		
+		
+		var editor = CodeMirror.fromTextArea(document.getElementById("code_"+argKey), {
+	        lineNumbers: true,
+	        theme : "eclipse",
+	        mode: "javascript" 
+	      });
+		
+		var server = new CodeMirror.TernServer({"defs": defs});
+		server.server.addFile("xxx", document.getElementById("cod").innerHTML);
+	    editor.setOption("extraKeys", {
+	      "Ctrl-Space": function(cm) { server.complete(cm); },
+	      "Ctrl-I": function(cm) { server.showType(cm); },
+	      "Ctrl-O": function(cm) { server.showDocs(cm); },
+	      "Alt-.": function(cm) { server.jumpToDef(cm); },
+	      "Alt-,": function(cm) { server.jumpBack(cm); },
+	      "Ctrl-Q": function(cm) { server.rename(cm); },
+	      "Ctrl-.": function(cm) { server.selectName(cm); }
+	    });
+	    editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
+		
+		
+		
+		
+		
+		
+		
+		
+	    
+	    
+	    
 		ah.add_checkbox(document.getElementById('DIVID_'+argKey), argKey+" UPDATABLE", arg.updatable, 
-		(function(comp, argKey) {
-		comp.setArgUpdatable(argKey, true);
-		}).bind(this, comp, argKey), (function(comp, argKey) {
-		comp.setArgUpdatable(argKey, false);
-		}).bind(this, comp, argKey));
+			(function(comp, argKey) {
+				comp.setArgUpdatable(argKey, true);
+			}).bind(this, comp, argKey), (function(comp, argKey) {
+				comp.setArgUpdatable(argKey, false);
+			}).bind(this, comp, argKey));
 	}
 };

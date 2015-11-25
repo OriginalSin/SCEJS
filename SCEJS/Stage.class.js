@@ -77,12 +77,22 @@ Stage = function() {
 	};
 	
 	/**
+	* getWebGLContext
+	* @returns {WebGLRenderingContext} 
+	*/
+	this.getWebGLContext = function() {
+		return gl;
+	};
+	
+	/**
 	 * tick
 	 * @private
 	 */
 	var tick = (function() {
 		if(activeCamera != null) {
-			gl.viewport(0, 0, 512, 512);
+			var resolution = activeCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution();
+			gl.viewport(0, 0, resolution.width, resolution.height);
+			 
 			gl.clearColor(0.0, 0.0, 0.0, 1.0);
 			gl.clearDepth(1.0);
 			gl.enable(gl.DEPTH_TEST);

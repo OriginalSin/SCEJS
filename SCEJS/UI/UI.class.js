@@ -6,7 +6,7 @@ UI = function(project) {
 	"use strict";
 	
 	var _project = project;
-	var panel_ListNodes = null;
+	var panel_Stage = null;
 	var panel_Node = null;
 	
 	
@@ -29,7 +29,7 @@ UI = function(project) {
 			        '<li class="sub">'+
 			            'Panels'+
 			            '<ul>'+
-			                '<li id="TOPMENU_view_PanelListNodes">Panel List Nodes...</li>'+
+			                '<li id="TOPMENU_view_PanelStage">Panel Stage...</li>'+
 			                '<li id="TOPMENU_view_PanelNode">Panel Node...</li>'+
 			            '</ul>'+
 			        '</li>'+
@@ -48,7 +48,7 @@ UI = function(project) {
 		
 		//fileLoader.render(document.body);
 	    
-		panel_ListNodes = new PanelListNodes();
+		panel_Stage = new PanelStage();
 		panel_Node = new PanelNode();
 		
 		
@@ -65,8 +65,8 @@ UI = function(project) {
 			//fileLoader.openDialog(); 
 		}).bind(this));
 		
-		DGE("TOPMENU_view_PanelListNodes").addEventListener("click", (function() {
-			panel_ListNodes.show(_project.getActiveStage().getNodes(), _project.getActiveStage().getSelectedNode(), function(node) {
+		DGE("TOPMENU_view_PanelStage").addEventListener("click", (function() {
+			panel_Stage.show(_project.getActiveStage().getNodes(), _project.getActiveStage().getSelectedNode(), function(node) {
 				_project.getActiveStage().setSelectedNode(node);
 				
 				panel_Node.show(_project.getActiveStage().getSelectedNode());

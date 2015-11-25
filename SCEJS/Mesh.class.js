@@ -6,6 +6,27 @@ Mesh = function() {
 	"use strict";
 	
 	/**
+	* Load a triangle on node
+	*/
+	this.loadTriangle = function() {
+		var obj = {};
+		
+		obj.vertexArray = [0.0, 1.0, 0.0, 1.0,
+							1.0, 0.0, 0.0, 1.0,
+							0.0, 0.0, 0.0, 1.0];	
+		obj.normalArray = [0.0, 0.0, 1.0, 1.0,
+		                    0.0, 0.0, 1.0, 1.0,
+		                    0.0, 0.0, 1.0, 1.0];	
+		obj.textureArray = [0.0, 0.0, 0.0, 1.0,
+		                     1.0, 0.0, 0.0, 1.0,
+		                     1.0, 1.0, 0.0, 1.0];
+		obj.textureUnitArray = [0.0, 0.0, 0.0, 0.0];
+		obj.indexArray = [0, 1, 2];
+		
+		return obj;
+	};
+	
+	/**
 	* Load a quad
 	* @param {Float} length
 	* @param {Float} height
