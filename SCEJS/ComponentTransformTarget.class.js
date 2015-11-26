@@ -12,9 +12,9 @@ ComponentTransformTarget = function() { Component.call(this);
 	
 	var mModelMatrix = $M16([1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]);
 	
-	var positionGoal = $V3([0, 0, 5]);
-	var positionTarget = $V3([0, 0, 0]);
 	var targetDistance = 5.0; 
+	var positionGoal = $V3([0, 0, targetDistance]);
+	var positionTarget = $V3([0, 0, 0]);
 	
 	
 	/**
@@ -86,6 +86,12 @@ ComponentTransformTarget = function() { Component.call(this);
 	 */
 	this.getPositionTarget = function() {
 		return positionTarget;
+	};
+	
+	this.reset = function() {		
+		positionGoal = $V3([0, 0, targetDistance]);
+		positionTarget = $V3([0, 0, 0]);
+		performMatrix();
 	};
 	
 	

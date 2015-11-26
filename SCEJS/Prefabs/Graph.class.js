@@ -8,19 +8,14 @@ Graph = function(sce) {
 	var _project = _sce.getLoadedProject();
 	var _gl = _project.getActiveStage().getWebGLContext();
 	var _utils = new Utils();
-	
+		
 	this.arrPP = [];
 	this.arrF = [];
 	this.selfShadows = true;
 	this.offset = 1000.0;
 	
 	var readMouse = false;
-	var mousePosX = 0;
-	var mousePosY = 0;
-	var mouseOldPosX = 0; 
-	var mouseOldPosY = 0;
-	var divPositionX = 0;
-	var divPositionY = 0;
+	
 	var selectedId = -1;
 	
 	var meshNode = new Mesh().loadBox();
@@ -45,7 +40,8 @@ Graph = function(sce) {
 			readMouse = false;
 			
 			var arrayPick = new Uint8Array(4);  
-			_gl.readPixels(mousePosX, (_sce.getCanvas().height-(mousePosY)), 1, 1, _gl.RGBA, _gl.UNSIGNED_BYTE, arrayPick);
+			var mousePos = _sce.getEvents().getMousePosition();
+			_gl.readPixels(mousePos.x, (_sce.getCanvas().height-(mousePos.y)), 1, 1, _gl.RGBA, _gl.UNSIGNED_BYTE, arrayPick);
 			
 			var unpackValue = _utils.unpack([arrayPick[0]/255, arrayPick[1]/255, arrayPick[2]/255, arrayPick[3]/255]); // value from 0.0 to 1.0			
 			selectedId = Math.round(unpackValue*1000000.0)-1.0;
@@ -60,14 +56,6 @@ Graph = function(sce) {
 	nodes.addComponent(comp_mouseEvents);
 	comp_mouseEvents.onmousedown = function(evt) {
 		readMouse = true;
-		
-		divPositionX = _utils.getElementPosition(_sce.getCanvas()).x;
-		divPositionY = _utils.getElementPosition(_sce.getCanvas()).y;
-		
-		mousePosX = (evt.clientX - divPositionX);
-		mousePosY = (evt.clientY - divPositionY);
-		mouseOldPosX = mousePosX;   
-		mouseOldPosY = mousePosY;  
 		
 		comp_renderer_nodes.enableVfp("NODES_PICKDRAG");
 	};
@@ -92,38 +80,27 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 	};
-	comp_mouseEvents.onmousemove = function(evt) {
+	comp_mouseEvents.onmousemove = function(evt, dir) {
 		if(selectedId != -1) {
 			evt.preventDefault();
-			var factordist = _sce.getLoadedProject().getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getFov()*0.0039;
-			var factorxdim = (mouseOldPosX - mousePosX) * factordist;
-			var factorydim = (mouseOldPosY - mousePosY) * factordist;			
-			mouseOldPosX = mousePosX;   
-			mouseOldPosY = mousePosY;  
-			mousePosX = (evt.clientX - divPositionX);
-			mousePosY = (evt.clientY - divPositionY);
-			var m = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix();
-			var X = m.getLeft().x(factorxdim*-1.0); 
-			var Y = m.getUp().x(factorydim); 
-			X = X.add(Y);
 			
 			comp_renderer_nodes.setArg("enableDrag", (function() {return 1;}).bind(this));
 			comp_renderer_nodes.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-			comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return X.e[0];}).bind(this));
-			comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return X.e[1];}).bind(this));
-			comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return X.e[2];}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return dir.e[0];}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return dir.e[1];}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return dir.e[2];}).bind(this));
 			
 			comp_renderer_links.setArg("enableDrag", (function() {return 1;}).bind(this));
 			comp_renderer_links.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-			comp_renderer_links.setArg("MouseDragTranslationX", (function() {return X.e[0];}).bind(this));
-			comp_renderer_links.setArg("MouseDragTranslationY", (function() {return X.e[1];}).bind(this));
-			comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return X.e[2];}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationX", (function() {return dir.e[0];}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationY", (function() {return dir.e[1];}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return dir.e[2];}).bind(this));
 			
 			comp_renderer_arrows.setArg("enableDrag", (function() {return 1;}).bind(this));
 			comp_renderer_arrows.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-			comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return X.e[0];}).bind(this));
-			comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return X.e[1];}).bind(this));
-			comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return X.e[2];}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return dir.e[0];}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return dir.e[1];}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return dir.e[2];}).bind(this));
 			
 			setTimeout(function() {
 				comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
@@ -438,6 +415,7 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("dest", (function() {return this.arrayNodeDestination;}).bind(this), this.splitNodes);
 		
 		comp_renderer_nodes.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
+		comp_renderer_nodes.setArgUpdatable("PMatrix", true);
 		comp_renderer_nodes.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_nodes.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer_nodes.setArg("nodeWMatrix", (function() {return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
@@ -617,6 +595,7 @@ Graph = function(sce) {
 		comp_renderer_links.setArg("dest", (function() {return this.arrayLinkDestination;}).bind(this), this.splitLinks);
 		
 		comp_renderer_links.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
+		comp_renderer_links.setArgUpdatable("PMatrix", true);
 		comp_renderer_links.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_links.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer_links.setArg("nodeWMatrix", (function() {return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
@@ -793,6 +772,7 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArg("dest", (function() {return this.arrayArrowDestination;}).bind(this), this.splitArrows);
 		
 		comp_renderer_arrows.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
+		comp_renderer_arrows.setArgUpdatable("PMatrix", true);
 		comp_renderer_arrows.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_arrows.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer_arrows.setArg("nodeWMatrix", (function() {return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));

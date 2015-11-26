@@ -42,6 +42,7 @@ var includesF = [//'/StormMathMin.class.js',
 				'/WebCLGLWork.class.js', 
 				'/WebCLGL.class.js',
 				'/VFP.class.js',
+				'/VFP_GRID.class.js',
 				'/VFP_RGB.class.js',
 				'/VFP_NODE.class.js',
 				'/VFP_NODEPICKDRAG.class.js',
@@ -104,7 +105,8 @@ SCE = function() {
 	dimensions = null,
 	canvas = null,
 	gl = null,
-	_UI = null;
+	_UI = null,
+	_events = null;
 	
 	/**
 	* Init WebGL Context
@@ -138,7 +140,8 @@ SCE = function() {
 		project.setWebGLContext(gl);
 		
 		_UI = new UI(project).render(target);
-		new SystemEvents(project, canvas).initialize();
+		_events = new SystemEvents(this, canvas);
+		_events.initialize();
 	};
 	
 	/**
@@ -155,6 +158,14 @@ SCE = function() {
 	 */
 	this.getCanvas = function() {
 		return canvas;
+	};
+	
+	/**
+	 * getEvents
+	 * @returns {SystemEvents}
+	 */
+	this.getEvents = function() {
+		return _events;
 	};
 	
 	/**

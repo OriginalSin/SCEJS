@@ -18,6 +18,8 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	var backward = 0;
 	var left = 0;
 	var right = 0;
+	var front = 0;
+	var back = 0;
 	
 	var leftButton = 0;
 	var middleButton = 0;
@@ -113,15 +115,61 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	this.strafeRight = function() {
 		right = 1;
 	};
-
+	
 	/**
-	 * stop
+	 * strafeFront
 	 */
-	this.stop = function() {
+	this.strafeFront = function() {
+		front = 1;
+	};
+	
+	/**
+	 * strafeBack
+	 */
+	this.strafeBack = function() {
+		back = 1;
+	};
+	
+	/**
+	 * stopForward
+	 */
+	this.stopForward = function() {
 		forward = 0;
+	};
+	
+	/**
+	 * stopBackward
+	 */
+	this.stopBackward = function() {
 		backward = 0;
+	};
+	
+	/**
+	 * stopStrafeLeft
+	 */
+	this.stopStrafeLeft = function() {
 		left = 0;
+	};
+	
+	/**
+	 * stopStrafeRight
+	 */
+	this.stopStrafeRight = function() {
 		right = 0;
+	};
+	
+	/**
+	 * stopStrafeFront
+	 */
+	this.stopStrafeFront = function() {
+		front = 0;
+	};
+	
+	/**
+	 * stopStrafeBack
+	 */
+	this.stopStrafeBack = function() {
+		back = 0;
 	};
 
 	this.mouseDown = function(event) {
@@ -151,22 +199,6 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 		if(leftButton == 1 || middleButton == 1)
 			updateGoal(event);
 	};
-	
-	this.mouseWheel = function(event) {
-		var weightX = 0;
-		var weightY = 0;
-		if(event.wheelDeltaY >= 0) { // zoom in
-			weightX = (this._sec.mousePosX-(this._sec.stormGLContext.viewportWidth/2.0))*currFov*-0.0004;
-			weightY = (this._sec.mousePosY-(this._sec.stormGLContext.viewportHeight/2.0))*currFov*-0.0004;
-		} else { // zoom out
-			weightX = (this._sec.mousePosX-(this._sec.stormGLContext.viewportWidth/2.0))*currFov*0.0004;
-			weightY = (this._sec.mousePosY-(this._sec.stormGLContext.viewportHeight/2.0))*currFov*0.0004;
-		} 
-		var left = comp_transformTarget.getMatrix().inverse().getLeft();
-		var up = comp_transformTarget.getMatrix().inverse().getUp();
-		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(left.x(weightX*-1.0).add(up.x(weightY)))); 
-		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(left.x(weightX*-1.0).add(up.x(weightY))));
-	};
 
 	
 
@@ -176,27 +208,22 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	* @override
 	*/
 	this.tick = function(elapsed) {	
-		var dir;
-		if(forward == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getForward().x(-1.0);
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}
-		if(backward == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getForward();
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}
-		if(left == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getLeft().x(-1.0);
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}
-		if(right == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getLeft();
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}	
+		var dir = $V3([0.0, 0.0, 0.0]);
+		if(forward == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(-1.0));
+		if(backward == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward());
+		if(left == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(-1.0));
+		if(right == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft());
+		if(back == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(-1.0));
+		if(front == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp());
+		
+		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
+		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
 	};
 
 	/** @private */

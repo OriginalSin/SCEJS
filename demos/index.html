@@ -6,6 +6,7 @@
 		<script src="../SCEJS/Prefabs/SimpleCamera.class.js"></script>
 		<script src="../SCEJS/Prefabs/SimpleNode.class.js"></script>
 		<script src="../SCEJS/Prefabs/Graph.class.js"></script>
+		<script src="../SCEJS/Prefabs/Grid.class.js"></script>
 		
 		<link rel=stylesheet href="../SCEJS/UI/codemirror/doc/docs.css">
 
@@ -138,9 +139,12 @@
 			var simpleCamera = new SimpleCamera(sce);
 						
 			// NODE
-			var simpleNode = new SimpleNode(sce); 
-			simpleNode.setImage("../demos/_RESOURCES/cartman08.jpg");
+			//var simpleNode = new SimpleNode(sce); 
+			//simpleNode.setImage("../demos/_RESOURCES/cartman08.jpg");
 			
+			// GRID
+			var grid = new Grid(sce);
+			grid.generate(100.0, 1.0);
 			
 			// GRAPH
 			var graph = new Graph(sce);			

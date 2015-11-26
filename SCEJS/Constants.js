@@ -16,5 +16,17 @@ var Constants = {
 		"PROJECTION": 5,
 		"RENDERER": 6,
 		"SCREEN_EFFECTS": 7
+	},
+	"PROJECTION_TYPES": {		
+		"PERSPECTIVE": 0,
+		"ORTHO": 1,
+	},
+	"VIEW_TYPES": {		
+		"LEFT": 0,
+		"RIGHT": 1,
+		"FRONT": 2,
+		"BACK": 3,
+		"TOP": 4,
+		"BOTTOM": 5,
 	}
 };
