@@ -8,6 +8,8 @@ Stage = function() {
 	var nodes = [];
 	var activeCamera = null;
 	var selectedNode = null;
+	var paused = false;
+	var backgroundColor = [0.0, 0.0, 0.0, 1.0];
 	var gl = null;
 	
 	/**
@@ -61,10 +63,19 @@ Stage = function() {
 	};
 	
 	/**
-	* initialize
+	* render
 	*/
 	this.render = function() {
+		paused = false;
+		this.setBackgroundColor(backgroundColor);
 		tick();
+	};
+	
+	/**
+	* pause
+	*/
+	this.pause = function() {
+		paused = true;
 	};
 	
 	/**
@@ -74,6 +85,23 @@ Stage = function() {
 	*/
 	this.setWebGLContext = function(glCtx) {
 		gl = glCtx;
+	};
+	
+	/**
+	* setBackgroundColor
+	* @param {Array<Float4>} color.
+	*/
+	this.setBackgroundColor = function(color) {
+		backgroundColor = color;
+		gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
+	};
+	
+	/**
+	* getBackgroundColor
+	* @returns {Array<Float4>}
+	*/
+	this.getBackgroundColor = function() {
+		return backgroundColor;
 	};
 	
 	/**
@@ -93,7 +121,7 @@ Stage = function() {
 			var resolution = activeCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution();
 			gl.viewport(0, 0, resolution.width, resolution.height);
 			 
-			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			//gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 			gl.clearDepth(1.0);
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
@@ -115,7 +143,7 @@ Stage = function() {
 			if(activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS) != undefined)
 				activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).tick();
 		}
-		window.requestAnimFrame(tick);
+		if(paused == false) window.requestAnimFrame(tick);
 	}).bind(this);
 };
 

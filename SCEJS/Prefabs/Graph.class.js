@@ -982,7 +982,7 @@ Graph = function(sce) {
 	this.set_color = function(color) {
 		var arr;
 		if(color != undefined && color instanceof HTMLImageElement) {
-			arr = this._sec.utils.getUint8ArrayFromHTMLImageElement(color);
+			arr = new Utils().getUint8ArrayFromHTMLImageElement(color);
 		} else if(color != undefined && color instanceof StormV3) {
 			arr = new Uint8Array([color.e[0]*255, color.e[1]*255, color.e[2]*255, 255]);
 		} else {
@@ -995,6 +995,7 @@ Graph = function(sce) {
 		var x = 0;
 		var y = 0;
 		var z = 0;
+		var w = 0;
 		for(var n = 0, f = this.arrayNodeId.length; n < f; n++) {
 			if(currentNodeId != this.arrayNodeId[n]) {
 				currentNodeId = this.arrayNodeId[n];
@@ -1022,17 +1023,20 @@ Graph = function(sce) {
 
 	/**
 	* Set link color
-	* @type Void
-	* @param {StormV3|HTMLImageElement} color Vector3 or HTMLImageElement
+	* @param {Array<Float4>|Array<Float8>|HTMLImageElement} color Vector3 or HTMLImageElement
 	*/
 	this.set_linkColor = function(color) {
-		var arr;
+		var arr, arrTarget;
+		var origin = true;
+		
 		if(color != undefined && color instanceof HTMLImageElement) {
-			arr = this._sec.utils.getUint8ArrayFromHTMLImageElement(color);
-		} else if(color != undefined && color instanceof StormV3) {
-			arr = new Uint8Array([color.e[0]*255, color.e[1]*255, color.e[2]*255, 255]);
+			arr = new Utils().getUint8ArrayFromHTMLImageElement(color);
+		} else if(color != undefined && color.constructor === Array) {
+			arr = new Uint8Array([color[0]*255, color[1]*255, color[2]*255, color[3]*255]);
+			arrTarget = new Uint8Array([color[4]*255, color[5]*255, color[6]*255, color[7]*255]);
 		} else {
 			arr = new Uint8Array([255, 255, 255, 255]);
+			arrTarget = new Uint8Array([250.0, 250.0, 250.0, 255.0]);
 		}
 		
 		this.arrayLinkVertexColor = []; 
@@ -1041,20 +1045,29 @@ Graph = function(sce) {
 		var x = 0;
 		var y = 0;
 		var z = 0;
+		var w = 0;
 		for(var n = 0, f = this.arrayLinkId.length; n < f; n++) {
 			if(currentLinkId != this.arrayLinkId[n]) {
 				currentLinkId = this.arrayLinkId[n];
 				
-				if(arr.length > 4) {
+				if(color != undefined && color instanceof HTMLImageElement) {
 					x = parseFloat(arr[(currentLinkId*4)]/255);
 					y = parseFloat(arr[(currentLinkId*4)+1]/255);
 					z = parseFloat(arr[(currentLinkId*4)+2]/255);
 					w = parseFloat(arr[(currentLinkId*4)+3]/255);
 				} else {
-					x = parseFloat(arr[0]/255);
-					y = parseFloat(arr[1]/255);
-					z = parseFloat(arr[2]/255);
-					w = parseFloat(arr[3]/255);
+					if(origin == true) {
+						x = parseFloat(arr[0]/255);
+						y = parseFloat(arr[1]/255);
+						z = parseFloat(arr[2]/255);
+						w = parseFloat(arr[3]/255);
+					} else {
+						x = parseFloat(arrTarget[0]/255);
+						y = parseFloat(arrTarget[1]/255);
+						z = parseFloat(arrTarget[2]/255);
+						w = parseFloat(arrTarget[3]/255);
+					}					
+					origin = !origin;
 				}
 				
 				this.arrayLinkVertexColor.push(x, y, z, w);
