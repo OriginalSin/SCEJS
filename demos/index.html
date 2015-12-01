@@ -3,53 +3,26 @@
 		<title>SCEJS Draft</title>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
 		<script src="../SCEJS/SCE.class.js"></script> 
-		<script src="../SCEJS/Prefabs/SimpleCamera.class.js"></script>
-		<script src="../SCEJS/Prefabs/SimpleNode.class.js"></script>
-		<script src="../SCEJS/Prefabs/Graph.class.js"></script>
-		<script src="../SCEJS/Prefabs/Grid.class.js"></script>
 		
-		<link rel=stylesheet href="../SCEJS/UI/codemirror/doc/docs.css">
-
-		<link rel="stylesheet" href="../SCEJS/UI/codemirror/lib/codemirror.css">
-		<link rel="stylesheet" href="../SCEJS/UI/codemirror/addon/dialog/dialog.css">
-		<link rel="stylesheet" href="../SCEJS/UI/codemirror/addon/hint/show-hint.css">
-		<link rel="stylesheet" href="../SCEJS/UI/codemirror/addon/tern/tern.css">
-		<script src="../SCEJS/UI/codemirror/lib/codemirror.js"></script>
-		<script src="../SCEJS/UI/codemirror/mode/javascript/javascript.js"></script>
-		<script src="../SCEJS/UI/codemirror/addon/dialog/dialog.js"></script>
-		<script src="../SCEJS/UI/codemirror/addon/hint/show-hint.js"></script>
-		<script src="../SCEJS/UI/codemirror/addon/tern/tern.js"></script>
+		<script src="../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
 		
-		<script src="//ternjs.net/node_modules/acorn/dist/acorn.js"></script>
-		<script src="//ternjs.net/node_modules/acorn/dist/acorn_loose.js"></script>
-		<script src="//ternjs.net/node_modules/acorn/dist/walk.js"></script>
-		<script src="//ternjs.net/doc/demo/polyfill.js"></script>
-		<script src="//ternjs.net/lib/signal.js"></script>
-		<script src="//ternjs.net/lib/tern.js"></script>
-		<script src="//ternjs.net/lib/def.js"></script>
-		<script src="//ternjs.net/lib/comment.js"></script>
-		<script src="//ternjs.net/lib/infer.js"></script>
-		<script src="//ternjs.net/plugin/doc_comment.js"></script>    
+		<script src="../SCEJS/Prefabs/SimpleNode/SimpleNode.class.js"></script>
+		
+		<script src="../SCEJS/Prefabs/Graph/KERNEL_DIR.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/KERNEL_POS_OPPOSITE.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/VFP_NODEPICKDRAG.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/VFP_NODE.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/Graph.class.js"></script>
+		
+		<script src="../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
+		<script src="../SCEJS/Prefabs/Grid/Grid.class.js"></script>
 	</head>
 	
 	<body>
 		
 		<div id="SCEJS"></div> 
-		<script id="cod">
-			var defs = [];
-			var load = (function(defs, url) {
-				var req = new XMLHttpRequest();
-			    req.open("get", url, true);
-			    req.onload = (function(defs, e) {
-			    	defs.push(JSON.parse(e.target.responseText));
-			    	if(defs.length == 2) load("../SCEJS/UI/SCEJS.json");
-				}).bind(this, defs);
-			    req.send(null);
-			}).bind(this, defs);
-			load("//ternjs.net/defs/ecma5.json"); 
-			load("//ternjs.net/defs/browser.json");
-			
-			
+		<script>			
 			var meshNode = new Mesh().loadBox();
 			var edgeColor_origin = [(255.0/255.0), (0.0/255.0), (0.0/255.0)];
 			var edgeColor_target = [(0.0/255.0), (255.0/255.0), (0.0/255.0)];
@@ -75,8 +48,9 @@
 						"name": arrayJson[n].rid.toString(),
 						"data": arrayJson[n],
 						"position": $V3([arrPos[0], arrPos[1], arrPos[2]]),
-						"node": meshNode,
-						"color": $V3([arrColor[0], arrColor[1], arrColor[2]]),
+						//"node": meshNode,
+						//"color": $V3([arrColor[0], arrColor[1], arrColor[2]]),
+						"color": "../SCEJS/Prefabs/Graph/lena.jpg",
 						"onmouseup": (function(nodeData) {
 							
 					}).bind(this)});
@@ -121,8 +95,6 @@
 		
 		
 		
-		
-		
 			var sce = new SCE();
 			sce.initialize({"target": document.getElementById("SCEJS"),
 							"dimensions": {"width": 512, "height": 512}});
@@ -148,8 +120,10 @@
 			
 			// GRAPH
 			var graph = new Graph(sce);			
-			var numNodes = 500; 
-			var numLinks = 500; 
+			var numNodes = 10; 
+			var numLinks = 10; 
+			graph.setFontsImage("../SCEJS/Prefabs/Graph/fonts.png");  
+			
 			
 			var arrayJson = [];
 			for(var n=0; n < numNodes; n++) {		
@@ -171,6 +145,11 @@
 								"directed": true});
 			}
 			this.addLinks(arrayJson);
+			/*graph.set_destinationWidthHeight({width:16,
+												height:16,
+												spacing:2.0});*/
+			//graph.set_dir("random");
+			graph.setSelfShadows(false);
 			
 			//*********
 			// RENDER STAGE

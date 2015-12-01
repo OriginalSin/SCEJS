@@ -19,15 +19,62 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 		var vfp = comp.getVFPs()[vfpKey];
 		
 		var str = 	"<div style='background:rgba(0,0,0,0.5);padding:5px;' class='StormShadow02 StormRound'>"+
-					vfpKey+
-					"<div id='in_vertex_values_"+vfpKey+"' style='background:rgba(255,0,0,0.1)'></div>"+
-					"<div id='in_fragment_values_"+vfpKey+"' style='background:rgba(0,255,0,0.1)'></div>";
-				"</div>";						
+						"<div>name: "+vfpKey+"</div>"+
+						"<div>destination: "+vfp.argBufferDestination+"</div>"+
+						
+						"<div>blendSrc: "+vfp.blendSrc+" <select id='BLEND_source_"+vfpKey+"'>"+
+							"<option value='ZERO'>ZERO</option>"+
+							"<option value='ONE'>ONE</option>"+
+							"<option value='SRC_COLOR'>SRC_COLOR</option>"+
+							"<option value='ONE_MINUS_SRC_COLOR'>ONE_MINUS_SRC_COLOR</option>"+
+							"<option value='DST_COLOR'>DST_COLOR</option>"+
+							"<option value='ONE_MINUS_DST_COLOR'>ONE_MINUS_DST_COLOR</option>"+
+							"<option value='SRC_ALPHA'>SRC_ALPHA</option>"+
+							"<option value='ONE_MINUS_SRC_ALPHA'>ONE_MINUS_SRC_ALPHA</option>"+
+							"<option value='DST_ALPHA'>DST_ALPHA</option>"+
+							"<option value='ONE_MINUS_DST_ALPHA'>ONE_MINUS_DST_ALPHA</option>"+
+							"<option value='SRC_ALPHA_SATURATE'>SRC_ALPHA_SATURATE</option>"+
+							"<option value='CONSTANT_COLOR'>CONSTANT_COLOR</option>"+
+							"<option value='ONE_MINUS_CONSTANT_COLOR'>ONE_MINUS_CONSTANT_COLOR</option>"+
+							"<option value='CONSTANT_ALPHA'>CONSTANT_ALPHA</option>"+
+							"<option value='ONE_MINUS_CONSTANT_ALPHA'>ONE_MINUS_CONSTANT_ALPHA</option>"+
+						"</select></div>"+
+						"<div>blendDst: "+vfp.blendDst+" <select id='BLEND_destination_"+vfpKey+"'>"+
+							"<option value='ZERO'>ZERO</option>"+
+							"<option value='ONE'>ONE</option>"+
+							"<option value='SRC_COLOR'>SRC_COLOR</option>"+
+							"<option value='ONE_MINUS_SRC_COLOR'>ONE_MINUS_SRC_COLOR</option>"+
+							"<option value='DST_COLOR'>DST_COLOR</option>"+
+							"<option value='ONE_MINUS_DST_COLOR'>ONE_MINUS_DST_COLOR</option>"+
+							"<option value='SRC_ALPHA'>SRC_ALPHA</option>"+
+							"<option value='ONE_MINUS_SRC_ALPHA'>ONE_MINUS_SRC_ALPHA</option>"+
+							"<option value='DST_ALPHA'>DST_ALPHA</option>"+
+							"<option value='ONE_MINUS_DST_ALPHA'>ONE_MINUS_DST_ALPHA</option>"+
+							"<option value='SRC_ALPHA_SATURATE'>SRC_ALPHA_SATURATE</option>"+
+							"<option value='CONSTANT_COLOR'>CONSTANT_COLOR</option>"+
+							"<option value='ONE_MINUS_CONSTANT_COLOR'>ONE_MINUS_CONSTANT_COLOR</option>"+
+							"<option value='CONSTANT_ALPHA'>CONSTANT_ALPHA</option>"+
+							"<option value='ONE_MINUS_CONSTANT_ALPHA'>ONE_MINUS_CONSTANT_ALPHA</option>"+
+						"</select></div>"+
+						
+						"<div id='in_vertex_values_"+vfpKey+"' style='background:rgba(255,0,0,0.1)'></div>"+
+						"<div id='in_fragment_values_"+vfpKey+"' style='background:rgba(0,255,0,0.1)'></div>";
+					"</div>";						
 		$('#component_vfps').append(str);
 		
+		var e = document.getElementById("BLEND_source_"+vfpKey);
+		e.addEventListener("change", (function(comp, e) {
+			comp.setBlendSrc(vfpKey, e.options[e.selectedIndex].value);
+		}).bind(this, comp, e));
+		
+		var e = document.getElementById("BLEND_destination_"+vfpKey);
+		e.addEventListener("change", (function(comp, e) {
+			comp.setBlendDst(vfpKey, e.options[e.selectedIndex].value);
+		}).bind(this, comp, e));
+		
 		var str = "";
-		for(var n=0, fn=vfp.in_vertex_values.length; n < fn; n++) {
-			var vv = vfp.in_vertex_values[n];
+		for(var n=0, fn=vfp.vfp.in_vertex_values.length; n < fn; n++) {
+			var vv = vfp.vfp.in_vertex_values[n];
 			str += 	"<div>"+
 					"<span style='font-weight:bold;color:rgba(255,0,0,0.5)'>"+vv.type+"</span> "+vv.name;
 					if(vv.value != undefined)
@@ -37,8 +84,8 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 		$('#in_vertex_values_'+vfpKey).append(str);
 		
 		str = "";
-		for(var n=0, fn=vfp.in_fragment_values.length; n < fn; n++) {
-			var fv = vfp.in_fragment_values[n];
+		for(var n=0, fn=vfp.vfp.in_fragment_values.length; n < fn; n++) {
+			var fv = vfp.vfp.in_fragment_values[n];
 			str += 	"<div>"+
 					"<span style='font-weight:bold;color:rgba(0,255,0,0.5)'>"+fv.type+"</span> "+fv.name;
 					if(fv.value != undefined)
@@ -63,39 +110,9 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 		
 		var str = 	"<div id='DIVID_"+argKey+"' style='background:rgba(0,0,0,0.5);padding:5px;margin-bottom:4px' class='StormShadow02 StormRound'>"+
 					"<div>"+argKey+"</div>"+
-					"<form><textarea id='code_"+argKey+"' name='code_"+argKey+"'>"+
-					"</textarea></form>"+
-					"<div>"+arg.fnvalue+"</div>"+
+					"<div>"+arg.fnvalue()+"</div>"+
 				"</div>";						
 		$('#component_arguments').append(str);
-		
-		
-		
-		
-		var editor = CodeMirror.fromTextArea(document.getElementById("code_"+argKey), {
-	        lineNumbers: true,
-	        theme : "eclipse",
-	        mode: "javascript" 
-	      });
-		
-		var server = new CodeMirror.TernServer({"defs": defs});
-		server.server.addFile("xxx", document.getElementById("cod").innerHTML);
-	    editor.setOption("extraKeys", {
-	      "Ctrl-Space": function(cm) { server.complete(cm); },
-	      "Ctrl-I": function(cm) { server.showType(cm); },
-	      "Ctrl-O": function(cm) { server.showDocs(cm); },
-	      "Alt-.": function(cm) { server.jumpToDef(cm); },
-	      "Alt-,": function(cm) { server.jumpBack(cm); },
-	      "Ctrl-Q": function(cm) { server.rename(cm); },
-	      "Ctrl-.": function(cm) { server.selectName(cm); }
-	    });
-	    editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
-		
-		
-		
-		
-		
-		
 		
 		
 	    

@@ -31,19 +31,19 @@ ComponentScreenEffects = function() { Component.call(this);
 	};	
 
 	/**
-	 * @param {SE} se
-	 * @param {Int} width
-	 * @param {Int} height
+	 * @param {Object} jsonIn
+	 * @param {SE} jsonIn.se
+	 * @param {Int} jsonIn.width
+	 * @param {Int} jsonIn.height
 	 */
-	this.addSE = function(se, width, height) {
-		var source = se.getSrc();
+	this.addSE = function(jsonIn) {
+		var source = jsonIn.se.getSrc();
 		var kernel = webCLGL.createKernel(); 
 		kernel.setKernelSource(source[1][0], source[0][0]);				
 		clglWork.addKernel(kernel, undefined); // undefined=output to principal buffer
 		
-		for(var n=0, fn=se.dependencies.length; n < fn; n++) {
-			this.setArg(se.dependencies[n], function(){return new Float32Array(width*height*4);}, undefined, [width, height]);
-		}
+		for(var n=0, fn=jsonIn.se.dependencies.length; n < fn; n++)
+			this.setArg(jsonIn.se.dependencies[n], function(){return new Float32Array(jsonIn.width*jsonIn.height*4);}, undefined, [jsonIn.width, jsonIn.height]);
 	};
 	
 	

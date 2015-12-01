@@ -40,26 +40,31 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
-	 * @param {String} name
-	 * @param {VFP} vfp
-	 * @param {String} seArgDestination
-	 * @param {Int} drawMode
-	 * @param {Function} onPostTick
+	 * @param {Object} jsonIn
+	 * @param {String} jsonIn.name
+	 * @param {VFP} jsonIn.vfp
+	 * @param {String} jsonIn.seArgDestination
+	 * @param {Int} [jsonIn.drawMode=4]
+	 * @param {Callback} [jsonIn.onPostTick=undefined]
+	 * @param {Constants.BLENDING_MODES} [jsonIn.blendSrc=undefined]
+	 * @param {Constants.BLENDING_MODES} [jsonIn.blendDst=undefined]
 	 */
-	this.addVFP = function(name, vfp, seArgDestination, drawMode, onPostTick) {
-		var arg = vfp.getSrc();
+	this.addVFP = function(jsonIn) {
+		var arg = jsonIn.vfp.getSrc();
 		var vfProgram = webCLGL.createVertexFragmentProgram();
 		vfProgram.setVertexSource(arg[1][0], arg[0][0]);
 		vfProgram.setFragmentSource(arg[3][0], arg[2][0]);
-		clglWork.addVertexFragmentProgram(vfProgram, seArgDestination);
+		clglWork.addVertexFragmentProgram(vfProgram, jsonIn.seArgDestination);
 		
-		vfProgram.argBufferDestination = seArgDestination;
+		vfProgram.argBufferDestination = jsonIn.seArgDestination;
 		
-		vfps[name] = {	"enabled": true,
-						"vfp": vfProgram,
-						"argBufferDestination": seArgDestination,
-						"drawMode": drawMode,
-						"onPostTick": onPostTick};
+		vfps[jsonIn.name] = {	"enabled": true,
+								"vfp": vfProgram,
+								"argBufferDestination": jsonIn.seArgDestination,
+								"drawMode": jsonIn.drawMode,
+								"onPostTick": jsonIn.onPostTick,
+								"blendSrc": jsonIn.blendSrc,
+								"blendDst": jsonIn.blendDst};
 	};
 	
 	/**
@@ -84,6 +89,24 @@ ComponentRenderer = function() { Component.call(this);
 	*/
 	this.disableVfp = function(name) {
 		vfps[name].enabled = false;
+	};
+	
+	/**
+	* setBlendSrc
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setBlendSrc = function(name, blend) {
+		vfps[name].blendSrc = blend;
+	};
+	
+	/**
+	* setBlendDst
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setBlendDst = function(name, blend) {
+		vfps[name].blendDst = blend;
 	};
 	
 	/**
@@ -186,12 +209,23 @@ ComponentRenderer = function() { Component.call(this);
 					} else {
 						gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 					}
+					
+					if(vfps[key].blendSrc != undefined) {
+						gl.enable(gl.BLEND);
+						gl.blendFunc(gl[vfps[key].blendSrc], gl[vfps[key].blendDst]);
+						gl.clear(gl.DEPTH_BUFFER_BIT);
+					}
+					
 					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, (function() {}).bind(this), vfps[key].drawMode);
+					
+					if(vfps[key].blendSrc != undefined) {
+						gl.disable(gl.BLEND);
+					}
 					
 					if(vfps[key].onPostTick != undefined)
 						vfps[key].onPostTick();
 				}
-			}
+			}			
 		} else console.log("ComponentScreenEffects not exists in camera"); 
 	};	
 };

@@ -29,10 +29,8 @@ var sceDirectory = document.querySelector('script[src$="SCE.class.js"]').getAttr
 var page = sceDirectory.split('/').pop(); 
 sceDirectory = sceDirectory.replace('/'+page,"");
 
-var includesF = [//'/StormMathMin.class.js',
-                '/StormMath.class.js',
+var includesF = ['/StormMath.class.js',
                 '/Utils.class.js',
-				/*'/WebCLGL_2.0.Min.class.js',*/
 				'/WebCLGLUtils.class.js',
 				'/WebCLGLBuffer.class.js',
 				'/WebCLGLBufferItem.class.js',
@@ -42,13 +40,7 @@ var includesF = [//'/StormMathMin.class.js',
 				'/WebCLGLWork.class.js', 
 				'/WebCLGL.class.js',
 				'/VFP.class.js',
-				'/VFP_GRID.class.js',
 				'/VFP_RGB.class.js',
-				'/VFP_NODE.class.js',
-				'/VFP_NODEPICKDRAG.class.js',
-				'/KERNEL_DIR.class.js',
-				'/KERNEL_POSBYDIR.class.js',
-				'/KERNEL_POS_OPPOSITE.class.js',
 				'/SE.class.js',
 				'/SE_RGB.class.js',
                 '/Mesh.class.js',
@@ -183,7 +175,9 @@ SCE = function() {
 			project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).setResolution(dimensions.width, dimensions.width);
 			
 			var cse = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-			cse.addSE(new SE_RGB(), dimensions.width, dimensions.width);
+			cse.addSE({	"se": new SE_RGB(),
+						"width": dimensions.width,
+						"height": dimensions.width});
 		}
 	};
 };
