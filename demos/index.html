@@ -26,72 +26,6 @@
 			var meshNode = new Mesh().loadBox();
 			var edgeColor_origin = [(255.0/255.0), (0.0/255.0), (0.0/255.0)];
 			var edgeColor_target = [(0.0/255.0), (255.0/255.0), (0.0/255.0)];
-			
-			/**
-			 * @typedef {Object} NodeObj
-			 * @property {String} rid - 
-			 * @property {Array<Float3>} position - new Array(){RANDOM, RANDOM, RANDOM}]] 
-			 * @property {Array<Float3>} color - [RANDOM, RANDOM, RANDOM]]
-			 */
-			/**
-			 * addNodes
-			 * @param {Array<NodeObj>} arrayJson
-			 * @param {String} createLinkFromNodeRid
-			 */
-			this.addNodes = function(arrayJson, createLinkFromNodeRid) {	
-				for(var n=0; n < arrayJson.length; n++) {
-					var offs = graph.offset/10;
-					var arrPos = arrayJson[n].position != undefined ? arrayJson[n].position : [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs)];
-					var arrColor = arrayJson[n].color != undefined ? arrayJson[n].color : [Math.random(), Math.random(), Math.random()];
-							
-					var node = graph.addNode({
-						"name": arrayJson[n].rid.toString(),
-						"data": arrayJson[n],
-						"position": $V3([arrPos[0], arrPos[1], arrPos[2]]),
-						//"node": meshNode,
-						//"color": $V3([arrColor[0], arrColor[1], arrColor[2]]),
-						"color": "../SCEJS/Prefabs/Graph/lena.jpg",
-						"onmouseup": (function(nodeData) {
-							
-					}).bind(this)});
-					
-			    	
-				}
-				graph.updateNodes();
-				
-				if(createLinkFromNodeRid != undefined) {
-					for(var n=0; n < arrayJson.length; n++) {		
-						this.addLinks([{"origin": createLinkFromNodeRid,
-										"target": arrayJson[n].rid.toString(),
-										"origin_color": edgeColor_origin,
-										"target_color": edgeColor_target,
-										"directed": true}]);
-					}
-				}
-			};
-	
-			/**
-			 * @typedef {Object} LinkObj
-			 * @property {String} origin - 
-			 * @property {String} target - 
-			 * @property {Array<Float3>} origin_color - =[1.0, 0.0, 0.0] 
-			 * @property {Array<Float3>} target_color - =[0.0, 1.0, 0.0] 
-			 * @property {Bool} directed - =false 
-			 */
-			/**
-			 * addLinks
-			 * @param {Array<LinkObj>} arrayJson
-			 */
-			this.addLinks = function(arrayJson) {	
-				for(var n=0; n < arrayJson.length; n++) {		
-					graph.addLink({	"origin": arrayJson[n].origin,
-									"target": arrayJson[n].target,
-									"origin_color": arrayJson[n].origin_color || edgeColor_origin,
-									"target_color": arrayJson[n].target_color || edgeColor_target,
-									"directed": arrayJson[n].directed || false});
-				}
-				graph.updateLinks();
-			};
 		
 		
 		
@@ -123,28 +57,34 @@
 			var numNodes = 10; 
 			var numLinks = 10; 
 			graph.setFontsImage("../SCEJS/Prefabs/Graph/fonts.png");  
-			
-			
-			var arrayJson = [];
-			for(var n=0; n < numNodes; n++) {		
-				arrayJson.push({
-					"rid": "#"+n.toString()+":"+n.toString()
-					});
+						
+			for(var n=0; n < numNodes; n++) {				
+				var offs = graph.offset/10;
+						
+				var node = graph.addNode({
+					"name": "#"+n.toString()+":"+n.toString(),
+					"data": "#"+n.toString()+":"+n.toString(),
+					"position": $V3([-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs)]),
+					//"node": meshNode,
+					//"color": $V3([Math.random(), Math.random(), Math.random()]),
+					"color": ((n % 2) ? "../SCEJS/Prefabs/Graph/lena.jpg" : "../SCEJS/Prefabs/Graph/cartman08.jpg"),
+					"onmouseup": (function(nodeData) {
+						
+				}).bind(this)});
 			}
-			this.addNodes(arrayJson, undefined);
+			graph.updateNodes();
 			
-			arrayJson = [];
 			for(var n=0; n < numLinks; n++) {
 				var A = parseInt(Math.random()*numNodes).toString();
 				var B = parseInt(Math.random()*numNodes).toString();
 				
-				arrayJson.push({"origin": "#"+A+":"+A,
+				graph.addLink({	"origin": "#"+A+":"+A,
 								"target": "#"+B+":"+B,
 								"origin_color": edgeColor_origin,
 								"target_color": edgeColor_target,
 								"directed": true});
 			}
-			this.addLinks(arrayJson);
+			graph.updateLinks();			
 			/*graph.set_destinationWidthHeight({width:16,
 												height:16,
 												spacing:2.0});*/

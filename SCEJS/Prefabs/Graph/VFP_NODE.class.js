@@ -7,12 +7,12 @@ function VFP_NODE() { VFP.call(this);
        		'varying vec2 vVertexUV;\n'+
        		'varying float vUseTex;\n'+ 
        		'varying vec4 vWNMatrix;\n'+
-       		'vec2 getUV(float idx, float fontImagesWidth) {'+
-       			'float n = idx/fontImagesWidth;'+
+       		'vec2 getUV(float idx, float width) {'+
+       			'float n = idx/width;'+
        			'float row = float(int(n));'+
-       			'float col = fract(n)*fontImagesWidth;'+
+       			'float col = fract(n)*width;'+
        			
-       			'float ts = 1.0/fontImagesWidth;'+
+       			'float ts = 1.0/width;'+
        			'return vec2(ts*col, ts*row);'+
        		'}'+
        		 'mat4 lookAt(vec3 eye, vec3 center, vec3 up) {'+

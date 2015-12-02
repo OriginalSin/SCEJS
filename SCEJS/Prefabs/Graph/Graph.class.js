@@ -363,14 +363,31 @@ Graph = function(sce) {
 	var ctx = can2.getContext('2d');
 	
 	/**
+	 * getLocation
+	 * @param {Int} idx
+	 * @param {Int} width 
+	 * @private
+	 */
+	var getLocation = function(idx, width) {
+		var n = idx/width;
+		var row = parseFloat(Math.round(n));
+		var col = new Utils().fract(n)*width;
+		
+		return {"col": col,
+				"row": row};
+	}
+	
+	var nodeImagesWidthItems = 32.0;
+	/**
 	 * setNodesImage
 	 * @param {String} url
 	 */
-	this.setNodesImage = function(url) {
+	this.setNodesImage = function(url, locationIdx) {
 		var image = new Image();
 		image.onload = (function() {
 			console.log(image);
-			ctx.drawImage(image, 0, 0, 64, 64); 
+			var loc = getLocation(locationIdx, 32.0);
+			ctx.drawImage(image, loc.col*64.0, loc.row*64.0, 64, 64); 
 			var img = new Utils().getImageFromCanvas(can2);
 			comp_renderer_nodes.setArg("nodesImg", (function(){return img;}).bind(this));
 		}).bind(this);
@@ -393,7 +410,7 @@ Graph = function(sce) {
 	* @param {Object} [jsonIn.data=""]
 	* @param {StormV3} [jsonIn.position=$V3([Math.Random(), Math.Random(), Math.Random()])] - Position of node
 	* @param {StormNode} [jsonIn.node] - Node with the mesh for the node
-	* @param {StormV3|String} [jsonIn.color=$V3([1.0, 1.0, 1.0])] - Color of the node (values from 0.0 to 1.0)
+	* @param {StormV3|String} [jsonIn.color=$V3([1.0, 1.0, 1.0])] - Color of the node (values from 0.0 to 1.0) or URL
 	* @param {Graph~addNode~onmousedown} [jsonIn.onmousedown=undefined]
 	* @param {Graph~addNode~onmouseup} [jsonIn.onmouseup=undefined]
 	* @returns {String}
@@ -463,9 +480,10 @@ Graph = function(sce) {
 		var nodeImgId = -1;
 		if(color.constructor===String) { // color is string URL
 			if(objNodeImages.hasOwnProperty(color) == false) {
-				objNodeImages[color] = objNodeImages.length-1;
+				var locationIdx = Object.keys(objNodeImages).length;
+				objNodeImages[color] = locationIdx;
 				
-				this.setNodesImage(color);
+				this.setNodesImage(color, locationIdx);
 			}
 			nodeImgId = objNodeImages[color];
 		}
@@ -546,7 +564,7 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("nodeVertexTexture", (function() {return this.arrayNodeVertexTexture;}).bind(this), this.splitNodes);
 		comp_renderer_nodes.setArg("nodeVertexCol", (function() {return this.arrayNodeVertexColor;}).bind(this), this.splitNodes);
 		
-		comp_renderer_nodes.setArg("nodeImagesWidth", (function() {return 32.0;}).bind(this), this.splitNodes); 
+		comp_renderer_nodes.setArg("nodeImagesWidth", (function() {return nodeImagesWidthItems;}).bind(this), this.splitNodes); 
 		comp_renderer_nodes.setArg("nodeImgId", (function() {return this.arrayNodeImgId;}).bind(this), this.splitNodes);
 		comp_renderer_nodes.setIndices((function() {return this.arrayNodeIndices;}).bind(this), this.splitNodesIndices);
 		
@@ -573,7 +591,7 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArgUpdatable("PMatrix", true);
 		comp_renderer_nodes.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_nodes.setArgUpdatable("cameraWMatrix", true);
-		comp_renderer_nodes.setArg("nodeWMatrix", (function() {return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+		comp_renderer_nodes.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_nodes.setArgUpdatable("nodeWMatrix", true);
 		comp_renderer_nodes.setArg("nodesSize", (function() {return parseFloat(this.currentNodeId-1);}).bind(this));
 		comp_renderer_nodes.setArg("sunPos", (function() {return [0.2, -0.5, 0.4, 1.0];}).bind(this));
@@ -749,7 +767,7 @@ Graph = function(sce) {
 		comp_renderer_links.setArgUpdatable("PMatrix", true);
 		comp_renderer_links.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_links.setArgUpdatable("cameraWMatrix", true);
-		comp_renderer_links.setArg("nodeWMatrix", (function() {return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+		comp_renderer_links.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_links.setArgUpdatable("nodeWMatrix", true);
 		comp_renderer_links.setArg("nodesSize", (function() {return this.currentLinkId-2;}).bind(this));
 		comp_renderer_links.setArg("sunPos", (function() {return [0.2, -0.5, 0.4, 1.0];}).bind(this));
@@ -929,7 +947,7 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArgUpdatable("PMatrix", true);
 		comp_renderer_arrows.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_arrows.setArgUpdatable("cameraWMatrix", true);
-		comp_renderer_arrows.setArg("nodeWMatrix", (function() {return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+		comp_renderer_arrows.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_arrows.setArgUpdatable("nodeWMatrix", true);
 		comp_renderer_arrows.setArg("nodesSize", (function() {return this.currentArrowId-1;}).bind(this));
 		comp_renderer_arrows.setArg("sunPos", (function() {return [0.2, -0.5, 0.4, 1.0];}).bind(this));
@@ -961,7 +979,7 @@ Graph = function(sce) {
 	
 	
 	
-	var fontImagesWidth = 7.0;
+	var fontImagesWidthCount = 7.0;
 	var getLetterId = function(letter) {
 		var obj = {	"A":  0, "B":  1, "C":  2, "D":  3, "E":  4, "F":  5, "G":  6,
 					"H":  7, "I":  8, "J":  9, "K": 10, "L": 11, "M": 12, "N": 13,
@@ -1062,7 +1080,7 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArg("nodeVertexTexture", (function() {return this.arrayNodeTextVertexTexture;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setArg("nodeVertexCol", (function() {return this.arrayNodeTextVertexColor;}).bind(this), this.splitNodesText);
 		
-		comp_renderer_nodesText.setArg("fontImagesWidth", (function() {return fontImagesWidth;}).bind(this), this.splitNodesText);
+		comp_renderer_nodesText.setArg("fontImagesWidth", (function() {return fontImagesWidthCount;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setIndices((function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
 		
@@ -1089,7 +1107,7 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArgUpdatable("PMatrix", true);
 		comp_renderer_nodesText.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_nodesText.setArgUpdatable("cameraWMatrix", true);
-		comp_renderer_nodesText.setArg("nodeWMatrix", (function() {return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+		comp_renderer_nodesText.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_nodesText.setArgUpdatable("nodeWMatrix", true);
 		
 		comp_renderer_nodesText.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
