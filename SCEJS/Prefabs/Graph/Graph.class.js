@@ -230,11 +230,11 @@ Graph = function(sce) {
 	
 	
 	
-	
+	var MAX_ITEMS_PER_ARRAY = 256*256;
 	
 	this.splitNodes = [];
 	this.splitNodesIndices = [];
-	this.splitNodesEvery = parseInt((256*256)/6); // 36 box indices 
+	this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/6); // 1=1 plane=6 indices 
 	
 	this.arrayNodeId = [];
 	this.arrayNodePosXYZW = [];
@@ -260,7 +260,7 @@ Graph = function(sce) {
 	
 	this.splitLinks = [];
 	this.splitLinksIndices = [];
-	this.splitLinksEvery = parseInt((256*256)/2); // 2 line indices
+	this.splitLinksEvery = parseInt(MAX_ITEMS_PER_ARRAY/2); // 1=1 link=2 indices
 	
 	this.arrayLinkId = [];
 	this.arrayLinkNodeName = [];
@@ -283,7 +283,7 @@ Graph = function(sce) {
 	
 	this.splitArrows = [];
 	this.splitArrowsIndices = [];
-	this.splitArrowsEvery = parseInt((256*256)/6); // 6 arrow indices
+	this.splitArrowsEvery = parseInt(MAX_ITEMS_PER_ARRAY/6); // 2=2 triangle=6 indices
 	
 	this.arrayArrowId = [];
 	this.arrayArrowNodeName = [];
@@ -313,7 +313,7 @@ Graph = function(sce) {
 	
 	this.splitNodesText = [];
 	this.splitNodesTextIndices = [];
-	this.splitNodesTextEvery = parseInt((256*256)/(6*12)); // 36 box indices 
+	this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/72); // 1=12 planes=72 indices 
 	
 	this.arrayNodeTextId = [];
 	this.arrayNodeTextNodeName = [];
@@ -385,7 +385,6 @@ Graph = function(sce) {
 	this.setNodesImage = function(url, locationIdx) {
 		var image = new Image();
 		image.onload = (function() {
-			console.log(image);
 			var loc = getLocation(locationIdx, 32.0);
 			ctx.drawImage(image, loc.col*64.0, loc.row*64.0, 64, 64); 
 			var img = new Utils().getImageFromCanvas(can2);
@@ -505,7 +504,9 @@ Graph = function(sce) {
 			
 			this.nodeArrayItemStart++;
 		}
-			
+		if(this.splitNodesIndices.length > 0 && this.arrayNodeIndices.length == this.splitNodesIndices[this.splitNodesIndices.length-1]) { 
+			this.startIndexId = 0;
+		} 
 		var maxNodeIndexId = 0;
 		for(var n=0; n < meshBox.indexArray.length; n++) {
 			var idxIndex = n;
@@ -517,11 +518,9 @@ Graph = function(sce) {
 				maxNodeIndexId = meshBox.indexArray[idxIndex];			
 			}
 		}
-		if(this.arrayNodeIndices.length == this.splitNodesIndices[this.splitNodesIndices.length-1]) { 
-			this.startIndexId = 0;
-		}
+		
 		if(this.startIndexId == 0) {
-			if(this.splitNodes == undefined) {
+			if(this.splitNodes.length == 0) {
 				this.splitNodes.push(this.arrayNodeId.length*this.splitNodesEvery);
 				this.splitNodesIndices.push(this.arrayNodeIndices.length*this.splitNodesEvery);
 			} else {
@@ -690,12 +689,13 @@ Graph = function(sce) {
 		this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
 		this.arrayLinkVertexColor.push(jsonIn.target_color[0], jsonIn.target_color[1], jsonIn.target_color[2], 1.0);
 		
-		this.arrayLinkIndices.push(this.startIndexId_link, this.startIndexId_link+1);
-		if(this.arrayLinkIndices.length == this.splitLinksIndices[this.splitLinksIndices.length-1]) { 
+		if(this.splitLinksIndices.length > 0 && this.arrayLinkIndices.length == this.splitLinksIndices[this.splitLinksIndices.length-1]) { 
 			this.startIndexId_link = 0;
 		}
+		this.arrayLinkIndices.push(this.startIndexId_link, this.startIndexId_link+1);
+		
 		if(this.startIndexId_link == 0) {
-			if(this.splitLinks == undefined) {
+			if(this.splitLinks.length == 0) {
 				this.splitLinks.push(this.arrayLinkId.length*this.splitLinksEvery);
 				this.splitLinksIndices.push(this.arrayLinkIndices.length*this.splitLinksEvery);
 			} else {
@@ -849,7 +849,9 @@ Graph = function(sce) {
 				
 				this.arrowArrayItemStart++;
 			}
-				
+			if(this.splitArrowsIndices.length > 0 && this.arrayArrowIndices.length == this.splitArrowsIndices[this.splitArrowsIndices.length-1]) { 
+				this.startIndexId_arrow = 0;
+			}
 			var maxArrowIndexId = 0;
 			for(var n=0; n < meshArrow.indexArray.length; n++) {
 				var idxIndex = n;
@@ -861,11 +863,9 @@ Graph = function(sce) {
 					maxArrowIndexId = meshArrow.indexArray[idxIndex];			
 				}
 			}
-			if(this.arrayArrowIndices.length == this.splitArrowsIndices[this.splitArrowsIndices.length-1]) { 
-				this.startIndexId_arrow = 0;
-			}
+			
 			if(this.startIndexId_arrow == 0) {
-				if(this.splitArrows == undefined) {
+				if(this.splitArrows.length == 0) {
 					this.splitArrows.push(this.arrayArrowId.length*this.splitArrowsEvery);
 					this.splitArrowsIndices.push(this.arrayArrowIndices.length*this.splitArrowsEvery);
 				} else {
@@ -1025,7 +1025,9 @@ Graph = function(sce) {
 				
 				this.arrayNodeTextLetterId.push(letterId);
 			}
-				
+			if(this.splitNodesTextIndices.length > 0 && this.arrayNodeTextIndices.length == this.splitNodesTextIndices[this.splitNodesTextIndices.length-1]) { 
+				this.startIndexId_nodestext = 0;
+			}
 			var maxNodeIndexId = 0;
 			for(var n=0; n < meshQuad.indexArray.length; n++) {
 				var idxIndex = n;
@@ -1037,20 +1039,17 @@ Graph = function(sce) {
 					maxNodeIndexId = meshQuad.indexArray[idxIndex];			
 				}
 			}
-			if(this.arrayNodeTextIndices.length == this.splitNodesTextIndices[this.splitNodesTextIndices.length-1]) { 
-				this.startIndexId_nodestext = 0;
-			}
-			if(this.startIndexId_nodestext == 0) {
-				if(this.splitNodesText == undefined) {
-					this.splitNodesText.push(this.arrayNodeTextId.length*this.splitNodesTextEvery);
-					this.splitNodesTextIndices.push(this.arrayNodeTextIndices.length*this.splitNodesTextEvery);
-				} else {
-					this.splitNodesText.push(this.splitNodesText[0]*(this.splitNodesText.length+1));
-					this.splitNodesTextIndices.push(this.splitNodesTextIndices[0]*(this.splitNodesTextIndices.length+1)); 
-				}		
-			}
-			this.startIndexId_nodestext += (maxNodeIndexId+1);
 		}
+		if(this.startIndexId_nodestext == 0) {
+			if(this.splitNodesText.length == 0) {
+				this.splitNodesText.push(this.arrayNodeTextId.length*this.splitNodesTextEvery);
+				this.splitNodesTextIndices.push(this.arrayNodeTextIndices.length*this.splitNodesTextEvery);
+			} else {
+				this.splitNodesText.push(this.splitNodesText[0]*(this.splitNodesText.length+1));
+				this.splitNodesTextIndices.push(this.splitNodesTextIndices[0]*(this.splitNodesTextIndices.length+1)); 
+			}		
+		}
+		this.startIndexId_nodestext += (maxNodeIndexId+1);
 		
 		this.currentNodeTextId++; // augment node id
 	};
@@ -1141,7 +1140,6 @@ Graph = function(sce) {
 	this.setFontsImage = function(url) {
 		var image = new Image();
 		image.onload = (function() {
-			console.log(image); 
 			comp_renderer_nodesText.setArg("fontsImg", (function(){return image;}).bind(this));
 		}).bind(this);
 		image.src = url;

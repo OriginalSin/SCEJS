@@ -22,7 +22,7 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 						"<div>name: "+vfpKey+"</div>"+
 						"<div>destination: "+vfp.argBufferDestination+"</div>"+
 						
-						"<div>blendSrc: "+vfp.blendSrc+" <select id='BLEND_source_"+vfpKey+"'>"+
+						"<div>blendSrc: <select id='BLEND_source_"+vfpKey+"'>"+
 							"<option value='ZERO'>ZERO</option>"+
 							"<option value='ONE'>ONE</option>"+
 							"<option value='SRC_COLOR'>SRC_COLOR</option>"+
@@ -39,7 +39,7 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 							"<option value='CONSTANT_ALPHA'>CONSTANT_ALPHA</option>"+
 							"<option value='ONE_MINUS_CONSTANT_ALPHA'>ONE_MINUS_CONSTANT_ALPHA</option>"+
 						"</select></div>"+
-						"<div>blendDst: "+vfp.blendDst+" <select id='BLEND_destination_"+vfpKey+"'>"+
+						"<div>blendDst: <select id='BLEND_destination_"+vfpKey+"'>"+
 							"<option value='ZERO'>ZERO</option>"+
 							"<option value='ONE'>ONE</option>"+
 							"<option value='SRC_COLOR'>SRC_COLOR</option>"+
@@ -63,33 +63,68 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 		$('#component_vfps').append(str);
 		
 		var e = document.getElementById("BLEND_source_"+vfpKey);
+		for(var n=0; n < e.options.length; n++)
+			if(e.options[n].value == vfp.blendSrc) {
+				e.selectedIndex = n;
+				break;
+			}
 		e.addEventListener("change", (function(comp, e) {
 			comp.setBlendSrc(vfpKey, e.options[e.selectedIndex].value);
 		}).bind(this, comp, e));
 		
+		
 		var e = document.getElementById("BLEND_destination_"+vfpKey);
+		for(var n=0; n < e.options.length; n++)
+			if(e.options[n].value == vfp.blendDst) {
+				e.selectedIndex = n;
+				break;
+			}
 		e.addEventListener("change", (function(comp, e) {
 			comp.setBlendDst(vfpKey, e.options[e.selectedIndex].value);
 		}).bind(this, comp, e));
 		
-		var str = "";
+		var str = "<span style='color:red'>VERTEX PROGRAM</span>";
 		for(var n=0, fn=vfp.vfp.in_vertex_values.length; n < fn; n++) {
 			var vv = vfp.vfp.in_vertex_values[n];
 			str += 	"<div>"+
 					"<span style='font-weight:bold;color:rgba(255,0,0,0.5)'>"+vv.type+"</span> "+vv.name;
-					if(vv.value != undefined)
-						str += "<span style='color:grey'>"+vv.value.constructor.name+"</span>";
+					if(vv.value != undefined) {
+						if(vv.value instanceof WebCLGLBuffer) {
+							var strItems = "", sep = "";
+							for(var j=0; j < vv.value.items.length; j++) {
+								strItems += sep+"<span title='"+vv.value.items[j].inData+"'>"+vv.value.items[j].length+"</span>";
+								sep = ",";
+							}
+							str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
+						} else if(vv.value instanceof Float32Array || vv.value instanceof Array) {
+							str += " <span style='color:grey'> {"+vv.value.constructor.name+" <span title='"+vv.value+"'>"+vv.value.length+"</span>}</span>";
+						} else {
+							str += " <span style='color:grey'> {<span title='"+vv.value+"'>"+vv.value.constructor.name+"</span>}</span>";
+						}
+					}
 			str += "</div>";
 		}
 		$('#in_vertex_values_'+vfpKey).append(str);
 		
-		str = "";
+		str = "<span style='color:green'>FRAGMENT PROGRAM</span>";
 		for(var n=0, fn=vfp.vfp.in_fragment_values.length; n < fn; n++) {
 			var fv = vfp.vfp.in_fragment_values[n];
 			str += 	"<div>"+
 					"<span style='font-weight:bold;color:rgba(0,255,0,0.5)'>"+fv.type+"</span> "+fv.name;
-					if(fv.value != undefined)
-						str += "<span style='color:grey'>"+fv.value.constructor.name+"</span>";
+					if(fv.value != undefined) {
+						if(fv.value instanceof WebCLGLBuffer) {
+							var strItems = "", sep = "";
+							for(var j=0; j < fv.value.items.length; j++) {
+								strItems += sep+"<span title='"+fv.value.items[j].inData+"'>"+fv.value.items[j].length+"</span>";
+								sep = ",";
+							}
+							str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
+						} else if(fv.value instanceof Float32Array || fv.value instanceof Array) {
+							str += " <span style='color:grey'> {"+fv.value.constructor.name+" <span title='"+fv.value+"'>"+fv.value.length+"</span>}</span>";
+						} else {
+							str += " <span style='color:grey'> {<span title='"+fv.value+"'>"+fv.value.constructor.name+"</span>}</span>";
+						}
+					}
 			str += "</div>";
 		}
 		$('#in_fragment_values_'+vfpKey).append(str);
@@ -98,8 +133,16 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 	// indices
 	var str = 	"<div id='DIVID_indices' style='background:rgba(0,0,0,0.5);padding:5px;margin-bottom:4px' class='StormShadow02 StormRound'>"+
 			"<div>indices</div>";
-			if(comp.getIndices() != undefined)
-				str += "<div style='color:grey'>"+comp.getIndices().constructor.name+"</div>";
+			if(comp.getIndices() != undefined) {
+				if(comp.getIndices() instanceof WebCLGLBuffer) {
+					var strItems = "", sep = "";
+					for(var j=0; j < comp.getIndices().items.length; j++) {
+						strItems += sep+"<span title='"+comp.getIndices().items[j].inData+"'>"+comp.getIndices().items[j].length+"</span>";
+						sep = ",";
+					}
+					str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
+				}
+			}
 		"</div>";						
 	$('#component_indices').append(str);
 	

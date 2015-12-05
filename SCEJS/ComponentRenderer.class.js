@@ -125,10 +125,11 @@ ComponentRenderer = function() { Component.call(this);
 	* @param {Function} fnvalue
 	* @param {Array<Float>} [splits=[array.length]]
 	*/
-	this.setArg = function(argument, fnvalue, splits) {
+	this.setArg = function(argument, fnvalue, splits) { 
 		clglWork.setArg(argument, fnvalue(), splits);
 		args[argument] = {	"fnvalue": fnvalue,
-							"updatable": null};
+							"updatable": null,
+							"splits": splits};
 	};
 	
 	/**
@@ -188,7 +189,7 @@ ComponentRenderer = function() { Component.call(this);
 	this.tick = function(activeCamera) {
 		for(var key in args) {
 			if(args[key].updatable == true) {
-				clglWork.setArg(key, args[key].fnvalue());
+				clglWork.setArg(key, args[key].fnvalue(), args[key].splits);
 			}
 		}
 		
@@ -213,13 +214,16 @@ ComponentRenderer = function() { Component.call(this);
 					if(vfps[key].blendSrc != undefined) {
 						gl.enable(gl.BLEND);
 						gl.blendFunc(gl[vfps[key].blendSrc], gl[vfps[key].blendDst]);
-						gl.clear(gl.DEPTH_BUFFER_BIT);
+						//gl.blendEquation(gl.FUNC_ADD); 
+						gl.disable(gl.DEPTH_TEST);
+						//gl.clear(gl.DEPTH_BUFFER_BIT);
 					}
 					
 					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, (function() {}).bind(this), vfps[key].drawMode);
 					
 					if(vfps[key].blendSrc != undefined) {
 						gl.disable(gl.BLEND);
+						gl.enable(gl.DEPTH_TEST);
 					}
 					
 					if(vfps[key].onPostTick != undefined)
