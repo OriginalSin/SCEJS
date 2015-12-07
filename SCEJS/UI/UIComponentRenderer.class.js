@@ -7,60 +7,93 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 	
 	var ah = new ActionHelpers();
 	
-	var str = 	"<div id='component_vfps' class='component_section'>VertexFragmentPrograms</div>"+
-	"<div id='component_indices' class='component_section'>Indices</div>"+
-	"<div id='component_arguments' class='component_section'>Arguments</div>";						
+	var str = 	"<div id='component_kernels' class='component_section'></div>"+
+				"<div id='component_vfps' class='component_section'></div>"+
+				"<div id='component_indices' class='component_section'>Indices</div>"+
+				"<div id='component_arguments' class='component_section'>Arguments</div>";						
 	$('#DIVID_component_'+compTypeKey).append(str);
 	
 	var comp = selectedNode.getComponent(Constants.COMPONENT_TYPES.RENDERER);
 	
-	// VFP
+	// KERNELS
+	for(var kernelKey in comp.getKernels()) {
+		var kernel = comp.getKernels()[kernelKey];
+		
+		var str = 	"<div style='background:rgba(0,0,0,0.5);padding:5px;' class='StormShadow02 StormRound'>"+
+				"<div>KERNEL NAME: "+kernelKey+"</div>"+
+				"<div>ARG DESTINATION: "+kernel.argBufferDestination+"</div>"+
+				
+				"<div id='in_fragment_values_"+kernelKey+"' style='background:rgba(0,0,255,0.1)'></div>";
+			"</div>";						
+		$('#component_kernels').append(str);
+		
+		
+		str = "<span style='color:blue'>KERNEL PROGRAM</span>";
+		for(var n=0, fn=kernel.kernel.in_values.length; n < fn; n++) {
+			var fv = kernel.kernel.in_values[n];
+			str += 	"<div>"+
+					"<span style='font-weight:bold;color:rgba(0,0,255,0.5)'>"+fv.type+"</span> "+fv.name;
+					if(fv.value != undefined) {
+						if(fv.value instanceof WebCLGLBuffer) {
+							var strItems = "", sep = "";
+							for(var j=0; j < fv.value.items.length; j++) {
+								strItems += sep+"<span title='"+fv.value.items[j].inData+"'>"+fv.value.items[j].length+"</span>";
+								sep = ",";
+							}
+							str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
+						} else if(fv.value instanceof Float32Array || fv.value instanceof Array) {
+							str += " <span style='color:grey'> {"+fv.value.constructor.name+" <span title='"+fv.value+"'>"+fv.value.length+"</span>}</span>";
+						} else {
+							str += " <span style='color:grey'> {<span title='"+fv.value+"'>"+fv.value.constructor.name+"</span>}</span>";
+						}
+					}
+			str += "</div>";
+		}
+		$('#in_fragment_values_'+kernelKey).append(str);
+	}
+	
+	// VFPS
 	for(var vfpKey in comp.getVFPs()) {
 		var vfp = comp.getVFPs()[vfpKey];
 		
+		ah.add_checkbox(document.getElementById('component_vfps'), vfpKey+" ENABLE", vfp.enabled, 
+				(function(comp, vfpKey) {
+					comp.enableVfp(vfpKey);
+				}).bind(this, comp, vfpKey), (function(comp, vfpKey) {
+					comp.disableVfp(vfpKey); 
+				}).bind(this, comp, vfpKey));
+		
 		var str = 	"<div style='background:rgba(0,0,0,0.5);padding:5px;' class='StormShadow02 StormRound'>"+
-						"<div>name: "+vfpKey+"</div>"+
-						"<div>destination: "+vfp.argBufferDestination+"</div>"+
+						"<div>VFP NAME: "+vfpKey+"</div>"+
+						"<div>SE ARG destination: "+vfp.argBufferDestination+"</div>"+
 						
-						"<div>blendSrc: <select id='BLEND_source_"+vfpKey+"'>"+
-							"<option value='ZERO'>ZERO</option>"+
-							"<option value='ONE'>ONE</option>"+
-							"<option value='SRC_COLOR'>SRC_COLOR</option>"+
-							"<option value='ONE_MINUS_SRC_COLOR'>ONE_MINUS_SRC_COLOR</option>"+
-							"<option value='DST_COLOR'>DST_COLOR</option>"+
-							"<option value='ONE_MINUS_DST_COLOR'>ONE_MINUS_DST_COLOR</option>"+
-							"<option value='SRC_ALPHA'>SRC_ALPHA</option>"+
-							"<option value='ONE_MINUS_SRC_ALPHA'>ONE_MINUS_SRC_ALPHA</option>"+
-							"<option value='DST_ALPHA'>DST_ALPHA</option>"+
-							"<option value='ONE_MINUS_DST_ALPHA'>ONE_MINUS_DST_ALPHA</option>"+
-							"<option value='SRC_ALPHA_SATURATE'>SRC_ALPHA_SATURATE</option>"+
-							"<option value='CONSTANT_COLOR'>CONSTANT_COLOR</option>"+
-							"<option value='ONE_MINUS_CONSTANT_COLOR'>ONE_MINUS_CONSTANT_COLOR</option>"+
-							"<option value='CONSTANT_ALPHA'>CONSTANT_ALPHA</option>"+
-							"<option value='ONE_MINUS_CONSTANT_ALPHA'>ONE_MINUS_CONSTANT_ALPHA</option>"+
-						"</select></div>"+
-						"<div>blendDst: <select id='BLEND_destination_"+vfpKey+"'>"+
-							"<option value='ZERO'>ZERO</option>"+
-							"<option value='ONE'>ONE</option>"+
-							"<option value='SRC_COLOR'>SRC_COLOR</option>"+
-							"<option value='ONE_MINUS_SRC_COLOR'>ONE_MINUS_SRC_COLOR</option>"+
-							"<option value='DST_COLOR'>DST_COLOR</option>"+
-							"<option value='ONE_MINUS_DST_COLOR'>ONE_MINUS_DST_COLOR</option>"+
-							"<option value='SRC_ALPHA'>SRC_ALPHA</option>"+
-							"<option value='ONE_MINUS_SRC_ALPHA'>ONE_MINUS_SRC_ALPHA</option>"+
-							"<option value='DST_ALPHA'>DST_ALPHA</option>"+
-							"<option value='ONE_MINUS_DST_ALPHA'>ONE_MINUS_DST_ALPHA</option>"+
-							"<option value='SRC_ALPHA_SATURATE'>SRC_ALPHA_SATURATE</option>"+
-							"<option value='CONSTANT_COLOR'>CONSTANT_COLOR</option>"+
-							"<option value='ONE_MINUS_CONSTANT_COLOR'>ONE_MINUS_CONSTANT_COLOR</option>"+
-							"<option value='CONSTANT_ALPHA'>CONSTANT_ALPHA</option>"+
-							"<option value='ONE_MINUS_CONSTANT_ALPHA'>ONE_MINUS_CONSTANT_ALPHA</option>"+
-						"</select></div>"+
+						"<div>drawMode: <select id='DRAW_"+vfpKey+"' style='font-size:10px;'>";
+							for(var drawModeKey in Constants.DRAW_MODES) str+="<option value='"+Constants.DRAW_MODES[drawModeKey]+"'>"+drawModeKey+"</option>";
+						str+="</select></div>"+
+						"<div>blendSrc (Foreground): <select id='BLEND_source_"+vfpKey+"' style='font-size:10px;'>";
+							for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
+						str+="</select></div>"+
+						"<div>blendDst (Background): <select id='BLEND_destination_"+vfpKey+"' style='font-size:10px;'>";
+							for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
+						str+="</select></div>"+
 						
 						"<div id='in_vertex_values_"+vfpKey+"' style='background:rgba(255,0,0,0.1)'></div>"+
 						"<div id='in_fragment_values_"+vfpKey+"' style='background:rgba(0,255,0,0.1)'></div>";
 					"</div>";						
 		$('#component_vfps').append(str);
+		
+		
+		var e = document.getElementById("DRAW_"+vfpKey);
+		for(var n=0; n < e.options.length; n++)
+			if(e.options[n].value == vfp.drawMode) {
+				e.selectedIndex = n;
+				break;
+			}
+		e.addEventListener("change", (function(comp, vfpKey, e) {
+			console.log(e.options[e.selectedIndex].value);
+			comp.setDrawMode(vfpKey, parseInt(e.options[e.selectedIndex].value));
+		}).bind(this, comp, vfpKey, e));
+		
 		
 		var e = document.getElementById("BLEND_source_"+vfpKey);
 		for(var n=0; n < e.options.length; n++)
@@ -68,9 +101,9 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, e) {
+		e.addEventListener("change", (function(comp, vfpKey, e) {
 			comp.setBlendSrc(vfpKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, e));
+		}).bind(this, comp, vfpKey, e));
 		
 		
 		var e = document.getElementById("BLEND_destination_"+vfpKey);
@@ -79,9 +112,10 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, e) {
+		e.addEventListener("change", (function(comp, vfpKey, e) {
 			comp.setBlendDst(vfpKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, e));
+		}).bind(this, comp, vfpKey, e));
+		
 		
 		var str = "<span style='color:red'>VERTEX PROGRAM</span>";
 		for(var n=0, fn=vfp.vfp.in_vertex_values.length; n < fn; n++) {
@@ -131,7 +165,7 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 	}
 	
 	// indices
-	var str = 	"<div id='DIVID_indices' style='background:rgba(0,0,0,0.5);padding:5px;margin-bottom:4px' class='StormShadow02 StormRound'>"+
+	var str = 	"<div id='DIVID_indices' style='background:rgba(0,0,0,0.5);padding-left:3px'>"+
 			"<div>indices</div>";
 			if(comp.getIndices() != undefined) {
 				if(comp.getIndices() instanceof WebCLGLBuffer) {
@@ -149,12 +183,12 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 	// arguments
 	for(var argKey in comp.getArgs()) {	
 		var arg = comp.getArgs()[argKey];
-		console.log(arg);
+		//console.log(arg);
 		
-		var str = 	"<div id='DIVID_"+argKey+"' style='background:rgba(0,0,0,0.5);padding:5px;margin-bottom:4px' class='StormShadow02 StormRound'>"+
-					"<div>"+argKey+"</div>"+
-					"<div>"+arg.fnvalue()+"</div>"+
-				"</div>";						
+		var str = 	"<div id='DIVID_"+argKey+"' style='background:rgba(0,0,0,0.5);padding-left:3px'>"+
+						//"<div>"+argKey+"</div>"+
+						//"<div>"+arg.fnvalue()+"</div>"+
+					"</div>";						
 		$('#component_arguments').append(str);
 		
 		

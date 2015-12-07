@@ -9,24 +9,59 @@ Graph = function(sce) {
 	var _gl = _project.getActiveStage().getWebGLContext();
 	var _utils = new Utils();
 		
-	this.arrPP = [];
-	this.arrF = [];
-	this.selfShadows = true;
-	this.offset = 1000.0;
+	var MAX_ITEMS_PER_ARRAY = 65535/*4294967295*/; // unsigned int 65535 for limit on indices of 16bit; long unsigned int 4294967295 
+	var NODE_IMG_COLUMNS = 8.0;
+	var NODE_IMG_WIDTH = 1024;
+	var OFFSET = 1000.0;
 	
-	var readPixel = false;
 	
+	var _nodesByName = {};
+	var _nodesById = {};
+	var _links = {};
+	
+	var arrPP = [];
+	var arrF = [];
+	
+	var readPixel = false;	
 	var selectedId = -1;
 	
+	var selfShadows = true;
+	var enDestination = 0;
+	var lifeDistance = 0.0;
+	var pointSize = 1.0;
+	var destinationForce = 0.5;
 	
-	var meshBox = new Mesh().loadQuad();
-	var meshArrow = new Mesh().loadTriangle();
-	var meshQuad = new Mesh().loadQuad();	
+	var circleSegments = 12;
+	var nodesTextPlanes = 12;
+	var mesh_nodes = new Mesh().loadCircle({"segments": circleSegments,
+											"radius": 0.5});
+	var mesh_arrows = new Mesh().loadTriangle();
+	var mesh_nodesText = new Mesh().loadQuad();	
+	
+	
+	var objNodeImages = {};
+	var can2 = document.createElement('canvas');	
+	can2.width = NODE_IMG_WIDTH;
+	can2.height = NODE_IMG_WIDTH;
+	var ctx = can2.getContext('2d');
+	
+	var FONT_IMG_COLUMNS = 7.0;
+	var getLetterId = function(letter) {
+		var obj = {	"A":  0, "B":  1, "C":  2, "D":  3, "E":  4, "F":  5, "G":  6,
+					"H":  7, "I":  8, "J":  9, "K": 10, "L": 11, "M": 12, "N": 13,
+					"Ñ": 14, "O": 15, "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20,
+					"U": 21, "V": 22, "W": 23, "X": 24, "Y": 25, "Z": 26, " ": 27,
+					"0": 28, "1": 29, "2": 30, "3": 31, "4": 32, "5": 33, "6": 34,
+					"7": 35, "8": 36, "9": 37		
+				};
+		return obj[letter];
+	};
 	
 	//**************************************************
 	//  NODES
 	//**************************************************
 	var nodes = new Node();
+	nodes.setName("graph_nodes");
 	_project.getActiveStage().addNode(nodes);
 	
 	// ComponentTransform
@@ -36,8 +71,12 @@ Graph = function(sce) {
 	// ComponentRenderer
 	var comp_renderer_nodes = new ComponentRenderer();
 	nodes.addComponent(comp_renderer_nodes);
-	comp_renderer_nodes.addKernel(new KERNEL_DIR(this.arrPP, this.arrF), "dir");
-	comp_renderer_nodes.addKernel(new KERNEL_POSBYDIR(), "posXYZW");	
+	comp_renderer_nodes.addKernel({"name": "KERNEL_DIR",
+									"kernel": new KERNEL_DIR(arrPP, arrF),
+									"argDestination": "dir"});
+	comp_renderer_nodes.addKernel({"name": "KERNEL_POSBYDIR",
+									"kernel": new KERNEL_POSBYDIR(),
+									"argDestination": "posXYZW"});	
 	comp_renderer_nodes.addVFP({"name": "NODES_RGB",
 								"vfp": new VFP_NODE(),
 								"seArgDestination": "RGB",
@@ -60,7 +99,7 @@ Graph = function(sce) {
 										selectedId = Math.round(unpackValue*1000000.0)-1.0;
 										console.log("selectedId: "+selectedId);
 										if(selectedId != -1) {
-											var n = this._nodesById[selectedId];
+											var n = _nodesById[selectedId];
 											if(n != undefined && n.onmousedown != undefined) n.onmousedown(n.data);
 										}
 										
@@ -71,14 +110,14 @@ Graph = function(sce) {
 	// ComponentMouseEvents 
 	var comp_mouseEvents = new ComponentMouseEvents();
 	nodes.addComponent(comp_mouseEvents);
-	comp_mouseEvents.onmousedown = (function(evt) {
+	comp_mouseEvents.onmousedown((function(evt) {
 		readPixel = true;
 		
 		comp_renderer_nodes.enableVfp("NODES_PICKDRAG");
-	}).bind(this);
-	comp_mouseEvents.onmouseup = (function(evt) {
+	}).bind(this));
+	comp_mouseEvents.onmouseup((function(evt) {
 		if(selectedId != -1) {
-			var n = this._nodesById[selectedId];
+			var n = _nodesById[selectedId];
 			if(n != undefined && n.onmouseup != undefined) n.onmouseup(n.data);
 		}
 		
@@ -107,8 +146,8 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-	}).bind(this);
-	comp_mouseEvents.onmousemove = (function(evt, dir) {
+	}).bind(this));
+	comp_mouseEvents.onmousemove((function(evt, dir) {
 		if(selectedId != -1) {
 			comp_renderer_nodes.setArg("enableDrag", (function() {return 1;}).bind(this));
 			comp_renderer_nodes.setArg("idToDrag", (function() {return selectedId;}).bind(this));
@@ -152,14 +191,15 @@ Graph = function(sce) {
 				comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 			}, 10);
 		}
-	}).bind(this);
-	comp_mouseEvents.onmousewheel = (function(evt) {
-	}).bind(this);	
+	}).bind(this));
+	comp_mouseEvents.onmousewheel((function(evt) {
+	}).bind(this));	
 	
 	//**************************************************
 	//  LINKS
 	//**************************************************
 	var links = new Node();
+	links.setName("graph_links");
 	_project.getActiveStage().addNode(links);
 	
 	// ComponentTransform
@@ -169,12 +209,16 @@ Graph = function(sce) {
 	// ComponentRenderer
 	var comp_renderer_links = new ComponentRenderer();
 	links.addComponent(comp_renderer_links);
-	comp_renderer_links.addKernel(new KERNEL_DIR(this.arrPP, this.arrF), "dir");
-	comp_renderer_links.addKernel(new KERNEL_POSBYDIR(), "posXYZW");	
+	comp_renderer_links.addKernel({	"name": "KERNEL_DIR",
+									"kernel": new KERNEL_DIR(arrPP, arrF),
+									"argDestination": "dir"});
+	comp_renderer_links.addKernel({	"name": "KERNEL_POSBYDIR",
+									"kernel": new KERNEL_POSBYDIR(),
+									"argDestination": "posXYZW"});	
 	comp_renderer_links.addVFP({"name": "LINKS_RGB",
 								"vfp": new VFP_NODE(),
 								"seArgDestination": "RGB",
-								"drawMode": 1});	 
+								"drawMode": 1}); 	 
 	
 	
 	
@@ -182,6 +226,7 @@ Graph = function(sce) {
 	//  ARROWS
 	//**************************************************
 	var arrows = new Node();
+	arrows.setName("graph_arrows");
 	_project.getActiveStage().addNode(arrows);
 	
 	// ComponentTransform
@@ -191,9 +236,15 @@ Graph = function(sce) {
 	// ComponentRenderer
 	var comp_renderer_arrows = new ComponentRenderer();
 	arrows.addComponent(comp_renderer_arrows);
-	comp_renderer_arrows.addKernel(new KERNEL_DIR(this.arrPP, this.arrF), "dir");
-	comp_renderer_arrows.addKernel(new KERNEL_POSBYDIR(), "posXYZW");
-	comp_renderer_arrows.addKernel(new KERNEL_POS_OPPOSITE(), "posXYZW_opposite");	
+	comp_renderer_arrows.addKernel({"name": "KERNEL_DIR",
+									"kernel": new KERNEL_DIR(arrPP, arrF),
+									"argDestination": "dir"});
+	comp_renderer_arrows.addKernel({"name": "KERNEL_POSBYDIR",
+									"kernel": new KERNEL_POSBYDIR(),
+									"argDestination": "posXYZW"});
+	comp_renderer_arrows.addKernel({"name": "KERNEL_POS_OPPOSITE",
+									"kernel": new KERNEL_POS_OPPOSITE(),
+									"argDestination": "posXYZW_opposite"});	
 	comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
 									"vfp": new VFP_NODE(),
 									"seArgDestination": "RGB",
@@ -208,6 +259,7 @@ Graph = function(sce) {
 	//  NODESTEXT
 	//**************************************************
 	var nodesText = new Node();
+	nodesText.setName("graph_nodesText");
 	_project.getActiveStage().addNode(nodesText);
 	
 	// ComponentTransform
@@ -217,8 +269,12 @@ Graph = function(sce) {
 	// ComponentRenderer
 	var comp_renderer_nodesText = new ComponentRenderer();
 	nodesText.addComponent(comp_renderer_nodesText);
-	comp_renderer_nodesText.addKernel(new KERNEL_DIR(this.arrPP, this.arrF), "dir");
-	comp_renderer_nodesText.addKernel(new KERNEL_POSBYDIR(), "posXYZW");	
+	comp_renderer_nodesText.addKernel({	"name": "KERNEL_DIR",
+										"kernel": new KERNEL_DIR(arrPP, arrF),
+										"argDestination": "dir"});
+	comp_renderer_nodesText.addKernel({	"name": "KERNEL_POSBYDIR",
+										"kernel": new KERNEL_POSBYDIR(),
+										"argDestination": "posXYZW"});	
 	comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
 									"vfp": new VFP_NODE(),
 									"seArgDestination": "RGB",
@@ -230,11 +286,11 @@ Graph = function(sce) {
 	
 	
 	
-	var MAX_ITEMS_PER_ARRAY = 256*256;
+	
 	
 	this.splitNodes = [];
 	this.splitNodesIndices = [];
-	this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/6); // 1=1 plane=6 indices 
+	this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/(3*circleSegments)); // 1=1 circle(12segm (3 indices per segm))= 3*12 indices 
 	
 	this.arrayNodeId = [];
 	this.arrayNodePosXYZW = [];
@@ -313,7 +369,7 @@ Graph = function(sce) {
 	
 	this.splitNodesText = [];
 	this.splitNodesTextIndices = [];
-	this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/72); // 1=12 planes=72 indices 
+	this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/6*nodesTextPlanes); // 1=12 planes (6 indices per plane) = 6*12 indices 
 	
 	this.arrayNodeTextId = [];
 	this.arrayNodeTextNodeName = [];
@@ -339,54 +395,21 @@ Graph = function(sce) {
 	
 	
 	
-	
-	
-	
-	
-	
-	this._nodesByName = {};
-	this._nodesById = {};
-	this._links = {};
-	
-	this.enDestination = 0;
-	this.polarity = 1; // positive
-	this.lifeDistance = 0.0;
-	this.pointSize = 1.0;
-	this.destinationForce = 0.5;
-	
-	
-	
-	var objNodeImages = {};
-	var can2 = document.createElement('canvas');
-	can2.width = 2048;
-	can2.height = 2048;
-	var ctx = can2.getContext('2d');
-	
-	/**
-	 * getLocation
-	 * @param {Int} idx
-	 * @param {Int} width 
-	 * @private
-	 */
-	var getLocation = function(idx, width) {
-		var n = idx/width;
-		var row = parseFloat(Math.round(n));
-		var col = new Utils().fract(n)*width;
+	var setNodesImage = function(/*String*/ url, /*Int*/ locationIdx) {
+		var get2Dfrom1D = function(/*Int*/ idx, /*Int*/ columns) {
+			var n = idx/columns;
+			var row = parseFloat(Math.round(n));
+			var col = new Utils().fract(n)*columns;
+			
+			return {"col": col,
+					"row": row};
+		}
 		
-		return {"col": col,
-				"row": row};
-	}
-	
-	var nodeImagesWidthItems = 32.0;
-	/**
-	 * setNodesImage
-	 * @param {String} url
-	 */
-	this.setNodesImage = function(url, locationIdx) {
 		var image = new Image();
 		image.onload = (function() {
-			var loc = getLocation(locationIdx, 32.0);
-			ctx.drawImage(image, loc.col*64.0, loc.row*64.0, 64, 64); 
+			var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
+			var dim = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
+			ctx.drawImage(image, loc.col*dim, loc.row*dim, dim, dim); 
 			var img = new Utils().getImageFromCanvas(can2);
 			comp_renderer_nodes.setArg("nodesImg", (function(){return img;}).bind(this));
 		}).bind(this);
@@ -396,6 +419,7 @@ Graph = function(sce) {
 	/**
 	 * This callback is displayed as part of the onSelectNode
 	 * @callback Graph~addNode~onmousedown
+	 * @param {String} nodeData
 	 */
 	/**
 	 * This callback is displayed as part of the onSelectNode
@@ -404,21 +428,19 @@ Graph = function(sce) {
 	 */
 	/**
 	* Create new node for the graph
-	* @param	{Object} jsonIn
+	* @param {Object} jsonIn
 	* @param {String} jsonIn.name Name of node
 	* @param {Object} [jsonIn.data=""]
 	* @param {StormV3} [jsonIn.position=$V3([Math.Random(), Math.Random(), Math.Random()])] - Position of node
-	* @param {StormNode} [jsonIn.node] - Node with the mesh for the node
 	* @param {StormV3|String} [jsonIn.color=$V3([1.0, 1.0, 1.0])] - Color of the node (values from 0.0 to 1.0) or URL
 	* @param {Graph~addNode~onmousedown} [jsonIn.onmousedown=undefined]
 	* @param {Graph~addNode~onmouseup} [jsonIn.onmouseup=undefined]
 	* @returns {String}
 	 */
 	this.addNode = function(jsonIn) {
-		if(this._nodesByName.hasOwnProperty(jsonIn.name) == false) {
-			var node = this.addNodeNow({"position": jsonIn.position,
-										"node": jsonIn.node,
-										"color": jsonIn.color});
+		if(_nodesByName.hasOwnProperty(jsonIn.name) == false) {
+			var node = addNodeNow({	"position": jsonIn.position,
+									"color": jsonIn.color});
 				
 			// add event onmousedown & onmouseup if exists
 			node.data = (jsonIn != undefined && jsonIn.data != undefined) ? jsonIn.data : undefined;
@@ -426,28 +448,28 @@ Graph = function(sce) {
 			node.onmouseup = (jsonIn != undefined && jsonIn.onmouseup != undefined) ? jsonIn.onmouseup : undefined;
 			
 			
-			/* this._nodesByName[__STRING_USER_NODENAME__] = {	"nodeId": __INT_this.currentNodeId__,
+			/* _nodesByName[__STRING_USER_NODENAME__] = {	"nodeId": __INT_this.currentNodeId__,
 																"itemStart": __INT_this.nodeArrayItemStart__,
 																"data": {},
 																"onmousedown": Function,
 																"onmouseup": Function }*/
-			this._nodesByName[jsonIn.name] = node;
+			_nodesByName[jsonIn.name] = node;
 			
-			/* this._nodesById[__INT_this.currentNodeId__] = {	"nodeName": __STRING_USER_NODENAME__,
+			/* _nodesById[__INT_this.currentNodeId__] = {	"nodeName": __STRING_USER_NODENAME__,
 			  													"itemStart": __INT_this.nodeArrayItemStart__,
 			  													"data": {},
 			  													"onmousedown": Function,
 			  													"onmouseup": Function }*/
-			this._nodesById[node.nodeId] = {"nodeName": jsonIn.name,
+			_nodesById[node.nodeId] = {"nodeName": jsonIn.name,
 											"itemStart": node.itemStart,
 											"data": node.data,
 											"onmousedown": node.onmousedown,
 											"onmouseup": node.onmouseup};
 			
-			this.addNodeTextNow({	"name": jsonIn.name,
-									"text": jsonIn.name,
-									"itemStart": node.itemStart,
-									"nodeId": node.nodeId});
+			addNodeTextNow({"name": jsonIn.name,
+							"text": jsonIn.name,
+							"itemStart": node.itemStart,
+							"nodeId": node.nodeId});
 			
 			return jsonIn.name;
 		} else console.log("node "+jsonIn.name+" already exists");
@@ -455,24 +477,18 @@ Graph = function(sce) {
 	/**
 	* @param {Object} jsonIn
 	* @param {StormV3} [jsonIn.position=$V3([Math.Random(), Math.Random(), Math.Random()])] - Position of node
-	* @param {Mesh} [jsonIn.node] Node with the mesh for the node
-	* @param {StormV3|String} [jsonIn.color=$V3([1.0, 1.0, 1.0])] - Color of the node (values from 0.0 to 1.0)
+	* @param {StormV3|String} [jsonIn.color=$V3([RANDOM, RANDOM, RANDOM])] - Color of the node (values from 0.0 to 1.0)
 	* @returns {Object}
 	* @private
 	*/
-	this.addNodeNow = function(jsonIn) { 
+	var addNodeNow = (function(jsonIn) { 
 		var nAIS = this.nodeArrayItemStart;
 		
-		// assign position for this node
-		var nodePosX = (jsonIn != undefined && jsonIn.position != undefined) ? jsonIn.position.e[0] : Math.random()*this.offset;
-		var nodePosY = (jsonIn != undefined && jsonIn.position != undefined) ? jsonIn.position.e[1] : Math.random()*this.offset;
-		var nodePosZ = (jsonIn != undefined && jsonIn.position != undefined) ? jsonIn.position.e[2] : Math.random()*this.offset;
-		// assign mesh for this node
-		if(jsonIn != undefined && jsonIn.node != undefined) meshBox = jsonIn.node;
-		// assign color for this node
-		var color = (jsonIn != undefined && jsonIn.color != undefined) ? jsonIn.color : $V3([1.0, 1.0, 1.0]);
-			
+		var offs = OFFSET/10;
+		var pos = jsonIn.position != undefined ? jsonIn.position : $V3([-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs)]);
 		
+		var color = (jsonIn != undefined && jsonIn.color != undefined) ? jsonIn.color : $V3([Math.random(), Math.random(), Math.random()]);
+					
 		//*******************************************************************************************************************
 		// FILL ARRAYS
 		//*******************************************************************************************************************
@@ -482,18 +498,18 @@ Graph = function(sce) {
 				var locationIdx = Object.keys(objNodeImages).length;
 				objNodeImages[color] = locationIdx;
 				
-				this.setNodesImage(color, locationIdx);
+				setNodesImage(color, locationIdx);
 			}
 			nodeImgId = objNodeImages[color];
 		}
-		for(var n=0; n < meshBox.vertexArray.length/4; n++) {
+		for(var n=0; n < mesh_nodes.vertexArray.length/4; n++) {
 			var idxVertex = n*4;
 			
 			this.arrayNodeId.push(this.currentNodeId);
-			this.arrayNodePosXYZW.push(nodePosX, nodePosY, nodePosZ, 1.0);
-			this.arrayNodeVertexPos.push(meshBox.vertexArray[idxVertex], meshBox.vertexArray[idxVertex+1], meshBox.vertexArray[idxVertex+2], 1.0);
-			this.arrayNodeVertexNormal.push(meshBox.normalArray[idxVertex], meshBox.normalArray[idxVertex+1], meshBox.normalArray[idxVertex+2], 1.0);
-			this.arrayNodeVertexTexture.push(meshBox.textureArray[idxVertex], meshBox.textureArray[idxVertex+1], meshBox.textureArray[idxVertex+2], 1.0);
+			this.arrayNodePosXYZW.push(pos.e[0], pos.e[1], pos.e[2], 1.0);
+			this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
+			this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
+			this.arrayNodeVertexTexture.push(mesh_nodes.textureArray[idxVertex], mesh_nodes.textureArray[idxVertex+1], mesh_nodes.textureArray[idxVertex+2], 1.0);
 			//console.log(bo.nodeMeshVertexArray[idxVertex]);
 			if(color instanceof StormV3)
 				this.arrayNodeVertexColor.push(color.e[0], color.e[1], color.e[2], 1.0);
@@ -508,14 +524,14 @@ Graph = function(sce) {
 			this.startIndexId = 0;
 		} 
 		var maxNodeIndexId = 0;
-		for(var n=0; n < meshBox.indexArray.length; n++) {
+		for(var n=0; n < mesh_nodes.indexArray.length; n++) {
 			var idxIndex = n;
 			
-			this.arrayNodeIndices.push(this.startIndexId+meshBox.indexArray[idxIndex]);
+			this.arrayNodeIndices.push(this.startIndexId+mesh_nodes.indexArray[idxIndex]);
 			//console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
 			
-			if(meshBox.indexArray[idxIndex] > maxNodeIndexId) {
-				maxNodeIndexId = meshBox.indexArray[idxIndex];			
+			if(mesh_nodes.indexArray[idxIndex] > maxNodeIndexId) {
+				maxNodeIndexId = mesh_nodes.indexArray[idxIndex];			
 			}
 		}
 		
@@ -535,8 +551,11 @@ Graph = function(sce) {
 		
 		//return this.currentNodeId-1;
 		return {"nodeId": this.currentNodeId-1, "itemStart": nAIS}; // nodeArrayItemStart
-	};
-	/** @private */
+	}).bind(this);
+	
+	/**
+	 * updateNodes
+	 */
 	this.updateNodes = function() {
 		//this.updateForcesAndPP(comp_renderer_nodes);
 		
@@ -563,7 +582,7 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("nodeVertexTexture", (function() {return this.arrayNodeVertexTexture;}).bind(this), this.splitNodes);
 		comp_renderer_nodes.setArg("nodeVertexCol", (function() {return this.arrayNodeVertexColor;}).bind(this), this.splitNodes);
 		
-		comp_renderer_nodes.setArg("nodeImagesWidth", (function() {return nodeImagesWidthItems;}).bind(this), this.splitNodes); 
+		comp_renderer_nodes.setArg("nodeImgColumns", (function() {return NODE_IMG_COLUMNS;}).bind(this), this.splitNodes); 
 		comp_renderer_nodes.setArg("nodeImgId", (function() {return this.arrayNodeImgId;}).bind(this), this.splitNodes);
 		comp_renderer_nodes.setIndices((function() {return this.arrayNodeIndices;}).bind(this), this.splitNodesIndices);
 		
@@ -594,13 +613,13 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArgUpdatable("nodeWMatrix", true);
 		comp_renderer_nodes.setArg("nodesSize", (function() {return parseFloat(this.currentNodeId-1);}).bind(this));
 		comp_renderer_nodes.setArg("sunPos", (function() {return [0.2, -0.5, 0.4, 1.0];}).bind(this));
-		comp_renderer_nodes.setArg("selfShadows", (function() {return ((this.selfShadows == true)?1.0:0.0);}).bind(this));
+		comp_renderer_nodes.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
 		comp_renderer_nodes.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_nodes.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_nodes.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
-		comp_renderer_nodes.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
-		comp_renderer_nodes.setArg("pointSize", (function() {return this.pointSize;}).bind(this));
+		comp_renderer_nodes.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_nodes.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
+		comp_renderer_nodes.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
+		comp_renderer_nodes.setArg("pointSize", (function() {return pointSize;}).bind(this));
 		comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
@@ -609,7 +628,7 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("isNode", (function() {return 1;}).bind(this));
 		
 		
-		this.updateNodesText();
+		updateNodesText();
 	}; 
 	
 	
@@ -632,7 +651,7 @@ Graph = function(sce) {
 	* @param {Bool} [jsonIn.directed=false] - 
 	 */
 	this.addLink = function(jsonIn) {
-		if(this._links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target) == false) {
+		if(_links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target) == false) {
 			var orig_color = (jsonIn != undefined && jsonIn.origin_color != undefined) ? jsonIn.origin_color : [1.0, 0.0, 0.0];
 			var targ_color = (jsonIn != undefined && jsonIn.target_color != undefined) ? jsonIn.target_color : [0.0, 1.0, 0.0];
 			var directed = (jsonIn != undefined && jsonIn.directed != undefined) ? jsonIn.directed : false;
@@ -640,20 +659,20 @@ Graph = function(sce) {
 			var json = {
 					"origin_nodeName": jsonIn.origin,
 					"target_nodeName": jsonIn.target,
-					"origin_nodeId": this._nodesByName[jsonIn.origin].nodeId,
-					"target_nodeId": this._nodesByName[jsonIn.target].nodeId,
-					"origin_itemStart": this._nodesByName[jsonIn.origin].itemStart,
-					"target_itemStart": this._nodesByName[jsonIn.target].itemStart,
+					"origin_nodeId": _nodesByName[jsonIn.origin].nodeId,
+					"target_nodeId": _nodesByName[jsonIn.target].nodeId,
+					"origin_itemStart": _nodesByName[jsonIn.origin].itemStart,
+					"target_itemStart": _nodesByName[jsonIn.target].itemStart,
 					"origin_color": orig_color,
 					"target_color": targ_color,
 					"directed": directed
 					};
 			
-			var blId = this.addLinkNow(json);
-			if(directed == true) this.addArrowNow(json);
+			var blId = addLinkNow(json);
+			if(directed == true) addArrowNow(json);
 			
 			// ADD LINK TO ARRAY LINKS
-			this._links[jsonIn.origin+"->"+jsonIn.target] = json;
+			_links[jsonIn.origin+"->"+jsonIn.target] = json;
 					
 		} else console.log("link "+jsonIn.origin+"->"+jsonIn.target+" already exists");
 	};
@@ -672,7 +691,7 @@ Graph = function(sce) {
 	* @returns {Int}
 	* @private
 	 */
-	this.addLinkNow = function(jsonIn) {
+	var addLinkNow = (function(jsonIn) {
 		// (origin)
 		this.arrayLinkId.push(this.currentLinkId);
 		this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
@@ -709,8 +728,11 @@ Graph = function(sce) {
 		this.currentLinkId += 2; // augment link id
 		
 		return this.currentLinkId-2;
-	};
-	/** @private */
+	}).bind(this);
+	
+	/**
+	 * updateLinks
+	 */
 	this.updateLinks = function() {
 		//this.updateForcesAndPP(comp_renderer_links);
 		
@@ -721,17 +743,17 @@ Graph = function(sce) {
 			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
 			//var arr4Uint8_XYZW = this.clglLayout_nodes.CLGL_bufferPosXYZW.Float4;
 			var n = 0;
-			for(var key in this._links) {
+			for(var key in _links) {
 			     var idx = n*8;
-				this.arrayLinkPosXYZW[idx+0] = arr4Uint8_XYZW[0][this._links[key].origin_itemStart];
-				this.arrayLinkPosXYZW[idx+1] = arr4Uint8_XYZW[1][this._links[key].origin_itemStart];
-				this.arrayLinkPosXYZW[idx+2] = arr4Uint8_XYZW[2][this._links[key].origin_itemStart];
-				this.arrayLinkPosXYZW[idx+3] = arr4Uint8_XYZW[3][this._links[key].origin_itemStart];
+				this.arrayLinkPosXYZW[idx+0] = arr4Uint8_XYZW[0][_links[key].origin_itemStart];
+				this.arrayLinkPosXYZW[idx+1] = arr4Uint8_XYZW[1][_links[key].origin_itemStart];
+				this.arrayLinkPosXYZW[idx+2] = arr4Uint8_XYZW[2][_links[key].origin_itemStart];
+				this.arrayLinkPosXYZW[idx+3] = arr4Uint8_XYZW[3][_links[key].origin_itemStart];
 				
-				this.arrayLinkPosXYZW[idx+4] = arr4Uint8_XYZW[0][this._links[key].target_itemStart];
-				this.arrayLinkPosXYZW[idx+5] = arr4Uint8_XYZW[1][this._links[key].target_itemStart];
-				this.arrayLinkPosXYZW[idx+6] = arr4Uint8_XYZW[2][this._links[key].target_itemStart];
-				this.arrayLinkPosXYZW[idx+7] = arr4Uint8_XYZW[3][this._links[key].target_itemStart];
+				this.arrayLinkPosXYZW[idx+4] = arr4Uint8_XYZW[0][_links[key].target_itemStart];
+				this.arrayLinkPosXYZW[idx+5] = arr4Uint8_XYZW[1][_links[key].target_itemStart];
+				this.arrayLinkPosXYZW[idx+6] = arr4Uint8_XYZW[2][_links[key].target_itemStart];
+				this.arrayLinkPosXYZW[idx+7] = arr4Uint8_XYZW[3][_links[key].target_itemStart];
 				
 				n++;
 			}
@@ -774,10 +796,10 @@ Graph = function(sce) {
 		comp_renderer_links.setArg("selfShadows", (function() {return 0.0;}).bind(this));
 		comp_renderer_links.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_links.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_links.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
-		comp_renderer_links.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
-		comp_renderer_links.setArg("pointSize", (function() {return this.pointSize;}).bind(this));
+		comp_renderer_links.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_links.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
+		comp_renderer_links.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
+		comp_renderer_links.setArg("pointSize", (function() {return pointSize;}).bind(this));
 		comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
@@ -786,7 +808,7 @@ Graph = function(sce) {
 		comp_renderer_links.setArg("isLink", (function() {return 1;}).bind(this));
 		
 		
-		this.updateArrows();
+		updateArrows();
 	};
 	
 	
@@ -818,14 +840,14 @@ Graph = function(sce) {
 	* @returns {Int}
 	* @private
 	 */
-	this.addArrowNow = function(jsonIn) {		
+	var addArrowNow = (function(jsonIn) {		
 		if(jsonIn != undefined && jsonIn.node != undefined) 
-			meshArrow = jsonIn.node;
+			mesh_arrows = jsonIn.node;
 		
 		var oppositeId = 0;
 		
 		for(var o=0; o < 2; o++) {			
-			for(var n=0; n < meshArrow.vertexArray.length/4; n++) {
+			for(var n=0; n < mesh_arrows.vertexArray.length/4; n++) {
 				var idxVertex = n*4;
 				if(o == 0) oppositeId = this.arrowArrayItemStart; 
 				this.arrayArrowId.push(this.currentArrowId);
@@ -833,9 +855,9 @@ Graph = function(sce) {
 				this.arrayArrowPosXYZW.push(0.0, 0.0, 0.0, 1.0);
 				this.arrayArrowPosXYZW_opposite.push(0.0, 0.0, 0.0, 1.0);
 				this.arrayArrow_oppositeId.push(oppositeId);
-				this.arrayArrowVertexPos.push(meshArrow.vertexArray[idxVertex], meshArrow.vertexArray[idxVertex+1], meshArrow.vertexArray[idxVertex+2], 1.0);
-				this.arrayArrowVertexNormal.push(meshArrow.normalArray[idxVertex], meshArrow.normalArray[idxVertex+1], meshArrow.normalArray[idxVertex+2], 1.0);
-				this.arrayArrowVertexTexture.push(meshArrow.textureArray[idxVertex], meshArrow.textureArray[idxVertex+1], meshArrow.textureArray[idxVertex+2], 1.0);
+				this.arrayArrowVertexPos.push(mesh_arrows.vertexArray[idxVertex], mesh_arrows.vertexArray[idxVertex+1], mesh_arrows.vertexArray[idxVertex+2], 1.0);
+				this.arrayArrowVertexNormal.push(mesh_arrows.normalArray[idxVertex], mesh_arrows.normalArray[idxVertex+1], mesh_arrows.normalArray[idxVertex+2], 1.0);
+				this.arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
 				//console.log(bo.nodeMeshVertexArray[idxVertex]);
 				if(o == 0) {
 					this.arrayArrowNodeName.push(jsonIn.origin_nodeName);
@@ -853,14 +875,14 @@ Graph = function(sce) {
 				this.startIndexId_arrow = 0;
 			}
 			var maxArrowIndexId = 0;
-			for(var n=0; n < meshArrow.indexArray.length; n++) {
+			for(var n=0; n < mesh_arrows.indexArray.length; n++) {
 				var idxIndex = n;
 				
-				this.arrayArrowIndices.push(this.startIndexId_arrow+meshArrow.indexArray[idxIndex]);
+				this.arrayArrowIndices.push(this.startIndexId_arrow+mesh_arrows.indexArray[idxIndex]);
 				//console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
 				
-				if(meshArrow.indexArray[idxIndex] > maxArrowIndexId) {
-					maxArrowIndexId = meshArrow.indexArray[idxIndex];			
+				if(mesh_arrows.indexArray[idxIndex] > maxArrowIndexId) {
+					maxArrowIndexId = mesh_arrows.indexArray[idxIndex];			
 				}
 			}
 			
@@ -878,9 +900,9 @@ Graph = function(sce) {
 			
 			this.currentArrowId++; // augment arrow id
 		}
-	};
+	}).bind(this);
 	/** @private */
-	this.updateArrows = function() {
+	var updateArrows = (function() {
 		//this.updateForcesAndPP(comp_renderer_arrows);
 		
 		comp_renderer_arrows.setArg("idx", (function() {return this.arrayArrowId;}).bind(this), this.splitArrows); 
@@ -890,19 +912,19 @@ Graph = function(sce) {
 			this.arrayArrowPosXYZW = [];
 			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
 			//var arr4Uint8_XYZW = this.clglLayout_nodes.CLGL_bufferPosXYZW.Float4;
-			for(var key in this._links) {
+			for(var key in _links) {
 				for(var o=0; o < 2; o++) {
-					for(var n=0; n < meshArrow.vertexArray.length/4; n++) {
+					for(var n=0; n < mesh_arrows.vertexArray.length/4; n++) {
 						if(o == 0) {
-							this.arrayArrowPosXYZW.push(arr4Uint8_XYZW[0][this._links[key].origin_itemStart],
-														arr4Uint8_XYZW[1][this._links[key].origin_itemStart],
-														arr4Uint8_XYZW[2][this._links[key].origin_itemStart],
-														arr4Uint8_XYZW[3][this._links[key].origin_itemStart]);
+							this.arrayArrowPosXYZW.push(arr4Uint8_XYZW[0][_links[key].origin_itemStart],
+														arr4Uint8_XYZW[1][_links[key].origin_itemStart],
+														arr4Uint8_XYZW[2][_links[key].origin_itemStart],
+														arr4Uint8_XYZW[3][_links[key].origin_itemStart]);
 						} else {
-							this.arrayArrowPosXYZW.push(arr4Uint8_XYZW[0][this._links[key].target_itemStart],
-														arr4Uint8_XYZW[1][this._links[key].target_itemStart],
-														arr4Uint8_XYZW[2][this._links[key].target_itemStart],
-														arr4Uint8_XYZW[3][this._links[key].target_itemStart]);
+							this.arrayArrowPosXYZW.push(arr4Uint8_XYZW[0][_links[key].target_itemStart],
+														arr4Uint8_XYZW[1][_links[key].target_itemStart],
+														arr4Uint8_XYZW[2][_links[key].target_itemStart],
+														arr4Uint8_XYZW[3][_links[key].target_itemStart]);
 						}
 					}
 				}
@@ -954,10 +976,10 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArg("selfShadows", (function() {return 0.0;}).bind(this));
 		comp_renderer_arrows.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_arrows.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_arrows.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
-		comp_renderer_arrows.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
-		comp_renderer_arrows.setArg("pointSize", (function() {return this.pointSize;}).bind(this));
+		comp_renderer_arrows.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_arrows.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
+		comp_renderer_arrows.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
+		comp_renderer_arrows.setArg("pointSize", (function() {return pointSize;}).bind(this));
 		comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
@@ -965,7 +987,7 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("isArrow", (function() {return 1.0;}).bind(this));
 		comp_renderer_arrows.setArg("isLink", (function() {return 1.0;}).bind(this));
-	}; 
+	}).bind(this); 
 	
 	
 	
@@ -979,24 +1001,14 @@ Graph = function(sce) {
 	
 	
 	
-	var fontImagesWidthCount = 7.0;
-	var getLetterId = function(letter) {
-		var obj = {	"A":  0, "B":  1, "C":  2, "D":  3, "E":  4, "F":  5, "G":  6,
-					"H":  7, "I":  8, "J":  9, "K": 10, "L": 11, "M": 12, "N": 13,
-					"Ñ": 14, "O": 15, "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20,
-					"U": 21, "V": 22, "W": 23, "X": 24, "Y": 25, "Z": 26, " ": 27,
-					"0": 28, "1": 29, "2": 30, "3": 31, "4": 32, "5": 33, "6": 34,
-					"7": 35, "8": 36, "9": 37		
-				};
-		return obj[letter];
-	};
 	
 	
-	this.addNodeTextNow = function(jsonIn) {
+	
+	var addNodeTextNow = (function(jsonIn) {
 		//*******************************************************************************************************************
 		// FILL ARRAYS
 		//*******************************************************************************************************************
-		for(var i = 0; i < 12; i++) {
+		for(var i = 0; i < nodesTextPlanes; i++) {
 			var letterId;
 			if(jsonIn.text[i] != undefined) {
 				letterId = getLetterId(jsonIn.text[i]);
@@ -1007,14 +1019,14 @@ Graph = function(sce) {
 				letterId = getLetterId(" ");
 			}
 			
-			for(var n=0; n < meshQuad.vertexArray.length/4; n++) {
+			for(var n=0; n < mesh_nodesText.vertexArray.length/4; n++) {
 				var idxVertex = n*4;
 				
 				this.arrayNodeTextId.push(this.currentNodeTextId);
 				this.arrayNodeTextPosXYZW.push(0.0, 0.0, 0.0, 1.0);
-				this.arrayNodeTextVertexPos.push(meshQuad.vertexArray[idxVertex]+(i*0.5), meshQuad.vertexArray[idxVertex+1], meshQuad.vertexArray[idxVertex+2], 1.0);
-				this.arrayNodeTextVertexNormal.push(meshQuad.normalArray[idxVertex], meshQuad.normalArray[idxVertex+1], meshQuad.normalArray[idxVertex+2], 1.0);
-				this.arrayNodeTextVertexTexture.push(meshQuad.textureArray[idxVertex], meshQuad.textureArray[idxVertex+1], meshQuad.textureArray[idxVertex+2], 1.0);
+				this.arrayNodeTextVertexPos.push(mesh_nodesText.vertexArray[idxVertex]+(i*0.5), mesh_nodesText.vertexArray[idxVertex+1], mesh_nodesText.vertexArray[idxVertex+2], 1.0);
+				this.arrayNodeTextVertexNormal.push(mesh_nodesText.normalArray[idxVertex], mesh_nodesText.normalArray[idxVertex+1], mesh_nodesText.normalArray[idxVertex+2], 1.0);
+				this.arrayNodeTextVertexTexture.push(mesh_nodesText.textureArray[idxVertex], mesh_nodesText.textureArray[idxVertex+1], mesh_nodesText.textureArray[idxVertex+2], 1.0);
 				
 				this.arrayNodeTextNodeName.push(jsonIn.name);
 				this.arrayNodeTextNodeId.push(jsonIn.nodeId);
@@ -1029,14 +1041,14 @@ Graph = function(sce) {
 				this.startIndexId_nodestext = 0;
 			}
 			var maxNodeIndexId = 0;
-			for(var n=0; n < meshQuad.indexArray.length; n++) {
+			for(var n=0; n < mesh_nodesText.indexArray.length; n++) {
 				var idxIndex = n;
 				
-				this.arrayNodeTextIndices.push(this.startIndexId_nodestext+meshQuad.indexArray[idxIndex]);
+				this.arrayNodeTextIndices.push(this.startIndexId_nodestext+mesh_nodesText.indexArray[idxIndex]);
 				//console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
 				
-				if(meshQuad.indexArray[idxIndex] > maxNodeIndexId) {
-					maxNodeIndexId = meshQuad.indexArray[idxIndex];			
+				if(mesh_nodesText.indexArray[idxIndex] > maxNodeIndexId) {
+					maxNodeIndexId = mesh_nodesText.indexArray[idxIndex];			
 				}
 			}
 		}
@@ -1052,9 +1064,9 @@ Graph = function(sce) {
 		this.startIndexId_nodestext += (maxNodeIndexId+1);
 		
 		this.currentNodeTextId++; // augment node id
-	};
+	}).bind(this);
 	/** @private */
-	this.updateNodesText = function() {
+	var updateNodesText = (function() {
 		//this.updateForcesAndPP(comp_renderer_nodesText);
 		
 		comp_renderer_nodesText.setArg("idx", (function() {return this.arrayNodeTextId;}).bind(this), this.splitNodesText);
@@ -1079,7 +1091,7 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArg("nodeVertexTexture", (function() {return this.arrayNodeTextVertexTexture;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setArg("nodeVertexCol", (function() {return this.arrayNodeTextVertexColor;}).bind(this), this.splitNodesText);
 		
-		comp_renderer_nodesText.setArg("fontImagesWidth", (function() {return fontImagesWidthCount;}).bind(this), this.splitNodesText);
+		comp_renderer_nodesText.setArg("fontImgColumns", (function() {return FONT_IMG_COLUMNS;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setIndices((function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
 		
@@ -1109,16 +1121,16 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_nodesText.setArgUpdatable("nodeWMatrix", true);
 		
-		comp_renderer_nodesText.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_nodesText.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
-		comp_renderer_nodesText.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
+		comp_renderer_nodesText.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_nodesText.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
+		comp_renderer_nodesText.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
 		comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("isNodeText", (function() {return 1;}).bind(this));
-	}; 
+	}).bind(this); 
 	
 	
 	
@@ -1130,8 +1142,13 @@ Graph = function(sce) {
 	
 	
 	
-	
-	
+	/**
+	 * setOffset
+	 * @param {Float} offset
+	 */
+	this.setOffset = function(offset) {
+		OFFSET = offset;
+	};
 	
 	/**
 	 * setFontsImage
@@ -1151,49 +1168,24 @@ Graph = function(sce) {
 	 * @param {Bool} [bselfShadows=true]
 	 */
 	this.setSelfShadows = function(bselfShadows) {
-		var ss = (bselfShadows != undefined) ? bselfShadows : true;
-		this.selfShadows = ss;
+		selfShadows = (bselfShadows != undefined) ? bselfShadows : true;
 		
-		comp_renderer_nodes.setArg("selfShadows", (function() {return ((this.selfShadows == true)?1.0:0.0);}).bind(this));
-		comp_renderer_links.setArg("selfShadows", (function() {return ((this.selfShadows == true)?1.0:0.0);}).bind(this));
-		comp_renderer_arrows.setArg("selfShadows", (function() {return ((this.selfShadows == true)?1.0:0.0);}).bind(this));
-		comp_renderer_nodesText.setArg("selfShadows", (function() {return ((this.selfShadows == true)?1.0:0.0);}).bind(this));
-	};
-
-	/**
-	 * Split nodes buffer every 
-	 * @param {Int} value
-	 */
-	this.setNodesSplitEvery = function(value) {
-		this.splitNodesEvery = value;
-	};
-
-	/**
-	 * Split links buffer every
-	 * @param {Int} value
-	 */
-	this.setLinksSplitEvery = function(value) {
-		this.splitLinksEvery = value;
-	};
-	
-	/**
-	 * Split arrows buffer every
-	 * @param {Int} value
-	 */
-	this.setArrowsSplitEvery = function(value) {
-		this.splitArrowsEvery = value;
+		comp_renderer_nodes.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
+		comp_renderer_links.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
+		comp_renderer_arrows.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
+		comp_renderer_nodesText.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
 	};
 
 	/** @private **/
 	/*this.updateForcesAndPP = function(clglwork) {
 		// POLARITY POINTS
-		this.arrPP = [];
+		arrPP = [];
 		for(var n = 0, f = this._sec.polarityPoints.length; n < f; n++) {
 			for(var nb = 0, fb = this._sec.polarityPoints[n].nodesProc.length; nb < fb; nb++) {
 				if(this.objectType == this._sec.polarityPoints[n].nodesProc[nb].objectType && this.idNum == this._sec.polarityPoints[n].nodesProc[nb].idNum) {
 					var oper = this.MPOS.x(this._sec.polarityPoints[n].getPosition());
 					
-					this.arrPP.push({"x": oper.e[0], "y": oper.e[1], "z": oper.e[2],
+					arrPP.push({"x": oper.e[0], "y": oper.e[1], "z": oper.e[2],
 								"polarity": this._sec.polarityPoints[n].polarity,
 								"orbit": this._sec.polarityPoints[n].orbit,
 								"force": this._sec.polarityPoints[n].force});
@@ -1201,13 +1193,13 @@ Graph = function(sce) {
 			}
 		}
 		// FORCES
-		this.arrF = [];
+		arrF = [];
 		for(var n = 0, f = this._sec.forceFields.length; n < f; n++) {
 			for(var nb = 0, fb = this._sec.forceFields[n].nodesProc.length; nb < fb; nb++) {
 				if(this.objectType == this._sec.forceFields[n].nodesProc[nb].objectType && this.idNum == this._sec.forceFields[n].nodesProc[nb].idNum) {
 					var oper = this._sec.forceFields[n].direction;
 					
-					this.arrF.push({"x": oper.e[0], "y": oper.e[1], "z": oper.e[2]});
+					arrF.push({"x": oper.e[0], "y": oper.e[1], "z": oper.e[2]});
 				}
 			}
 		}
@@ -1216,18 +1208,18 @@ Graph = function(sce) {
 		kernel.setKernelSource(this.source_direction());
 		clglwork.addKernel(kernel, "dir");
 		
-		for(var n = 0, f = this.arrPP.length; n < f; n++) {
-			clglwork.setArg('pole'+n+'X', this.arrPP[n].x);
-			clglwork.setArg('pole'+n+'Y', this.arrPP[n].y); 
-			clglwork.setArg('pole'+n+'Z', this.arrPP[n].z); 
-			clglwork.setArg('pole'+n+'Polarity', this.arrPP[n].polarity); 
-			clglwork.setArg('pole'+n+'Orbit', this.arrPP[n].orbit); 
-			clglwork.setArg('pole'+n+'Force', this.arrPP[n].force); 
+		for(var n = 0, f = arrPP.length; n < f; n++) {
+			clglwork.setArg('pole'+n+'X', arrPP[n].x);
+			clglwork.setArg('pole'+n+'Y', arrPP[n].y); 
+			clglwork.setArg('pole'+n+'Z', arrPP[n].z); 
+			clglwork.setArg('pole'+n+'Polarity', arrPP[n].polarity); 
+			clglwork.setArg('pole'+n+'Orbit', arrPP[n].orbit); 
+			clglwork.setArg('pole'+n+'Force', arrPP[n].force); 
 		}
-		for(var n = 0, f = this.arrF.length; n < f; n++) {
-			clglwork.setArg('force'+n+'X', this.arrF[n].x); 
-			clglwork.setArg('force'+n+'Y', this.arrF[n].y); 
-			clglwork.setArg('force'+n+'Z', this.arrF[n].z);
+		for(var n = 0, f = arrF.length; n < f; n++) {
+			clglwork.setArg('force'+n+'X', arrF[n].x); 
+			clglwork.setArg('force'+n+'Y', arrF[n].y); 
+			clglwork.setArg('force'+n+'Z', arrF[n].z);
 		}
 	};*/
 	/**
@@ -1236,33 +1228,33 @@ Graph = function(sce) {
 	* @type Void
 	*/
 	this.set_destinationForce = function(value) { 
-		this.destinationForce = value;
-		comp_renderer_nodes.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
-		comp_renderer_links.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
-		comp_renderer_arrows.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
-		comp_renderer_nodesText.setArg("destinationForce", (function() {return this.destinationForce;}).bind(this));
+		destinationForce = value;
+		comp_renderer_nodes.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
+		comp_renderer_links.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
+		comp_renderer_arrows.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
+		comp_renderer_nodesText.setArg("destinationForce", (function() {return destinationForce;}).bind(this));
 	};
 	/**
 	* Disable destination
 	* @type Void
 	*/
 	this.set_disableDestination = function() { 	
-		this.enDestination = 0;	
-		comp_renderer_nodes.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_links.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_arrows.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_nodesText.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
+		enDestination = 0;	
+		comp_renderer_nodes.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_links.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_arrows.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_nodesText.setArg("enableDestination", (function() {return enDestination;}).bind(this));
 	};
 	/**
 	* Enable destination
 	* @type Void
 	*/
 	this.set_enableDestination = function() { 	
-		this.enDestination = 1;	
-		comp_renderer_nodes.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_links.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_arrows.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
-		comp_renderer_nodesText.setArg("enableDestination", (function() {return this.enDestination;}).bind(this));
+		enDestination = 1;	
+		comp_renderer_nodes.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_links.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_arrows.setArg("enableDestination", (function() {return enDestination;}).bind(this));
+		comp_renderer_nodesText.setArg("enableDestination", (function() {return enDestination;}).bind(this));
 	};
 	/**
 	* Life distance
@@ -1270,11 +1262,11 @@ Graph = function(sce) {
 	* @type Void
 	*/
 	this.set_lifeDistance = function(value) { 
-		this.lifeDistance = value;
-		comp_renderer_nodes.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
-		comp_renderer_links.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
-		comp_renderer_arrows.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
-		comp_renderer_nodesText.setArg("lifeDistance", (function() {return this.lifeDistance;}).bind(this));
+		lifeDistance = value;
+		comp_renderer_nodes.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
+		comp_renderer_links.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
+		comp_renderer_arrows.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
+		comp_renderer_nodesText.setArg("lifeDistance", (function() {return lifeDistance;}).bind(this));
 	};
 	/**
 	* Point size
@@ -1282,11 +1274,11 @@ Graph = function(sce) {
 	* @type Void
 	*/
 	this.set_pointSize = function(value) { 
-		this.pointSize = value;
-		comp_renderer_nodes.setArg("pointSize", (function() {return this.pointSize;}).bind(this));
-		comp_renderer_links.setArg("pointSize", (function() {return this.pointSize;}).bind(this));
-		comp_renderer_arrows.setArg("pointSize", (function() {return this.pointSize;}).bind(this));
-		comp_renderer_nodesText.setArg("pointSize", (function() {return this.pointSize;}).bind(this));
+		pointSize = value;
+		comp_renderer_nodes.setArg("pointSize", (function() {return pointSize;}).bind(this));
+		comp_renderer_links.setArg("pointSize", (function() {return pointSize;}).bind(this));
+		comp_renderer_arrows.setArg("pointSize", (function() {return pointSize;}).bind(this));
+		comp_renderer_nodesText.setArg("pointSize", (function() {return pointSize;}).bind(this));
 	};
 	/**
 	* Polarity
@@ -1599,7 +1591,7 @@ Graph = function(sce) {
 		this.arrayLinkDestination = [];	
 		for(var n=0; n < this.arrayLinkId.length; n++) {
 			var currentLinkNodeName = this.arrayLinkNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentLinkNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentLinkNodeName].itemStart;
 			
 			this.arrayLinkDestination.push(this.arrayNodeDestination[(nodeNameItemStart*4)],
 											this.arrayNodeDestination[(nodeNameItemStart*4)+1],
@@ -1617,7 +1609,7 @@ Graph = function(sce) {
 		this.arrayArrowDestination = [];	
 		for(var n=0; n < this.arrayArrowId.length; n++) {
 			var currentArrowNodeName = this.arrayArrowNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentArrowNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentArrowNodeName].itemStart;
 			
 			this.arrayArrowDestination.push(this.arrayNodeDestination[(nodeNameItemStart*4)],
 											this.arrayNodeDestination[(nodeNameItemStart*4)+1],
@@ -1635,7 +1627,7 @@ Graph = function(sce) {
 		this.arrayNodeTextDestination = [];	
 		for(var n=0; n < this.arrayNodeTextId.length; n++) {
 			var currentNodeTextNodeName = this.arrayNodeTextNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentNodeTextNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentNodeTextNodeName].itemStart;
 			
 			this.arrayNodeTextDestination.push(	this.arrayNodeDestination[(nodeNameItemStart*4)],
 												this.arrayNodeDestination[(nodeNameItemStart*4)+1],
@@ -1685,7 +1677,7 @@ Graph = function(sce) {
 		this.arrayLinkDir = [];	
 		for(var n=0; n < this.arrayLinkId.length; n++) {
 			var currentLinkNodeName = this.arrayLinkNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentLinkNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentLinkNodeName].itemStart;
 			
 			this.arrayLinkDir.push(this.arrayNodeDir[(nodeNameItemStart*4)],
 									this.arrayNodeDir[(nodeNameItemStart*4)+1],
@@ -1702,7 +1694,7 @@ Graph = function(sce) {
 		this.arrayArrowDir = [];	
 		for(var n=0; n < this.arrayArrowId.length; n++) {
 			var currentArrowNodeName = this.arrayArrowNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentArrowNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentArrowNodeName].itemStart;
 			
 			this.arrayArrowDir.push(this.arrayNodeDir[(nodeNameItemStart*4)],
 									this.arrayNodeDir[(nodeNameItemStart*4)+1],
@@ -1719,7 +1711,7 @@ Graph = function(sce) {
 		this.arrayNodeTextDir = [];	
 		for(var n=0; n < this.arrayNodeTextId.length; n++) {
 			var currentNodeTextNodeName = this.arrayNodeTextNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentNodeTextNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentNodeTextNodeName].itemStart;
 			
 			this.arrayNodeTextDir.push(this.arrayNodeDir[(nodeNameItemStart*4)],
 									this.arrayNodeDir[(nodeNameItemStart*4)+1],
@@ -1797,7 +1789,7 @@ Graph = function(sce) {
 		this.arrayLinkPosXYZW = [];	
 		for(var n=0; n < this.arrayLinkId.length; n++) {
 			var currentLinkNodeName = this.arrayLinkNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentLinkNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentLinkNodeName].itemStart;
 			
 			this.arrayLinkPosXYZW.push(this.arrayNodePosXYZW[(nodeNameItemStart*4)],
 									this.arrayNodePosXYZW[(nodeNameItemStart*4)+1],
@@ -1813,7 +1805,7 @@ Graph = function(sce) {
 		this.arrayArrowPosXYZW = [];	
 		for(var n=0; n < this.arrayArrowId.length; n++) {
 			var currentArrowNodeName = this.arrayArrowNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentArrowNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentArrowNodeName].itemStart;
 			
 			this.arrayArrowPosXYZW.push(this.arrayNodePosXYZW[(nodeNameItemStart*4)],
 									this.arrayNodePosXYZW[(nodeNameItemStart*4)+1],
@@ -1829,7 +1821,7 @@ Graph = function(sce) {
 		this.arrayNodeTextPosXYZW = [];	
 		for(var n=0; n < this.arrayNodeTextId.length; n++) {
 			var currentNodeTextNodeName = this.arrayNodeTextNodeName[n];		
-			var nodeNameItemStart = this._nodesByName[currentNodeTextNodeName].itemStart;
+			var nodeNameItemStart = _nodesByName[currentNodeTextNodeName].itemStart;
 			
 			this.arrayNodeTextPosXYZW.push(this.arrayNodePosXYZW[(nodeNameItemStart*4)],
 									this.arrayNodePosXYZW[(nodeNameItemStart*4)+1],

@@ -54,10 +54,10 @@ UI = function(project) {
 		
 		// controllers
 		DGE("TopMenu").addEventListener("mouseover", (function() {
-			//secMgr.getEngine().setWebGLpause(true);
+			_project.getActiveStage().pause();
 		}).bind(this));	
 		DGE("TopMenu").addEventListener("mouseout", (function() {
-			//secMgr.getEngine().setWebGLpause(false);
+			_project.getActiveStage().render();
 		}).bind(this));
 		
 		

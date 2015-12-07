@@ -202,7 +202,29 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 			updateGoal(event);
 	};
 
+	/**
+	 * isLeftBtnActive
+	 * @returns {Bool}
+	 */
+	this.isLeftBtnActive = function() {
+		return (leftButton == 1) ? true : false;
+	};
 	
+	/**
+	 * isMiddleBtnActive
+	 * @returns {Bool}
+	 */
+	this.isMiddleBtnActive = function() {
+		return (middleButton == 1) ? true : false;
+	};
+	
+	/**
+	 * isRightBtnActive
+	 * @returns {Bool}
+	 */
+	this.isRightBtnActive = function() {
+		return (rightButton == 1) ? true : false;
+	};
 
 	/**
 	* @param {Float} elapsed

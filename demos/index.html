@@ -22,13 +22,7 @@
 	<body>
 		
 		<div id="SCEJS"></div> 
-		<script>			
-			var meshNode = new Mesh().loadBox();
-			var edgeColor_origin = [(255.0/255.0), (0.0/255.0), (0.0/255.0)];
-			var edgeColor_target = [(0.0/255.0), (255.0/255.0), (0.0/255.0)];
-		
-		
-		
+		<script>
 			var sce = new SCE();
 			sce.initialize({"target": document.getElementById("SCEJS"),
 							"dimensions": {"width": 512, "height": 512}});
@@ -53,20 +47,21 @@
 			grid.generate(100.0, 1.0);
 			
 			// GRAPH
+			var edgeColor_origin = [(255.0/255.0), (0.0/255.0), (0.0/255.0)];
+			var edgeColor_target = [(0.0/255.0), (255.0/255.0), (0.0/255.0)];
+			var OFFSET = 1000.0;
+			var numNodes = 2000; 
+			var numLinks = 100;
 			var graph = new Graph(sce);			
-			var numNodes = 3000; 
-			var numLinks = 1;  
-			graph.setFontsImage("../SCEJS/Prefabs/Graph/fonts.png");  
-						
+			graph.setOffset(OFFSET);
+			
 			for(var n=0; n < numNodes; n++) {				
-				var offs = graph.offset/10;
+				var offs = OFFSET/10;
 						
 				var node = graph.addNode({
 					"name": "#"+n.toString()+":"+n.toString(),
 					"data": "#"+n.toString()+":"+n.toString(),
 					"position": $V3([-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs)]),
-					//"node": meshNode,
-					//"color": $V3([Math.random(), Math.random(), Math.random()]),
 					"color": ((n % 2) ? "../SCEJS/Prefabs/Graph/lena.jpg" : "../SCEJS/Prefabs/Graph/cartman08.jpg"),
 					"onmouseup": (function(nodeData) {
 						
@@ -84,7 +79,9 @@
 								"target_color": edgeColor_target,
 								"directed": true});
 			}
-			graph.updateLinks();			
+			graph.updateLinks();	
+			
+			graph.setFontsImage("../SCEJS/Prefabs/Graph/fonts.png");  
 			/*graph.set_destinationWidthHeight({width:16,
 												height:16,
 												spacing:2.0});*/

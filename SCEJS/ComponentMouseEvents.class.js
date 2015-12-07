@@ -10,10 +10,10 @@ ComponentMouseEvents = function() { Component.call(this);
 	var gl = null;
 	
 	
-	this.onmousedown;	
-	this.onmouseup;	
-	this.onmousemove;	
-	this.onmousewheel;
+	this._onmousedown = null;	
+	this._onmouseup = null;	
+	this._onmousemove = null;	
+	this._onmousewheel = null;
 	
 	
 	/**
@@ -25,6 +25,56 @@ ComponentMouseEvents = function() { Component.call(this);
 	this.initialize = function(nod, glCtx) {
 		node = nod;
 		gl = glCtx;
+	};	
+	
+	/**
+	 * @callback ComponentMouseEvents~onmousedown
+	 * @param {MouseEvent} evt
+	 */	
+	/**
+	 * onmousedown
+	 * @param {ComponentMouseEvents~onmousedown} cb
+	 */
+	this.onmousedown = function(cb) {
+		this._onmousedown = cb;
+	};	
+	
+	/**
+	 * @callback ComponentMouseEvents~onmouseup
+	 * @param {MouseEvent} evt
+	 */	
+	/**
+	 * onmousedown
+	 * @param {ComponentMouseEvents~onmouseup} cb
+	 */
+	this.onmouseup = function(cb) {
+		this._onmouseup = cb;
+	};	
+	
+	/**
+	 * @callback ComponentMouseEvents~onmousemove
+	 * @param {MouseEvent} evt
+	 * @param {StormV3} dir
+	 */	
+	/**
+	 * onmousedown
+	 * @param {ComponentMouseEvents~onmousemove} cb
+	 */
+	this.onmousemove = function(cb) {
+		this._onmousemove = cb;
+	};	
+	
+	/**
+	 * @callback ComponentMouseEvents~onmousewheel
+	 * @param {MouseWheelEvent} evt
+	 * @param {StormV3} dir
+	 */	
+	/**
+	 * onmousedown
+	 * @param {ComponentMouseEvents~onmousewheel} cb
+	 */
+	this.onmousewheel = function(cb) {
+		this._onmousewheel = cb;
 	};	
 };
 ComponentMouseEvents.prototype = Object.create(Component.prototype);

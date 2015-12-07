@@ -7,12 +7,12 @@ function VFP_NODE() { VFP.call(this);
        		'varying vec2 vVertexUV;\n'+
        		'varying float vUseTex;\n'+ 
        		'varying vec4 vWNMatrix;\n'+
-       		'vec2 getUV(float idx, float width) {'+
-       			'float n = idx/width;'+
+       		'vec2 get2Dfrom1D(float idx, float columns) {'+
+       			'float n = idx/columns;'+
        			'float row = float(int(n));'+
-       			'float col = fract(n)*width;'+
+       			'float col = fract(n)*columns;'+
        			
-       			'float ts = 1.0/width;'+
+       			'float ts = 1.0/columns;'+
        			'return vec2(ts*col, ts*row);'+
        		'}'+
        		 'mat4 lookAt(vec3 eye, vec3 center, vec3 up) {'+
@@ -81,8 +81,8 @@ function VFP_NODE() { VFP.call(this);
        			'float isLink,'+
        			'float isArrow,'+
        			'float isNodeText,'+
-       			'float nodeImagesWidth,'+
-       			'float fontImagesWidth) {'+
+       			'float nodeImgColumns,'+
+       			'float fontImgColumns) {'+
        				'vec2 x = get_global_id();'+
        		
        				'float nodeIdx = nodeId[x];\n'+  
@@ -97,12 +97,12 @@ function VFP_NODE() { VFP.call(this);
        				
        				'if(isNode == 1.0) {'+
 	   					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
-	   					'nodepos = nodepos*mm;'+
+	   					//'nodepos = nodepos*mm;'+
 	   					'float nodeImgId = nodeImgId[x];'+
 	   					
 	   					'if(nodeImgId != -1.0) {'+
 	   						'vUseTex = 1.0;'+
-	   						'vVertexUV = getUV(nodeImgId, nodeImagesWidth)+vec2(nodeVertexTexture.x/nodeImagesWidth,nodeVertexTexture.y/nodeImagesWidth);'+
+	   						'vVertexUV = get2Dfrom1D(nodeImgId, nodeImgColumns)+vec2(nodeVertexTexture.x/nodeImgColumns,nodeVertexTexture.y/nodeImgColumns);'+
 	   					'}'+
 	   				'}'+
 	   				'if(isLink == 1.0) {'+
@@ -130,14 +130,14 @@ function VFP_NODE() { VFP.call(this);
        					'nodepos = nodepos*(mm*mmB);'+
        					
        					'vec3 dir = normalize(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z));'+
-       					//'nodePosition = nodePosition+(vec4(dir,1.0)*0.5);'+
+       					'nodePosition = nodePosition+(vec4(dir,1.0)*0.565);'+
        				'}'+
        				'if(isNodeText == 1.0) {'+
        					'float letId = letterId[x];\n'+
        					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
        					'nodepos = nodepos*mm;'+
        					
-       					'vVertexUV = getUV(letId, fontImagesWidth)+vec2(nodeVertexTexture.x/fontImagesWidth,nodeVertexTexture.y/fontImagesWidth);'+
+       					'vVertexUV = get2Dfrom1D(letId, fontImgColumns)+vec2(nodeVertexTexture.x/fontImgColumns,nodeVertexTexture.y/fontImgColumns);'+
        					'nodeVertexPosition = vec4(nodeVertexPosition.x*0.1, nodeVertexPosition.y*0.1, nodeVertexPosition.z*0.1, 1.0);'+
        				'}'+
        				'nodepos[3][0] = nodePosition.x;'+

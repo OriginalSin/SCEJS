@@ -36,7 +36,7 @@ SimpleCamera = function(sce) {
 	// ComponentKeyboardEvents
 	var comp_keyboardEvents = new ComponentKeyboardEvents();
 	camera.addComponent(comp_keyboardEvents);
-	comp_keyboardEvents.onkeydown = (function(evt) {
+	comp_keyboardEvents.onkeydown((function(evt) {
 		var key = String.fromCharCode(evt.keyCode);
 		
 		if(key == "W")
@@ -70,8 +70,8 @@ SimpleCamera = function(sce) {
 		
 		if(evt.altKey == true)
 			altKeyPressed = true;
-	}).bind(this);
-	comp_keyboardEvents.onkeyup = function(evt) {		
+	}).bind(this));
+	comp_keyboardEvents.onkeyup(function(evt) {		
 		var key = String.fromCharCode(evt.keyCode);
 		
 		if(key == "W")
@@ -89,22 +89,32 @@ SimpleCamera = function(sce) {
 		
 		if(evt.altKey == false)
 			altKeyPressed = false;
-	};			
+	});			
 	
 	// ComponentMouseEvents 
 	var comp_mouseEvents = new ComponentMouseEvents();
 	camera.addComponent(comp_mouseEvents);
-	comp_mouseEvents.onmousedown = function(evt) {
+	comp_mouseEvents.onmousedown(function(evt) {
 			comp_controllerTransformTarget.mouseDown(evt);
-	};
-	comp_mouseEvents.onmouseup = function(evt) {
+	});
+	comp_mouseEvents.onmouseup(function(evt) {
 			comp_controllerTransformTarget.mouseUp(evt);
-	};
-	comp_mouseEvents.onmousemove = function(evt, dir) {
+	});
+	comp_mouseEvents.onmousemove(function(evt, dir) {
 		if(comp_projection.getProjection() == Constants.PROJECTION_TYPES.PERSPECTIVE || altKeyPressed == true)
 			comp_controllerTransformTarget.mouseMove(evt);
-	};
-	comp_mouseEvents.onmousewheel = function(evt, dir) {
+		
+		if(comp_controllerTransformTarget.isRightBtnActive() == true && comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO && altKeyPressed == true) {
+			if(dir.e[2] > 0) {
+				comp_projection.setFov(comp_projection.getFov()*(1.0+Math.abs(dir.e[2]*0.5)));				
+			} else {
+				comp_projection.setFov(comp_projection.getFov()/(1.0+Math.abs(dir.e[2]*0.5))); 
+			}
+			//comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir.x(dir.e[2]))); 
+			//comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir.x(dir.e[2]))); 
+		}
+	});
+	comp_mouseEvents.onmousewheel(function(evt, dir) {
 		if(evt.wheelDeltaY >= 0)
 			comp_projection.setFov(comp_projection.getFov()/1.1);
 		else
@@ -114,7 +124,7 @@ SimpleCamera = function(sce) {
 			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir)); 
 			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir)); 
 		}
-	};		
+	});		
 	
 	/**
 	* Set side view. This change the projection to orthographic.

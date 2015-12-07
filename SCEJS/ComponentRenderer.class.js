@@ -14,6 +14,7 @@ ComponentRenderer = function() { Component.call(this);
 	
 	var args = {};
 	var vfps = {};
+	var kernels = {};
 	
 	/**
 	 * initialize
@@ -92,34 +93,29 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
-	* setBlendSrc
-	* @param {String} name
-	* @param {Constants.BLENDING_MODES} blend
-	*/
-	this.setBlendSrc = function(name, blend) {
-		vfps[name].blendSrc = blend;
-	};
-	
-	/**
-	* setBlendDst
-	* @param {String} name
-	* @param {Constants.BLENDING_MODES} blend
-	*/
-	this.setBlendDst = function(name, blend) {
-		vfps[name].blendDst = blend;
-	};
-	
-	/**
-	 * @param {KERNEL} k
-	 * @param {String} argDestination
+	 * addKernel
+	 * @param {Object} jsonIn
+	 * @param {KERNEL} jsonIn.kernel
+	 * @param {String} jsonIn.argDestination
 	 */
-	this.addKernel = function(k, argDestination) {
-		var arg = k.getSrc();
+	this.addKernel = function(jsonIn) {
+		var arg = jsonIn.kernel.getSrc();
 		var kernel = webCLGL.createKernel();
 		kernel.setKernelSource(arg[1][0], arg[0][0]);
-		clglWork.addKernel(kernel, argDestination);
+		clglWork.addKernel(kernel, jsonIn.argDestination);
+		
+		kernels[jsonIn.name] = {"kernel": kernel,
+								"argBufferDestination": jsonIn.argDestination};
 	};
 	
+	/**
+	 * getKernels
+	 * @returns {Object}
+	 */
+	this.getKernels = function() {
+		return kernels;
+	};
+	 
 	/**
 	* @param {String} argument Argument to set
 	* @param {Function} fnvalue
@@ -141,14 +137,6 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
-	* @param {String} argument Argument to set
-	* @param {Bool} value
-	*/
-	this.setArgUpdatable = function(argument, value) {
-		args[argument].updatable = value;
-	};
-	
-	/**
 	 * getBuffers
 	 * @returns {Array<WebCLGLBuffer>}
 	 */
@@ -165,6 +153,14 @@ ComponentRenderer = function() { Component.call(this);
 	};
 	
 	/**
+	* @param {String} argument Argument to set
+	* @param {Bool} value
+	*/
+	this.setArgUpdatable = function(argument, value) {
+		args[argument].updatable = value;
+	};
+	
+	/**
 	* @param {Function} fnvalue 
 	* @param {Array<Float>} [splits=[array.length]]
 	*/
@@ -178,6 +174,33 @@ ComponentRenderer = function() { Component.call(this);
 	 */
 	this.getIndices = function() {
 		return clglWork.CLGL_bufferIndices;
+	};
+	
+	/**
+	* setBlendSrc
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setBlendSrc = function(name, blend) {
+		vfps[name].blendSrc = blend;
+	};
+	
+	/**
+	* setBlendDst
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setBlendDst = function(name, blend) {
+		vfps[name].blendDst = blend;
+	};
+	
+	/**
+	* setDrawMode
+	* @param {String} name
+	* @param {Constants.DRAW_MODES} draw
+	*/
+	this.setDrawMode = function(name, draw) {
+		vfps[name].drawMode = draw;
 	};
 	
 	/**
@@ -214,9 +237,9 @@ ComponentRenderer = function() { Component.call(this);
 					if(vfps[key].blendSrc != undefined) {
 						gl.enable(gl.BLEND);
 						gl.blendFunc(gl[vfps[key].blendSrc], gl[vfps[key].blendDst]);
-						//gl.blendEquation(gl.FUNC_ADD); 
+						gl.blendEquation(gl.FUNC_ADD); 
 						gl.disable(gl.DEPTH_TEST);
-						//gl.clear(gl.DEPTH_BUFFER_BIT);
+						gl.clear(gl.DEPTH_BUFFER_BIT);
 					}
 					
 					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, (function() {}).bind(this), vfps[key].drawMode);

@@ -41,6 +41,7 @@ WebCLGL = function(webglcontext) {
 	
 	this.gl.getExtension('OES_texture_float');	
 	this.gl.getExtension('OES_texture_float_linear');
+	this.gl.getExtension('OES_element_index_uint');
 	
 	var highPrecisionSupport = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
 	this.precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';

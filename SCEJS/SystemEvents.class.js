@@ -97,23 +97,23 @@ SystemEvents = function(sce, target) {
 				for(var key in stage.getNodes()[n].getComponents()) {
 					var component = stage.getNodes()[n].getComponent(key);					
 					if(component.type == componentType) {
-						if(eventType == Constants.EVENT_TYPES.KEY_DOWN && component.onkeydown != undefined)
-							component.onkeydown(evt);
+						if(eventType == Constants.EVENT_TYPES.KEY_DOWN && component._onkeydown != null)
+							component._onkeydown(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.KEY_UP && component.onkeyup != undefined)
-							component.onkeyup(evt);
+						if(eventType == Constants.EVENT_TYPES.KEY_UP && component._onkeyup != null)
+							component._onkeyup(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN && component.onmousedown != undefined)						
-							component.onmousedown(evt);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN && component._onmousedown != null)						
+							component._onmousedown(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_UP && component.onmouseup != undefined)
-							component.onmouseup(evt);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_UP && component._onmouseup != null)
+							component._onmouseup(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE && component.onmousemove != undefined)							
-							component.onmousemove(evt, dir);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE && component._onmousemove != null)							
+							component._onmousemove(evt, dir);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL && component.onmousewheel != undefined)
-							component.onmousewheel(evt, dir);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL && component._onmousewheel != null)
+							component._onmousewheel(evt, dir);
 					}
 				}
 			}

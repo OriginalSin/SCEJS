@@ -10,15 +10,15 @@ PanelStage = function() {
 	
 	/**
 	* show
-	* @param {Stage} stage
+	* @param {Array<Node>} nodes
 	* @param {Node} selectedNode
 	* @param {Function} onselect
 	* @param {Node} onselect.node
 	*/
-	this.show = function(stage, selectedNode, onselect) {
+	this.show = function(nodes, selectedNode, onselect) {
 		panel.show(); 
 		
-		showListObjects(stage, selectedNode, onselect);
+		showListObjects(nodes, selectedNode, onselect);
 	};
 	
 	/**
