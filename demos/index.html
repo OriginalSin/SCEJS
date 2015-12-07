@@ -1,22 +1,31 @@
 <html>
 	<head>
-		<title>StormEngineC V2 Draft</title>
+		<title>SCEJS Draft</title>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
-		<script src="../SCEJS/SCE.class.js"></script>
-		<style>
-			body{
-				background:#66ACA4;
-				color:#FFF;
-			}
-		</style>
+		<script src="../SCEJS/SCE.class.js"></script> 
+		
+		<script src="../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
+		
+		<script src="../SCEJS/Prefabs/SimpleNode/SimpleNode.class.js"></script>
+		
+		<script src="../SCEJS/Prefabs/Graph/KERNEL_DIR.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/KERNEL_POS_OPPOSITE.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/VFP_NODEPICKDRAG.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/VFP_NODE.class.js"></script>
+		<script src="../SCEJS/Prefabs/Graph/Graph.class.js"></script>
+		
+		<script src="../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
+		<script src="../SCEJS/Prefabs/Grid/Grid.class.js"></script>
 	</head>
 	
 	<body>
 		
-		<canvas id="stormCanvas" width="512" height="512"></canvas> 
+		<div id="SCEJS"></div> 
 		<script>
 			var sce = new SCE();
-			sce.initialize({"target": document.getElementById("stormCanvas")});
+			sce.initialize({"target": document.getElementById("SCEJS"),
+							"dimensions": {"width": 512, "height": 512}});
 			
 			
 			var project = new Project();	
@@ -26,107 +35,68 @@
 			project.addStage(stage);
 			project.setActiveStage(stage);
 			
-			
-			
-			//*********
 			// CAMERA
-			//*********
-			var camera = new Node();
-			project.getActiveStage().addNode(camera);
-			project.getActiveStage().setActiveCamera(camera);
-			
-			// ComponentTransformTarget 
-			var comp_transformTarget = new ComponentTransformTarget();
-			camera.addComponent(comp_transformTarget);
-			
-			// ComponentControllerTransformTarget
-			var comp_controllerTransformTarget = new ComponentControllerTransformTarget();
-			camera.addComponent(comp_controllerTransformTarget);
-			
-			// ComponentProjection
-			var comp_projection = new ComponentProjection();
-			camera.addComponent(comp_projection);
-			
-			// ComponentScreenEffects
-			var comp_screenEffects = new ComponentScreenEffects();
-			camera.addComponent(comp_screenEffects);
-			comp_screenEffects.addSE(new SE_RGB());
-			  			
-			// ComponentKeyboardEvents
-			var comp_keyboardEvents = new ComponentKeyboardEvents();
-			camera.addComponent(comp_keyboardEvents);
-			comp_keyboardEvents.onkeydown = function(evt) {
-				if(String.fromCharCode(evt.keyCode) == "W")
-					comp_controllerTransformTarget.forward();
-				if(String.fromCharCode(evt.keyCode) == "S")
-					comp_controllerTransformTarget.backward();
-				if(String.fromCharCode(evt.keyCode) == "A")
-					comp_controllerTransformTarget.strafeLeft();
-				if(String.fromCharCode(evt.keyCode) == "D")
-					comp_controllerTransformTarget.strafeRight();
-			};
-			comp_keyboardEvents.onkeyup = function(evt) {
-				comp_controllerTransformTarget.stop();
-			};			
-			
-			// ComponentMouseEvents 
-			var comp_mouseEvents = new ComponentMouseEvents();
-			camera.addComponent(comp_mouseEvents);
-			comp_mouseEvents.onmousedown = function(evt) {
-				comp_controllerTransformTarget.mouseDown(evt);
-			};
-			comp_mouseEvents.onmouseup = function(evt) {
-				comp_controllerTransformTarget.mouseUp(evt);
-			};
-			comp_mouseEvents.onmousemove = function(evt) {
-				comp_controllerTransformTarget.mouseMove(evt);
-			};
-			comp_mouseEvents.onmousewheel = function(evt) {
-				comp_controllerTransformTarget.mouseWheel(evt);
-			};			
-			
-			
-			//*********
-			// BOX
-			//*********
-			var node = new Node();
-			project.getActiveStage().addNode(node);
-			
-			var mesh = new Mesh().loadBox();
-			
-			// ComponentTransform
-			var comp_transform = new ComponentTransform();
-			node.addComponent(comp_transform);
-			
-			// ComponentRenderer
-			var comp_renderer = new ComponentRenderer();
-			node.addComponent(comp_renderer);
-			comp_renderer.addVFP(new VFP_RGB(1));			
-			comp_renderer.setArg("vertexPos", (function(){return mesh.vertexArray;}).bind(this));
-			comp_renderer.setArg("vertexNormal", (function(){return mesh.normalArray;}).bind(this));
-			comp_renderer.setArg("vertexTexture", (function(){return mesh.textureArray;}).bind(this));
-			comp_renderer.setArg("vertexTextureUnit", (function(){return mesh.textureUnitArray;}).bind(this));
-			comp_renderer.setIndices((function(){return mesh.indexArray;}).bind(this));
-			comp_renderer.setArg("PMatrix", (function(){return project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
-			comp_renderer.setArg("cameraWMatrix", (function(){return project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
-			comp_renderer.setArgUpdatable("cameraWMatrix", true);
-			comp_renderer.setArg("nodeWMatrix", (function(){return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
-			comp_renderer.setArgUpdatable("nodeWMatrix", true);
-			comp_renderer.setArg("nodesSize", (function(){return 30.0;}).bind(this));
-			comp_renderer.setArg("texAlbedo", (function(){return mesh.vertexArray;}).bind(this));
+			var simpleCamera = new SimpleCamera(sce);
 						
+			// NODE
+			//var simpleNode = new SimpleNode(sce); 
+			//simpleNode.setImage("../demos/_RESOURCES/cartman08.jpg");
 			
-			var image = new Image();
-			image.onload = function() {
-				comp_renderer.setArg("texAlbedo", (function(){return image;}).bind(this));
-			};
-			image.src = "../demos/_RESOURCES/lena.jpg";
+			// GRID
+			var grid = new Grid(sce);
+			grid.generate(100.0, 1.0);
 			
+			// GRAPH
+			var edgeColor_origin = [(255.0/255.0), (0.0/255.0), (0.0/255.0)];
+			var edgeColor_target = [(0.0/255.0), (255.0/255.0), (0.0/255.0)];
+			var OFFSET = 1000.0;
+			var numNodes = 2000; 
+			var numLinks = 100;
+			var graph = new Graph(sce);			
+			graph.setOffset(OFFSET);
+			
+			for(var n=0; n < numNodes; n++) {				
+				var offs = OFFSET/10;
+						
+				var node = graph.addNode({
+					"name": "#"+n.toString()+":"+n.toString(),
+					"data": "#"+n.toString()+":"+n.toString(),
+					"position": $V3([-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs)]),
+					"color": ((n % 2) ? "../SCEJS/Prefabs/Graph/lena.jpg" : "../SCEJS/Prefabs/Graph/cartman08.jpg"),
+					"onmouseup": (function(nodeData) {
+						
+				}).bind(this)});
+			}
+			graph.updateNodes();
+			
+			for(var n=0; n < numLinks; n++) {
+				var A = parseInt(Math.random()*numNodes).toString();
+				var B = parseInt(Math.random()*numNodes).toString();
+				
+				graph.addLink({	"origin": "#"+A+":"+A,
+								"target": "#"+B+":"+B,
+								"origin_color": edgeColor_origin,
+								"target_color": edgeColor_target,
+								"directed": true});
+			}
+			graph.updateLinks();	
+			
+			graph.setFontsImage("../SCEJS/Prefabs/Graph/fonts.png");  
+			/*graph.set_destinationWidthHeight({width:16,
+												height:16,
+												spacing:2.0});*/
+			//graph.set_dir("random");
+			graph.setSelfShadows(false);
 			
 			//*********
 			// RENDER STAGE
 			//*********
 			project.getActiveStage().render();
+			
+			
+			window.onresize = (function() {
+				//sce.setDimensions(512, 128);
+		    }).bind(this);
 		</script>
 	</body>
 </html>

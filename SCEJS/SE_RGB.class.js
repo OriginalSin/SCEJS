@@ -1,6 +1,6 @@
 /** @private **/
 function SE_RGB() { SE.call(this);
-	this.dependencies = ["VFP_RGB"];
+	this.dependencies = ["RGB"];
 
 	this.getSrc = function() {
 		var str_se = [
@@ -8,10 +8,10 @@ function SE_RGB() { SE.call(this);
 			[''],
 			 
 			[// fragment source
-			 'void main(float4* VFP_RGB) {'+
+			 'void main(float4* RGB) {'+
 						 	'vec2 x = get_global_id();'+
 						 	// diffuse
-						 	'out_float4 = VFP_RGB[x];\n'+
+						 	'out_float4 = RGB[x];\n'+
 			 '}']];
 		
 		return str_se;

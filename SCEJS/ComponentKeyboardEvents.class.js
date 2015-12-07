@@ -9,10 +9,8 @@ ComponentKeyboardEvents = function() { Component.call(this);
 	this.node = null;
 	var gl = null;
 	
-	
-	this.onkeydown;	
-	this.onkeyup;
-	
+	this._onkeydown = null;
+	this._onkeyup = null;
 	
 	/**
 	 * initialize
@@ -24,6 +22,31 @@ ComponentKeyboardEvents = function() { Component.call(this);
 		node = nod;
 		gl = glCtx;
 	};	
+	
+	/**
+	 * @callback ComponentKeyboardEvents~onkeydown
+	 * @param {KeyboardEvent} evt
+	 */	
+	/**
+	 * onkeydown
+	 * @param {ComponentKeyboardEvents~onkeydown} cb
+	 */
+	this.onkeydown = function(cb) {
+		this._onkeydown = cb;
+	};		
+	
+	/**
+	 * @callback ComponentKeyboardEvents~onkeyup
+	 * @param {KeyboardEvent} evt
+	 */	
+	/**
+	 * onkeyup
+	 * @param {ComponentKeyboardEvents~onkeyup} cb
+	 */
+	this.onkeyup = function(cb) {
+		this._onkeyup = cb;
+	};	
+	
 };
 ComponentKeyboardEvents.prototype = Object.create(Component.prototype);
 ComponentKeyboardEvents.prototype.constructor = ComponentKeyboardEvents;

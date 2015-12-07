@@ -9,7 +9,7 @@
 WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) { 
 	this.gl = gl;
 		
-	if(length instanceof Object) { 
+	if(length.constructor === Array) {
 		this.length = length[0]*length[1];
 		this.W = length[0];
 		this.H = length[1];

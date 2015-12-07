@@ -2,11 +2,22 @@
 * @class
 * @constructor
 */
-SystemEvents = function(project, target) {
+SystemEvents = function(sce, target) {
 	"use strict";
 	
-	var _project = project;
+	var _sce = sce;
+	var _project = _sce.getLoadedProject();
 	var _target = target;
+	
+	var _utils = new Utils();
+	
+	var mousePosX = 0;
+	var mousePosY = 0;
+	var mouseOldPosX = 0; 
+	var mouseOldPosY = 0;
+	var divPositionX = 0;
+	var divPositionY = 0;
+	
 	
 	/**
 	 * initialize
@@ -25,6 +36,14 @@ SystemEvents = function(project, target) {
 	};
 	
 	/**
+	 * getMousePosition
+	 * @returns {{x: Int, y: Int}}
+	 */
+	this.getMousePosition = function() {
+		return {"x": mousePosX, "y": mousePosY};
+	};
+	
+	/**
 	 * @param {Int} COMPONENT_TYPES
 	 * @param {Int} EVENT_TYPES
 	 * @param {Event} evt
@@ -33,28 +52,68 @@ SystemEvents = function(project, target) {
 	var callComponentEvent = (function(componentType, eventType, evt) {
 		if(_project != undefined) {
 			var stage = _project.getActiveStage();
-			for(var n=0, fn = stage.nodes.length; n < fn; n++) {
-				for(var key in stage.nodes[n].getComponents()) {
-					var component = stage.nodes[n].getComponent(key);
-					
+			var comp_projection = stage.getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
+			var dir = null;
+			
+			if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN) {
+				divPositionX = _utils.getElementPosition(_sce.getCanvas()).x;
+				divPositionY = _utils.getElementPosition(_sce.getCanvas()).y;
+				mousePosX = (evt.clientX - divPositionX);
+				mousePosY = (evt.clientY - divPositionY);
+				mouseOldPosX = mousePosX;   
+				mouseOldPosY = mousePosY; 
+			}
+			if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE) {				
+				var factordist = comp_projection.getFov()*0.0039;
+				var factorxdim = (mouseOldPosX - mousePosX) * factordist;
+				var factorydim = (mouseOldPosY - mousePosY) * factordist;			
+				mouseOldPosX = mousePosX;   
+				mouseOldPosY = mousePosY;  
+				mousePosX = (evt.clientX - divPositionX);
+				mousePosY = (evt.clientY - divPositionY);
+				var m = stage.getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix();
+				var X = m.getLeft().x(factorxdim*-1.0); 
+				var Y = m.getUp().x(factorydim*((comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO) ? -1.0 : 1.0)); 
+				dir = X.add(Y);
+			}
+			if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL) {
+				var weightX = 0;
+				var weightY = 0;
+				var currFov = comp_projection.getFov();
+				if(event.wheelDeltaY >= 0) {
+					weightX = (mousePosX-(_sce.getCanvas().width/2.0))*currFov*-0.0004;
+					weightY = (mousePosY-(_sce.getCanvas().height/2.0))*currFov*-0.0004;
+				} else {
+					weightX = (mousePosX-(_sce.getCanvas().width/2.0))*currFov*0.0004;
+					weightY = (mousePosY-(_sce.getCanvas().height/2.0))*currFov*0.0004;
+				} 
+				var m = stage.getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix();
+				var X = m.getLeft().x(weightX*-1.0);
+				var Y = m.getUp().x(weightY*-1.0);
+				dir = X.add(Y);				
+			}
+			
+			for(var n=0, fn = stage.getNodes().length; n < fn; n++) {
+				for(var key in stage.getNodes()[n].getComponents()) {
+					var component = stage.getNodes()[n].getComponent(key);					
 					if(component.type == componentType) {
-						if(eventType == Constants.EVENT_TYPES.KEY_DOWN && component.onkeydown != undefined)
-							component.onkeydown(evt);
+						if(eventType == Constants.EVENT_TYPES.KEY_DOWN && component._onkeydown != null)
+							component._onkeydown(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.KEY_UP && component.onkeyup != undefined)
-							component.onkeyup(evt);
+						if(eventType == Constants.EVENT_TYPES.KEY_UP && component._onkeyup != null)
+							component._onkeyup(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN && component.onmousedown != undefined)
-							component.onmousedown(evt);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN && component._onmousedown != null)						
+							component._onmousedown(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_UP && component.onmouseup != undefined)
-							component.onmouseup(evt);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_UP && component._onmouseup != null)
+							component._onmouseup(evt);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE && component.onmousemove != undefined)
-							component.onmousemove(evt);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE && component._onmousemove != null)							
+							component._onmousemove(evt, dir);
 						
-						if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL && component.onmousewheel != undefined)
-							component.onmousewheel(evt);
+						if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL && component._onmousewheel != null)
+							component._onmousewheel(evt, dir);
 					}
 				}
 			}

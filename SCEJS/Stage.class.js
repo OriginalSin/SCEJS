@@ -5,8 +5,11 @@
 Stage = function() {
 	"use strict";
 	
-	this.nodes = [];
+	var nodes = [];
 	var activeCamera = null;
+	var selectedNode = null;
+	var paused = false;
+	var backgroundColor = [0.0, 0.0, 0.0, 1.0];
 	var gl = null;
 	
 	/**
@@ -26,20 +29,53 @@ Stage = function() {
 	};
 	
 	/**
+	 * setSelectedNode
+	 * @param {Node} node
+	 */
+	this.setSelectedNode = function(node) {
+		selectedNode = node;
+	};
+	
+	/**
+	 * getSelectedNode
+	 * @returns {Node}
+	 */
+	this.getSelectedNode = function() {
+		return selectedNode;
+	};
+	
+	/**
 	* addNode
 	* @param {Node} node.
 	*/
 	this.addNode = function(node) {
-		this.nodes.push(node);
+		nodes.push(node);
 		
-		node.setWebGLContext(gl);
+		node.initialize("node "+(nodes.length-1).toString(), gl);
+	};
+		
+	/**
+	* getNodes
+	* @returns {Array<Nodes>}
+	*/
+	this.getNodes = function() {
+		return nodes;
 	};
 	
 	/**
-	* initialize
+	* render
 	*/
 	this.render = function() {
+		paused = false;
+		this.setBackgroundColor(backgroundColor);
 		tick();
+	};
+	
+	/**
+	* pause
+	*/
+	this.pause = function() {
+		paused = true;
 	};
 	
 	/**
@@ -52,26 +88,53 @@ Stage = function() {
 	};
 	
 	/**
+	* setBackgroundColor
+	* @param {Array<Float4>} color.
+	*/
+	this.setBackgroundColor = function(color) {
+		backgroundColor = color;
+		gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
+	};
+	
+	/**
+	* getBackgroundColor
+	* @returns {Array<Float4>}
+	*/
+	this.getBackgroundColor = function() {
+		return backgroundColor;
+	};
+	
+	/**
+	* getWebGLContext
+	* @returns {WebGLRenderingContext} 
+	*/
+	this.getWebGLContext = function() {
+		return gl;
+	};
+	
+	/**
 	 * tick
 	 * @private
 	 */
 	var tick = (function() {
 		if(activeCamera != null) {
-			gl.viewport(0, 0, 512, 512);
-			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			var resolution = activeCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution();
+			gl.viewport(0, 0, resolution.width, resolution.height);
+			 
+			//gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 			gl.clearDepth(1.0);
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
 			
-			for(var n=0, fn = this.nodes.length; n < fn; n++) {
-				for(var key in this.nodes[n].getComponents()) {
-					var component = this.nodes[n].getComponent(key);
+			for(var n=0, fn = nodes.length; n < fn; n++) {
+				for(var key in nodes[n].getComponents()) {
+					var component = nodes[n].getComponent(key);
 					
 					if(component.tick != null && component.type != Constants.COMPONENT_TYPES.SCREEN_EFFECTS)
 						component.tick(activeCamera);
 				}
 				
-				if(this.nodes[n].onTick != null)  this.nodes[n].onTick();
+				if(nodes[n].onTick != null)  nodes[n].onTick();
 			}
 			
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -80,7 +143,7 @@ Stage = function() {
 			if(activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS) != undefined)
 				activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).tick();
 		}
-		window.requestAnimFrame(tick);
+		if(paused == false) window.requestAnimFrame(tick);
 	}).bind(this);
 };
 

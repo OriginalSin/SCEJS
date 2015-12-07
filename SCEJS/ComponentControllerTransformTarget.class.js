@@ -12,10 +12,15 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	var gl = null;
 	
 	
+	var comp_transformTarget;
+	var comp_projection;
+	
 	var forward = 0;
 	var backward = 0;
 	var left = 0;
 	var right = 0;
+	var front = 0;
+	var back = 0;
 	
 	var leftButton = 0;
 	var middleButton = 0;
@@ -39,7 +44,8 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 		node = nod;
 		gl = glCtx;
 		
-		var comp_transformTarget = node.getComponent("ComponentTransformTarget");
+		comp_transformTarget = node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
+		comp_projection = node.getComponent(Constants.COMPONENT_TYPES.PROJECTION);
 	};	
 	
 	/**
@@ -111,15 +117,61 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	this.strafeRight = function() {
 		right = 1;
 	};
-
+	
 	/**
-	 * stop
+	 * strafeFront
 	 */
-	this.stop = function() {
+	this.strafeFront = function() {
+		front = 1;
+	};
+	
+	/**
+	 * strafeBack
+	 */
+	this.strafeBack = function() {
+		back = 1;
+	};
+	
+	/**
+	 * stopForward
+	 */
+	this.stopForward = function() {
 		forward = 0;
+	};
+	
+	/**
+	 * stopBackward
+	 */
+	this.stopBackward = function() {
 		backward = 0;
+	};
+	
+	/**
+	 * stopStrafeLeft
+	 */
+	this.stopStrafeLeft = function() {
 		left = 0;
+	};
+	
+	/**
+	 * stopStrafeRight
+	 */
+	this.stopStrafeRight = function() {
 		right = 0;
+	};
+	
+	/**
+	 * stopStrafeFront
+	 */
+	this.stopStrafeFront = function() {
+		front = 0;
+	};
+	
+	/**
+	 * stopStrafeBack
+	 */
+	this.stopStrafeBack = function() {
+		back = 0;
 	};
 
 	this.mouseDown = function(event) {
@@ -149,24 +201,30 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 		if(leftButton == 1 || middleButton == 1)
 			updateGoal(event);
 	};
-	
-	this.mouseWheel = function(event) {
-		var weightX = 0;
-		var weightY = 0;
-		if(event.wheelDeltaY >= 0) { // zoom in
-			weightX = (this._sec.mousePosX-(this._sec.stormGLContext.viewportWidth/2.0))*currFov*-0.0004;
-			weightY = (this._sec.mousePosY-(this._sec.stormGLContext.viewportHeight/2.0))*currFov*-0.0004;
-		} else { // zoom out
-			weightX = (this._sec.mousePosX-(this._sec.stormGLContext.viewportWidth/2.0))*currFov*0.0004;
-			weightY = (this._sec.mousePosY-(this._sec.stormGLContext.viewportHeight/2.0))*currFov*0.0004;
-		} 
-		var left = comp_transformTarget.getMatrix().inverse().getLeft();
-		var up = comp_transformTarget.getMatrix().inverse().getUp();
-		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(left.x(weightX*-1.0).add(up.x(weightY)))); 
-		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(left.x(weightX*-1.0).add(up.x(weightY))));
-	};
 
+	/**
+	 * isLeftBtnActive
+	 * @returns {Bool}
+	 */
+	this.isLeftBtnActive = function() {
+		return (leftButton == 1) ? true : false;
+	};
 	
+	/**
+	 * isMiddleBtnActive
+	 * @returns {Bool}
+	 */
+	this.isMiddleBtnActive = function() {
+		return (middleButton == 1) ? true : false;
+	};
+	
+	/**
+	 * isRightBtnActive
+	 * @returns {Bool}
+	 */
+	this.isRightBtnActive = function() {
+		return (rightButton == 1) ? true : false;
+	};
 
 	/**
 	* @param {Float} elapsed
@@ -174,47 +232,50 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	* @override
 	*/
 	this.tick = function(elapsed) {	
-		var dir;
-		if(forward == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getForward().x(-1.0);
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}
-		if(backward == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getForward();
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}
-		if(left == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getLeft().x(-1.0);
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}
-		if(right == 1) {
-			dir = comp_transformTarget.getMatrix().inverse().getLeft();
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-		}	
+		var dir = $V3([0.0, 0.0, 0.0]);
+		if(forward == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(-1.0));
+		if(backward == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward());
+		if(left == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(-1.0));
+		if(right == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft());
+		if(back == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(-1.0));
+		if(front == 1)
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp());
+		
+		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
+		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
 	};
 
 	/** @private */
 	var updateGoal = function(event) {
-		var factorRot = 0.5;
-		if(lockRotY == false) {
-			if(lastX > event.screenX) {
-				comp_transformTarget.yaw(-(lastX - event.screenX)*factorRot);
-			} else {
-				comp_transformTarget.yaw((event.screenX - lastX)*factorRot);
+		if(middleButton == 1) {
+			event.preventDefault(); 
+			var X = comp_transformTarget.getMatrix().getLeft().x((lastX - event.screenX)*(comp_projection.getFov()*0.005));
+			var Y = comp_transformTarget.getMatrix().getUp().x((lastY - event.screenY)*(comp_projection.getFov()*-0.005));  
+			var dir = X.add(Y.x(-1.0));
+			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
+			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
+		} else {
+			var factorRot = 0.5;
+			if(lockRotY == false) {
+				if(lastX > event.screenX) {
+					comp_transformTarget.yaw(-(lastX - event.screenX)*factorRot);
+				} else {
+					comp_transformTarget.yaw((event.screenX - lastX)*factorRot);
+				}
+			}
+			if(lockRotX == false) {
+				if(lastY > event.screenY) {
+					comp_transformTarget.pitch((lastY - event.screenY)*factorRot);
+				} else {
+					comp_transformTarget.pitch(-(event.screenY - lastY)*factorRot);
+				}
 			}
 		}
-		if(lockRotX == false) {
-			if(lastY > event.screenY) {
-				comp_transformTarget.pitch((lastY - event.screenY)*factorRot);
-			} else {
-				comp_transformTarget.pitch(-(event.screenY - lastY)*factorRot);
-			}
-		}
-			
 		lastX = event.screenX;
 		lastY = event.screenY;
 	};
