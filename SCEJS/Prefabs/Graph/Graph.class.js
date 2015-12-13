@@ -9,7 +9,7 @@ Graph = function(sce) {
 	var _gl = _project.getActiveStage().getWebGLContext();
 	var _utils = new Utils();
 		
-	var MAX_ITEMS_PER_ARRAY = 65535/*4294967295*/; // unsigned int 65535 for limit on indices of 16bit; long unsigned int 4294967295 
+	var MAX_ITEMS_PER_ARRAY = 4294967295/*4294967295*/; // unsigned int 65535 for limit on indices of 16bit; long unsigned int 4294967295 
 	var NODE_IMG_COLUMNS = 8.0;
 	var NODE_IMG_WIDTH = 1024;
 	var OFFSET = 1000.0;
@@ -25,7 +25,6 @@ Graph = function(sce) {
 	var selectedId = -1;
 	
 	var selfShadows = true;
-	var pointSize = 1.0;
 	
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
@@ -156,58 +155,9 @@ Graph = function(sce) {
 	comp_mouseEvents.onmousewheel((function(evt) {
 	}).bind(this));	
 	
-	//**************************************************
-	//  LINKS
-	//**************************************************
-	var links = new Node();
-	links.setName("graph_links");
-	_project.getActiveStage().addNode(links);
-	
-	// ComponentTransform
-	var comp_transform = new ComponentTransform();
-	links.addComponent(comp_transform);
-	
-	// ComponentRenderer
-	var comp_renderer_links = new ComponentRenderer();
-	links.addComponent(comp_renderer_links);
-		 
-	//**************************************************
-	//  ARROWS
-	//**************************************************
-	var arrows = new Node();
-	arrows.setName("graph_arrows");
-	_project.getActiveStage().addNode(arrows);
-	
-	// ComponentTransform
-	var comp_transform = new ComponentTransform();
-	arrows.addComponent(comp_transform);
-	
-	// ComponentRenderer
-	var comp_renderer_arrows = new ComponentRenderer();
-	arrows.addComponent(comp_renderer_arrows);
-	 
-	//**************************************************
-	//  NODESTEXT
-	//**************************************************
-	var nodesText = new Node();
-	nodesText.setName("graph_nodesText");
-	_project.getActiveStage().addNode(nodesText);
-	
-	// ComponentTransform
-	var comp_transform = new ComponentTransform();
-	nodesText.addComponent(comp_transform);
-	
-	// ComponentRenderer
-	var comp_renderer_nodesText = new ComponentRenderer();
-	nodesText.addComponent(comp_renderer_nodesText);
-	
-	
-	
-	
-	
+	// arrays
 	this.splitNodes = [];
 	this.splitNodesIndices = [];
-	this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/(3*circleSegments)); // 1=1 circle(12segm (3 indices per segm))= 3*12 indices 
 	
 	this.arrayNodeData = [];
 	this.arrayNodePosXYZW = [];
@@ -224,13 +174,24 @@ Graph = function(sce) {
 	this.currentNodeId = 0;	
 	this.nodeArrayItemStart = 0;
 	
+	//**************************************************
+	//  LINKS
+	//**************************************************
+	var links = new Node();
+	links.setName("graph_links");
+	_project.getActiveStage().addNode(links);
 	
+	// ComponentTransform
+	var comp_transform = new ComponentTransform();
+	links.addComponent(comp_transform);
 	
-	
-	
+	// ComponentRenderer
+	var comp_renderer_links = new ComponentRenderer();
+	links.addComponent(comp_renderer_links);
+		 
+	// arrays
 	this.splitLinks = [];
 	this.splitLinksIndices = [];
-	this.splitLinksEvery = parseInt(MAX_ITEMS_PER_ARRAY/2); // 1=1 link=2 indices
 	
 	this.arrayLinkData = [];
 	this.arrayLinkNodeName = [];
@@ -243,13 +204,24 @@ Graph = function(sce) {
 	
 	this.currentLinkId = 0;
 	
+	//**************************************************
+	//  ARROWS
+	//**************************************************
+	var arrows = new Node();
+	arrows.setName("graph_arrows");
+	_project.getActiveStage().addNode(arrows);
 	
+	// ComponentTransform
+	var comp_transform = new ComponentTransform();
+	arrows.addComponent(comp_transform);
 	
-	
-	
+	// ComponentRenderer
+	var comp_renderer_arrows = new ComponentRenderer();
+	arrows.addComponent(comp_renderer_arrows);
+	 
+	// arrays
 	this.splitArrows = [];
 	this.splitArrowsIndices = [];
-	this.splitArrowsEvery = parseInt(MAX_ITEMS_PER_ARRAY/6); // 2=2 triangle=6 indices
 		
 	this.arrayArrowData = [];
 	this.arrayArrowNodeName = [];
@@ -266,15 +238,24 @@ Graph = function(sce) {
 	this.currentArrowId = 0;	
 	this.arrowArrayItemStart = 0;
 	
+	//**************************************************
+	//  NODESTEXT
+	//**************************************************
+	var nodesText = new Node();
+	nodesText.setName("graph_nodesText");
+	_project.getActiveStage().addNode(nodesText);
 	
+	// ComponentTransform
+	var comp_transform = new ComponentTransform();
+	nodesText.addComponent(comp_transform);
 	
+	// ComponentRenderer
+	var comp_renderer_nodesText = new ComponentRenderer();
+	nodesText.addComponent(comp_renderer_nodesText);
 	
-	
-	
-	
+	// arrays
 	this.splitNodesText = [];
 	this.splitNodesTextIndices = [];
-	this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/6*nodesTextPlanes); // 1=12 planes (6 indices per plane) = 6*12 indices 
 	
 	this.arrayNodeTextData = [];
 	this.arrayNodeTextNodeName = [];
@@ -327,6 +308,14 @@ Graph = function(sce) {
 			comp_renderer_nodesText.setArg("fontsImg", (function(){return image;}).bind(this));
 		}).bind(this);
 		image.src = url;
+	};
+	
+	/**
+	 * setNodeMesh
+	 * @param {Mesh} mesh
+	 */
+	this.setNodeMesh = function(mesh) {
+		mesh_nodes = mesh;
 	};
 	
 	/**
@@ -467,6 +456,7 @@ Graph = function(sce) {
 		
 		if(this.startIndexId == 0) {
 			if(this.splitNodes.length == 0) {
+				this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeIndices.length); // 1=1 circle(12segm (3 indices per segm))= 3*12 indices 
 				this.splitNodes.push((this.arrayNodeData.length/4)*this.splitNodesEvery);
 				this.splitNodesIndices.push(this.arrayNodeIndices.length*this.splitNodesEvery);
 			} else {
@@ -527,7 +517,6 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
 		comp_renderer_nodes.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_nodes.setArg("pointSize", (function() {return pointSize;}).bind(this));
 		comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
@@ -654,6 +643,7 @@ Graph = function(sce) {
 		
 		if(this.startIndexId_link == 0) {
 			if(this.splitLinks.length == 0) {
+				this.splitLinksEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayLinkIndices.length); // 1=1 link=2 indices
 				this.splitLinks.push((this.arrayLinkData.length/4)*this.splitLinksEvery);
 				this.splitLinksIndices.push(this.arrayLinkIndices.length*this.splitLinksEvery);
 			} else {
@@ -716,7 +706,6 @@ Graph = function(sce) {
 		comp_renderer_links.setArg("selfShadows", (function() {return 0.0;}).bind(this));
 		comp_renderer_links.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_links.setArg("pointSize", (function() {return pointSize;}).bind(this));
 		comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
@@ -838,6 +827,7 @@ Graph = function(sce) {
 			
 			if(this.startIndexId_arrow == 0) {
 				if(this.splitArrows.length == 0) {
+					this.splitArrowsEvery = parseInt(MAX_ITEMS_PER_ARRAY/(this.arrayArrowIndices.length*2.0)); // 2=2 triangle=6 indices 
 					this.splitArrows.push((this.arrayArrowData.length/4)*this.splitArrowsEvery);
 					this.splitArrowsIndices.push(this.arrayArrowIndices.length*this.splitArrowsEvery);
 				} else {
@@ -903,7 +893,6 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArg("selfShadows", (function() {return 0.0;}).bind(this));
 		comp_renderer_arrows.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_arrows.setArg("pointSize", (function() {return pointSize;}).bind(this));
 		comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
@@ -996,6 +985,7 @@ Graph = function(sce) {
 		}
 		if(this.startIndexId_nodestext == 0) {
 			if(this.splitNodesText.length == 0) {
+				this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeTextIndices.length); // 1=12 planes (6 indices per plane) = 6*12 indices 
 				this.splitNodesText.push((this.arrayNodeTextData.length/4)*this.splitNodesTextEvery);
 				this.splitNodesTextIndices.push(this.arrayNodeTextIndices.length*this.splitNodesTextEvery);
 			} else {
@@ -1389,19 +1379,6 @@ Graph = function(sce) {
 		comp_renderer_links.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
 		comp_renderer_arrows.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
 		comp_renderer_nodesText.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
-	};
-	
-	/**
-	* Point size
-	* @param {Float} size
-	* @type Void
-	*/
-	this.set_pointSize = function(value) { 
-		pointSize = value;
-		comp_renderer_nodes.setArg("pointSize", (function() {return pointSize;}).bind(this));
-		comp_renderer_links.setArg("pointSize", (function() {return pointSize;}).bind(this));
-		comp_renderer_arrows.setArg("pointSize", (function() {return pointSize;}).bind(this));
-		comp_renderer_nodesText.setArg("pointSize", (function() {return pointSize;}).bind(this));
 	};
 
 	

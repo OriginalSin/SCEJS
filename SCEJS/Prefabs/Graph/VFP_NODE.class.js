@@ -74,7 +74,6 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+
        			'mat4 nodeWMatrix,'+
-       			'float pointSize,'+
        			'float isNode,'+
        			'float isLink,'+
        			'float isArrow,'+
@@ -153,7 +152,6 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'vVertexColor = nodeVertexColor;'+
        								
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPosition;\n'+
-       				'gl_PointSize = pointSize;\n'+
        		'}'],
        		
        		// fragment head
