@@ -30,7 +30,7 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
        				'mat4 nodepos = nodeWMatrix;'+
        				
    					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
-   					//'nodepos = nodepos*mm;'+
+   					'nodepos = nodepos*mm;'+
    					
        				'nodepos[3][0] = nodePosition.x;'+
        				'nodepos[3][1] = nodePosition.y;'+

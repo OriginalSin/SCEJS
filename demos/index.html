@@ -108,14 +108,18 @@
 				}
 				return str;
 			}).bind(this);
-			graph.applyLayout({	"argsDirection":
+			graph.applyLayout({	// DIRECTION
+								// [x], [x_opposite]
+								// vec3 currentDir, vec3 currentDir_opposite, vec3 currentPos, vec3 currentPos_opposite
+								// float isTarget, float nodeId, float nodeId_opposite, linkId, linkId_opposite
+								"argsDirection":
 										// pp
 										"float* particlePolarity,"+lines_argumentsPoles(arrPP)+
 										// destination
 										"float4* dest,float destinationForce,float enableDestination,"+
 										// lifeDistance
 										"float4* initPos,float4* initDir,float lifeDistance", 
-								"codeDirection": // [x], vec3 currentDir, vec3 currentPos
+								"codeDirection":
 									// pp
 									lines_poles(arrPP)+
 									// destination
@@ -134,12 +138,14 @@
 										'currentDir = vec3(initDir.x,initDir.y,initDir.z);'+
 									'}',
 									
+								// POSITION
+								// [x], vec3 currentPos, vec3 currentDir
 								"argsPosition":
 									// lifeDistance
 									"float4* initPos,float lifeDistance,"+
 									// lock
 									"float* nodeLock",
-								"codePosition": // [x], vec3 currentPos, vec3 currentDir
+								"codePosition":
 									// lifeDistance
 									'vec4 initPos = initPos[x];'+
 									'if(lifeDistance > 0.0 && distance(vec3(initPos.x,initPos.y,initPos.z), currentPos) > lifeDistance)'+
@@ -148,6 +154,9 @@
 									'if(nodeLock[x] == 1.0)'+
 										'currentDir = vec3(0.0, 0.0, 0.0);\n',
 						
+								// OBJECT
+								// [x], vec4 nodeVertexColor, vec4 nodeVertexPosition, vec4 XYZW_opposite
+								// float isNode, float isLink, float isArrow, float isNodeText, float isTarget
 								"argsObject":
 									// nodeColor
 									"float4* nodeColor,"+
@@ -155,7 +164,7 @@
 									"float4 sunPos,float selfShadows,float4 ambientColor,"+
 									// lock
 									"float* nodeLock",
-								"codeObject": // [x], vec4 nodeVertexColor, vec4 nodeVertexPosition, float isNode, float isLink, float isArrow, float isTarget, float isNodeText
+								"codeObject":
 									// nodeColor
 									'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
 									'if((isLink == 1.0 || isArrow == 1.0) && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
@@ -201,7 +210,7 @@
 					"name": "#"+n.toString()+":"+n.toString(),
 					"data": "#"+n.toString()+":"+n.toString(),
 					"position": pos,
-					"color": ((n % 2) ? "../SCEJS/Prefabs/Graph/lena.jpg" : "../SCEJS/Prefabs/Graph/cartman08.jpg"),
+					"color": ((n % 2) ? "_RESOURCES/lena_128x128.jpg" : "_RESOURCES/barra.png"),
 					"layoutNodeArgumentData": {	// pp
 												"particlePolarity": 0.0,
 												// destination

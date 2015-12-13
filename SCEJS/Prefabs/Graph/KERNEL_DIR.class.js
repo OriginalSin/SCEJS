@@ -18,11 +18,21 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						','+customArgs+
 						') {\n'+
 			'vec2 x = get_global_id();\n'+	 
+			'vec2 x_opposite = get_global_id(data[x].z);'+
 			
-			'float linkId = data[x].y;'+
-			'float nodeId = data[x].x;'+				
-			'vec3 currentDir = dir[x].xyz;\n'+ 
-			'vec3 currentPos = posXYZW[x].xyz;\n'+ 
+			'vec4 dat = data[x];\n'+ 
+			'vec4 dat_opposite = data[x_opposite];\n'+ 
+			
+			'float nodeId = dat.x;'+
+			'float nodeId_opposite = dat_opposite.x;'+
+			'float linkId = dat.y;'+
+			'float linkId_opposite = dat_opposite.y;'+
+			'float isTarget = data[x].w;'+
+			
+			'vec3 currentDir = dir[x].xyz;\n'+
+			'vec3 currentDir_opposite = dir[x_opposite].xyz;\n'+ 
+			'vec3 currentPos = posXYZW[x].xyz;\n'+
+			'vec3 currentPos_opposite = posXYZW[x_opposite].xyz;\n'+ 
 			
 			'if(enableDrag == 1.0) {'+
 				'if(isLink == 0.0) {'+

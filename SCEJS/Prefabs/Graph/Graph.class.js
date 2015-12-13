@@ -26,8 +26,7 @@ Graph = function(sce) {
 	
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
-	var mesh_nodes = new Mesh().loadCircle({"segments": circleSegments,
-											"radius": 0.5});
+	var mesh_nodes = new Mesh().loadQuad(0.5, 0.5);
 	var mesh_arrows = new Mesh().loadTriangle();
 	var mesh_nodesText = new Mesh().loadQuad();	
 	

@@ -84,7 +84,10 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'vec2 x = get_global_id();'+
        		
        				'float nodeIdx = data[x].x;\n'+  
+       				'float isTarget = data[x].w;'+
+       				
        				'vec4 nodePosition = posXYZW[x];\n'+
+       				'vec4 XYZW_opposite = posXYZW_opposite[x];\n'+
        				'vec4 nodeVertexPosition = nodeVertexPos[x];\n'+
        				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
        				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+ 
@@ -93,11 +96,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				
        				'mat4 nodepos = nodeWMatrix;'+
        				
-       				'float isTarget = data[x].w;'+
-       				
        				'if(isNode == 1.0) {'+
 	   					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
-	   					//'nodepos = nodepos*mm;'+
+	   					'nodepos = nodepos*mm;'+
 	   					'float nodeImgId = nodeImgId[x];'+
 	   					
 	   					'if(nodeImgId != -1.0) {'+
@@ -109,8 +110,6 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 		       		
 		       		'}'+
        				'if(isArrow == 1.0) {'+
-       					'vec4 XYZW_opposite = posXYZW_opposite[x];\n'+	
-       					
        					'mat4 pp = lookAt(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
        					'pp = transpose(pp);'+					
        					'nodepos[0][0] = pp[0][0];'+
