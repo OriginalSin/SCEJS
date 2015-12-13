@@ -24,8 +24,6 @@ Graph = function(sce) {
 	var readPixel = false;	
 	var selectedId = -1;
 	
-	var selfShadows = true;
-	
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadCircle({"segments": circleSegments,
@@ -513,15 +511,7 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer_nodes.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_nodes.setArgUpdatable("nodeWMatrix", true);
-		comp_renderer_nodes.setArg("sunPos", (function() {return [0.2, -0.5, 0.4, 1.0];}).bind(this));
-		comp_renderer_nodes.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
-		comp_renderer_nodes.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("isNode", (function() {return 1;}).bind(this));
 		
 		for(var argNameKey in _customArgs) {
@@ -702,15 +692,7 @@ Graph = function(sce) {
 		comp_renderer_links.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer_links.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_links.setArgUpdatable("nodeWMatrix", true);
-		comp_renderer_links.setArg("sunPos", (function() {return [0.2, -0.5, 0.4, 1.0];}).bind(this));
-		comp_renderer_links.setArg("selfShadows", (function() {return 0.0;}).bind(this));
-		comp_renderer_links.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("isLink", (function() {return 1;}).bind(this));
 		
 		for(var argNameKey in _customArgs) {
@@ -889,15 +871,7 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer_arrows.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_arrows.setArgUpdatable("nodeWMatrix", true);
-		comp_renderer_arrows.setArg("sunPos", (function() {return [0.2, -0.5, 0.4, 1.0];}).bind(this));
-		comp_renderer_arrows.setArg("selfShadows", (function() {return 0.0;}).bind(this));
-		comp_renderer_arrows.setArg("ambientColor", (function() {return [0.2, 0.2, 0.2, 1.0];}).bind(this));
 		
-		comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("isArrow", (function() {return 1.0;}).bind(this));
 		comp_renderer_arrows.setArg("isLink", (function() {return 1.0;}).bind(this));
 		
@@ -1035,11 +1009,6 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_nodesText.setArgUpdatable("nodeWMatrix", true);
 		
-		comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("isNodeText", (function() {return 1;}).bind(this));
 		
 		for(var argNameKey in _customArgs) {
@@ -1366,19 +1335,6 @@ Graph = function(sce) {
 	 */
 	this.setOffset = function(offset) {
 		OFFSET = offset;
-	};
-	
-	/**
-	 * Set self shadows
-	 * @param {Bool} [bselfShadows=true]
-	 */
-	this.setSelfShadows = function(bselfShadows) {
-		selfShadows = (bselfShadows != undefined) ? bselfShadows : true;
-		
-		comp_renderer_nodes.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
-		comp_renderer_links.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
-		comp_renderer_arrows.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
-		comp_renderer_nodesText.setArg("selfShadows", (function() {return ((selfShadows == true)?1.0:0.0);}).bind(this));
 	};
 
 	

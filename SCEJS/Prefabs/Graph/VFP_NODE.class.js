@@ -166,20 +166,11 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		 			'float isNode,'+
        		 			'float isLink,'+
        		 			'float isArrow,'+
-       		 			'float isNodeText,'+
-       					'float4 sunPos,'+
-       					'float selfShadows,'+
-       					'float4 ambientColor) {'+
+       		 			'float isNodeText) {'+
        		 	'vec2 x = get_global_id();'+
        		 	
-       		 	// difusa
-       			'vec3 lightDirection = normalize(sunPos.xyz * -1.0);\n'+ // direccion hacia arriba
-       			'float lightWeighting = max(dot(normalize(vWNMatrix.xyz), -lightDirection)*-1.0, 0.0);\n'+
-       			'vec3 weightDiffuse = min(vec3(1.0,1.0,1.0),vec3(lightWeighting,lightWeighting,lightWeighting));\n'+
-       			
        			'if(isNode == 1.0) {'+
-	       			'if(selfShadows == 1.0) gl_FragColor = (vVertexColor*vec4(weightDiffuse,1.0))+(ambientColor*vVertexColor);\n'+
-	       			'else gl_FragColor = vVertexColor;\n'+
+	       			'gl_FragColor = vVertexColor;\n'+
 	       			
 	       			'if(vUseTex == 1.0)'+
 	       				'gl_FragColor = texture2D(nodesImg, vVertexUV.xy)*vVertexColor;\n'+
