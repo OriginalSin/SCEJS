@@ -64,8 +64,8 @@ ComponentRenderer = function() { Component.call(this);
 								"argBufferDestination": jsonIn.seArgDestination,
 								"drawMode": jsonIn.drawMode,
 								"onPostTick": jsonIn.onPostTick,
-								"blendSrc": jsonIn.blendSrc,
-								"blendDst": jsonIn.blendDst};
+								"blendSrc": jsonIn.blendSrc||Constants.BLENDING_MODES.ONE,
+								"blendDst": jsonIn.blendDst||Constants.BLENDING_MODES.ZERO};
 	};
 	
 	/**
@@ -134,6 +134,14 @@ ComponentRenderer = function() { Component.call(this);
 	 */
 	this.getArgs = function() {
 		return args;
+	};
+	
+	/**
+	 * getAllArgs
+	 * @returns {Object} 
+	 */
+	this.getAllArgs = function() {		
+		return clglWork.getAllArgs();
 	};
 	
 	/**

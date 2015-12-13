@@ -61,6 +61,7 @@ var includesF = ['/StormMath.class.js',
 				'/UI/UI.class.js',
 				'/UI/PanelStage.class.js',
 				'/UI/PanelNode.class.js',
+				'/UI/PanelNumberGenerator.class.js',
 				'/UI/UIComponentRenderer.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
 

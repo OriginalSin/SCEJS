@@ -193,6 +193,35 @@ WebCLGLWork.prototype.setArg = function(argument, value, splits, overrideDimensi
 
 /**
 * Set indices
+* @returns {}
+ */
+WebCLGLWork.prototype.getAllArgs = function() {  
+	var args = {};
+	for(var n=0; n < this.kernels.length; n++) {		
+		for(var nb=0; nb < this.kernels[n].kernel.in_values.length; nb++) {
+			var inValues = this.kernels[n].kernel.in_values[nb];
+			args[inValues.name] = inValues;
+		}
+	}
+	
+	
+	for(var key in this.vertexFragmentPrograms) {	
+		for(var nb=0; nb < this.vertexFragmentPrograms[key].in_vertex_values.length; nb++) {
+			var inValues = this.vertexFragmentPrograms[key].in_vertex_values[nb];
+			args[inValues.name] = inValues;
+		}
+	
+		for(var nb=0; nb < this.vertexFragmentPrograms[key].in_fragment_values.length; nb++) {
+			var inValues = this.vertexFragmentPrograms[key].in_fragment_values[nb];
+			args[inValues.name] = inValues;
+		}
+	}
+	
+	return args;
+};
+
+/**
+* Set indices
 * @param {Array<Float>} array 
 * @param {Array<Float>} [splits=[array.length]]
  */

@@ -123,6 +123,7 @@ WebCLGLKernel.prototype.compile = function() {
 		//this.utils.unpackGLSLFunctionString()+ 
 		
 		'varying vec2 global_id;\n'+ 
+		'uniform float uBufferWidth;'+
 		
 		'vec4 buffer_float4_data(sampler2D arg, vec2 coord) {\n'+
 			'vec4 textureColor = texture2D(arg, coord);\n'+
@@ -135,6 +136,18 @@ WebCLGLKernel.prototype.compile = function() {
 		
 		'vec2 get_global_id() {\n'+
 			'return global_id;\n'+
+		'}\n'+
+		
+		'vec2 get_global_id(float id) {\n'+	
+			'float num = id/uBufferWidth;'+
+			'float column = fract(num)*uBufferWidth;'+
+			'float row = floor(num);'+ 
+			
+			'float ts = 1.0/(uBufferWidth-1.0);'+
+			'float xx = column*ts;'+
+			'float yy = row*ts;'+
+			
+			'return vec2(xx, yy);'+
 		'}\n'+
 		
 		this.head+

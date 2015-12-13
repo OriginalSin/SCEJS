@@ -8,21 +8,11 @@ function KERNEL_POS_OPPOSITE() { VFP.call(this);
        		
        		// kernel source
        		['void main(float4* posXYZW,'+
-				'float* oppositeId,'+
-				'float bufferWidth,'+
-				'float bufferHeight) {'+
-					'vec2 x = get_global_id();'+
+						'float4* data) {'+ // data = 0: nodeId, 1: linkId, 2: oppositeId, 3: isTarget
+					'vec2 x = get_global_id();'+					
+					'vec2 xy = get_global_id(data[x].z);'+
 					
-					'float id_opposite = oppositeId[x];\n'+		
-					'float num = id_opposite/bufferWidth;'+
-					'float column = fract(num)*bufferWidth;'+
-					'float row = floor(num);'+ 
-					
-					'float ts = 1.0/(bufferWidth-1.0);'+
-					'float xx = column*ts;'+
-					'float yy = row*ts;'+
-					
-					'vec4 tex = texture2D(posXYZW, vec2(xx, yy));'+
+					'vec4 tex = texture2D(posXYZW, xy);'+
 						
 					'out_float4 = tex;\n'+ 
 			'}']];

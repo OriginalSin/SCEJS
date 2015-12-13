@@ -21,7 +21,14 @@
 	
 	<body>
 		
-		<div id="SCEJS"></div> 
+		<div id="SCEJS"></div> 		
+		<button id="BTNID_RD">random destination</button><br />
+		<button id="BTNID_WH">widthheight destination</button><br />
+		<button id="BTNID_DIR">direction destination</button><br />
+		<button id="BTNID_SPHERICAL">spherical destination</button><br />
+		<button id="BTNID_IMG">imagecolor nodeVertexCol</button><br />
+		<img id="IMGID_lena" src="_RESOURCES/lena.jpg" /><br />
+		
 		<script>
 			var sce = new SCE();
 			sce.initialize({"target": document.getElementById("SCEJS"),
@@ -50,19 +57,145 @@
 			var edgeColor_origin = [(255.0/255.0), (0.0/255.0), (0.0/255.0)];
 			var edgeColor_target = [(0.0/255.0), (255.0/255.0), (0.0/255.0)];
 			var OFFSET = 1000.0;
-			var numNodes = 2000; 
+			var offs = OFFSET/10;
+			var numNodes = 10*10; 
 			var numLinks = 100;
+			
 			var graph = new Graph(sce);			
 			graph.setOffset(OFFSET);
+			graph.setFontsImage("../SCEJS/Prefabs/Graph/fonts.png");  
+			/*graph.set_destinationWidthHeight({width:16,
+												height:16,
+												spacing:2.0});*/
+			//graph.set_dir("random");
+			graph.setSelfShadows(false);
 			
-			for(var n=0; n < numNodes; n++) {				
-				var offs = OFFSET/10;
+			arrPP = [];
+			arrPP.push({"x": -(offs/2)+(Math.random()*offs), "y": -(offs/2)+(Math.random()*offs), "z": -(offs/2)+(Math.random()*offs),
+						"polarity": 1.0,
+						"orbit": 0.0,
+						"force": 0.5});
+			lines_argumentsPoles = (function(arrPP) {
+				var str = '';
+				for(var n = 0, f = arrPP.length; n < f; n++) {
+					str += 'float pole'+n+'X,'+
+							'float pole'+n+'Y,'+
+							'float pole'+n+'Z,'+
+							'float pole'+n+'Polarity,'+
+							'float pole'+n+'Orbit,'+
+							'float pole'+n+'Force,';
+				}
+				return str;
+			}).bind(this);
+			lines_poles = (function(arrPP) {
+				var str = 'float offset;vec3 polePos;vec3 vecN; float toDir; vec3 cc;float distanceToPole;\n';
+				for(var n = 0, f = arrPP.length; n < f; n++) {
+					str += 'polePos = vec3(pole'+n+'X,pole'+n+'Y,pole'+n+'Z);\n'+ 
+							'toDir = -1.0;\n'+  
+							'if(sign(particlePolarity[x]) == 0.0 && sign(pole'+n+'Polarity) == 1.0) toDir = 1.0;\n'+
+							'if(sign(particlePolarity[x]) == 1.0 && sign(pole'+n+'Polarity) == 0.0) toDir = 1.0;\n'+
+							'offset = '+OFFSET.toFixed(20)+';'+
+							
+							'distanceToPole = 1.0-sqrt(length(vec3(polePos-currentPos)/offset));'+
+							
+							'vecN = ((vec3(polePos-currentPos)-(-1.0))/(1.0-(-1.0)) - 0.5 ) *2.0 * pole'+n+'Force * toDir;'+
+							'cc = vecN*distanceToPole ;\n'+
+							
+							'currentDir = clamp(currentDir+(cc*0.001),-1.0,1.0);\n'+
+							
+							//'if(pole'+n+'Orbit == 1.0) cc = 
+							'';
+				}
+				return str;
+			}).bind(this);
+			graph.applyLayout({	"argsDirection":
+										// pp
+										"float* particlePolarity,"+lines_argumentsPoles(arrPP)+
+										// destination
+										"float4* dest,float destinationForce,float enableDestination,"+
+										// lifeDistance
+										"float4* initPos,float4* initDir,float lifeDistance", 
+								"codeDirection": // [x], vec3 currentDir, vec3 currentPos
+									// pp
+									lines_poles(arrPP)+
+									// destination
+									'if(enableDestination == 1.0) {\n'+
+										'vec3 destinationPos = dest[x].xyz;\n'+ 
+										'vec3 dirDestination = normalize(destinationPos-currentPos);\n'+
+										'float distan = abs(distance(currentPos,destinationPos));\n'+
+										'float dirDestWeight = sqrt(distan);\n'+  
+										'currentDir = (currentDir+(dirDestination*dirDestWeight*destinationForce))*dirDestWeight*0.1;\n'+
+									'}\n'+
+									// lifeDistance
+									'vec3 newPos = (currentPos+currentDir);\n'+
+									'vec4 initPos = initPos[x];'+
+									'if(lifeDistance > 0.0 && distance(vec3(initPos.x,initPos.y,initPos.z),newPos) > lifeDistance) {'+
+										'vec4 initDir = vec4(initDir[x]);'+
+										'currentDir = vec3(initDir.x,initDir.y,initDir.z);'+
+									'}',
+									
+								"argsPosition":
+									// lifeDistance
+									"float4* initPos,float lifeDistance,"+
+									// lock
+									"float* nodeLock",
+								"codePosition": // [x], vec3 currentPos, vec3 currentDir
+									// lifeDistance
+									'vec4 initPos = initPos[x];'+
+									'if(lifeDistance > 0.0 && distance(vec3(initPos.x,initPos.y,initPos.z), currentPos) > lifeDistance)'+
+										'currentPos = vec3(initPos.x,initPos.y,initPos.z);'+
+									// lock
+									'if(nodeLock[x] == 1.0)'+
+										'currentDir = vec3(0.0, 0.0, 0.0);\n',
 						
+								"argsObject":
+									// nodeColor
+									"float4* nodeColor,"+
+									// lock
+									"float* nodeLock",
+								"codeObject": // [x], vec4 nodeVertexColor, float isNode, float isLink, float isArrow, float isTarget, float isNodeText
+									// nodeColor
+									'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
+									'if((isLink == 1.0 || isArrow == 1.0) && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
+									'if((isLink == 1.0 || isArrow == 1.0) && isTarget == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 1.0);'+
+									// lock
+									'if(nodeLock[x] == 1.0) nodeVertexColor *= vec4(0.8, 0.3, 0.3, 1.0);'}); 
+			
+			// pp
+			for(var n = 0, f = arrPP.length; n < f; n++) {
+				graph.setLayoutArgumentData({"argName": 'pole'+n+'X', "value": arrPP[n].x});
+				graph.setLayoutArgumentData({"argName": 'pole'+n+'Y', "value": arrPP[n].y});
+				graph.setLayoutArgumentData({"argName": 'pole'+n+'Z', "value": arrPP[n].z});
+				graph.setLayoutArgumentData({"argName": 'pole'+n+'Polarity', "value": arrPP[n].polarity});
+				graph.setLayoutArgumentData({"argName": 'pole'+n+'Orbit', "value": arrPP[n].orbit});
+				graph.setLayoutArgumentData({"argName": 'pole'+n+'Force', "value": arrPP[n].force});
+			}
+			// destination
+			graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
+			graph.setLayoutArgumentData({"argName": "enableDestination", "value": 1.0});			
+			// lifeDistance
+			graph.setLayoutArgumentData({"argName": "lifeDistance", "value": 0.0});
+			
+			
+			
+			for(var n=0; n < numNodes; n++) {
+				var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
+				
 				var node = graph.addNode({
 					"name": "#"+n.toString()+":"+n.toString(),
 					"data": "#"+n.toString()+":"+n.toString(),
-					"position": $V3([-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs)]),
+					"position": pos,
 					"color": ((n % 2) ? "../SCEJS/Prefabs/Graph/lena.jpg" : "../SCEJS/Prefabs/Graph/cartman08.jpg"),
+					"layoutNodeArgumentData": {	// pp
+												"particlePolarity": 0.0,
+												// destination
+												"dest": [0.0, 0.0, 0.0, 0.0],
+												// lifeDistance
+												"initPos": pos, "initDir": [0.0, 0.0, 0.0, 0.0],
+												// nodeColor
+												"nodeColor": [Math.random(), Math.random(), Math.random(), 1.0],
+												// lock
+												"nodeLock": 0.0}, 
 					"onmouseup": (function(nodeData) {
 						
 				}).bind(this)});
@@ -72,21 +205,248 @@
 			for(var n=0; n < numLinks; n++) {
 				var A = parseInt(Math.random()*numNodes).toString();
 				var B = parseInt(Math.random()*numNodes).toString();
-				
+				 
 				graph.addLink({	"origin": "#"+A+":"+A,
 								"target": "#"+B+":"+B,
-								"origin_color": edgeColor_origin,
-								"target_color": edgeColor_target,
 								"directed": true});
 			}
 			graph.updateLinks();	
 			
-			graph.setFontsImage("../SCEJS/Prefabs/Graph/fonts.png");  
-			/*graph.set_destinationWidthHeight({width:16,
-												height:16,
-												spacing:2.0});*/
-			//graph.set_dir("random");
-			graph.setSelfShadows(false);
+			
+			graph.setLayoutNodeArgumentData({	"nodeName": "#0:0",
+												"argName": "nodeLock",
+												"value": 1.0});
+			
+			
+			/**
+			* @param {Object} jsonIn
+			* @param {Int} jsonIn.count - count
+			* @param {Float} jsonIn.offset - Offset
+			* @param {String} jsonIn.type - "float" | "float4"
+			* @param {Float} [jsonIn.spacing=0.01] - Spacing
+			* @return {Array<Float>}
+			*/
+			var randomArray = function(jsonIn) {
+				var arr = [];
+				for(var n=0; n < jsonIn.count; n++) {
+					if(jsonIn.type == "float") arr.push(-(jsonIn.offset/2)+(Math.random()*jsonIn.offset));
+					else arr.push(-(jsonIn.offset/2)+(Math.random()*jsonIn.offset), -(jsonIn.offset/2)+(Math.random()*jsonIn.offset), -(jsonIn.offset/2)+(Math.random()*jsonIn.offset), -(jsonIn.offset/2)+(Math.random()*jsonIn.offset));
+				}
+				
+				return arr;
+			};			
+			/**
+			* @param {Object} jsonIn
+			* @param {Int} jsonIn.count - count
+			* @param {Float} jsonIn.width - width
+			* @param {Float} jsonIn.height - height
+			* @param {Float} [jsonIn.spacing=0.01] - Spacing
+			* @return {Array<Float>}
+			*/
+			var widthHeightArray = function(jsonIn) {			
+				var arr = [];
+				
+				var totalDestinations = jsonIn.width*jsonIn.height;
+				var nodesPerCell = jsonIn.count/totalDestinations;
+				var nodesInCell = 0;
+				var x = 0;
+				var z = 0;
+				var spacing = (jsonIn.spacing != undefined) ? jsonIn.spacing : 0.01;
+				for(var n=0; n < jsonIn.count; n++) {
+					if(nodesInCell >= nodesPerCell) {				
+						x++;
+						if(x > jsonIn.width-1) {
+							x = 0;
+							z++;
+						}
+						nodesInCell -= nodesPerCell;
+					}
+					nodesInCell += 1;
+					
+					arr.push(x*spacing, 0, z*spacing, 1.0);
+				}
+				
+				return arr;
+			};
+			/**
+			* @param {Object} jsonIn
+			* @param {Int} jsonIn.count - count
+			* @param {Array<Float4>} jsonIn.float4 - direction
+			* @return {Array<Float>}
+			*/
+			var float4Array = function(jsonIn) {
+				var arr = [];
+				for(var n=0; n < jsonIn.count; n++) {
+					arr.push(jsonIn.float4[0], jsonIn.float4[1], jsonIn.float4[2], jsonIn.float4[3]);
+				}
+				
+				return arr;
+			};
+			/**
+			* @param {Object} jsonIn
+			* @param {Int} jsonIn.count - count
+			* @param {Float} jsonIn.radius - radius
+			* @return {Array<Float>}
+			*/
+			var sphericalArray = function(jsonIn) {
+				var arr = [];
+				for(var n=0; n < jsonIn.count; n++) {
+					var rad = (jsonIn == undefined) ? 1.0 : jsonIn.radius;
+					var currAngleH = Math.random()*360.0;
+					var currAngleV = Math.random()*180.0;
+					arr.push(	Math.cos(currAngleH) * Math.abs(Math.sin(currAngleV)) * rad,  
+								Math.cos(currAngleV) * rad * Math.random(),
+								Math.sin(currAngleH) * Math.abs(Math.sin(currAngleV)) * rad,
+								1.0);
+				}
+				
+				return arr;
+			};
+			/**
+			* @param {Object} jsonIn
+			* @param {Int} jsonIn.count - count
+			* @param {Float} jsonIn.image - image
+			* @return {Array<Float>}
+			*/
+			var imageArray = function(jsonIn) {
+				var imgarr = new Utils().getUint8ArrayFromHTMLImageElement(jsonIn.image);
+				var arr = [];
+				for(var n=0; n < jsonIn.count; n++) {
+					var id = n*4;
+					arr.push(	parseFloat(imgarr[id]/255),  
+								parseFloat(imgarr[id+1]/255),
+								parseFloat(imgarr[id+2]/255),
+								parseFloat(imgarr[id+3]/255));
+				}
+				
+				return arr;
+			};
+			/**
+			* @param {StormVoxelizator} voxelizator
+			*/
+			var volumeArray = function(voxelizator) {			
+				this.arrayNodeDestination = [];	
+				this.arrayNodeVertexColor = [];
+				
+				this.vo = voxelizator;
+				if(this.vo instanceof StormVoxelizator == false) { alert("You must select a voxelizator object with albedo fillmode enabled."); return false;}
+				if(this.vo.image3D_VoxelsColor == undefined) { alert("You must select a voxelizator object with albedo fillmode enabled."); return false;}
+				this.data = this.vo.clglBuff_VoxelsColor.items[0].inData;
+				
+				var numActCells = 0;
+				for(var n = 0, f = this.data.length/4; n < f; n++) { // num of active cells
+					var id = n*4;
+					//if(data[id] > 30 && data[id+1] > 30 && data[id+2] > 30)
+					if(this.data[id+3] > 0) {
+						numActCells++;
+					}
+				}
+				var totalNodes = this.currentNodeId-1;
+				var nodesPerCell = totalNodes/numActCells;
+				
+				this.incremNodesCell = 0;	
+				var currentNodeId = -1;
+				
+				this.currentVoxelCell;
+				this.CCX=0,this.CCY=0,this.CCZ=0;
+				this.CCXMAX=this.vo.resolution-1, this.CCYMAX=this.vo.resolution-1, this.CCZMAX=this.vo.resolution-1;
+				var separation = 1.0;
+				var p;
+				var c;
+				var make = false;
+				
+				var next = (function() {
+					while(true) {
+						if(this.CCX == this.CCXMAX && this.CCZ == this.CCZMAX && this.CCY == this.CCYMAX) {
+							break;
+						} else {
+							if(this.CCX == this.CCXMAX && this.CCZ == this.CCZMAX) {
+								this.CCX=0;this.CCZ=0;this.CCY++;
+							} else {
+								if(this.CCX == this.CCXMAX) {
+									this.CCX=0;this.CCZ++;
+								} else {
+									this.CCX++;
+								}
+							}
+						}
+						
+						this.currentVoxelCell = (this.CCY*(this.vo.resolution*this.vo.resolution)) + (this.CCZ*(this.vo.resolution)) + this.CCX;
+						
+						if(this.data[(this.currentVoxelCell*4)+3] > 0) {
+							this.incremNodesCell += nodesPerCell;
+							if(this.incremNodesCell >= 1.0) {
+								this.incremNodesCell -= 1.0;
+								break;
+							}
+						}
+					}
+				}).bind(this);
+				
+				for(var n=0; n < this.arrayNodeId.length; n++) {
+					if(currentNodeId != this.arrayNodeId[n]) {
+						currentNodeId = this.arrayNodeId[n];
+											
+						if(this.incremNodesCell >= 1.0) {
+							this.incremNodesCell -= 1.0;
+						} else {
+							next();
+						}
+						
+						// position
+						p = $V3([0.0,0.0,0.0]).add($V3([-(this.vo.size/2.0), -(this.vo.size/2.0), -(this.vo.size/2.0)]));  
+						p = p.add($V3([ this.vo.cs*this.CCX*separation, this.vo.cs*this.CCY*separation, this.vo.cs*(this.CCZMAX-this.CCZ)*separation ])); 
+						p = p.add($V3([ this.vo.cs*Math.random(), this.vo.cs*Math.random(), this.vo.cs*Math.random() ]));
+						
+						// color
+						c = $V3([ this.data[(this.currentVoxelCell*4)]/255, this.data[(this.currentVoxelCell*4)+1]/255, this.data[(this.currentVoxelCell*4)+2]/255 ]);
+						
+						this.arrayNodeDestination.push(p.e[0], p.e[1], p.e[2], 1.0);	
+						this.arrayNodeVertexColor.push(c.e[0], c.e[1], c.e[2], 1.0);
+					} else {
+						this.arrayNodeDestination.push(p.e[0], p.e[1], p.e[2], 1.0);
+						this.arrayNodeVertexColor.push(c.e[0], c.e[1], c.e[2], 1.0);
+					}
+				}
+				comp_renderer_nodes.setArg("dest", (function() {return this.arrayNodeDestination;}).bind(this), this.splitNodes);
+				comp_renderer_nodes.setArg("nodeVertexCol", (function() {return this.arrayNodeVertexColor;}).bind(this), this.splitNodes);
+
+			};
+			document.getElementById("BTNID_RD").addEventListener("click", (function() {				
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": randomArray({	"count": numNodes,
+																				"offset": offs,
+																				"type": "float4"})
+													});
+			}).bind(this));
+			document.getElementById("BTNID_WH").addEventListener("click", (function() {				
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": widthHeightArray({	"count": numNodes,
+																					"width": 16,
+																					"height": 16,
+																					"spacing": 3.0})
+													});
+			}).bind(this));
+			document.getElementById("BTNID_DIR").addEventListener("click", (function() {				
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": float4Array({	"count": numNodes,
+																				"float4": [-1.0+(Math.random()*2.0), -1.0+(Math.random()*2.0), -1.0+(Math.random()*2.0), 1.0]})
+													});
+			}).bind(this));
+			
+			document.getElementById("BTNID_SPHERICAL").addEventListener("click", (function() {				
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": sphericalArray({	"count": numNodes,
+																					"radius": 10.0})
+													});
+			}).bind(this));
+			
+			document.getElementById("BTNID_IMG").addEventListener("click", (function() {				
+				graph.setLayoutNodeArgumentArrayData({	"argName": "nodeColor",
+														"value": imageArray({	"count": numNodes,
+																				"image": document.getElementById("IMGID_lena")})
+													});
+			}).bind(this));
 			
 			//*********
 			// RENDER STAGE
@@ -98,5 +458,6 @@
 				//sce.setDimensions(512, 128);
 		    }).bind(this);
 		</script>
+		
 	</body>
 </html>

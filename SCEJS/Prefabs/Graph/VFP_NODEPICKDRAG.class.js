@@ -18,7 +18,7 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
 	   		'}'],
        		
        		// vertex source
-       		['void main(float* nodeId,'+
+       		['void main(float4* data,'+ // data = 0: nodeId, 1: linkId, 2: oppositeId, 3: isTarget
        			'float4*kernel posXYZW,'+
        			'float4* nodeVertexPos,'+
        			'mat4 PMatrix,'+
@@ -36,7 +36,7 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
        				'nodepos[3][1] = nodePosition.y;'+
        				'nodepos[3][2] = nodePosition.z;'+       				
        							
-       				'vColor = pack((nodeId[x]+1.0)/1000000.0);'+
+       				'vColor = pack((data[x].x+1.0)/1000000.0);'+
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPos[x];\n'+
        		'}'],
        		

@@ -7,80 +7,210 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 	
 	var ah = new ActionHelpers();
 	
-	var str = 	"<div id='component_kernels' class='component_section'></div>"+
-				"<div id='component_vfps' class='component_section'></div>"+
-				"<div id='component_indices' class='component_section'>Indices</div>"+
-				"<div id='component_arguments' class='component_section'>Arguments</div>";						
-	$('#DIVID_component_'+compTypeKey).append(str);
-	
 	var comp = selectedNode.getComponent(Constants.COMPONENT_TYPES.RENDERER);
 	
-	// KERNELS
-	for(var kernelKey in comp.getKernels()) {
-		var kernel = comp.getKernels()[kernelKey];
+	var getArgType = function(argsOrigin, argsTarget, type) {
+		for(var argKey in argsOrigin)
+			if(argsOrigin[argKey].type == type)
+				argsTarget[argKey] = argsOrigin[argKey];
 		
-		var str = 	"<div style='background:rgba(0,0,0,0.5);padding:5px;' class='StormShadow02 StormRound'>"+
-				"<div>KERNEL NAME: "+kernelKey+"</div>"+
-				"<div>ARG DESTINATION: "+kernel.argBufferDestination+"</div>"+
-				
-				"<div id='in_fragment_values_"+kernelKey+"' style='background:rgba(0,0,255,0.1)'></div>";
-			"</div>";						
-		$('#component_kernels').append(str);
-		
-		
-		str = "<span style='color:blue'>KERNEL PROGRAM</span>";
-		for(var n=0, fn=kernel.kernel.in_values.length; n < fn; n++) {
-			var fv = kernel.kernel.in_values[n];
-			str += 	"<div>"+
-					"<span style='font-weight:bold;color:rgba(0,0,255,0.5)'>"+fv.type+"</span> "+fv.name;
-					if(fv.value != undefined) {
-						if(fv.value instanceof WebCLGLBuffer) {
-							var strItems = "", sep = "";
-							for(var j=0; j < fv.value.items.length; j++) {
-								strItems += sep+"<span title='"+fv.value.items[j].inData+"'>"+fv.value.items[j].length+"</span>";
-								sep = ",";
-							}
-							str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
-						} else if(fv.value instanceof Float32Array || fv.value instanceof Array) {
-							str += " <span style='color:grey'> {"+fv.value.constructor.name+" <span title='"+fv.value+"'>"+fv.value.length+"</span>}</span>";
-						} else {
-							str += " <span style='color:grey'> {<span title='"+fv.value+"'>"+fv.value.constructor.name+"</span>}</span>";
-						}
+		return args;
+	};
+	
+	var args = {}, 
+		tmpArgs = comp.getAllArgs();
+	getArgType(tmpArgs, args, "buffer_float4_fromKernel");
+	getArgType(tmpArgs, args, "buffer_float_fromKernel");
+	getArgType(tmpArgs, args, "buffer_float4");
+	getArgType(tmpArgs, args, "buffer_float");
+	getArgType(tmpArgs, args, "mat4");
+	getArgType(tmpArgs, args, "float4");
+	getArgType(tmpArgs, args, "float");
+	
+	
+	var str = "<div id='DIVID_"+compTypeKey+"' class='component_section'></div>";
+	//$('#DIVID_component_'+compTypeKey).append(str);
+	ah.appendStringChild(str, document.getElementById('DIVID_component_'+compTypeKey));
+	
+	
+	
+	
+	
+	
+	
+	
+	// INDICES
+	var str = 	"<div id='DIVID_indices' style='background:rgba(0,0,0,0.5);padding-left:3px'>"+
+			"<div>indices</div>";
+			if(comp.getIndices() != undefined) {
+				if(comp.getIndices() instanceof WebCLGLBuffer) {
+					var strItems = "", sep = "";
+					for(var j=0; j < comp.getIndices().items.length; j++) {
+						strItems += sep+"<span title='"+comp.getIndices().items[j].inData+"'>"+comp.getIndices().items[j].length+"</span>";
+						sep = ",";
 					}
-			str += "</div>";
+					str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
+				}
+			}
+		"</div>";						
+	ah.appendStringChild(str, document.getElementById('DIVID_'+compTypeKey));
+	
+	// ARGS
+	str = "<div id='DIVID_"+compTypeKey+"_args' style='display:inline-block;border:1px solid #333;'>";	
+		str += "<div>ARGUMENTS</div>";
+	for(var argKey in args) {	
+		var arg = args[argKey];
+		
+		str += "<div id='DIVID_"+argKey+"_args'><span style='font-weight:bold;color:rgba(200,200,255,0.5)'>"+arg.type+"</span> "+argKey+" <input type='checkbox' id='CHECKBOX_UPDATE_"+argKey+"' title='update on tick' style='width:8px;height:8px;margin:0px;vertical-align:middle' />";
+		if(arg.value != undefined) {
+			if(arg.value instanceof WebCLGLBuffer) {
+				var strItems = "", sep = "";
+				for(var j=0; j < arg.value.items.length; j++) {
+					strItems += sep+"<span title='"+arg.value.items[j].inData+"'>"+arg.value.items[j].length+"</span>";
+					sep = ",";
+				}
+				str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+strItems+"}</span>";
+			} else if(arg.value instanceof Float32Array || arg.value instanceof Array) {
+				str += " <span style='color:rgb(150, 255, 150)'> {"+arg.value.constructor.name+" <span title='"+arg.value+"'>"+arg.value.length+"</span>}</span>";
+			} else {
+				str += " <span style='color:rgb(150, 255, 150)'> {<span title='"+arg.value+"'>"+arg.value.constructor.name+"</span>}</span>";
+			}
 		}
-		$('#in_fragment_values_'+kernelKey).append(str);
+		str += "</div>";
+	}
+	str += "</div>";
+	ah.appendStringChild(str, document.getElementById('DIVID_'+compTypeKey));
+	//$('#DIVID_'+compTypeKey).append(str);
+	
+	for(var argKey in args) {	
+		var arg = args[argKey];
+		
+		if(comp.getArgs()[argKey] != undefined && comp.getArgs()[argKey].updatable != null) {
+			var e = document.getElementById("CHECKBOX_UPDATE_"+argKey);
+			e.checked = (comp.getArgs()[argKey].updatable == true) ? true : false;
+			e.addEventListener("click", (function(comp, argKey) {	
+				if(e.checked == false) {
+					comp.setArgUpdatable(argKey, false);
+				} else {
+					comp.setArgUpdatable(argKey, true);
+				}
+			}).bind(this, comp, argKey));
+		}
+		
+		var e = document.getElementById("DIVID_"+argKey+"_args");
+		e.addEventListener('dragover', (function(e, evt) {
+			if(evt.preventDefault)
+				evt.preventDefault(); // Necessary. Allows us to drop.
+			
+			evt.dataTransfer.dropEffect = 'move';
+			e.style.background = "rgba(150, 255, 150, 0.3)";
+		}).bind(this, e), false);
+		
+		e.addEventListener('dragleave', (function(e, evt) {
+			e.style.background = "transparent";
+		}).bind(this, e), false);
+		
+		e.addEventListener('drop', (function(e, comp, argKey, evt) {
+			if(evt.stopPropagation) {
+				evt.stopPropagation(); // Stops some browsers from redirecting.
+			  	evt.preventDefault();
+			}
+		
+			e.style.background = "transparent";
+			
+			var data = evt.dataTransfer.getData('text/plain');
+			var type = data.match(/,/i) ? "array": "image";
+			if(type == "image") {
+				var image = new Image();
+				image.onload = (function(comp, argKey, image) {
+					comp.setArg(argKey, (function(){return image;}).bind(this));
+				}).bind(this, comp, argKey, image);
+				image.src = data;
+			} else {
+				comp.setArg(argKey, (function(){return data.split(",");}).bind(this));
+			}
+			
+			//comp.setArg(argKey, (function(evt) {return evt.dataTransfer.getData('text/plain');}).bind(this, evt)); 
+		}).bind(this, e, comp, argKey), false);
 	}
 	
+	//KERNELS	
+	for(var kernelKey in comp.getKernels()) {	
+		var kernel = comp.getKernels()[kernelKey];
+		
+		str = "<div id='DIVID_"+kernelKey+"_kernels' style='display:inline-block;border:1px solid #333;'>";	
+			str += "<div>KERNEL NAME: "+kernelKey+"</div>"+
+					"<div>ARG DESTINATION: "+kernel.argBufferDestination+"</div>";
+		
+		for(var argKey in args) {	
+			var arg = args[argKey];
+			
+			var exists = false;
+			for(var n=0, fn=kernel.kernel.in_values.length; n < fn; n++) {
+				var fv = kernel.kernel.in_values[n];
+				if(fv.name == argKey) {
+					var bg = (fv.value != undefined) ? "rgba(150,150,255,1.0)" : "rgba(150,150,255,0.3)";
+					str += 	"<div style='background:"+bg+";color:rgba(0,0,0,0)'>-</div>";
+					exists = true;
+					break;
+				}
+			}
+			if(exists == false) str += "<div style='color:rgba(0,0,0,0)'>-</div>";
+		}
+		
+		str += "</div>";
+		$('#DIVID_'+compTypeKey).append(str);
+	}
+							
 	// VFPS
 	for(var vfpKey in comp.getVFPs()) {
 		var vfp = comp.getVFPs()[vfpKey];
 		
-		ah.add_checkbox(document.getElementById('component_vfps'), vfpKey+" ENABLE", vfp.enabled, 
-				(function(comp, vfpKey) {
-					comp.enableVfp(vfpKey);
-				}).bind(this, comp, vfpKey), (function(comp, vfpKey) {
-					comp.disableVfp(vfpKey); 
-				}).bind(this, comp, vfpKey));
+		// vertex programs
+		str = "<div id='DIVID_"+vfpKey+"_vps' style='display:inline-block;border:1px solid #333;'>";	
+			str += "<div>VFP NAME: "+vfpKey+"</div>"+
+					"<div>SE ARG destination: "+vfp.argBufferDestination+"</div>";
+			
+			str+="<div><input type='checkbox' id='ENABLE_"+vfpKey+"' style='font-size:10px;'>";
+			str+="<div>drawMode: <select id='DRAW_"+vfpKey+"' style='font-size:10px;'>";
+				for(var drawModeKey in Constants.DRAW_MODES) str+="<option value='"+Constants.DRAW_MODES[drawModeKey]+"'>"+drawModeKey+"</option>";
+			str+="</select></div>"+
+			"<div>blendSrc (Foreground): <select id='BLEND_source_"+vfpKey+"' style='font-size:10px;'>";
+				for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
+			str+="</select></div>"+
+			"<div>blendDst (Background): <select id='BLEND_destination_"+vfpKey+"' style='font-size:10px;'>";
+				for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
+			str+="</select></div>";
 		
-		var str = 	"<div style='background:rgba(0,0,0,0.5);padding:5px;' class='StormShadow02 StormRound'>"+
-						"<div>VFP NAME: "+vfpKey+"</div>"+
-						"<div>SE ARG destination: "+vfp.argBufferDestination+"</div>"+
-						
-						"<div>drawMode: <select id='DRAW_"+vfpKey+"' style='font-size:10px;'>";
-							for(var drawModeKey in Constants.DRAW_MODES) str+="<option value='"+Constants.DRAW_MODES[drawModeKey]+"'>"+drawModeKey+"</option>";
-						str+="</select></div>"+
-						"<div>blendSrc (Foreground): <select id='BLEND_source_"+vfpKey+"' style='font-size:10px;'>";
-							for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
-						str+="</select></div>"+
-						"<div>blendDst (Background): <select id='BLEND_destination_"+vfpKey+"' style='font-size:10px;'>";
-							for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
-						str+="</select></div>"+
-						
-						"<div id='in_vertex_values_"+vfpKey+"' style='background:rgba(255,0,0,0.1)'></div>"+
-						"<div id='in_fragment_values_"+vfpKey+"' style='background:rgba(0,255,0,0.1)'></div>";
-					"</div>";						
-		$('#component_vfps').append(str);
+		for(var argKey in args) {	
+			var arg = args[argKey];
+			
+			var exists = false;
+			for(var n=0, fn=vfp.vfp.in_vertex_values.length; n < fn; n++) {
+				var vv = vfp.vfp.in_vertex_values[n];
+				if(vv.name == argKey) {
+					var bg = (vv.value != undefined) ? "rgba(255,150,150,1.0)" : "rgba(255,150,150,0.3)";
+					str += 	"<div style='background:"+bg+";color:rgba(0,0,0,0)'>-</div>";
+					exists = true;
+					break;
+				}
+			}
+			if(exists == false) str += "<div style='color:rgba(0,0,0,0)'>-</div>";
+		}
+		
+		str += "</div>";
+		$('#DIVID_'+compTypeKey).append(str);
+		
+		
+		var e = document.getElementById("ENABLE_"+vfpKey);
+		e.checked = (vfp.enabled == true) ? true : false;
+		e.addEventListener("click", (function(comp, vfpKey, e) {	
+			if(e.checked == false) {
+				comp.disableVfp(vfpKey);
+			} else {
+				comp.enableVfp(vfpKey);
+			}
+		}).bind(this, comp, vfpKey, e));
 		
 		
 		var e = document.getElementById("DRAW_"+vfpKey);
@@ -117,89 +247,27 @@ UIComponentRenderer = function(compTypeKey, selectedNode) {
 		}).bind(this, comp, vfpKey, e));
 		
 		
-		var str = "<span style='color:red'>VERTEX PROGRAM</span>";
-		for(var n=0, fn=vfp.vfp.in_vertex_values.length; n < fn; n++) {
-			var vv = vfp.vfp.in_vertex_values[n];
-			str += 	"<div>"+
-					"<span style='font-weight:bold;color:rgba(255,0,0,0.5)'>"+vv.type+"</span> "+vv.name;
-					if(vv.value != undefined) {
-						if(vv.value instanceof WebCLGLBuffer) {
-							var strItems = "", sep = "";
-							for(var j=0; j < vv.value.items.length; j++) {
-								strItems += sep+"<span title='"+vv.value.items[j].inData+"'>"+vv.value.items[j].length+"</span>";
-								sep = ",";
-							}
-							str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
-						} else if(vv.value instanceof Float32Array || vv.value instanceof Array) {
-							str += " <span style='color:grey'> {"+vv.value.constructor.name+" <span title='"+vv.value+"'>"+vv.value.length+"</span>}</span>";
-						} else {
-							str += " <span style='color:grey'> {<span title='"+vv.value+"'>"+vv.value.constructor.name+"</span>}</span>";
-						}
-					}
-			str += "</div>";
-		}
-		$('#in_vertex_values_'+vfpKey).append(str);
 		
-		str = "<span style='color:green'>FRAGMENT PROGRAM</span>";
-		for(var n=0, fn=vfp.vfp.in_fragment_values.length; n < fn; n++) {
-			var fv = vfp.vfp.in_fragment_values[n];
-			str += 	"<div>"+
-					"<span style='font-weight:bold;color:rgba(0,255,0,0.5)'>"+fv.type+"</span> "+fv.name;
-					if(fv.value != undefined) {
-						if(fv.value instanceof WebCLGLBuffer) {
-							var strItems = "", sep = "";
-							for(var j=0; j < fv.value.items.length; j++) {
-								strItems += sep+"<span title='"+fv.value.items[j].inData+"'>"+fv.value.items[j].length+"</span>";
-								sep = ",";
-							}
-							str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
-						} else if(fv.value instanceof Float32Array || fv.value instanceof Array) {
-							str += " <span style='color:grey'> {"+fv.value.constructor.name+" <span title='"+fv.value+"'>"+fv.value.length+"</span>}</span>";
-						} else {
-							str += " <span style='color:grey'> {<span title='"+fv.value+"'>"+fv.value.constructor.name+"</span>}</span>";
-						}
-					}
-			str += "</div>";
-		}
-		$('#in_fragment_values_'+vfpKey).append(str);
-	}
-	
-	// indices
-	var str = 	"<div id='DIVID_indices' style='background:rgba(0,0,0,0.5);padding-left:3px'>"+
-			"<div>indices</div>";
-			if(comp.getIndices() != undefined) {
-				if(comp.getIndices() instanceof WebCLGLBuffer) {
-					var strItems = "", sep = "";
-					for(var j=0; j < comp.getIndices().items.length; j++) {
-						strItems += sep+"<span title='"+comp.getIndices().items[j].inData+"'>"+comp.getIndices().items[j].length+"</span>";
-						sep = ",";
-					}
-					str += " <span style='color:grey'> {WebCLGLBuffer "+strItems+"}</span>";
+		// fragment programs
+		str = "<div id='DIVID_"+vfpKey+"_fps' style='display:inline-block;border:1px solid #333;'>";
+		
+		for(var argKey in args) {	
+			var arg = args[argKey];
+			
+			var exists = false;
+			for(var n=0, fn=vfp.vfp.in_fragment_values.length; n < fn; n++) {
+				var fv = vfp.vfp.in_fragment_values[n];
+				if(fv.name == argKey) {
+					var bg = (fv.value != undefined) ? "rgba(150,255,150,1.0)" : "rgba(150,255,150,0.3)";
+					str += 	"<div style='background:"+bg+";color:rgba(0,0,0,0)'>-----</div>";
+					exists = true;
+					break;
 				}
 			}
-		"</div>";						
-	$('#component_indices').append(str);
-	
-	// arguments
-	for(var argKey in comp.getArgs()) {	
-		var arg = comp.getArgs()[argKey];
-		//console.log(arg);
+			if(exists == false) str += "<div style='color:rgba(0,0,0,0)'>-----</div>";
+		}
 		
-		var str = 	"<div id='DIVID_"+argKey+"' style='background:rgba(0,0,0,0.5);padding-left:3px'>"+
-						//"<div>"+argKey+"</div>"+
-						//"<div>"+arg.fnvalue()+"</div>"+
-					"</div>";						
-		$('#component_arguments').append(str);
-		
-		
-	    
-	    
-	    
-		ah.add_checkbox(document.getElementById('DIVID_'+argKey), argKey+" UPDATABLE", arg.updatable, 
-			(function(comp, argKey) {
-				comp.setArgUpdatable(argKey, true);
-			}).bind(this, comp, argKey), (function(comp, argKey) {
-				comp.setArgUpdatable(argKey, false);
-			}).bind(this, comp, argKey));
+		str += "</div>";
+		$('#DIVID_'+compTypeKey).append(str);
 	}
 };
