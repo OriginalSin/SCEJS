@@ -1,5 +1,5 @@
 /** @private **/
-function KERNEL_POSBYDIR() { VFP.call(this);
+function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 	this.getSrc = function() {
 		
 		var str_vfp = [
@@ -7,21 +7,18 @@ function KERNEL_POSBYDIR() { VFP.call(this);
        		[],
        		
        		// kernel source
-       		['void main(float4* initPos,'+
-				'float4* posXYZW,'+
-				'float4* dir,'+
-				'float lifeDistance) {'+
-					'vec2 x = get_global_id();'+
-					'vec3 currentPos = posXYZW[x].xyz;\n'+ 
-					'vec4 dir = dir[x];'+
-					'vec3 currentDir = vec3(dir.x,dir.y,dir.z);\n'+   
-					'vec3 newPos = (currentPos+currentDir);\n'+
-					
-					'vec4 initPos = initPos[x];'+
-					'if(lifeDistance > 0.0 && distance(vec3(initPos.x,initPos.y,initPos.z),newPos) > lifeDistance)'+
-						'newPos = vec3(initPos.x,initPos.y,initPos.z);'+
-						
-					'out_float4 = vec4(newPos, 1.0);\n'+ 
+       		['void main(float4* posXYZW,'+
+						'float4* dir,'+
+						customArgs+') {'+
+							'vec2 x = get_global_id();'+
+							'vec3 currentPos = posXYZW[x].xyz;\n'+
+							'vec3 currentDir = dir[x].xyz;\n'+   
+							
+							customCode+
+								
+							'currentPos += currentDir;\n'+
+							
+							'out_float4 = vec4(currentPos, 1.0);\n'+ 
 			'}']];
        	
        	return str_vfp;

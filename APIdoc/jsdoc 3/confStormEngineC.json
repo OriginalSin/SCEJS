@@ -1,0 +1,25 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+	"plugins": ["plugins/markdown"],
+    "templates": {
+		"cleverLinks"     : false,
+		"monospaceLinks"  : false,
+		"default"         : {
+			"outputSourceFiles" : true
+		},
+        "systemName"      : "StormEngineC 1.2 API DOC",
+		"footer"          : "StormEngineC 1.2 API DOC",
+		"copyright"       : "2010 Roberto Gonzalez. http://stormcolour.appspot.com",
+		"navType"         : "vertical",
+		"theme"           : "stormenginec",
+		"linenums"        : true,
+		"collapseSymbols" : true,
+		"inverseNav"      : false
+    },
+	"markdown"  : {
+		"parser"   : "gfm",
+		"hardwrap" : true
+	}
+}

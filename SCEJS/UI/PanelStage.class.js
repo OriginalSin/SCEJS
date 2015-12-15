@@ -9,11 +9,14 @@ PanelStage = function() {
 								"paneltitle": 'STAGE'});
 	
 	/**
+	 * @callback PanelStage~onselect
+	 * @param {Node} node
+	 */
+	/**
 	* show
 	* @param {Array<Node>} nodes
 	* @param {Node} selectedNode
-	* @param {Function} onselect
-	* @param {Node} onselect.node
+	* @param {PanelStage~onselect} onselect
 	*/
 	this.show = function(nodes, selectedNode, onselect) {
 		panel.show(); 
@@ -25,8 +28,7 @@ PanelStage = function() {
 	* showListObjects
 	* @param {Array<Node>} nodes
 	* @param {Node} selectedNode
-	* @param {Function} onselect
-	* @param {Node} onselect.node
+	* @param {PanelStage~onselect} onselect
 	* @private
 	*/
 	var showListObjects = function(nodes, selectedNode, onselect) {	

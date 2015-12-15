@@ -301,7 +301,13 @@ WebCLGL.prototype.enqueueNDRangeKernelNow = function(webCLGLKernel, i) {
 			this.gl.activeTexture(this.gl["TEXTURE16"]);
 		
 		if(ks.value != undefined) {
-			var item = (ks.value.items[i] != undefined) ? ks.value.items[i] : ks.value.items[0];	
+			var item;
+			if(ks.value.items[i] != undefined) {
+				item = ks.value.items[i];
+				this.gl.uniform1f(kp.uBufferWidth, ks.value.items[0].W);
+			} else {
+				item = ks.value.items[0]
+			}
 			
 			this.gl.bindTexture(this.gl.TEXTURE_2D, item.textureData);
 			this.gl.uniform1i(ks.location[0], currentTextureUnit);
@@ -315,6 +321,7 @@ WebCLGL.prototype.enqueueNDRangeKernelNow = function(webCLGLKernel, i) {
 		if(ku.value != undefined)
 			this.gl.uniform1f(ku.location, ku.value);
 	}
+	
 	
 	this.gl.enableVertexAttribArray(kp.attr_VertexPos);
 	this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);

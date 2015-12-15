@@ -8,6 +8,7 @@ UI = function(project) {
 	var _project = project;
 	var panel_Stage = null;
 	var panel_Node = null;
+	var panel_NumberGenerator = null;
 	
 	
 	/**
@@ -31,6 +32,7 @@ UI = function(project) {
 			            '<ul>'+
 			                '<li id="TOPMENU_view_PanelStage">Panel Stage...</li>'+
 			                '<li id="TOPMENU_view_PanelNode">Panel Node...</li>'+
+			                '<li id="TOPMENU_view_PanelNumberGenerator">Panel Number Generator...</li>'+
 			            '</ul>'+
 			        '</li>'+
 		        '</ul>'+
@@ -40,7 +42,7 @@ UI = function(project) {
 		new ActionHelpers().appendStringChild(str, target, "init");
 		
 		$('#TopMenu').fileMenu({
-	        slideSpeed: 200
+	        slideSpeed: 0
 	    });
 		document.getElementById("TopMenu").style.position = "absolute";
 		document.getElementById("TopMenu").style.fontSize = "8px";
@@ -50,6 +52,7 @@ UI = function(project) {
 	    
 		panel_Stage = new PanelStage();
 		panel_Node = new PanelNode();
+		panel_NumberGenerator = new PanelNumberGenerator();
 		
 		
 		// controllers
@@ -65,7 +68,9 @@ UI = function(project) {
 			//fileLoader.openDialog(); 
 		}).bind(this));
 		
-		DGE("TOPMENU_view_PanelStage").addEventListener("click", (function() {
+		DGE("TOPMENU_view_PanelStage").addEventListener("click", (function(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			panel_Stage.show(_project.getActiveStage().getNodes(), _project.getActiveStage().getSelectedNode(), function(node) {
 				_project.getActiveStage().setSelectedNode(node);
 				
@@ -73,8 +78,16 @@ UI = function(project) {
 			});
 		}).bind(this));
 		
-		DGE("TOPMENU_view_PanelNode").addEventListener("click", (function() {
+		DGE("TOPMENU_view_PanelNode").addEventListener("click", (function(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			panel_Node.show(_project.getActiveStage().getSelectedNode());
+		}).bind(this));
+		
+		DGE("TOPMENU_view_PanelNumberGenerator").addEventListener("click", (function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			panel_NumberGenerator.show();
 		}).bind(this));
 	}; 
 };

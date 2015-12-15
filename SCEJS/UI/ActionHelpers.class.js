@@ -45,13 +45,17 @@ ActionHelpers = function() {
 	};
 
 	/**
+	 * @callback ActionHelpers~add_valuesAndBtn~onClickCallback
+	 * @param {Array<Float>} arr
+	 */
+	/**
 	 * add_valuesAndBtn
 	 * @param {HTMLElement} target
 	 * @param {String} name
 	 * @param {String} type Type for the input (number, text, etc..)
 	 * @param {Array<String>} arrayTexts
 	 * @param {Array<String|Float|Int>} arrayDefaultValues
-	 * @param {Function} onClickCallback
+	 * @param {ActionHelpers~add_valuesAndBtn~onClickCallback} onClickCallback
 	 */
 	this.add_valuesAndBtn = function(target, name, type, arrayTexts, arrayDefaultValues, onClickCallback) {
 		var str = ''+
@@ -301,10 +305,14 @@ ActionHelpers = function() {
 	}; 
 
 	/**
+	 * @callback ActionHelpers~add_imageSelection~onChangeCallback
+	 * @param {HTMLImageElement} img
+	 */
+	/**
 	 * add_imageSelection
 	 * @param {HTMLElement} target
 	 * @param {String} name
-	 * @param {Function} onChangeCallback
+	 * @param {ActionHelpers~add_imageSelection~onChangeCallback} onChangeCallback
 	 */
 	this.add_imageSelection = function(target, name, onChangeCallback) {
 		var str = ''+
@@ -326,8 +334,8 @@ ActionHelpers = function() {
 				img.onload = function() {
 					var splitName = $('#INPUTID_'+name).val().split('/');
 					splitName = splitName[splitName.length-1];								
-					img.style.width = '16px';
-					img.style.height = '16px';
+					//img.style.width = '16px';
+					//img.style.height = '16px';
 					$('#DIVID_'+name).html(img);
 					$('#DIVID_'+name).attr('title',splitName);
 					

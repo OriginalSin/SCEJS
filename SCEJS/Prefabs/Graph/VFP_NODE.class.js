@@ -1,11 +1,11 @@
 /** @private **/
-function VFP_NODE() { VFP.call(this);
+function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [
        	    // vertex head
        		['varying vec4 vVertexColor;\n'+
        		'varying vec2 vVertexUV;\n'+
-       		'varying float vUseTex;\n'+ 
+       		'varying float vUseTex;\n'+
        		'varying vec4 vWNMatrix;\n'+
        		'vec2 get2Dfrom1D(float idx, float columns) {'+
        			'float n = idx/columns;'+
@@ -63,7 +63,7 @@ function VFP_NODE() { VFP.call(this);
        		'}'],
        		
        		// vertex source
-       		['void main(float* nodeId,'+
+       		['void main(float4* data,'+ // data = 0: nodeId, 1: linkId, 2: oppositeId, 3: isTarget
        		 	'float* letterId,'+
        		 	'float* nodeImgId,'+
        			'float4*kernel posXYZW,'+
@@ -71,25 +71,26 @@ function VFP_NODE() { VFP.call(this);
        			'float4* nodeVertexPos,'+
        			'float4* nodeVertexNormal,'+
        			'float4* nodeVertexTexture,'+
-       			'float4* nodeVertexCol,'+
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+
        			'mat4 nodeWMatrix,'+
-       			'float nodesSize,'+
-       			'float pointSize,'+
        			'float isNode,'+
        			'float isLink,'+
        			'float isArrow,'+
        			'float isNodeText,'+
        			'float nodeImgColumns,'+
-       			'float fontImgColumns) {'+
+       			'float fontImgColumns,'+
+       			customArgs+') {'+
        				'vec2 x = get_global_id();'+
        		
-       				'float nodeIdx = nodeId[x];\n'+  
+       				'float nodeIdx = data[x].x;\n'+  
+       				'float isTarget = data[x].w;'+
+       				
        				'vec4 nodePosition = posXYZW[x];\n'+
+       				'vec4 XYZW_opposite = posXYZW_opposite[x];\n'+
        				'vec4 nodeVertexPosition = nodeVertexPos[x];\n'+
        				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
-       				'vec4 nodeVertexColor = nodeVertexCol[x];\n'+
+       				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+ 
        								
        				'vVertexUV = vec2(-1.0, -1.0);'+
        				
@@ -97,7 +98,7 @@ function VFP_NODE() { VFP.call(this);
        				
        				'if(isNode == 1.0) {'+
 	   					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
-	   					//'nodepos = nodepos*mm;'+
+	   					'nodepos = nodepos*mm;'+
 	   					'float nodeImgId = nodeImgId[x];'+
 	   					
 	   					'if(nodeImgId != -1.0) {'+
@@ -109,8 +110,6 @@ function VFP_NODE() { VFP.call(this);
 		       		
 		       		'}'+
        				'if(isArrow == 1.0) {'+
-       					'vec4 XYZW_opposite = posXYZW_opposite[x];\n'+	
-       					
        					'mat4 pp = lookAt(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
        					'pp = transpose(pp);'+					
        					'nodepos[0][0] = pp[0][0];'+
@@ -147,11 +146,11 @@ function VFP_NODE() { VFP.call(this);
        				'mat4 nodeposG = nodeWMatrix;'+								
        				'vWNMatrix = nodeposG * nodeVertexNormal[x];\n'+
        				
-       				'vVertexColor = nodeVertexColor;'+
+       				customCode+
        				
+       				'vVertexColor = nodeVertexColor;'+
        								
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPosition;\n'+
-       				'gl_PointSize = pointSize;\n'+
        		'}'],
        		
        		// fragment head
@@ -166,24 +165,14 @@ function VFP_NODE() { VFP.call(this);
        		 			'float isNode,'+
        		 			'float isLink,'+
        		 			'float isArrow,'+
-       		 			'float isNodeText,'+
-       		 			'float nodesSize,'+
-       					'float4 sunPos,'+
-       					'float selfShadows,'+
-       					'float4 ambientColor) {'+
+       		 			'float isNodeText) {'+
        		 	'vec2 x = get_global_id();'+
        		 	
-       		 	// difusa
-       			'vec3 lightDirection = normalize(sunPos.xyz * -1.0);\n'+ // direccion hacia arriba
-       			'float lightWeighting = max(dot(normalize(vWNMatrix.xyz), -lightDirection)*-1.0, 0.0);\n'+
-       			'vec3 weightDiffuse = min(vec3(1.0,1.0,1.0),vec3(lightWeighting,lightWeighting,lightWeighting));\n'+
-       			
        			'if(isNode == 1.0) {'+
-	       			'if(selfShadows == 1.0) gl_FragColor = (vVertexColor*vec4(weightDiffuse,1.0))+(ambientColor*vVertexColor);\n'+
-	       			'else gl_FragColor = vVertexColor;\n'+
+	       			'gl_FragColor = vVertexColor;\n'+
 	       			
 	       			'if(vUseTex == 1.0)'+
-	       				'gl_FragColor = texture2D(nodesImg, vVertexUV.xy);\n'+
+	       				'gl_FragColor = texture2D(nodesImg, vVertexUV.xy)*vVertexColor;\n'+
 	       		'}'+
 	       		'if(isLink == 1.0) {'+
 	       			'gl_FragColor = vVertexColor;\n'+

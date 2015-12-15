@@ -43,6 +43,7 @@ var includesF = ['/StormMath.class.js',
 				'/VFP_RGB.class.js',
 				'/SE.class.js',
 				'/SE_RGB.class.js',
+				'/ArrayGenerator.class.js',
                 '/Mesh.class.js',
                 '/Constants.js',
                 '/SystemEvents.class.js',
@@ -61,6 +62,7 @@ var includesF = ['/StormMath.class.js',
 				'/UI/UI.class.js',
 				'/UI/PanelStage.class.js',
 				'/UI/PanelNode.class.js',
+				'/UI/PanelNumberGenerator.class.js',
 				'/UI/UIComponentRenderer.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
 
