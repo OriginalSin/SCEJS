@@ -15,6 +15,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						',float MouseDragTranslationY'+
 						',float MouseDragTranslationZ'+
 						',float isLink'+
+						',float isNode'+
 						','+customArgs+
 						') {\n'+
 			'vec2 x = get_global_id();\n'+	 

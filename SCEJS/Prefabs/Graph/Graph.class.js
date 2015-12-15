@@ -12,6 +12,7 @@ Graph = function(sce) {
 	var MAX_ITEMS_PER_ARRAY = 4294967295/*4294967295*/; // unsigned int 65535 for limit on indices of 16bit; long unsigned int 4294967295 
 	var NODE_IMG_COLUMNS = 8.0;
 	var NODE_IMG_WIDTH = 1024;
+	var NODE_IMG_SPRITE_WIDTH = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
 	var OFFSET = 1000.0;
 	
 	
@@ -24,18 +25,28 @@ Graph = function(sce) {
 	var readPixel = false;	
 	var selectedId = -1;
 	
+	// meshes
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadQuad(0.5, 0.5);
 	var mesh_arrows = new Mesh().loadTriangle();
 	var mesh_nodesText = new Mesh().loadQuad();	
 	
-	
+	// nodes image
 	var objNodeImages = {};
-	var can2 = document.createElement('canvas');	
-	can2.width = NODE_IMG_WIDTH;
-	can2.height = NODE_IMG_WIDTH;
-	var ctx = can2.getContext('2d');
+	var canvasNodeImg = document.createElement('canvas');	
+	canvasNodeImg.width = NODE_IMG_WIDTH;
+	canvasNodeImg.height = NODE_IMG_WIDTH;
+	var ctxNodeImg = canvasNodeImg.getContext('2d');
+	
+	var canvasNodeImgTMP = document.createElement('canvas');
+	canvasNodeImgTMP.width = NODE_IMG_SPRITE_WIDTH;
+	canvasNodeImgTMP.height = NODE_IMG_SPRITE_WIDTH;
+	var ctxNodeImgTMP = canvasNodeImgTMP.getContext('2d');	
+	
+	var nodesImgMask = null;
+	var nodesImgMaskLoaded = false;
+	
 	
 	var FONT_IMG_COLUMNS = 7.0;
 	var getLetterId = function(letter) {
@@ -274,7 +285,7 @@ Graph = function(sce) {
 	
 	
 	
-	var setNodesImage = function(/*String*/ url, /*Int*/ locationIdx) {
+	var setNodesImage = (function(/*String*/ url, /*Int*/ locationIdx) {
 		var get2Dfrom1D = function(/*Int*/ idx, /*Int*/ columns) {
 			var n = idx/columns;
 			var row = parseFloat(Math.round(n));
@@ -284,16 +295,39 @@ Graph = function(sce) {
 					"row": row};
 		}
 		
-		var image = new Image();
-		image.onload = (function() {
-			var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
-			var dim = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
-			ctx.drawImage(image, loc.col*dim, loc.row*dim, dim, dim); 
-			var img = new Utils().getImageFromCanvas(can2);
-			comp_renderer_nodes.setArg("nodesImg", (function(){return img;}).bind(this));
-		}).bind(this);
-		image.src = url;
-	};
+		if(nodesImgMaskLoaded == false) {
+			nodesImgMask = new Image();
+			nodesImgMask.onload = (function() {
+				nodesImgMaskLoaded = true;
+				setNodesImage(url, locationIdx);
+			}).bind(this, url, locationIdx);
+			nodesImgMask.src = sceDirectory+"/Prefabs/Graph/nodesImgMask.png";
+		} else {		
+			var image = new Image();
+			image.onload = (function(nodesImgMask) {
+				// draw userImg on temporal canvas reducing the thumb size
+				ctxNodeImgTMP.clearRect(0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
+				ctxNodeImgTMP.drawImage(image, 0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH); 
+
+				// apply mask to thumb image
+				var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( new Utils().getImageFromCanvas(canvasNodeImgTMP) );
+				var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
+				for(var n=0; n < datMask.length/4; n++) {
+					var idx = n*4;
+					if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
+				}
+				image = new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH) );
+				
+				// draw thumb image on atlas & update the 'nodesImg' argument	
+				var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
+				ctxNodeImg.drawImage(image, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH); 
+				
+				var imgAtlas = new Utils().getImageFromCanvas(canvasNodeImg);
+				comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
+			}).bind(this, nodesImgMask);
+			image.src = url;
+		}
+	}).bind(this);
 	
 	/**
 	 * setFontsImage
@@ -421,7 +455,7 @@ Graph = function(sce) {
 				for(var argNameKey in _customArgs) {
 					var expl = _customArgs[argNameKey].arg.split("*");
 					if(expl.length > 0) { // argument is type buffer
-						if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true) {
+						if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.layoutNodeArgumentData[argNameKey] != undefined) {
 							if(expl[0] == "float") 
 								_customArgs[argNameKey].nodes_array_value.push(jsonIn.layoutNodeArgumentData[argNameKey]);
 							else if(expl[0] == "float4")
@@ -589,7 +623,7 @@ Graph = function(sce) {
 			for(var argNameKey in _customArgs) {
 				var expl = _customArgs[argNameKey].arg.split("*");
 				if(expl.length > 0) { // argument is type buffer
-					if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true) {
+					if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
 						if(expl[0] == "float") 
 							_customArgs[argNameKey].links_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
 						else if(expl[0] == "float4")
@@ -611,7 +645,7 @@ Graph = function(sce) {
 			for(var argNameKey in _customArgs) {
 				var expl = _customArgs[argNameKey].arg.split("*");
 				if(expl.length > 0) { // argument is type buffer
-					if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true) {
+					if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.target_layoutNodeArgumentData[argNameKey] != undefined) {
 						if(expl[0] == "float") 
 							_customArgs[argNameKey].links_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey]);
 						else if(expl[0] == "float4")
@@ -756,7 +790,7 @@ Graph = function(sce) {
 						for(var argNameKey in _customArgs) {
 							var expl = _customArgs[argNameKey].arg.split("*");
 							if(expl.length > 0) { // argument is type buffer
-								if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true) {
+								if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
 									if(expl[0] == "float") 
 										_customArgs[argNameKey].arrows_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
 									else if(expl[0] == "float4")
@@ -775,7 +809,7 @@ Graph = function(sce) {
 						for(var argNameKey in _customArgs) {
 							var expl = _customArgs[argNameKey].arg.split("*");
 							if(expl.length > 0) { // argument is type buffer
-								if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true) {
+								if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.target_layoutNodeArgumentData[argNameKey] != undefined) {
 									if(expl[0] == "float") 
 										_customArgs[argNameKey].arrows_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey]);
 									else if(expl[0] == "float4")
@@ -928,7 +962,7 @@ Graph = function(sce) {
 					for(var argNameKey in _customArgs) {
 						var expl = _customArgs[argNameKey].arg.split("*");
 						if(expl.length > 0) { // argument is type buffer
-							if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true) {
+							if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.layoutNodeArgumentData[argNameKey] != undefined) {
 								if(expl[0] == "float") 
 									_customArgs[argNameKey].nodestext_array_value.push(jsonIn.layoutNodeArgumentData[argNameKey]);
 								else if(expl[0] == "float4")
@@ -1155,6 +1189,35 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
 	};
 	
+	/**
+	 * getLayoutNodeArgumentData
+	 * @param {Object} jsonIn
+	 * @param {String} jsonIn.nodeName
+	 * @param {String} jsonIn.argName
+	 * @returns {Float|Array<Float4>}
+	 */
+	this.getLayoutNodeArgumentData = function(jsonIn) {
+		var node = _nodesByName[jsonIn.nodeName];
+		var expl = _customArgs[jsonIn.argName].arg.split("*");
+		var type = expl[0]; // float or float4
+		
+		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+			if(jsonIn.nodeName != undefined && this.arrayNodeData[n*4] == node.nodeId) {
+				if(type == "float") {
+					var id = n;
+					if(_customArgs[jsonIn.argName]["nodes_array_value"][id] != undefined)
+						return _customArgs[jsonIn.argName]["nodes_array_value"][id];
+				} else {
+					var id = n*4;
+					if(_customArgs[jsonIn.argName]["nodes_array_value"][id] != undefined)
+						return [_customArgs[jsonIn.argName]["nodes_array_value"][id],
+						        _customArgs[jsonIn.argName]["nodes_array_value"][id+1],
+						        _customArgs[jsonIn.argName]["nodes_array_value"][id+2],
+						        _customArgs[jsonIn.argName]["nodes_array_value"][id+3]];
+				}
+			}
+		}		
+	};
 	/**
 	 * setLayoutNodeArgumentData
 	 * @param {Object} jsonIn

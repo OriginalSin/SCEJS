@@ -1,0 +1,25 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+	"plugins": ["plugins/markdown"],
+    "templates": {
+		"cleverLinks"     : false,
+		"monospaceLinks"  : false,
+		"default"         : {
+			"outputSourceFiles" : true
+		},
+        "systemName"      : "SCEJS API DOC",
+		"footer"          : "SCEJS API DOC",
+		"copyright"       : "2015 Roberto Gonzalez. http://stormcolour.appspot.com",
+		"navType"         : "vertical",
+		"theme"           : "webclgl",
+		"linenums"        : true,
+		"collapseSymbols" : true,
+		"inverseNav"      : false
+    },
+	"markdown"  : {
+		"parser"   : "gfm",
+		"hardwrap" : true
+	}
+}

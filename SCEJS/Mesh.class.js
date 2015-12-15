@@ -10,7 +10,20 @@ Mesh = function() {
 	var indexMax=0; 
 	
 	/**
-	* Load a triangle on node
+	* Load a point
+	*/
+	this.loadPoint = function() {
+		obj.vertexArray = [0.0, 0.0, 0.0, 0.0];
+		obj.normalArray = [0.0, 1.0, 0.0, 0.0];	
+		obj.textureArray = [0.0, 0.0, 0.0, 0.0];
+		obj.textureUnitArray = [0.0];
+		obj.indexArray = [0];
+		
+		return obj;
+	};
+	
+	/**
+	* Load a triangle
 	*/
 	this.loadTriangle = function() {
 		obj.vertexArray = [0.0, 1.0, 0.0, 1.0,
@@ -22,7 +35,7 @@ Mesh = function() {
 		obj.textureArray = [0.0, 0.0, 0.0, 1.0,
 		                     1.0, 0.0, 0.0, 1.0,
 		                     1.0, 1.0, 0.0, 1.0];
-		obj.textureUnitArray = [0.0, 0.0, 0.0, 0.0];
+		obj.textureUnitArray = [0.0, 0.0, 0.0];
 		obj.indexArray = [0, 1, 2];
 		
 		return obj;

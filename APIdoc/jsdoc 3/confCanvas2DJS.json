@@ -1,0 +1,25 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+	"plugins": ["plugins/markdown"],
+    "templates": {
+		"cleverLinks"     : false,
+		"monospaceLinks"  : false,
+		"default"         : {
+			"outputSourceFiles" : true
+		},
+        "systemName"      : "Canvas2DJS 1.0 API DOC",
+		"footer"          : "Canvas2DJS 1.0 API DOC",
+		"copyright"       : "2013 Roberto Gonzalez. http://stormcolour.appspot.com",
+		"navType"         : "vertical",
+		"theme"           : "canvas2djs",
+		"linenums"        : true,
+		"collapseSymbols" : true,
+		"inverseNav"      : false
+    },
+	"markdown"  : {
+		"parser"   : "gfm",
+		"hardwrap" : true
+	}
+}
