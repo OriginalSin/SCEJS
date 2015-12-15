@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>SCEJS API DOC Class: WebCLGLVertexFragmentProgram</title>
+	<title>SCEJS API DOC Class: Mesh</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -171,12 +171,12 @@
 					
 
 
-	<h1 class="page-title">Class: WebCLGLVertexFragmentProgram</h1>
+	<h1 class="page-title">Class: Mesh</h1>
 <section>
 
 <header>
     <h2>
-    WebCLGLVertexFragmentProgram
+    Mesh
     </h2>
     
 </header>
@@ -188,16 +188,12 @@
     
         
 <dt>
-    <h4 class="name" id="WebCLGLVertexFragmentProgram"><span class="type-signature"></span>new WebCLGLVertexFragmentProgram<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Mesh"><span class="type-signature"></span>new Mesh<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
-    
-    <div class="description">
-        <p>WebCLGLVertexFragmentProgram Object</p>
-    </div>
     
 
     
@@ -229,7 +225,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLVertexFragmentProgram.class.js.html">WebCLGLVertexFragmentProgram.class.js</a>, <a href="WebCLGLVertexFragmentProgram.class.js.html#sunlight-1-line-6">line 6</a>
+        <a href="Mesh.class.js.html">Mesh.class.js</a>, <a href="Mesh.class.js.html#sunlight-1-line-5">line 5</a>
     </li></ul></dd>
     
 
@@ -277,7 +273,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="setFragmentArg"><span class="type-signature"></span>setFragmentArg<span class="signature">(argument, data)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="loadBox"><span class="type-signature"></span>loadBox<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
     
 </dt>
@@ -285,7 +281,97 @@
     
     
     <div class="description">
-        <p>Bind float or a WebCLGLBuffer to a fragment argument</p>
+        <p>Load a box</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Mesh.class.js.html">Mesh.class.js</a>, <a href="Mesh.class.js.html#sunlight-1-line-150">line 150</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Object</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="loadCircle"><span class="type-signature"></span>loadCircle<span class="signature">(jsonIn)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Load a circle</p>
     </div>
     
 
@@ -319,16 +405,13 @@
 
         <tr>
             
-                <td class="name"><code>argument</code></td>
+                <td class="name"><code>jsonIn</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Int</span>
-|
-
-<span class="param-type">String</span>
+<span class="param-type">Object</span>
 
 
             
@@ -338,26 +421,62 @@
 
             
 
-            <td class="description last"><p>Id of argument or name of this</p></td>
+            <td class="description last">
+                <h6>Properties</h6>
+                
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>segments</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Int</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>data</code></td>
+                <td class="name"><code>radius</code></td>
             
 
             <td class="type">
             
                 
 <span class="param-type">Float</span>
-|
-
-<span class="param-type">Int</span>
-|
-
-<span class="param-type"><a href="WebCLGLBuffer.html">WebCLGLBuffer</a></span>
 
 
             
@@ -368,6 +487,13 @@
             
 
             <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+            </td>
         </tr>
 
 	
@@ -399,7 +525,97 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLVertexFragmentProgram.class.js.html">WebCLGLVertexFragmentProgram.class.js</a>, <a href="WebCLGLVertexFragmentProgram.class.js.html#sunlight-1-line-428">line 428</a>
+        <a href="Mesh.class.js.html">Mesh.class.js</a>, <a href="Mesh.class.js.html#sunlight-1-line-80">line 80</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Object</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="loadPoint"><span class="type-signature"></span>loadPoint<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Load a point</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Mesh.class.js.html">Mesh.class.js</a>, <a href="Mesh.class.js.html#sunlight-1-line-15">line 15</a>
     </li></ul></dd>
     
 
@@ -429,7 +645,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="setFragmentSource"><span class="type-signature"></span>setFragmentSource<span class="signature">(fragmentSource, fragmentHeader)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="loadQuad"><span class="type-signature"></span>loadQuad<span class="signature">(length, height)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
     
 </dt>
@@ -437,7 +653,7 @@
     
     
     <div class="description">
-        <p>Update the fragment source</p>
+        <p>Load a quad</p>
     </div>
     
 
@@ -471,188 +687,36 @@
 
         <tr>
             
-                <td class="name"><code>fragmentSource</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>fragmentHeader</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLVertexFragmentProgram.class.js.html">WebCLGLVertexFragmentProgram.class.js</a>, <a href="WebCLGLVertexFragmentProgram.class.js.html#sunlight-1-line-129">line 129</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-			
-        
-			
-				
-<dt>
-    <h4 class="name" id="setVertexArg"><span class="type-signature"></span>setVertexArg<span class="signature">(argument, data)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>Bind float, mat4 or a WebCLGLBuffer to a vertex argument</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>argument</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-|
-
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Id of argument or name of this</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
+                <td class="name"><code>length</code></td>
             
 
             <td class="type">
             
                 
 <span class="param-type">Float</span>
-|
 
-<span class="param-type">Int</span>
-|
 
-<span class="param-type"><a href="WebCLGLBuffer.html">WebCLGLBuffer</a></span>
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>height</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Float</span>
 
 
             
@@ -694,7 +758,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLVertexFragmentProgram.class.js.html">WebCLGLVertexFragmentProgram.class.js</a>, <a href="WebCLGLVertexFragmentProgram.class.js.html#sunlight-1-line-392">line 392</a>
+        <a href="Mesh.class.js.html">Mesh.class.js</a>, <a href="Mesh.class.js.html#sunlight-1-line-50">line 50</a>
     </li></ul></dd>
     
 
@@ -715,6 +779,25 @@
     
     
     
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Object</span>
+
+
+	</dd>
+</dl>
+
+
+        
     
     
 </dd>
@@ -724,7 +807,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="setVertexSource"><span class="type-signature"></span>setVertexSource<span class="signature">(vertexSource, vertexHeader)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="loadTriangle"><span class="type-signature"></span>loadTriangle<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -732,7 +815,7 @@
     
     
     <div class="description">
-        <p>Update the vertex source</p>
+        <p>Load a triangle</p>
     </div>
     
 
@@ -740,78 +823,6 @@
     
     
     
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>vertexSource</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>vertexHeader</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
     
     
     
@@ -837,7 +848,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLVertexFragmentProgram.class.js.html">WebCLGLVertexFragmentProgram.class.js</a>, <a href="WebCLGLVertexFragmentProgram.class.js.html#sunlight-1-line-33">line 33</a>
+        <a href="Mesh.class.js.html">Mesh.class.js</a>, <a href="Mesh.class.js.html#sunlight-1-line-28">line 28</a>
     </li></ul></dd>
     
 
@@ -868,6 +879,8 @@
 		
 		
 		
+			
+        
 			
         
 			
@@ -907,7 +920,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Tue Dec 15 2015 01:21:35 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Dec 15 2015 01:21:30 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
