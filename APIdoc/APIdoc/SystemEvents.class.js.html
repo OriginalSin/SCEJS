@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>SCEJS API DOC Class: WebCLGLKernelProgram</title>
+	<title>SCEJS API DOC Source: SystemEvents.class.js</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -165,120 +165,167 @@
 	<div class="row-fluid">
 
 		
-		<div class="span8">
-			
+			<div class="span12">
+				
 				<div id="main">
 					
 
 
-	<h1 class="page-title">Class: WebCLGLKernelProgram</h1>
-<section>
-
-<header>
-    <h2>
-    WebCLGLKernelProgram
-    </h2>
+		<h1 class="page-title">Source: SystemEvents.class.js</h1>
     
-</header>
-
-<article>
-    <div class="container-overview">
-    
-
-    
-        
-<dt>
-    <h4 class="name" id="WebCLGLKernelProgram"><span class="type-signature"></span>new WebCLGLKernelProgram<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>WebCLGLKernelProgram Object</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLKernelProgram.class.js.html">WebCLGLKernelProgram.class.js</a>, <a href="WebCLGLKernelProgram.class.js.html#sunlight-1-line-6">line 6</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
+    <section>
+        <article>
+            <pre class="sunlight-highlight-javascript linenums">/**
+* @class
+* @constructor
+*/
+SystemEvents = function(sce, target) {
+	"use strict";
 	
-    
-
+	var _sce = sce;
+	var _project = _sce.getLoadedProject();
+	var _target = target;
 	
-    
+	var _utils = new Utils();
+	
+	var mousePosX = 0;
+	var mousePosY = 0;
+	var mouseOldPosX = 0; 
+	var mouseOldPosY = 0;
+	var divPositionX = 0;
+	var divPositionY = 0;
+	
+	
+	/**
+	 * initialize
+	 */
+	this.initialize = function() {
+		document.body.addEventListener("keydown", keydownListener);		
+		document.body.addEventListener("keyup", keyupListener);		
+		_target.addEventListener("mousewheel", mousewheelListener);
+		
+		document.body.addEventListener("mouseup", mouseupListener, false);
+		document.body.addEventListener("touchend", mouseupListener, false);
+		_target.addEventListener("mousedown", mousedownListener, false);
+		_target.addEventListener("touchstart", mousedownListener, false);
+		document.body.addEventListener("mousemove", mousemoveListener, false); 
+		document.body.addEventListener("touchmove", mousemoveListener, false); 
+	};
+	
+	/**
+	 * getMousePosition
+	 * @returns {{x: Int, y: Int}}
+	 */
+	this.getMousePosition = function() {
+		return {"x": mousePosX, "y": mousePosY};
+	};
+	
+	/**
+	 * @param {Int} COMPONENT_TYPES
+	 * @param {Int} EVENT_TYPES
+	 * @param {Event} evt
+	 * @private
+	 */
+	var callComponentEvent = (function(componentType, eventType, evt) {
+		if(_project != undefined) {
+			var stage = _project.getActiveStage();
+			var comp_projection = stage.getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
+			var dir = null;
+			
+			if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN) {
+				divPositionX = _utils.getElementPosition(_sce.getCanvas()).x;
+				divPositionY = _utils.getElementPosition(_sce.getCanvas()).y;
+				mousePosX = (evt.clientX - divPositionX);
+				mousePosY = (evt.clientY - divPositionY);
+				mouseOldPosX = mousePosX;   
+				mouseOldPosY = mousePosY; 
+			}
+			if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE) {				
+				var factordist = comp_projection.getFov()*0.0039;
+				var factorxdim = (mouseOldPosX - mousePosX) * factordist;
+				var factorydim = (mouseOldPosY - mousePosY) * factordist;			
+				mouseOldPosX = mousePosX;   
+				mouseOldPosY = mousePosY;  
+				mousePosX = (evt.clientX - divPositionX);
+				mousePosY = (evt.clientY - divPositionY);
+				var m = stage.getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix();
+				var X = m.getLeft().x(factorxdim*-1.0); 
+				var Y = m.getUp().x(factorydim*((comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO) ? -1.0 : 1.0)); 
+				dir = X.add(Y);
+			}
+			if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL) {
+				var weightX = 0;
+				var weightY = 0;
+				var currFov = comp_projection.getFov();
+				if(event.wheelDeltaY >= 0) {
+					weightX = (mousePosX-(_sce.getCanvas().width/2.0))*currFov*-0.0004;
+					weightY = (mousePosY-(_sce.getCanvas().height/2.0))*currFov*-0.0004;
+				} else {
+					weightX = (mousePosX-(_sce.getCanvas().width/2.0))*currFov*0.0004;
+					weightY = (mousePosY-(_sce.getCanvas().height/2.0))*currFov*0.0004;
+				} 
+				var m = stage.getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix();
+				var X = m.getLeft().x(weightX*-1.0);
+				var Y = m.getUp().x(weightY*-1.0);
+				dir = X.add(Y);				
+			}
+			
+			for(var n=0, fn = stage.getNodes().length; n &lt; fn; n++) {
+				for(var key in stage.getNodes()[n].getComponents()) {
+					var component = stage.getNodes()[n].getComponent(key);					
+					if(component.type == componentType) {
+						if(eventType == Constants.EVENT_TYPES.KEY_DOWN &amp;&amp; component._onkeydown != null)
+							component._onkeydown(evt);
+						
+						if(eventType == Constants.EVENT_TYPES.KEY_UP &amp;&amp; component._onkeyup != null)
+							component._onkeyup(evt);
+						
+						if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN &amp;&amp; component._onmousedown != null)						
+							component._onmousedown(evt);
+						
+						if(eventType == Constants.EVENT_TYPES.MOUSE_UP &amp;&amp; component._onmouseup != null)
+							component._onmouseup(evt);
+						
+						if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE &amp;&amp; component._onmousemove != null)							
+							component._onmousemove(evt, dir);
+						
+						if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL &amp;&amp; component._onmousewheel != null)
+							component._onmousewheel(evt, dir);
+					}
+				}
+			}
+		}
+	}).bind(this);
+	
+	var keydownListener = (function(evt) {
+		callComponentEvent(Constants.COMPONENT_TYPES.KEYBOARD_EVENTS, Constants.EVENT_TYPES.KEY_DOWN, evt);
+	}).bind(this);
+	
+	var keyupListener = (function(evt) {
+		callComponentEvent(Constants.COMPONENT_TYPES.KEYBOARD_EVENTS, Constants.EVENT_TYPES.KEY_UP, evt);
+	}).bind(this);
+	
+	var mousedownListener = (function(evt) {
+		callComponentEvent(Constants.COMPONENT_TYPES.MOUSE_EVENTS, Constants.EVENT_TYPES.MOUSE_DOWN, evt);
+	}).bind(this);
+	
+	var mouseupListener = (function(evt) {
+		callComponentEvent(Constants.COMPONENT_TYPES.MOUSE_EVENTS, Constants.EVENT_TYPES.MOUSE_UP, evt);
+	}).bind(this);
+	
+	var mousemoveListener = (function(evt) {
+		callComponentEvent(Constants.COMPONENT_TYPES.MOUSE_EVENTS, Constants.EVENT_TYPES.MOUSE_MOVE, evt);
+	}).bind(this);
+	
+	var mousewheelListener = (function(evt) {
+		evt.preventDefault();
+		
+		callComponentEvent(Constants.COMPONENT_TYPES.MOUSE_EVENTS, Constants.EVENT_TYPES.MOUSE_WHEEL, evt);
+	}).bind(this);
+};</pre>
+        </article>
+    </section>
 
-    
-</article>
-
-</section>
 
 
 
@@ -299,15 +346,11 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Tue Dec 15 2015 01:21:35 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Dec 15 2015 01:21:21 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
 
-			
-			<div class="span3">
-				<div id="toc"></div>
-			</div>
 			
 			<br clear="both">
 		</div>

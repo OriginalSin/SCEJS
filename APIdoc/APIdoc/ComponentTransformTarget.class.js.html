@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>SCEJS API DOC Class: WebCLGLKernelProgram</title>
+	<title>SCEJS API DOC Source: ComponentTransformTarget.class.js</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -165,120 +165,155 @@
 	<div class="row-fluid">
 
 		
-		<div class="span8">
-			
+			<div class="span12">
+				
 				<div id="main">
 					
 
 
-	<h1 class="page-title">Class: WebCLGLKernelProgram</h1>
-<section>
-
-<header>
-    <h2>
-    WebCLGLKernelProgram
-    </h2>
+		<h1 class="page-title">Source: ComponentTransformTarget.class.js</h1>
     
-</header>
-
-<article>
-    <div class="container-overview">
-    
-
-    
-        
-<dt>
-    <h4 class="name" id="WebCLGLKernelProgram"><span class="type-signature"></span>new WebCLGLKernelProgram<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>WebCLGLKernelProgram Object</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLKernelProgram.class.js.html">WebCLGLKernelProgram.class.js</a>, <a href="WebCLGLKernelProgram.class.js.html#sunlight-1-line-6">line 6</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
+    <section>
+        <article>
+            <pre class="sunlight-highlight-javascript linenums">/**
+* @class
+* @constructor
+*/
+ComponentTransformTarget = function() { Component.call(this);
+	"use strict";
 	
-    
-
+	this.type = Constants.COMPONENT_TYPES.TRANSFORM_TARGET;
+	this.node = null;
+	var gl = null;
 	
-    
+	
+	var mModelMatrix = $M16([1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]);
+	
+	var targetDistance = 5.0; 
+	var positionGoal = $V3([0, 0, targetDistance]);
+	var positionTarget = $V3([0, 0, 0]);
+	
+	
+	/**
+	 * initialize
+	 * @param {Node} nod
+	 * @param {WebGLRenderingContext} glCtx.
+	 * @override
+	 */
+	this.initialize = function(nod, glCtx) {
+		node = nod;
+		gl = glCtx;
+		
+		performMatrix();
+	};	
+	
+	/**
+	 * getMatrix
+	 * @returns {StormM16}
+	 */
+	this.getMatrix = function() {
+		return mModelMatrix;
+	};
+	
+	/**
+	 * setTargetDistance
+	 * @param {Float} distance
+	 */
+	this.setTargetDistance = function(distance) {
+		targetDistance = distance;
+	};
+	
+	/**
+	 * getTargetDistance
+	 * @returns {Float}
+	 */
+	this.getTargetDistance = function() {
+		return targetDistance;
+	};
+	
+	/** 
+	 * setPositionGoal
+	 * @param {StormV3} position
+	 */
+	this.setPositionGoal = function(position) {
+		positionGoal = position;
+		performMatrix();
+	};
+	
+	/** 
+	 * getPositionGoal
+	 * @returns {StormV3}
+	 */
+	this.getPositionGoal = function() {
+		return positionGoal;
+	};
+	
+	/**
+	 * setPositionTarget
+	 * @param {StormV3} position
+	 */
+	this.setPositionTarget = function(position) {
+		positionTarget = position;		
+		performMatrix();
+	};
+	
+	/**
+	 * getPositionTarget
+	 * @returns {StormV3}
+	 */
+	this.getPositionTarget = function() {
+		return positionTarget;
+	};
+	
+	this.reset = function() {		
+		positionGoal = $V3([0, 0, targetDistance]);
+		positionTarget = $V3([0, 0, 0]);
+		performMatrix();
+	};
+	
+	
+	
+	/**
+	 * yaw
+	 * @param {Float} angle
+	 */
+	this.yaw = function(angle) {
+		var dir = this.getPositionGoal().subtract(this.getPositionTarget());
+		
+		var sphericalCoords = new Utils().cartesianToSpherical(dir.normalize());
+		var cartesianCoords = new Utils().sphericalToCartesian(sphericalCoords.radius, sphericalCoords.lat, sphericalCoords.lng+angle);
+		
+		this.setPositionGoal(this.getPositionTarget().add(cartesianCoords.x(this.getTargetDistance())));
+	};
+	
+	/**
+	 * pitch
+	 * @param {Float} angle
+	 */
+	this.pitch = function(angle) {
+		var dir = this.getPositionGoal().subtract(this.getPositionTarget());
+		
+		var sphericalCoords = new Utils().cartesianToSpherical(dir.normalize());
+		var cartesianCoords = new Utils().sphericalToCartesian(sphericalCoords.radius, sphericalCoords.lat+angle, sphericalCoords.lng);
+		
+		this.setPositionGoal(this.getPositionTarget().add(cartesianCoords.x(this.getTargetDistance()))); 
+	};
+	
+	/**
+	 * performMatrix
+	 * @private
+	 */
+	var performMatrix = (function() {
+		mModelMatrix = $M16().makeLookAt(	this.getPositionGoal().e[0], this.getPositionGoal().e[1], this.getPositionGoal().e[2],
+												this.getPositionTarget().e[0], this.getPositionTarget().e[1], this.getPositionTarget().e[2],
+								    			0, 1, 0);
+	}).bind(this);	
+};
+ComponentTransformTarget.prototype = Object.create(Component.prototype);
+ComponentTransformTarget.prototype.constructor = ComponentTransformTarget;</pre>
+        </article>
+    </section>
 
-    
-</article>
-
-</section>
 
 
 
@@ -299,15 +334,11 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Tue Dec 15 2015 01:21:35 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Dec 15 2015 01:21:21 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
 
-			
-			<div class="span3">
-				<div id="toc"></div>
-			</div>
 			
 			<br clear="both">
 		</div>
