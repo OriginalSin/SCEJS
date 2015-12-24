@@ -1707,7 +1707,7 @@ Read buffer in a specifics WebGL 32bit channel and return the data in one array 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-474">line 474</a>
+        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-467">line 467</a>
     </li></ul></dd>
     
 
@@ -1847,7 +1847,7 @@ Internally performs one calls to enqueueReadBuffer and return the data in one ar
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-636">line 636</a>
+        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-629">line 629</a>
     </li></ul></dd>
     
 
@@ -1987,7 +1987,7 @@ Internally performs one calls to enqueueReadBuffer and return the data in one ar
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-548">line 548</a>
+        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-541">line 541</a>
     </li></ul></dd>
     
 
@@ -2127,7 +2127,7 @@ Internally performs one call to enqueueReadBuffer and return the data in one arr
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-617">line 617</a>
+        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-610">line 610</a>
     </li></ul></dd>
     
 
@@ -2152,7 +2152,7 @@ Internally performs one call to enqueueReadBuffer and return the data in one arr
     
         <h5>Example</h5>
         
-    <pre class="sunlight-highlight-javascript">// Unpack in your shader to float with:float unpack (vec4 4Uint8Array) {	const vec4 bitShifts = vec4(1.0,1.0 / 255.0, 1.0 / (255.0 * 255.0), 1.0 / (255.0 * 255.0 * 255.0));	return dot(4Uint8Array, bitShifts);}float offset = "OFFSET OF BUFFER";vec4 4Uint8Array = atributeFloatInPacket4Uint8Array; // IF UNPACK IN VERTEX PROGRAMvec4 4Uint8Array = texture2D(samplerFloatInPacket4Uint8Array, vTextureScreenCoord); // IF UNPACK IN FRAGMENT PROGRAMfloat value = (offset > 0.0) ? (unpack(4Uint8Array)*(offset*2.0))-offset : unpack(4Uint8Array);// JAVASCRIPT IF UNPACK IN VERTEX PROGRAMattr_FloatInPacket4Uint8Array = gl.getAttribLocation(shaderProgram, "atributeFloatInPacket4Uint8Array");gl.bindBuffer(gl.ARRAY_BUFFER, webGLBufferObject);gl.bufferSubData(gl.ARRAY_BUFFER, 0, webCLGL.enqueueReadBuffer_Packet4Uint8Array_Float(buffer_XX)[0]);  gl.vertexAttribPointer(attr_FloatInPacket4Uint8Array, 4, gl.UNSIGNED_BYTE, true, 0, 0); // true for normalize// JAVASCRIPT IF UNPACK IN FRAGMENT PROGRAMsampler_FloatInPacket4Uint8Array = gl.getUniformLocation(shaderProgram, "samplerFloatInPacket4Uint8Array");gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D, webGLTextureObject);gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, viewportWidth,viewportHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, webCLGL.enqueueReadBuffer_Packet4Uint8Array_Float(buffer_XX)[0]);gl.uniform1i(sampler_FloatInPacket4Uint8Array, 0);</pre>
+    <pre class="sunlight-highlight-javascript">// Unpack in your shader to float with:float unpack (vec4 4Uint8Array) {	const vec4 bitShifts = vec4(1.0,1.0 / 255.0, 1.0 / (255.0 * 255.0), 1.0 / (255.0 * 255.0 * 255.0));	return dot(4Uint8Array, bitShifts);}float offset = "OFFSET OF BUFFER";vec4 4Uint8Array = atributeFloatInPacket4Uint8Array; // IF UNPACK IN VERTEX PROGRAMvec4 4Uint8Array = texture2D(samplerFloatInPacket4Uint8Array, vTextureScreenCoord); // IF UNPACK IN FRAGMENT PROGRAMfloat value = (offset > 0.0) ? (unpack(4Uint8Array)*(offset*2.0))-offset : unpack(4Uint8Array);// JAVASCRIPT IF UNPACK IN VERTEX PROGRAMattr_FloatInPacket4Uint8Array = gl.getAttribLocation(shaderProgram, "atributeFloatInPacket4Uint8Array");gl.bindBuffer(gl.ARRAY_BUFFER, webGLBufferObject);gl.bufferSubData(gl.ARRAY_BUFFER, 0, webCLGL.enqueueReadBuffer_Packet4Uint8Array_Float(buffer_XX)[0]);gl.vertexAttribPointer(attr_FloatInPacket4Uint8Array, 4, gl.UNSIGNED_BYTE, true, 0, 0); // true for normalize// JAVASCRIPT IF UNPACK IN FRAGMENT PROGRAMsampler_FloatInPacket4Uint8Array = gl.getUniformLocation(shaderProgram, "samplerFloatInPacket4Uint8Array");gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D, webGLTextureObject);gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, viewportWidth,viewportHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, webCLGL.enqueueReadBuffer_Packet4Uint8Array_Float(buffer_XX)[0]);gl.uniform1i(sampler_FloatInPacket4Uint8Array, 0);</pre>
 
 
     
@@ -2254,7 +2254,7 @@ Internally performs four calls to enqueueReadBuffer and return the data in one a
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-526">line 526</a>
+        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-519">line 519</a>
     </li></ul></dd>
     
 
@@ -2325,7 +2325,7 @@ Internally performs four calls to enqueueReadBuffer and return the data in one a
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-463">line 463</a>
+        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-456">line 456</a>
     </li></ul></dd>
     
 
@@ -2374,7 +2374,7 @@ Internally performs four calls to enqueueReadBuffer and return the data in one a
 			
 				
 <dt>
-    <h4 class="name" id="enqueueVertexFragmentProgram"><span class="type-signature"></span>enqueueVertexFragmentProgram<span class="signature">(webCLGLVertexFragmentProgram, buffer, <span class="optional">drawMode</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="enqueueVertexFragmentProgram"><span class="type-signature"></span>enqueueVertexFragmentProgram<span class="signature">(webCLGLVertexFragmentProgram, buffer, <span class="optional">drawMode</span>, <span class="optional">geometryLength</span>)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -2526,6 +2526,45 @@ Internally performs four calls to enqueueReadBuffer and return the data in one a
         </tr>
 
 	
+
+        <tr>
+            
+                <td class="name"><code>geometryLength</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Int</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    1
+                
+                </td>
+            
+
+            <td class="description last"><p>Length of geometry (1 for points, 3 for triangles...)</p></td>
+        </tr>
+
+	
 	</tbody>
 </table>
 
@@ -2554,7 +2593,7 @@ Internally performs four calls to enqueueReadBuffer and return the data in one a
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-344">line 344</a>
+        <a href="WebCLGL.class.js.html">WebCLGL.class.js</a>, <a href="WebCLGL.class.js.html#sunlight-1-line-340">line 340</a>
     </li></ul></dd>
     
 
@@ -2866,7 +2905,7 @@ Internally performs four calls to enqueueReadBuffer and return the data in one a
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Tue Dec 15 2015 01:21:33 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Thu Dec 24 2015 19:35:45 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>

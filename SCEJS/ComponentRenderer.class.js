@@ -119,6 +119,7 @@ ComponentRenderer = function() { Component.call(this);
 	};
 
 	/**
+	* setArg
 	* @param {String} argument Argument to set
 	* @param {Function} fnvalue
 	* @param {Array<Float>} [splits=[array.length]]
@@ -128,6 +129,18 @@ ComponentRenderer = function() { Component.call(this);
 		args[argument] = {	"fnvalue": fnvalue,
 							"updatable": null,
 							"splits": splits};
+	};
+
+	/**
+	* setSharedBufferArg
+	* @param {String} argument Argument to set
+	* @param {ComponentRenderer} comp_renderer
+	*/
+	this.setSharedBufferArg = function(argument, comp_renderer) {
+		clglWork.setSharedBufferArg(argument, comp_renderer.getWork());
+		args[argument] = {	"fnvalue": null,
+							"updatable": null,
+							"splits": null};
 	};
 
 	/**
@@ -160,6 +173,15 @@ ComponentRenderer = function() { Component.call(this);
 	 */
 	this.getTempBuffers = function() {
 		return clglWork.buffers_TEMP;
+	};
+
+	/**
+	 * getWork
+	 * @returns {WebCLGLWork}
+	 * @private
+	 */
+	this.getWork = function() {
+		return clglWork;
 	};
 
 	/**
