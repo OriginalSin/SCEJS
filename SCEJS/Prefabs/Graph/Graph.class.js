@@ -595,7 +595,7 @@ Graph = function(sce) {
 
 			// ADD LINK TO ARRAY LINKS
 			_links[jsonIn.origin+"->"+jsonIn.target] = json;
-
+			//console.log("link "+jsonIn.origin+"->"+jsonIn.target);
 		} else console.log("link "+jsonIn.origin+"->"+jsonIn.target+" already exists");
 	};
 	/**
@@ -687,37 +687,9 @@ Graph = function(sce) {
 	 */
 	this.updateLinks = function() {
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
-
-		if(comp_renderer_nodes.getTempBuffers()["posXYZW"] != undefined) {
-			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
-			//var arr4Uint8_XYZW = this.clglLayout_nodes.CLGL_bufferPosXYZW.Float4;
-			var n = 0;
-			for(var key in _links) {
-			     var idx = n*8;
-				this.arrayLinkPosXYZW[idx+0] = arr4Uint8_XYZW[0][_links[key].origin_itemStart];
-				this.arrayLinkPosXYZW[idx+1] = arr4Uint8_XYZW[1][_links[key].origin_itemStart];
-				this.arrayLinkPosXYZW[idx+2] = arr4Uint8_XYZW[2][_links[key].origin_itemStart];
-				this.arrayLinkPosXYZW[idx+3] = arr4Uint8_XYZW[3][_links[key].origin_itemStart];
-
-				this.arrayLinkPosXYZW[idx+4] = arr4Uint8_XYZW[0][_links[key].target_itemStart];
-				this.arrayLinkPosXYZW[idx+5] = arr4Uint8_XYZW[1][_links[key].target_itemStart];
-				this.arrayLinkPosXYZW[idx+6] = arr4Uint8_XYZW[2][_links[key].target_itemStart];
-				this.arrayLinkPosXYZW[idx+7] = arr4Uint8_XYZW[3][_links[key].target_itemStart];
-
-				n++;
-			}
-		}
-
-		comp_renderer_links.setArg("posXYZW", (function() {return this.arrayLinkPosXYZW;}).bind(this), this.splitLinks);
+		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
-
 		comp_renderer_links.setIndices((function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
-
-		this.arrayLinkDir = [];
-		for(var n=0; n < (this.arrayLinkData.length/4); n++) {
-			this.arrayLinkDir.push(0, 0, 0, 255);
-		}
-		comp_renderer_links.setArg("dir", (function() {return this.arrayLinkDir;}).bind(this), this.splitLinks);
 
 		comp_renderer_links.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_links.setArgUpdatable("PMatrix", true);
@@ -859,44 +831,12 @@ Graph = function(sce) {
 	/** @private */
 	var updateArrows = (function() {
 		comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
-
-		if(comp_renderer_nodes.getTempBuffers()["posXYZW"] != undefined) {
-			this.arrayArrowPosXYZW = [];
-			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
-			//var arr4Uint8_XYZW = this.clglLayout_nodes.CLGL_bufferPosXYZW.Float4;
-			for(var key in _links) {
-				for(var o=0; o < 2; o++) {
-					for(var n=0; n < mesh_arrows.vertexArray.length/4; n++) {
-						if(o == 0) {
-							this.arrayArrowPosXYZW.push(arr4Uint8_XYZW[0][_links[key].origin_itemStart],
-														arr4Uint8_XYZW[1][_links[key].origin_itemStart],
-														arr4Uint8_XYZW[2][_links[key].origin_itemStart],
-														arr4Uint8_XYZW[3][_links[key].origin_itemStart]);
-						} else {
-							this.arrayArrowPosXYZW.push(arr4Uint8_XYZW[0][_links[key].target_itemStart],
-														arr4Uint8_XYZW[1][_links[key].target_itemStart],
-														arr4Uint8_XYZW[2][_links[key].target_itemStart],
-														arr4Uint8_XYZW[3][_links[key].target_itemStart]);
-						}
-					}
-				}
-			}
-		}
-
-		comp_renderer_arrows.setArg("posXYZW", (function() {return this.arrayArrowPosXYZW;}).bind(this), this.splitArrows);
-		//comp_renderer_arrows.setArg("posXYZW_opposite", (function() {return this.arrayArrowPosXYZW_opposite;}).bind(this), this.splitArrows);
+		comp_renderer_arrows.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 
 		comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
 		comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this), this.splitArrows);
 		comp_renderer_arrows.setArg("nodeVertexTexture", (function() {return this.arrayArrowVertexTexture;}).bind(this), this.splitArrows);
-
 		comp_renderer_arrows.setIndices((function() {return this.arrayArrowIndices;}).bind(this), this.splitArrowIndices);
-
-		this.arrayArrowDir = [];
-		for(var n=0; n < (this.arrayArrowData.length/4); n++) {
-			this.arrayArrowDir.push(0, 0, 0, 255);
-		}
-		comp_renderer_arrows.setArg("dir", (function() {return this.arrayArrowDir;}).bind(this), this.splitArrows);
 
 		comp_renderer_arrows.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_arrows.setArgUpdatable("PMatrix", true);
@@ -1007,19 +947,7 @@ Graph = function(sce) {
 	/** @private */
 	var updateNodesText = (function() {
 		comp_renderer_nodesText.setArg("data", (function() {return this.arrayNodeTextData;}).bind(this), this.splitNodesText);
-
-		if(comp_renderer_nodes.getTempBuffers()["posXYZW"] != undefined) {
-			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
-			//var arr4Uint8_XYZW = this.clglLayout_nodes.CLGL_bufferPosXYZW.Float4;
-			for(var n = 0, f = (this.arrayNodeTextData.length/4); n < f; n++) {
-				var idx = n*4;
-				this.arrayNodeTextPosXYZW[idx] = arr4Uint8_XYZW[0][this.arrayNodeText_itemStart[n]];
-				this.arrayNodeTextPosXYZW[idx+1] = arr4Uint8_XYZW[1][this.arrayNodeText_itemStart[n]];
-				this.arrayNodeTextPosXYZW[idx+2] = arr4Uint8_XYZW[2][this.arrayNodeText_itemStart[n]];
-				this.arrayNodeTextPosXYZW[idx+3] = arr4Uint8_XYZW[3][this.arrayNodeText_itemStart[n]];
-			}
-		}
-		comp_renderer_nodesText.setArg("posXYZW", (function() {return this.arrayNodeTextPosXYZW;}).bind(this), this.splitNodesText);
+		comp_renderer_nodesText.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 
 		comp_renderer_nodesText.setArg("nodeVertexPos", (function() {return this.arrayNodeTextVertexPos;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setArg("nodeVertexNormal", (function() {return this.arrayNodeTextVertexNormal;}).bind(this), this.splitNodesText);
@@ -1028,12 +956,6 @@ Graph = function(sce) {
 		comp_renderer_nodesText.setArg("fontImgColumns", (function() {return FONT_IMG_COLUMNS;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this), this.splitNodesText);
 		comp_renderer_nodesText.setIndices((function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
-
-		this.arrayNodeTextDir = [];
-		for(var n=0; n < (this.arrayNodeTextData.length/4); n++) {
-			this.arrayNodeTextDir.push(0, 0, 0, 255);
-		}
-		comp_renderer_nodesText.setArg("dir", (function() {return this.arrayNodeTextDir;}).bind(this), this.splitNodesText);
 
 		comp_renderer_nodesText.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_nodesText.setArgUpdatable("PMatrix", true);
@@ -1126,55 +1048,29 @@ Graph = function(sce) {
 									}).bind(this)});
 
 		// links
-		comp_renderer_links.addKernel({	"name": "KERNEL_DIR",
-										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
-										"argDestination": "dir"});
-		comp_renderer_links.addKernel({	"name": "KERNEL_POSBYDIR",
-										"kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition),
-										"argDestination": "posXYZW"});
 		comp_renderer_links.addVFP({"name": "LINKS_RGB",
 									"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
 									"seArgDestination": "RGB",
 									"drawMode": 1,
-									"geometryLength": 1});
+									"geometryLength": 4});
 
 		// arrows
-		comp_renderer_arrows.addKernel({"name": "KERNEL_DIR",
-										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
-										"argDestination": "dir"});
-		comp_renderer_arrows.addKernel({"name": "KERNEL_POSBYDIR",
-										"kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition),
-										"argDestination": "posXYZW"});
-		/*comp_renderer_arrows.addKernel({"name": "KERNEL_POS_OPPOSITE",
-										"kernel": new KERNEL_POS_OPPOSITE(),
-										"argDestination": "posXYZW_opposite"});*/
 		comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
 										"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
 										"seArgDestination": "RGB",
 										"drawMode": 4,
-										"geometryLength": 3,
+										"geometryLength": 4,
 										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
 										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
 
 		// nodestext
-		comp_renderer_nodesText.addKernel({	"name": "KERNEL_DIR",
-											"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
-											"argDestination": "dir"});
-		comp_renderer_nodesText.addKernel({	"name": "KERNEL_POSBYDIR",
-											"kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition),
-											"argDestination": "posXYZW"});
 		comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
 										"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
 										"seArgDestination": "RGB",
 										"drawMode": 4,
-										"geometryLength": 4*12, 
+										"geometryLength": 4,
 										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
 										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
-
-		//this.updateNodes();
-		//this.updateLinks();
-		//updateArrows();
-		//updateNodesText();
 	};
 
 	/**
