@@ -2,11 +2,14 @@
 	<head>
 		<title>SCEJS Graph</title>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		
 		<script src="../../SCEJS/SCE.class.js"></script>
 
 		<script src="../../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
 
-		<script src="../../SCEJS/Prefabs/SimpleNode/SimpleNode.class.js"></script>
+		<script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
+		<script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
+
 
 		<script src="../../SCEJS/Prefabs/Graph/KERNEL_DIR.class.js"></script>
 		<script src="../../SCEJS/Prefabs/Graph/KERNEL_POS_OPPOSITE.class.js"></script>
@@ -14,14 +17,11 @@
 		<script src="../../SCEJS/Prefabs/Graph/VFP_NODEPICKDRAG.class.js"></script>
 		<script src="../../SCEJS/Prefabs/Graph/VFP_NODE.class.js"></script>
 		<script src="../../SCEJS/Prefabs/Graph/Graph.class.js"></script>
-
-		<script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
-		<script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
 	</head>
 
 	<body>
-
 		<div id="SCEJS"></div>
+
 		<button id="BTNID_FORCELAYOUT_ON">ForceLayout On</button><br />
 		<button id="BTNID_FORCELAYOUT_OFF">ForceLayout Off</button><br />
 		<br />
@@ -51,10 +51,6 @@
 
 			// CAMERA
 			var simpleCamera = new SimpleCamera(sce);
-
-			// NODE
-			//var simpleNode = new SimpleNode(sce);
-			//simpleNode.setImage("../demos/_RESOURCES/cartman08.jpg");
 
 			// GRID
 			var grid = new Grid(sce);

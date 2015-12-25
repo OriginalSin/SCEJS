@@ -48,8 +48,11 @@ ComponentRenderer = function() { Component.call(this);
 	 * @param {Int} [jsonIn.drawMode=4]
 	 * @param {Int} [jsonIn.geometryLength=1]
 	 * @param {Callback} [jsonIn.onPostTick=undefined]
-	 * @param {Constants.BLENDING_MODES} [jsonIn.blendSrc=undefined]
-	 * @param {Constants.BLENDING_MODES} [jsonIn.blendDst=undefined]
+	 * @param {Bool} [enableDepthTest=true]
+	 * @param {Bool} [enableBlend=false]
+	 * @param {Constants.BLENDING_EQUATION_TYPES} [jsonIn.blendEquation=Constants.BLENDING_EQUATION_TYPES.FUNC_ADD]
+	 * @param {Constants.BLENDING_MODES} [jsonIn.blendSrc=Constants.BLENDING_MODES.ONE]
+	 * @param {Constants.BLENDING_MODES} [jsonIn.blendDst=Constants.BLENDING_MODES.ZERO]
 	 */
 	this.addVFP = function(jsonIn) {
 		var arg = jsonIn.vfp.getSrc();
@@ -66,8 +69,12 @@ ComponentRenderer = function() { Component.call(this);
 								"drawMode": jsonIn.drawMode,
 								"geometryLength": jsonIn.geometryLength,
 								"onPostTick": jsonIn.onPostTick,
-								"blendSrc": jsonIn.blendSrc||Constants.BLENDING_MODES.ONE,
-								"blendDst": jsonIn.blendDst||Constants.BLENDING_MODES.ZERO};
+								"enableDepthTest": ((jsonIn.enableDepthTest != undefined) ? jsonIn.enableDepthTest : true),
+								"enableBlend": ((jsonIn.enableBlend != undefined) ? jsonIn.enableBlend : false),
+								"blendEquation": ((jsonIn.blendEquation != undefined) ? jsonIn.blendEquation : Constants.BLENDING_EQUATION_TYPES.FUNC_ADD),
+								"blendSrc": ((jsonIn.blendSrc != undefined) ? jsonIn.blendSrc : Constants.BLENDING_MODES.ONE),
+								"blendDst": ((jsonIn.blendDst != undefined) ? jsonIn.blendDst : Constants.BLENDING_MODES.ZERO)
+							};
 	};
 
 	/**
@@ -209,6 +216,33 @@ ComponentRenderer = function() { Component.call(this);
 	};
 
 	/**
+	* setEnableDepthTest
+	* @param {String} name
+	* @param {Bool} enable
+	*/
+	this.setEnableDepthTest = function(name, enable) {
+		vfps[name].enableDepthTest = enable;
+	};
+
+	/**
+	* setEnableBlend
+	* @param {String} name
+	* @param {Bool} enable
+	*/
+	this.setEnableBlend = function(name, enable) {
+		vfps[name].enableBlend = enable;
+	};
+
+	/**
+	* setBlendEquation
+	* @param {String} name
+	* @param {Constants.BLENDING_EQUATION_TYPES} equation
+	*/
+	this.setBlendEquation = function(name, equation) {
+		vfps[name].blendEquation = equation;
+	};
+
+	/**
 	* setBlendSrc
 	* @param {String} name
 	* @param {Constants.BLENDING_MODES} blend
@@ -266,20 +300,23 @@ ComponentRenderer = function() { Component.call(this);
 						gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 					}
 
-					if(vfps[key].blendSrc != undefined) {
-						gl.enable(gl.BLEND);
-						gl.blendFunc(gl[vfps[key].blendSrc], gl[vfps[key].blendDst]);
-						gl.blendEquation(gl.FUNC_ADD);
+					if(vfps[key].enableDepthTest == true) {
+						gl.enable(gl.DEPTH_TEST);
+					} else {
 						gl.disable(gl.DEPTH_TEST);
 						gl.clear(gl.DEPTH_BUFFER_BIT);
 					}
 
-					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, vfps[key].drawMode, vfps[key].geometryLength);
 
-					if(vfps[key].blendSrc != undefined) {
+					if(vfps[key].enableBlend == true)
+						gl.enable(gl.BLEND);
+					else
 						gl.disable(gl.BLEND);
-						gl.enable(gl.DEPTH_TEST);
-					}
+
+					gl.blendFunc(gl[vfps[key].blendSrc], gl[vfps[key].blendDst]);
+					gl.blendEquation(gl[vfps[key].blendEquation]);
+
+					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, vfps[key].drawMode, vfps[key].geometryLength);
 
 					if(vfps[key].onPostTick != undefined)
 						vfps[key].onPostTick();

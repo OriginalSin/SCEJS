@@ -1020,6 +1020,8 @@ Graph = function(sce) {
 									"seArgDestination": "RGB",
 									"drawMode": 4,
 									"geometryLength": 4,
+									"enableDepthTest": false,
+									"enableBlend": true,
 									"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
 									"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
 		comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",
@@ -1027,6 +1029,8 @@ Graph = function(sce) {
 									"seArgDestination": undefined,
 									"drawMode": 4,
 									"geometryLength": 4,
+									"enableDepthTest": false,
+									"enableBlend": true, 
 									"onPostTick": (function() {
 										if(readPixel == true) {
 											readPixel = false;
@@ -1060,6 +1064,7 @@ Graph = function(sce) {
 										"seArgDestination": "RGB",
 										"drawMode": 4,
 										"geometryLength": 4,
+										"enableBlend": true,
 										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
 										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
 
@@ -1069,6 +1074,7 @@ Graph = function(sce) {
 										"seArgDestination": "RGB",
 										"drawMode": 4,
 										"geometryLength": 4,
+										"enableBlend": true,
 										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
 										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
 	};
