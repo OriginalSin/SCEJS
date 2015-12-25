@@ -17,11 +17,11 @@ var Constants = {
 		"RENDERER": 6,
 		"SCREEN_EFFECTS": 7
 	},
-	"PROJECTION_TYPES": {		
+	"PROJECTION_TYPES": {
 		"PERSPECTIVE": 0,
 		"ORTHO": 1,
 	},
-	"VIEW_TYPES": {		
+	"VIEW_TYPES": {
 		"LEFT": 0,
 		"RIGHT": 1,
 		"FRONT": 2,
@@ -29,7 +29,7 @@ var Constants = {
 		"TOP": 4,
 		"BOTTOM": 5,
 	},
-	"BLENDING_MODES": {		
+	"BLENDING_MODES": {
 		"ZERO": "ZERO",
 		"ONE": "ONE",
 		"SRC_COLOR": "SRC_COLOR",
@@ -46,7 +46,12 @@ var Constants = {
 		"CONSTANT_ALPHA": "CONSTANT_ALPHA",
 		"ONE_MINUS_CONSTANT_ALPHA": "ONE_MINUS_CONSTANT_ALPHA"
 	},
-	"DRAW_MODES": {	
+	"BLENDING_EQUATION_TYPES": {
+		"FUNC_ADD": "FUNC_ADD",
+		"FUNC_SUBTRACT": "FUNC_SUBTRACT",
+		"FUNC_REVERSE_SUBTRACT": "FUNC_REVERSE_SUBTRACT"
+	},
+	"DRAW_MODES": {
 		"POINTS": 0,
 		"LINES": 1,
 		"LINE_LOOP": 2,
