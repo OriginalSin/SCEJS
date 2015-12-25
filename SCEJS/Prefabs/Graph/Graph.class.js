@@ -1020,6 +1020,7 @@ Graph = function(sce) {
 									"seArgDestination": "RGB",
 									"drawMode": 4,
 									"geometryLength": 4,
+									"depthTest": false,
 									"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
 									"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
 		comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",

@@ -48,6 +48,7 @@ ComponentRenderer = function() { Component.call(this);
 	 * @param {Int} [jsonIn.drawMode=4]
 	 * @param {Int} [jsonIn.geometryLength=1]
 	 * @param {Callback} [jsonIn.onPostTick=undefined]
+	 * @param {Bool} [depthTest=true]
 	 * @param {Constants.BLENDING_MODES} [jsonIn.blendSrc=undefined]
 	 * @param {Constants.BLENDING_MODES} [jsonIn.blendDst=undefined]
 	 */
@@ -66,6 +67,7 @@ ComponentRenderer = function() { Component.call(this);
 								"drawMode": jsonIn.drawMode,
 								"geometryLength": jsonIn.geometryLength,
 								"onPostTick": jsonIn.onPostTick,
+								"depthTest": jsonIn.depthTest||true,
 								"blendSrc": jsonIn.blendSrc||Constants.BLENDING_MODES.ONE,
 								"blendDst": jsonIn.blendDst||Constants.BLENDING_MODES.ZERO};
 	};
@@ -270,7 +272,12 @@ ComponentRenderer = function() { Component.call(this);
 						gl.enable(gl.BLEND);
 						gl.blendFunc(gl[vfps[key].blendSrc], gl[vfps[key].blendDst]);
 						gl.blendEquation(gl.FUNC_ADD);
+
 						gl.disable(gl.DEPTH_TEST);
+					}
+
+					if(vfps[key].depthTest == false) {
+
 						gl.clear(gl.DEPTH_BUFFER_BIT);
 					}
 
@@ -280,6 +287,8 @@ ComponentRenderer = function() { Component.call(this);
 						gl.disable(gl.BLEND);
 						gl.enable(gl.DEPTH_TEST);
 					}
+
+
 
 					if(vfps[key].onPostTick != undefined)
 						vfps[key].onPostTick();

@@ -178,8 +178,10 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        			'if(isNode == 1.0) {'+
 	       			'gl_FragColor = vVertexColor;\n'+
 
-	       			'if(vUseTex == 1.0)'+
-	       				'gl_FragColor = texture2D(nodesImg, vVertexUV.xy)*vVertexColor;\n'+
+	       			'if(vUseTex == 1.0) {'+
+								'vec4 tex = texture2D(nodesImg, vVertexUV.xy);'+
+	       				'gl_FragColor = vec4(tex.rgb*vVertexColor.rgb, tex.a);\n'+
+							'}'+
 	       		'}'+
 	       		'if(isLink == 1.0) {'+
 	       			'gl_FragColor = vVertexColor;\n'+
