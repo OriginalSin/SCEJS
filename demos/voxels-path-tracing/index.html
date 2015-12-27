@@ -45,9 +45,11 @@
 			var OFFSET = 1000.0;
 			var voxelizator = new Voxelizator(sce);
 			
-			var mesh = new Mesh().loadBox();
-			voxelizator.setMesh(mesh);
-			voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
+			var mesh = new Mesh().loadObj("../_RESOURCES/torus.obj", (function(mesh, textures) {
+				voxelizator.setMesh(mesh);
+				voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
+			}).bind(this));
+			
 
 
 
