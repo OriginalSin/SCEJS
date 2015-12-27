@@ -182,6 +182,19 @@ SCE = function() {
 						"height": dimensions.width});
 		}
 	};
+	
+	/**
+	 * @typedef {Object} SCE~getDimensions
+	 * @property {Int} SCE~getDimensions.width
+	 * @property {Int} SCE~getDimensions.height
+	 */
+	/**
+	 * getDimensions
+	 * @returns {SCE~getDimensions}
+	 */
+	this.getDimensions = function() {
+		return dimensions;
+	};
 };
 
 

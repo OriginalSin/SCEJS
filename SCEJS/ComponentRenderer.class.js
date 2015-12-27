@@ -47,6 +47,7 @@ ComponentRenderer = function() { Component.call(this);
 	 * @param {String} jsonIn.seArgDestination
 	 * @param {Int} [jsonIn.drawMode=4]
 	 * @param {Int} [jsonIn.geometryLength=1]
+	 * @param {Callback} [jsonIn.onPreTick=undefined]
 	 * @param {Callback} [jsonIn.onPostTick=undefined]
 	 * @param {Bool} [enableDepthTest=true]
 	 * @param {Bool} [enableBlend=false]
@@ -68,6 +69,7 @@ ComponentRenderer = function() { Component.call(this);
 								"argBufferDestination": jsonIn.seArgDestination,
 								"drawMode": jsonIn.drawMode,
 								"geometryLength": jsonIn.geometryLength,
+								"onPreTick": jsonIn.onPreTick,
 								"onPostTick": jsonIn.onPostTick,
 								"enableDepthTest": ((jsonIn.enableDepthTest != undefined) ? jsonIn.enableDepthTest : true),
 								"enableBlend": ((jsonIn.enableBlend != undefined) ? jsonIn.enableBlend : false),
@@ -316,6 +318,9 @@ ComponentRenderer = function() { Component.call(this);
 					gl.blendFunc(gl[vfps[key].blendSrc], gl[vfps[key].blendDst]);
 					gl.blendEquation(gl[vfps[key].blendEquation]);
 
+					if(vfps[key].onPreTick != undefined)
+						vfps[key].onPreTick();
+					
 					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, vfps[key].drawMode, vfps[key].geometryLength);
 
 					if(vfps[key].onPostTick != undefined)

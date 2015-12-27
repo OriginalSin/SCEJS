@@ -138,10 +138,11 @@ Stage = function() {
 			}
 			
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
-			
-			if(activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS) != undefined)
+						
+			if(activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS) != undefined) {
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
 				activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).tick();
+			}
 		}
 		if(paused == false) window.requestAnimFrame(tick);
 	}).bind(this);

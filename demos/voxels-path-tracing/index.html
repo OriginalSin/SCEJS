@@ -65,7 +65,16 @@
 			
  
 			document.getElementById("BTNID_makeVoxels").addEventListener("click", (function() {
-				voxelizator.makeVoxels();
+				voxelizator.generate({	"size": 1.1,
+										"resolution": 128,
+										"fillmode": ["albedo","positionX","positionY","positionZ","normal"],
+										"ongenerate": function() {
+											var images = voxelizator.getGeneratedImages();
+											for(var key in images) {
+												document.body.appendChild(images[key]);
+											}
+										}
+									});
 			}).bind(this));
 		</script>
 
