@@ -7,8 +7,6 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'varying vec2 vVertexUV;\n'+
        		'varying float vUseTex;\n'+
        		'varying vec4 vWNMatrix;\n'+
-			//'uniform sampler2D posXYZW;\n'+
-			//'uniform sampler2D posXYZW_opposite;\n'+
 
        		'vec2 get2Dfrom1D(float idx, float columns) {'+
        			'float n = idx/columns;'+
@@ -70,7 +68,6 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		 	'float* letterId,'+
        		 	'float* nodeImgId,'+
        			'float4*kernel posXYZW,'+
-       			//'float4*kernel posXYZW_opposite,'+
        			'float4* nodeVertexPos,'+
        			'float4* nodeVertexNormal,'+
        			'float4* nodeVertexTexture,'+
@@ -88,8 +85,6 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 					'vec2 xx = get_global_id(data[x].x);'+
 					'vec2 x_opposite = get_global_id(data[x].z);'+
 
-					//'vec4 nodePosition = texture2D(posXYZW, xx);\n'+
-					//'vec4 XYZW_opposite = texture2D(posXYZW_opposite, x_opposite);\n'+
 					'vec4 nodePosition = posXYZW[xx];\n'+
 					'vec4 XYZW_opposite = posXYZW[x_opposite];\n'+
 
