@@ -208,8 +208,6 @@ Graph = function(sce) {
 	this.startIndexId_link = 0;
 	this.arrayLinkIndices = [];
 
-	this.arrayLinkDir = [];
-
 	this.currentLinkId = 0;
 
 	//**************************************************
@@ -234,14 +232,11 @@ Graph = function(sce) {
 	this.arrayArrowData = [];
 	this.arrayArrowNodeName = [];
 	this.arrayArrowPosXYZW = [];
-	this.arrayArrowPosXYZW_opposite = [];
 	this.arrayArrowVertexPos = [];
 	this.arrayArrowVertexNormal = [];
 	this.arrayArrowVertexTexture = [];
 	this.startIndexId_arrow = 0;
 	this.arrayArrowIndices = [];
-
-	this.arrayArrowDir = [];
 
 	this.currentArrowId = 0;
 	this.arrowArrayItemStart = 0;
@@ -276,8 +271,6 @@ Graph = function(sce) {
 
 	this.arrayNodeText_itemStart = [];
 	this.arrayNodeTextLetterId = [];
-
-	this.arrayNodeTextDir = [];
 
 	this.currentNodeTextId = 0;
 	this.nodeTextArrayItemStart = 0;
@@ -1050,7 +1043,8 @@ Graph = function(sce) {
 											comp_renderer_nodes.disableVfp("NODES_PICKDRAG");
 										}
 									}).bind(this)});
-
+		comp_renderer_nodes.disableVfp("NODES_PICKDRAG");
+		
 		// links
 		comp_renderer_links.addVFP({"name": "LINKS_RGB",
 									"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),

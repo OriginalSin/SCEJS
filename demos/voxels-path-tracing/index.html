@@ -18,7 +18,8 @@
 	<body>
 		<div id="SCEJS"></div>
 
-
+		<button id="BTNID_makeVoxels">make voxels</button><br />
+		
 		<script>
 			var sce = new SCE();
 			sce.initialize({"target": document.getElementById("SCEJS"),
@@ -43,7 +44,10 @@
 			// VOXELIZATOR
 			var OFFSET = 1000.0;
 			var voxelizator = new Voxelizator(sce);
-			//voxelizator.setOffset(OFFSET);
+			
+			var mesh = new Mesh().loadBox();
+			voxelizator.setMesh(mesh);
+			voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
 
 
 
@@ -58,6 +62,11 @@
 			window.onresize = (function() {
 				//sce.setDimensions(512, 128);
 		    }).bind(this);
+			
+ 
+			document.getElementById("BTNID_makeVoxels").addEventListener("click", (function() {
+				voxelizator.makeVoxels();
+			}).bind(this));
 		</script>
 
 	</body>

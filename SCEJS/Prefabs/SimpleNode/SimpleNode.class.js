@@ -36,13 +36,16 @@ SimpleNode = function(sce) {
 		comp_renderer.setArg("vertexNormal", (function(){return _mesh.normalArray;}).bind(this));
 		comp_renderer.setArg("vertexTexture", (function(){return _mesh.textureArray;}).bind(this));
 		comp_renderer.setArg("vertexTextureUnit", (function(){return _mesh.textureUnitArray;}).bind(this));
+		
 		comp_renderer.setIndices((function(){return _mesh.indexArray;}).bind(this));
+		
 		comp_renderer.setArg("PMatrix", (function(){return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
 		comp_renderer.setArgUpdatable("PMatrix", true);
 		comp_renderer.setArg("cameraWMatrix", (function(){return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
 		comp_renderer.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer.setArg("nodeWMatrix", (function(){return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer.setArgUpdatable("nodeWMatrix", true);
+		
 		comp_renderer.setArg("nodesSize", (function(){return 30.0;}).bind(this));
 		comp_renderer.setArg("texAlbedo", (function(){return _mesh.vertexArray;}).bind(this));
 	};
