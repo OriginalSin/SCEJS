@@ -39,12 +39,19 @@ ComponentRenderer = function() { Component.call(this);
 	this.getWebCLGL = function() {
 		return webCLGL;
 	};
+	
+	/**
+	 * getWork
+	 * @returns {WebCLGLWork}
+	 */
+	this.getWork = function() {
+		return clglWork;
+	};
 
 	/**
-	 * @param {Object} jsonIn
-	 * @param {String} jsonIn.name
+	 * @param {Object} jsonIn	 * 
 	 * @param {VFP} jsonIn.vfp
-	 * @param {String} jsonIn.seArgDestination
+	 * @param {String} jsonIn.name
 	 * @param {Int} [jsonIn.drawMode=4]
 	 * @param {Int} [jsonIn.geometryLength=1]
 	 * @param {Callback} [jsonIn.onPreTick=undefined]
@@ -60,13 +67,11 @@ ComponentRenderer = function() { Component.call(this);
 		var vfProgram = webCLGL.createVertexFragmentProgram();
 		vfProgram.setVertexSource(arg[1][0], arg[0][0]);
 		vfProgram.setFragmentSource(arg[3][0], arg[2][0]);
-		clglWork.addVertexFragmentProgram(vfProgram, jsonIn.seArgDestination);
-
-		vfProgram.argBufferDestination = jsonIn.seArgDestination;
+		clglWork.addVertexFragmentProgram(vfProgram, jsonIn.name);
 
 		vfps[jsonIn.name] = {	"enabled": true,
 								"vfp": vfProgram,
-								"argBufferDestination": jsonIn.seArgDestination,
+								"name": jsonIn.name,
 								"drawMode": jsonIn.drawMode,
 								"geometryLength": jsonIn.geometryLength,
 								"onPreTick": jsonIn.onPreTick,
@@ -78,7 +83,21 @@ ComponentRenderer = function() { Component.call(this);
 								"blendDst": ((jsonIn.blendDst != undefined) ? jsonIn.blendDst : Constants.BLENDING_MODES.ZERO)
 							};
 	};
-
+	
+	/**
+	* setVfpArgDestination
+	* @param {String} vfpName
+	* @param {String} [argDestination=undefined]
+	*/
+	this.setVfpArgDestination = function(vfpName, argDestination) {
+		if(argDestination != undefined) {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, argDestination.items[0].fBuffer);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, argDestination.items[0].textureData, 0);
+		} else {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		}
+	}; 
+	
 	/**
 	 * getVFPs
 	 * @returns {Object}
@@ -107,16 +126,31 @@ ComponentRenderer = function() { Component.call(this);
 	 * addKernel
 	 * @param {Object} jsonIn
 	 * @param {KERNEL} jsonIn.kernel
-	 * @param {String} jsonIn.argDestination
+	 * @param {String} jsonIn.name
+	 * @param {Callback} [jsonIn.onPreTick=undefined]
+	 * @param {Callback} [jsonIn.onPostTick=undefined]
+	 * @param {Bool} [enableDepthTest=true]
+	 * @param {Bool} [enableBlend=false]
+	 * @param {Constants.BLENDING_EQUATION_TYPES} [jsonIn.blendEquation=Constants.BLENDING_EQUATION_TYPES.FUNC_ADD]
+	 * @param {Constants.BLENDING_MODES} [jsonIn.blendSrc=Constants.BLENDING_MODES.ONE]
+	 * @param {Constants.BLENDING_MODES} [jsonIn.blendDst=Constants.BLENDING_MODES.ZERO]
 	 */
 	this.addKernel = function(jsonIn) {
 		var arg = jsonIn.kernel.getSrc();
 		var kernel = webCLGL.createKernel();
 		kernel.setKernelSource(arg[1][0], arg[0][0]);
-		clglWork.addKernel(kernel, jsonIn.argDestination);
+		clglWork.addKernel(kernel, jsonIn.name);
 
-		kernels[jsonIn.name] = {"kernel": kernel,
-								"argBufferDestination": jsonIn.argDestination};
+		kernels[jsonIn.name] = {"enabled": true,
+								"kernel": kernel,
+								"name": jsonIn.name,
+								"onPreTick": jsonIn.onPreTick,
+								"onPostTick": jsonIn.onPostTick,
+								"enableDepthTest": ((jsonIn.enableDepthTest != undefined) ? jsonIn.enableDepthTest : true),
+								"enableBlend": ((jsonIn.enableBlend != undefined) ? jsonIn.enableBlend : false),
+								"blendEquation": ((jsonIn.blendEquation != undefined) ? jsonIn.blendEquation : Constants.BLENDING_EQUATION_TYPES.FUNC_ADD),
+								"blendSrc": ((jsonIn.blendSrc != undefined) ? jsonIn.blendSrc : Constants.BLENDING_MODES.ONE),
+								"blendDst": ((jsonIn.blendDst != undefined) ? jsonIn.blendDst : Constants.BLENDING_MODES.ZERO)};
 	};
 
 	/**
@@ -185,14 +219,33 @@ ComponentRenderer = function() { Component.call(this);
 	};
 
 	/**
-	 * getWork
-	 * @returns {WebCLGLWork}
-	 * @private
+	 * clearArg
+	 * @param {String} argName
+	 * @param {Array<Float>} clearColor
 	 */
-	this.getWork = function() {
-		return clglWork;
+	this.clearArg = function(argName, clearColor) {
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.getBuffers()[argName].items[0].fBuffer);						
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.getBuffers()[argName].items[0].textureData, 0);
+		
+		if(clearColor != undefined)
+			gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	};
-
+	
+	/**
+	 * clearTempArg
+	 * @param {String} argName
+	 * @param {Array<Float>} clearColor
+	 */
+	this.clearTempArg = function(argName, clearColor) {
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.getTempBuffers()[argName].items[0].fBuffer);						
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.getTempBuffers()[argName].items[0].textureData, 0);
+		
+		if(clearColor != undefined)
+			gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	};
+	
 	/**
 	* @param {String} argument Argument to set
 	* @param {Bool} value
@@ -284,7 +337,35 @@ ComponentRenderer = function() { Component.call(this);
 			}
 		}
 
-		clglWork.enqueueNDRangeKernel();
+		for(var key in this.getKernels()) {
+			if(this.getKernels()[key].enabled == true) {
+				var kernel = this.getKernels()[key];
+				
+				if(kernel.enableDepthTest == true) {
+					gl.enable(gl.DEPTH_TEST);
+				} else {
+					gl.disable(gl.DEPTH_TEST);
+					gl.clear(gl.DEPTH_BUFFER_BIT);
+				}
+
+				if(kernel.enableBlend == true)
+					gl.enable(gl.BLEND);
+				else
+					gl.disable(gl.BLEND);
+
+				gl.blendFunc(gl[kernel.blendSrc], gl[kernel.blendDst]);
+				gl.blendEquation(gl[kernel.blendEquation]);
+				
+				
+				if(kernel.onPreTick != undefined)
+					kernel.onPreTick();
+				
+				clglWork.enqueueNDRangeKernel(key, this.getTempBuffers()[this.getKernels()[key].name]);	
+				
+				if(this.getKernels()[key].onPostTick != undefined)
+					this.getKernels()[key].onPostTick();
+			}
+		}
 
 
 		var comp_screenEffects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
@@ -294,21 +375,12 @@ ComponentRenderer = function() { Component.call(this);
 
 			for(var key in this.getVFPs()) {
 				if(this.getVFPs()[key].enabled == true) {
-					var destArg = comp_screenEffects.getBuffers()[this.getVFPs()[key].vfp.argBufferDestination];
-					if(destArg != undefined) {
-						gl.bindFramebuffer(gl.FRAMEBUFFER, destArg.items[0].fBuffer);
-						gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, destArg.items[0].textureData, 0);
-					} else {
-						gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-					}
-
 					if(vfps[key].enableDepthTest == true) {
 						gl.enable(gl.DEPTH_TEST);
 					} else {
 						gl.disable(gl.DEPTH_TEST);
 						gl.clear(gl.DEPTH_BUFFER_BIT);
 					}
-
 
 					if(vfps[key].enableBlend == true)
 						gl.enable(gl.BLEND);
@@ -321,7 +393,7 @@ ComponentRenderer = function() { Component.call(this);
 					if(vfps[key].onPreTick != undefined)
 						vfps[key].onPreTick();
 					
-					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].argBufferDestination, vfps[key].drawMode, vfps[key].geometryLength);
+					clglWork.enqueueVertexFragmentProgram(undefined, this.getVFPs()[key].name, vfps[key].drawMode, vfps[key].geometryLength);
 
 					if(vfps[key].onPostTick != undefined)
 						vfps[key].onPostTick();

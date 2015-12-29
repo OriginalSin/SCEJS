@@ -21,8 +21,10 @@ SimpleNode = function(sce) {
 	node.addComponent(comp_renderer);
 	comp_renderer.addVFP({"name": "NODE_RGB",
 							"vfp": new VFP_RGB(1),
-							"seArgDestination": "RGB",
-							"drawMode": 4});
+							"drawMode": 4,
+							"onPreTick": (function() {
+								 comp_renderer.setVfpArgDestination("NODE_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+							}).bind(this)});
 
 
 	/**

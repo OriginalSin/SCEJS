@@ -1002,28 +1002,34 @@ Graph = function(sce) {
 		_customArgs = createArgs(_customArgs, jsonIn.argsObject.split(","));
 
 		// nodes
-		comp_renderer_nodes.addKernel({	"name": "KERNEL_DIR",
-										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
-										"argDestination": "dir"});
-		comp_renderer_nodes.addKernel({	"name": "KERNEL_POSBYDIR",
+		comp_renderer_nodes.addKernel({	"name": "dir",
+										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection)});
+		comp_renderer_nodes.addKernel({	"name": "posXYZW",
 										"kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition),
-										"argDestination": "posXYZW"});
+										"onPostTick": (function() {
+											comp_renderer_nodes.getWebCLGL().copy(comp_renderer_nodes.getTempBuffers()["dir"], comp_renderer_nodes.getBuffers()["dir"]);
+											comp_renderer_nodes.getWebCLGL().copy(comp_renderer_nodes.getTempBuffers()["posXYZW"], comp_renderer_nodes.getBuffers()["posXYZW"]);
+										}).bind(this)});
 		comp_renderer_nodes.addVFP({"name": "NODES_RGB",
 									"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
-									"seArgDestination": "RGB",
 									"drawMode": 4,
 									"geometryLength": 4,
 									"enableDepthTest": false,
 									"enableBlend": true,
 									"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-									"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
+									"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
+									"onPreTick": (function() {
+										 comp_renderer_nodes.setVfpArgDestination("NODES_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+									}).bind(this)});
 		comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",
 									"vfp": new VFP_NODEPICKDRAG(),
-									"seArgDestination": undefined,
 									"drawMode": 4,
 									"geometryLength": 4,
 									"enableDepthTest": false,
 									"enableBlend": true, 
+									"onPreTick": (function() {
+										comp_renderer_nodes.setVfpArgDestination("NODES_PICKDRAG", undefined);
+									}).bind(this),
 									"onPostTick": (function() {
 										if(readPixel == true) {
 											readPixel = false;
@@ -1048,29 +1054,35 @@ Graph = function(sce) {
 		// links
 		comp_renderer_links.addVFP({"name": "LINKS_RGB",
 									"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
-									"seArgDestination": "RGB",
 									"drawMode": 1,
-									"geometryLength": 4});
+									"geometryLength": 4,
+									"onPreTick": (function() {	
+										comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+									}).bind(this)});
 
 		// arrows
 		comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
 										"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
-										"seArgDestination": "RGB",
 										"drawMode": 4,
 										"geometryLength": 4,
 										"enableBlend": true,
 										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
+										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
+										"onPreTick": (function() {	
+											comp_renderer_arrows.setVfpArgDestination("ARROWS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+										}).bind(this)});
 
 		// nodestext
 		comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
 										"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
-										"seArgDestination": "RGB",
 										"drawMode": 4,
 										"geometryLength": 4,
 										"enableBlend": true,
 										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
+										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
+										"onPreTick": (function() {	
+											comp_renderer_nodesText.setVfpArgDestination("NODESTEXT_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+										}).bind(this)});
 	};
 
 	/**

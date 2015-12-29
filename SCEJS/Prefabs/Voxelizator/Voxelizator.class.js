@@ -16,13 +16,17 @@ Voxelizator = function(sce) {
 	var _size,	_resolution, _cs, _chs,	_wh;	
 	var _arr_VoxelsColor, _arr_VoxelsPositionX, 	_arr_VoxelsPositionY, _arr_VoxelsPositionZ,	_arr_VoxelsNormal;
 	var _typeFillMode, _currentHeight, _currentOffset;
+	
+	var _nativePosTarget;
+	var _nativePosGoal;
+	var _nativeTargetDistance;
 	var _nativeDimensions;
 	var _ongeneratefunction;
 	
 	var _image3D_VoxelsColor, _image3D_VoxelsPositionX, _image3D_VoxelsPositionY, _image3D_VoxelsPositionZ, _image3D_VoxelsNormal;
 	
 	var nodes = new Node();
-	nodes.setName("graph_nodes");
+	nodes.setName("voxelizator");
 	_project.getActiveStage().addNode(nodes);
 
 	// ComponentTransform
@@ -35,12 +39,12 @@ Voxelizator = function(sce) {
 	
 	comp_renderer_node.addVFP({"name": "VOXELIZATOR",
 		"vfp": new VFP_VOXELIZATOR(),
-		"seArgDestination": undefined,
 		"drawMode": 4,
 		//"geometryLength": 4,
 		//"enableDepthTest": false,
 		"enableBlend": true, 
 		"onPreTick": (function() {
+			comp_renderer_node.setVfpArgDestination("VOXELIZATOR", undefined);
 			if(_makeVoxels == true) {
 				comp_renderer_node.setArg("uCurrentHeight", (function(){return _currentHeight;}).bind(this));
 				
@@ -122,6 +126,11 @@ Voxelizator = function(sce) {
 						comp_projection.setProjection(Constants.PROJECTION_TYPES.PERSPECTIVE);
 						
 						_sce.setDimensions(_nativeDimensions.width, _nativeDimensions.height);
+						
+						var comp_cam_tf_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
+						comp_cam_tf_target.setPositionTarget(_nativePosTarget);
+						comp_cam_tf_target.setPositionGoal(_nativePosGoal);
+						comp_cam_tf_target.setTargetDistance(_nativeTargetDistance);
 						
 						if(_ongeneratefunction != undefined) _ongeneratefunction(); 
 					}
@@ -224,7 +233,12 @@ Voxelizator = function(sce) {
 		_arr_VoxelsPositionZ = new Uint8Array(_wh*_wh*4); 
 		_arr_VoxelsNormal = new Uint8Array(_wh*_wh*4);
 		
+		var comp_cam_tf_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
+		_nativePosTarget = comp_cam_tf_target.getPositionTarget();
+		_nativePosGoal = comp_cam_tf_target.getPositionGoal();
+		_nativeTargetDistance = comp_cam_tf_target.getTargetDistance();		
 		_nativeDimensions = _sce.getDimensions();
+		
 		_sce.setDimensions(_resolution, _resolution);
 		
 		_makeVoxels = true;

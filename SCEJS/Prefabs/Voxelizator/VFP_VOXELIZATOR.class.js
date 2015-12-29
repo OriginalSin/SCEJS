@@ -1,5 +1,5 @@
 /** @private **/
-function VFP_VOXELIZATOR(customArgs, customCode) { VFP.call(this);
+function VFP_VOXELIZATOR() { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [
        	    // vertex head
@@ -28,7 +28,7 @@ function VFP_VOXELIZATOR(customArgs, customCode) { VFP.call(this);
 					'int maxLevelCells = int(uResolution);'+
 					'float cs = gridSize/float(maxLevelCells);\n'+ // cell size
 					
-       				'vec3 vp = vec3(vertexPos[x].x, vertexPos[x].y - (gridSize/2.0) + (cs*uCurrentHeight), vertexPos[x].z);\n'+ 
+       				'vec3 vp = vec3(vertexPos[x].x, vertexPos[x].y + (gridSize/2.0) - (cs*uCurrentHeight), vertexPos[x].z);\n'+ 
     				'vec3 vertexPositionFlipX = vp*vec3(1.0,1.0,1.0);'+
     				'vec4 vPosition = PMatrix*cameraWMatrix*nodeWMatrix*vec4(vertexPositionFlipX,1.0);'+  
     				'vec3 verP; float doffset = 0.02*uGridsize*vPosition.z;'+   

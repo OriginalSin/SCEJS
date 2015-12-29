@@ -10,6 +10,7 @@ function SE_RGB() { SE.call(this);
 			[// fragment source
 			 'void main(float4* RGB) {'+
 						 	'vec2 x = get_global_id();'+
+						 	
 						 	// diffuse
 						 	'out_float4 = RGB[x];\n'+
 			 '}']];

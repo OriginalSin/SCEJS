@@ -6,6 +6,8 @@ Grid = function(sce) {
 	
 	var _sce = sce;
 	var _project = _sce.getLoadedProject();
+	var _gl = _project.getActiveStage().getWebGLContext();
+	var _utils = new Utils();
 	
 	var node = new Node();
 	_project.getActiveStage().addNode(node);
@@ -102,8 +104,10 @@ Grid = function(sce) {
 		
 		comp_renderer.addVFP({	"name": "GRID",
 								"vfp": new VFP_GRID(),
-								"seArgDestination": "RGB",
-								"drawMode": 1});			
+								"drawMode": 1, 
+								"onPreTick": (function() {
+									 comp_renderer.setVfpArgDestination("GRID", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+								}).bind(this)});			
 		comp_renderer.setArg("vertexPos", (function(){return linesVertexArray;}).bind(this));
 		comp_renderer.setArg("vertexColor", (function(){return linesVertexLocArray;}).bind(this));
 		comp_renderer.setIndices((function(){return linesIndexArray;}).bind(this));

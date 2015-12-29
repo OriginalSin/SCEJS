@@ -28,9 +28,13 @@ SimpleCamera = function(sce) {
 	// ComponentScreenEffects
 	var comp_screenEffects = new ComponentScreenEffects();
 	camera.addComponent(comp_screenEffects);
-	comp_screenEffects.addSE({	"se": new SE_RGB(),
+	comp_screenEffects.addSE({	"name": "SE_CAM",
+								"se": new SE_RGB(),
 								"width": _sce.getCanvas().width,
-								"height": _sce.getCanvas().height});
+								"height": _sce.getCanvas().height,
+								"onPostTick": (function() {									
+									comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+								}).bind(this)});
 	//_sce.setDimensions(_sce.getCanvas().width, _sce.getCanvas().height);
 	
 	// ComponentKeyboardEvents

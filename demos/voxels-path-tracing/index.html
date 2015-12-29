@@ -7,12 +7,16 @@
 
 		<script src="../../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
 
-    <script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
-    <script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
-
-
-    <script src="../../SCEJS/Prefabs/Voxelizator/VFP_Voxelizator.class.js"></script>
-    <script src="../../SCEJS/Prefabs/Voxelizator/Voxelizator.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
+	
+	
+	    <script src="../../SCEJS/Prefabs/Voxelizator/VFP_Voxelizator.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/Voxelizator/Voxelizator.class.js"></script>
+	    
+	    <script src="../../SCEJS/Prefabs/GI/VFP_GI.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/GI/SE_GI.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/GI/GI.class.js"></script>	    
 	</head>
 
 	<body>
@@ -41,13 +45,21 @@
 			grid.generate(100.0, 1.0);
 
 
-			// VOXELIZATOR
+			// VOXELIZATOR & GI PREFABS
+			var _gridSize = 10.1, _resolution = 64;
 			var OFFSET = 1000.0;
-			var voxelizator = new Voxelizator(sce);
 			
-			var mesh = new Mesh().loadObj("../_RESOURCES/torus.obj", (function(mesh, textures) {
+			var voxelizator = new Voxelizator(sce);
+			var gi = new GI(sce);
+			gi.setResolution(_resolution);
+			gi.setGridSize(_gridSize);			
+			
+			var mesh = new Mesh().loadObj("../_RESOURCES/cornellBox3wall.obj", (function(mesh, textures) {
 				voxelizator.setMesh(mesh);
 				voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
+				
+				gi.setMesh(mesh);
+				gi.setImage("../_RESOURCES/cartman08.jpg"); 				
 			}).bind(this));
 			
 
@@ -67,14 +79,17 @@
 			
  
 			document.getElementById("BTNID_makeVoxels").addEventListener("click", (function() {
-				voxelizator.generate({	"size": 1.1,
-										"resolution": 128,
+				voxelizator.generate({	"size": _gridSize,
+										"resolution": _resolution,
 										"fillmode": ["albedo","positionX","positionY","positionZ","normal"],
 										"ongenerate": function() {
 											var images = voxelizator.getGeneratedImages();
 											for(var key in images) {
 												document.body.appendChild(images[key]);
 											}
+											
+											gi.setVoxelsArrays(voxelizator.getGeneratedArrays());											
+											gi.runGI();
 										}
 									});
 			}).bind(this));
