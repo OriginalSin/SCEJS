@@ -162,6 +162,22 @@ ComponentRenderer = function() { Component.call(this);
 	};
 
 	/**
+	* enableKernel
+	* @param {String} name
+	*/
+	this.enableKernel = function(name) {
+		kernels[name].enabled = true;
+	};
+
+	/**
+	* disableKernel
+	* @param {String} name
+	*/
+	this.disableKernel = function(name) {
+		kernels[name].enabled = false;
+	};
+	
+	/**
 	* setArg
 	* @param {String} argument Argument to set
 	* @param {Function} fnvalue
@@ -270,57 +286,106 @@ ComponentRenderer = function() { Component.call(this);
 		return clglWork.CLGL_bufferIndices;
 	};
 
+	
+	
 	/**
-	* setEnableDepthTest
+	* setKernelEnableDepthTest
 	* @param {String} name
 	* @param {Bool} enable
 	*/
-	this.setEnableDepthTest = function(name, enable) {
+	this.setKernelEnableDepthTest = function(name, enable) {
+		kernels[name].enableDepthTest = enable;
+	};
+
+	/**
+	* setKernelEnableBlend
+	* @param {String} name
+	* @param {Bool} enable
+	*/
+	this.setKernelEnableBlend = function(name, enable) {
+		kernels[name].enableBlend = enable;
+	};
+
+	/**
+	* setKernelBlendEquation
+	* @param {String} name
+	* @param {Constants.BLENDING_EQUATION_TYPES} equation
+	*/
+	this.setKernelBlendEquation = function(name, equation) {
+		kernels[name].blendEquation = equation;
+	};
+
+	/**
+	* setKernelBlendSrc
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setKernelBlendSrc = function(name, blend) {
+		kernels[name].blendSrc = blend;
+	};
+
+	/**
+	* setKernelBlendDst
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setKernelBlendDst = function(name, blend) {
+		kernels[name].blendDst = blend;
+	};
+	
+	
+	
+	/**
+	* setVfpEnableDepthTest
+	* @param {String} name
+	* @param {Bool} enable
+	*/
+	this.setVfpEnableDepthTest = function(name, enable) {
 		vfps[name].enableDepthTest = enable;
 	};
 
 	/**
-	* setEnableBlend
+	* setVfpEnableBlend
 	* @param {String} name
 	* @param {Bool} enable
 	*/
-	this.setEnableBlend = function(name, enable) {
+	this.setVfpEnableBlend = function(name, enable) {
 		vfps[name].enableBlend = enable;
 	};
 
 	/**
-	* setBlendEquation
+	* setVfpBlendEquation
 	* @param {String} name
 	* @param {Constants.BLENDING_EQUATION_TYPES} equation
 	*/
-	this.setBlendEquation = function(name, equation) {
+	this.setVfpBlendEquation = function(name, equation) {
 		vfps[name].blendEquation = equation;
 	};
 
 	/**
-	* setBlendSrc
+	* setVfpBlendSrc
 	* @param {String} name
 	* @param {Constants.BLENDING_MODES} blend
 	*/
-	this.setBlendSrc = function(name, blend) {
+	this.setVfpBlendSrc = function(name, blend) {
 		vfps[name].blendSrc = blend;
 	};
 
 	/**
-	* setBlendDst
+	* setVfpBlendDst
 	* @param {String} name
 	* @param {Constants.BLENDING_MODES} blend
 	*/
-	this.setBlendDst = function(name, blend) {
+	this.setVfpBlendDst = function(name, blend) {
 		vfps[name].blendDst = blend;
 	};
 
 	/**
-	* setDrawMode
+	* setVfpDrawMode
 	* @param {String} name
 	* @param {Constants.DRAW_MODES} draw
 	*/
-	this.setDrawMode = function(name, draw) {
+	this.setVfpDrawMode = function(name, draw) {
 		vfps[name].drawMode = draw;
 	};
 

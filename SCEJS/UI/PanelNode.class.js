@@ -45,7 +45,7 @@ PanelNode = function() {
 						if(nodeCompKey == Constants.COMPONENT_TYPES.RENDERER) {
 							new UIComponentRenderer(compTypeKey, selectedNode);							
 						} else if(nodeCompKey == Constants.COMPONENT_TYPES.SCREEN_EFFECTS) {
-							
+							new UIComponentScreenEffects(compTypeKey, selectedNode);	
 						} else if(nodeCompKey == Constants.COMPONENT_TYPES.PROJECTION) {
 							
 						}

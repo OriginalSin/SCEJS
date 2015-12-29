@@ -75,6 +75,22 @@ ComponentScreenEffects = function() { Component.call(this);
 	};
 	
 	/**
+	* enableKernel
+	* @param {String} name
+	*/
+	this.enableKernel = function(name) {
+		kernels[name].enabled = true;
+	};
+
+	/**
+	* disableKernel
+	* @param {String} name
+	*/
+	this.disableKernel = function(name) {
+		kernels[name].enabled = false;
+	};
+	
+	/**
 	* @param {String} argument Argument to set
 	* @param {Function} fnvalue
 	* @param {Array<Float>} [splits=[array.length]]
@@ -99,6 +115,22 @@ ComponentScreenEffects = function() { Component.call(this);
 							"updatable": null,
 							"splits": null,
 							"overrideDimensions": null};
+	};
+	
+	/**
+	 * getArgs
+	 * @returns {Object}
+	 */
+	this.getArgs = function() {
+		return args;
+	};
+
+	/**
+	 * getAllArgs
+	 * @returns {Object}
+	 */
+	this.getAllArgs = function() {
+		return clglWork.getAllArgs();
 	};
 	
 	/**
@@ -144,6 +176,55 @@ ComponentScreenEffects = function() { Component.call(this);
 			gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	};
+	
+	
+	
+	/**
+	* setKernelEnableDepthTest
+	* @param {String} name
+	* @param {Bool} enable
+	*/
+	this.setKernelEnableDepthTest = function(name, enable) {
+		kernels[name].enableDepthTest = enable;
+	};
+
+	/**
+	* setKernelEnableBlend
+	* @param {String} name
+	* @param {Bool} enable
+	*/
+	this.setKernelEnableBlend = function(name, enable) {
+		kernels[name].enableBlend = enable;
+	};
+
+	/**
+	* setKernelBlendEquation
+	* @param {String} name
+	* @param {Constants.BLENDING_EQUATION_TYPES} equation
+	*/
+	this.setKernelBlendEquation = function(name, equation) {
+		kernels[name].blendEquation = equation;
+	};
+
+	/**
+	* setKernelBlendSrc
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setKernelBlendSrc = function(name, blend) {
+		kernels[name].blendSrc = blend;
+	};
+
+	/**
+	* setKernelBlendDst
+	* @param {String} name
+	* @param {Constants.BLENDING_MODES} blend
+	*/
+	this.setKernelBlendDst = function(name, blend) {
+		kernels[name].blendDst = blend;
+	};
+	
+	
 	
 	/**
 	 * tick

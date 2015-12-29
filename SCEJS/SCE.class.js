@@ -63,7 +63,8 @@ var includesF = ['/StormMath.class.js',
 				'/UI/PanelStage.class.js',
 				'/UI/PanelNode.class.js',
 				'/UI/PanelNumberGenerator.class.js',
-				'/UI/UIComponentRenderer.class.js'];
+				'/UI/UIComponentRenderer.class.js',
+				'/UI/UIComponentScreenEffects.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
 
 //***********
@@ -177,9 +178,13 @@ SCE = function() {
 			project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).setResolution(dimensions.width, dimensions.width);
 			
 			var cse = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-			cse.addSE({	"se": new SE_RGB(),
+			cse.addSE({	"name": "RGB",
+						"se": new SE_RGB(),
 						"width": dimensions.width,
-						"height": dimensions.width});
+						"height": dimensions.width,
+						"onPostTick": (function() {									
+							cse.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+						}).bind(this)});
 		}
 	};
 	

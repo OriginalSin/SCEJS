@@ -28,7 +28,7 @@ SimpleCamera = function(sce) {
 	// ComponentScreenEffects
 	var comp_screenEffects = new ComponentScreenEffects();
 	camera.addComponent(comp_screenEffects);
-	comp_screenEffects.addSE({	"name": "SE_CAM",
+	comp_screenEffects.addSE({	"name": "RGB",
 								"se": new SE_RGB(),
 								"width": _sce.getCanvas().width,
 								"height": _sce.getCanvas().height,
