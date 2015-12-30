@@ -153,17 +153,17 @@ GI = function(sce) {
 	*/
 	this.runGI = function() {
 		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-		comp_screenEffects.addSE({	"name": "sampler_GIVoxel",
-			"se": new SE_GI(),			
-			"width": _sce.getCanvas().width,
-			"height": _sce.getCanvas().height,
-			"enableDepthTest": false,
-			"enableBlend": true, 
-			"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-			"blendDst": Constants.BLENDING_MODES.SRC_COLOR,
-			"onPostTick": (function() {									
-				//comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
-			}).bind(this)});
+		comp_screenEffects.addKernel({	"name": "sampler_GIVoxel",
+										"kernel": new SE_GI(),			
+										"width": _sce.getCanvas().width,
+										"height": _sce.getCanvas().height,
+										"enableDepthTest": false,
+										"enableBlend": true, 
+										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
+										"blendDst": Constants.BLENDING_MODES.SRC_COLOR,
+										"onPostTick": (function() {									
+											//comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+										}).bind(this)});
 		
 		var arr = new Float32Array(_sce.getDimensions().width*_sce.getDimensions().height*4);
 		

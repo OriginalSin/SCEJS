@@ -47,13 +47,24 @@ var includesF = ['/StormMath.class.js',
                 '/Mesh.class.js',
                 '/Constants.js',
                 '/SystemEvents.class.js',
-				'/Component.class.js',
+                
+                
+                '/Component.class.js',
+                
+                '/Component_Work.class.js',
+				'/Component_Kernel.class.js',
+				'/Component_Vfp.class.js',
+				'/Component_Argument.class.js',
+				'/Component_Indices.class.js',
+				'/ComponentRenderer.class.js',
+				'/ComponentScreenEffects.class.js',
+				
 				'/ComponentTransform.class.js',
 				'/ComponentTransformTarget.class.js',
 				'/ComponentControllerTransformTarget.class.js',
 				'/ComponentProjection.class.js',
-				'/ComponentRenderer.class.js',
-				'/ComponentScreenEffects.class.js',
+				
+				
 				'/ComponentKeyboardEvents.class.js',
 				'/ComponentMouseEvents.class.js',
 				'/Node.class.js',
@@ -64,7 +75,11 @@ var includesF = ['/StormMath.class.js',
 				'/UI/PanelNode.class.js',
 				'/UI/PanelNumberGenerator.class.js',
 				'/UI/UIComponentRenderer.class.js',
-				'/UI/UIComponentScreenEffects.class.js'];
+				'/UI/UIComponentScreenEffects.class.js',
+				'/UI/UIComponent_Indices.class.js',
+				'/UI/UIComponent_Argument.class.js',
+				'/UI/UIComponent_Kernel.class.js',
+				'/UI/UIComponent_Vfp.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
 
 //***********
@@ -178,13 +193,13 @@ SCE = function() {
 			project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).setResolution(dimensions.width, dimensions.width);
 			
 			var cse = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-			cse.addSE({	"name": "RGB",
-						"se": new SE_RGB(),
-						"width": dimensions.width,
-						"height": dimensions.width,
-						"onPostTick": (function() {									
-							cse.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
-						}).bind(this)});
+			cse.addKernel({	"name": "RGB",
+							"kernel": new SE_RGB(),
+							"width": dimensions.width,
+							"height": dimensions.width,
+							"onPostTick": (function() {									
+								cse.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+							}).bind(this)});
 		}
 	};
 	
