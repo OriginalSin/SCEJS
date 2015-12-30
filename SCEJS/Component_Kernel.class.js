@@ -117,4 +117,41 @@ Component_Kernel = function() {
 		this.kernels[name].blendDst = blend;
 	};
 	
+	/**
+	 * tickKernels
+	 * @param {Bool} [isScreenEffects=false]
+	 * @private
+	 */
+	this.tickKernels = function(isScreenEffects) {
+		for(var key in this.getKernels()) {
+			if(this.getKernels()[key].enabled == true) {
+				var kernel = this.getKernels()[key];
+				
+				if(kernel.enableDepthTest == true) {
+					this.gl.enable(this.gl.DEPTH_TEST);
+				} else {
+					this.gl.disable(this.gl.DEPTH_TEST);
+					this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
+				}
+
+				if(kernel.enableBlend == true)
+					this.gl.enable(this.gl.BLEND);
+				else
+					this.gl.disable(this.gl.BLEND);
+
+				this.gl.blendFunc(this.gl[kernel.blendSrc], this.gl[kernel.blendDst]);
+				this.gl.blendEquation(this.gl[kernel.blendEquation]);
+				
+				
+				if(kernel.onPreTick != undefined)
+					kernel.onPreTick();
+				
+				var buffDest = (isScreenEffects != undefined && isScreenEffects == true) ? null : this.getTempBuffers()[this.getKernels()[key].name];
+				this.clglWork.enqueueNDRangeKernel(key, buffDest);	
+				
+				if(this.getKernels()[key].onPostTick != undefined)
+					this.getKernels()[key].onPostTick();
+			}
+		}
+	};
 };

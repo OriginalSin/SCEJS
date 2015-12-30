@@ -33,8 +33,7 @@ SimpleCamera = function(sce) {
 									"width": _sce.getCanvas().width,
 									"height": _sce.getCanvas().height,
 									"onPostTick": (function() {									
-										if(comp_screenEffects.getBuffers()["RGB"] != undefined)
-											comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+										comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
 									}).bind(this)});
 	//_sce.setDimensions(_sce.getCanvas().width, _sce.getCanvas().height);
 	

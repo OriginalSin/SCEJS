@@ -102,4 +102,17 @@ Component_Argument = function() {
 		this.args[argument].updatable = value;
 	};
 	
+	/**
+	 * tickArguments
+	 * @private
+	 */
+	this.tickArguments = function() {
+		for(var key in this.args) {
+			if(this.args[key].updatable == true) {
+				var arg = this.args[key];
+				this.clglWork.setArg(key, arg.fnvalue(), arg.splits, arg.overrideDimensions);
+			}
+		}
+	};
+	
 };
