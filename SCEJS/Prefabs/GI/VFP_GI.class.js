@@ -140,7 +140,7 @@ function VFP_GI(resolution) { VFP.call(this);
 	 			'vec3 RayOrigin; vec3 RayDir; vec3 ro; vec3 rd;'+
 	
 	 			'vec4 color;'+
-	 			'float maxang=0.8928571428571429;'+
+	 			'float maxang=0.75;'+
 	 			
 	 			'int typePass = int(uTypePass);'+
 	 			'if(typePass != 3) {'+
@@ -167,7 +167,6 @@ function VFP_GI(resolution) { VFP.call(this);
 		 			'if(texScreenNormal.a > 0.0) {'+
 		 				'vec3 vectorRandom = getVector(reflect(normalize(ro),rd), maxang, vec2(randX1,randY1));'+
 		 				'vec4 rayT = rayTraversal(ro+(rd*(cs+cs)), vectorRandom);\n'+     // rX 0.0 perpend to normal; 0.5 parallel; 1.0 perpend
-		 				//'vec4 rayT = rayTraversal(ro+(rd*(cs+cs)), vectorRandom);\n'+     // rX 0.0 perpend to normal; 0.5 parallel; 1.0 perpend
 		
 	 					'if(rayT.a > 0.0) {'+ // hit in solid
 	 						'float rx = abs((randX1-0.5)*2.0);'+

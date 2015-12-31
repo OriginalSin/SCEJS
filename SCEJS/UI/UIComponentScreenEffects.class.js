@@ -28,15 +28,18 @@ UIComponentScreenEffects = function(compTypeKey, selectedNode) {
 	getArgType(tmpArgs, args, "float");
 
 
-	var str = "<div id='DIVID_"+compTypeKey+"' class='component_section'></div>";
-	//$('#DIVID_component_'+compTypeKey).append(str);
+	var str = ""+
+	"<div id='DIVID_"+compTypeKey+"' class='component_section'>"+
+		"<div id='DIVID_"+compTypeKey+"_args' style='width:50%;display:inline-block;float:left;'></div>"+
+		"<div id='DIVID_"+compTypeKey+"_kernelsvfps' style='width:50%;display:inline-block;overflow-x:auto;'></div>"
+	"</div>";
 	ah.appendStringChild(str, document.getElementById('DIVID_component_'+compTypeKey));
 
 
 
 	// ARGS
-	new UIComponent_Argument(compTypeKey, selectedNode, comp, args);
+	new UIComponent_Argument(document.getElementById('DIVID_'+compTypeKey+'_args'), selectedNode, comp, args);
 	
 	//KERNELS
-	new UIComponent_Kernel(compTypeKey, selectedNode, comp, args);
+	new UIComponent_Kernel(document.getElementById('DIVID_'+compTypeKey+'_kernelsvfps'), selectedNode, comp, args);
 };

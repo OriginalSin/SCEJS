@@ -38,7 +38,15 @@
 			project.setActiveStage(stage);
 
 			// CAMERA
-			var simpleCamera = new SimpleCamera(sce);
+			var simpleCamera = new SimpleCamera(sce, {	"onmousedown": (function() {
+															if(gi.isRunned() == true) {
+																gi.stop();
+															}
+														}).bind(this), "onmouseup": (function() {
+															if(gi.isRunned() == true) {
+																gi.resume();
+															}
+														}).bind(this)});
 
 			// GRID
 			var grid = new Grid(sce);
@@ -46,7 +54,7 @@
 
 
 			// VOXELIZATOR & GI PREFABS
-			var _gridSize = 10.1, _resolution = 64;
+			var _gridSize = 5.1, _resolution = 128;
 			var OFFSET = 1000.0;
 			
 			var voxelizator = new Voxelizator(sce);
@@ -54,9 +62,9 @@
 			gi.setResolution(_resolution);
 			gi.setGridSize(_gridSize);			
 			
-			var mesh = new Mesh().loadObj("../_RESOURCES/cornellBox3wall.obj", (function(mesh, textures) {
+			var mesh = new Mesh().loadObj("../_RESOURCES/testGI.obj", (function(mesh, textures) {
 				voxelizator.setMesh(mesh);
-				voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
+				//voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
 				
 				gi.setMesh(mesh);
 				gi.setImage("../_RESOURCES/cartman08.jpg"); 				

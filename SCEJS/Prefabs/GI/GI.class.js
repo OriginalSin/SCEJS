@@ -159,7 +159,7 @@ GI = function(sce) {
 										"height": _sce.getCanvas().height,
 										"enableDepthTest": false,
 										"enableBlend": true, 
-										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
+										"blendSrc": Constants.BLENDING_MODES.ONE_MINUS_SRC_COLOR,
 										"blendDst": Constants.BLENDING_MODES.SRC_COLOR,
 										"onPostTick": (function() {									
 											//comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
@@ -185,8 +185,45 @@ GI = function(sce) {
 		
 		comp_screenEffects.setSharedBufferArg("sampler_GIVoxel", comp_renderer_node);
 		
+		_currentDestinationSampler = 4;
 		
 		comp_renderer_node.enableVfp("GI");
 		_runGI = true;
+	};
+	
+	/**
+	* isRunned
+	* @returns {Bool}
+	*/
+	this.isRunned = function() {
+		return _runGI;
+	};
+	
+	/**
+	* stop
+	*/
+	this.stop = function() {
+		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+		comp_screenEffects.disableKernel("sampler_GIVoxel");
+	};
+	
+	/**
+	* resume
+	*/
+	this.resume = function() {
+		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
+		
+		comp_renderer_node.clearTempArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearTempArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearTempArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
+		
+		_currentDestinationSampler = 4;
+		
+		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+		comp_screenEffects.enableKernel("sampler_GIVoxel");
 	};
 };

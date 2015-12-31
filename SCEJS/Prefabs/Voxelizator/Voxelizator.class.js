@@ -220,7 +220,7 @@ Voxelizator = function(sce) {
 		var comp_projection = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
 		comp_projection.setProjection(Constants.PROJECTION_TYPES.ORTHO); 
 		comp_projection.setFov(_size/2);
-		comp_projection.setNear(0.0);
+		comp_projection.setNear(-_chs);
 		comp_projection.setFar(_cs); 
 		
 		comp_renderer_node.setArg("uGridsize", (function(){return _size;}).bind(this));

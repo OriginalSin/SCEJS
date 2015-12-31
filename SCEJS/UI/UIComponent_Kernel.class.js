@@ -2,7 +2,7 @@
 * @class
 * @constructor
 */
-UIComponent_Kernel = function(compTypeKey, selectedNode, comp, args) {
+UIComponent_Kernel = function(targetElement, selectedNode, comp, args) {
 	"use strict";
 
 	var ah = new ActionHelpers();
@@ -13,30 +13,30 @@ UIComponent_Kernel = function(compTypeKey, selectedNode, comp, args) {
 		var kernel = comp.getKernels()[kernelKey];
 
 		// fragment programs
-		str = "<div id='DIVID_"+kernelKey+"_kernels' style='display:inline-block;border:1px solid #333;'>";
-			str += ""+
-			"<div>KERNEL NAME: "+kernelKey+"</div>"+
-			"<div>ARG DESTINATION: "+kernel.name+"</div>"+ 
-			
-			"<div><input type='checkbox' id='ENABLE_"+kernelKey+"' style='font-size:10px;'>"+
-			
-			"<div>DEPTH TEST: <input type='checkbox' id='ENABLE_DEPTHTEST_"+kernelKey+"' style='font-size:10px;'>"+
-
-			"<div>BLEND: <input type='checkbox' id='ENABLE_BLEND_"+kernelKey+"' style='font-size:10px;'>"+
-
-			"<div>BLENT EQUATION: <select id='BLEND_EQUATION_"+kernelKey+"' style='font-size:10px;'>";
-				for(var blendEquationKey in Constants.BLENDING_EQUATION_TYPES) str+="<option value='"+blendEquationKey+"'>"+blendEquationKey+"</option>";
-			str+="</select></div>"+
-
-			"<div>BLEND SRC (Foreground): <select id='BLEND_source_"+kernelKey+"' style='font-size:10px;'>";
-				for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
-			str+="</select></div>"+
-
-			"<div>BLEND DST (Background): <select id='BLEND_destination_"+kernelKey+"' style='font-size:10px;'>";
-				for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
-			str+="</select></div>";
-
-			
+		str = "<div id='"+targetElement.id+"_"+kernelKey+"_kernels' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
+			"<div style='height:250px;'>"+
+				"<div>KERNEL NAME: "+kernelKey+"</div>"+
+				"<div>ARG DESTINATION: "+kernel.name+"</div>"+ 
+				
+				"<div><input type='checkbox' id='ENABLE_"+kernelKey+"' style='font-size:10px;'></div>"+
+				
+				"<div>DEPTH TEST: <input type='checkbox' id='ENABLE_DEPTHTEST_"+kernelKey+"' style='font-size:10px;'></div>"+
+	
+				"<div>BLEND: <input type='checkbox' id='ENABLE_BLEND_"+kernelKey+"' style='font-size:10px;'></div>"+
+	
+				"<div>BLENT EQUATION: <select id='BLEND_EQUATION_"+kernelKey+"' style='font-size:10px;max-width:70px;'>";
+					for(var blendEquationKey in Constants.BLENDING_EQUATION_TYPES) str+="<option value='"+blendEquationKey+"'>"+blendEquationKey+"</option>";
+				str+="</select></div>"+
+	
+				"<div>BLEND SRC (Foreground): <select id='BLEND_source_"+kernelKey+"' style='font-size:10px;max-width:70px;'>";
+					for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
+				str+="</select></div>"+
+	
+				"<div>BLEND DST (Background): <select id='BLEND_destination_"+kernelKey+"' style='font-size:10px;max-width:70px;'>";
+					for(var blendModeKey in Constants.BLENDING_MODES) str+="<option value='"+blendModeKey+"'>"+blendModeKey+"</option>";
+				str+="</select></div>";
+			str += "</div>";
+				
 			for(var argKey in args) {
 				var arg = args[argKey];
 	
@@ -45,17 +45,16 @@ UIComponent_Kernel = function(compTypeKey, selectedNode, comp, args) {
 					var fv = kernel.kernel.in_values[n];
 					if(fv.name == argKey) {
 						var bg = (fv.value != undefined) ? "rgba(150,150,255,1.0)" : "rgba(150,150,255,0.3)";
-						var isDest = (kernel.name == argKey) ? "<div style='position:absolute;background-color:rgba(50,50,150,1.0);color:rgba(0,0,0,0);width:20px;margin:0px auto 0px auto'>-</div>" : "";
-						str += 	isDest+"<div style='background:"+bg+";color:rgba(0,0,0,0);'>-</div>";
+						var isDest = (kernel.name == argKey) ? "<div style='display:inline-block;background-color:rgba(50,50,150,1.0);color:rgba(0,0,0,0);width:20px;margin:0px auto 0px auto'>-</div>" : "";
+						str += 	"<div style='height:11px;background:"+bg+";color:rgba(0,0,0,0);'>-"+isDest+"</div>";
 						exists = true;
 						break;
 					}
 				}
-				if(exists == false) str += "<div style='color:rgba(0,0,0,0)'>-</div>";
-			}
-
+				if(exists == false) str += "<div style='height:11px;color:rgba(0,0,0,0)'>-</div>";
+			}			
 		str += "</div>";
-		$('#DIVID_'+compTypeKey).append(str);
+		ah.appendStringChild(str, targetElement);
 		
 		
 		var e = document.getElementById("ENABLE_"+kernelKey);

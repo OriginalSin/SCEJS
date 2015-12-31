@@ -2,38 +2,41 @@
 * @class
 * @constructor
 */
-UIComponent_Argument = function(compTypeKey, selectedNode, comp, args) {
+UIComponent_Argument = function(targetElement, selectedNode, comp, args) {
 	"use strict";
 
 	var ah = new ActionHelpers();
 
 
 	// ARGS
-	str = "<div id='DIVID_"+compTypeKey+"_args' style='display:inline-block;border:1px solid #333;'>";
-		str += "<div>ARGUMENTS</div>";
-	for(var argKey in args) {
-		var arg = args[argKey];
-
-		str += "<div id='DIVID_"+argKey+"_args'><span style='font-weight:bold;color:rgba(200,200,255,0.5)'>"+arg.type+"</span> "+argKey+" <input type='checkbox' id='CHECKBOX_UPDATE_"+argKey+"' title='update on tick' style='width:8px;height:8px;margin:0px;vertical-align:middle' />";
-		if(arg.value != undefined) {
-			if(arg.value instanceof WebCLGLBuffer) {
-				var strItems = "", sep = "";
-				for(var j=0; j < arg.value.items.length; j++) {
-					strItems += sep+"<span title='"+arg.value.items[j].inData+"'>"+arg.value.items[j].length+"</span>";
-					sep = ",";
+	str = "<div id='"+targetElement.id+"_args' style='display:table-cell;vertical-align:top;'>"+
+		"<div style='height:250px;'>"+
+			"<div>ARGUMENTS</div>"+
+		"</div>";
+	
+		for(var argKey in args) {
+			var arg = args[argKey];
+	
+			str += "<div id='DIVID_"+argKey+"_args'><span style='font-weight:bold;color:rgba(200,200,255,0.5)'>"+arg.type+"</span> "+argKey+" <input type='checkbox' id='CHECKBOX_UPDATE_"+argKey+"' title='update on tick' style='width:8px;height:8px;margin:0px;vertical-align:middle' />";
+			if(arg.value != undefined) {
+				if(arg.value instanceof WebCLGLBuffer) {
+					var strItems = "", sep = "";
+					for(var j=0; j < arg.value.items.length; j++) {
+						strItems += sep+"<span title='"+arg.value.items[j].inData+"'>"+arg.value.items[j].length+"</span>";
+						sep = ",";
+					}
+					str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+strItems+"}</span>";
+				} else if(arg.value instanceof Float32Array || arg.value instanceof Array) {
+					str += " <span style='color:rgb(150, 255, 150)'> {"+arg.value.constructor.name+" <span title='"+arg.value+"'>"+arg.value.length+"</span>}</span>";
+				} else {
+					str += " <span style='color:rgb(150, 255, 150)'> {<span title='"+arg.value+"'>"+arg.value.constructor.name+"</span>}</span>";
 				}
-				str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+strItems+"}</span>";
-			} else if(arg.value instanceof Float32Array || arg.value instanceof Array) {
-				str += " <span style='color:rgb(150, 255, 150)'> {"+arg.value.constructor.name+" <span title='"+arg.value+"'>"+arg.value.length+"</span>}</span>";
-			} else {
-				str += " <span style='color:rgb(150, 255, 150)'> {<span title='"+arg.value+"'>"+arg.value.constructor.name+"</span>}</span>";
 			}
+			str += "</div>";
 		}
-		str += "</div>";
-	}
 	str += "</div>";
-	ah.appendStringChild(str, document.getElementById('DIVID_'+compTypeKey));
-	//$('#DIVID_'+compTypeKey).append(str);
+	ah.appendStringChild(str, targetElement);
+	
 
 	for(var argKey in args) {
 		var arg = args[argKey];
