@@ -10,6 +10,7 @@ Grid = function(sce) {
 	var _utils = new Utils();
 	
 	var node = new Node();
+	node.setName("grid");
 	_project.getActiveStage().addNode(node);
 	
 	var mesh = new Mesh().loadBox();

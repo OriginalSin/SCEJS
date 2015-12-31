@@ -51,7 +51,7 @@ Stage = function() {
 	this.addNode = function(node) {
 		nodes.push(node);
 		
-		node.initialize("node "+(nodes.length-1).toString(), gl);
+		node.initialize(((node.getName() != null) ? node.getName() : "node "+(nodes.length-1)), gl);
 	};
 		
 	/**

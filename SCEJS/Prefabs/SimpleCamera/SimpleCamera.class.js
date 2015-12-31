@@ -18,6 +18,7 @@ SimpleCamera = function(sce, jsonIn) {
 	var altKeyPressed = false;
 	
 	var camera = new Node();
+	camera.setName("simple camera");
 	_project.getActiveStage().addNode(camera);
 	_project.getActiveStage().setActiveCamera(camera);
 	

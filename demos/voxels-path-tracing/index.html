@@ -54,7 +54,7 @@
 
 
 			// VOXELIZATOR & GI PREFABS
-			var _gridSize = 5.1, _resolution = 128;
+			var _gridSize = 105.1, _resolution = 128;
 			var OFFSET = 1000.0;
 			
 			var voxelizator = new Voxelizator(sce);
@@ -62,12 +62,12 @@
 			gi.setResolution(_resolution);
 			gi.setGridSize(_gridSize);			
 			
-			var mesh = new Mesh().loadObj("../_RESOURCES/testGI.obj", (function(mesh, textures) {
+			var mesh = new Mesh().loadObj("../_RESOURCES/sponza.obj", (function(mesh, textures) {
 				voxelizator.setMesh(mesh);
-				//voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
+				voxelizator.setImage("../_RESOURCES/white.jpg"); 
 				
 				gi.setMesh(mesh);
-				gi.setImage("../_RESOURCES/cartman08.jpg"); 				
+				gi.setImage("../_RESOURCES/white.jpg"); 				
 			}).bind(this));
 			
 
