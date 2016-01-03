@@ -58,7 +58,7 @@ GI = function(sce) {
 						
 						comp_renderer_node.clearTempArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
 						comp_renderer_node.clearTempArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
-						comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+						comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
 					} else if(_currentDestinationSampler == 4) {
 						comp_renderer_node.getWebCLGL().copy(comp_renderer_node.getTempBuffers()["sampler_GIVoxel"], comp_renderer_node.getBuffers()["sampler_GIVoxel"]);
 					}
@@ -172,7 +172,7 @@ GI = function(sce) {
 		comp_renderer_node.setArg("sampler_screenNormal", (function(){return arr;}).bind(this));
 		comp_renderer_node.setArg("sampler_GIVoxel", (function(){return arr;}).bind(this));
 		
-		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
 		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
 		comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
@@ -211,14 +211,14 @@ GI = function(sce) {
 	* resume
 	*/
 	this.resume = function() {
-		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
-		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
 		
-		comp_renderer_node.clearTempArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearTempArg("sampler_screenColor", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearTempArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
-		comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearTempArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
 		
 		_currentDestinationSampler = 4;

@@ -25,6 +25,7 @@ SimpleCamera = function(sce, jsonIn) {
 	// ComponentTransformTarget 
 	var comp_transformTarget = new ComponentTransformTarget();
 	camera.addComponent(comp_transformTarget);
+	comp_transformTarget.setTargetDistance(0.5);
 	
 	// ComponentProjection
 	var comp_projection = new ComponentProjection();

@@ -55,7 +55,7 @@ function VFP_GI(resolution) { VFP.call(this);
 				'vec2 texVec = vec2(col*texelSize, row*texelSize);\n'+
 				'vec4 texture = texture2D(sampler_voxelColor,vec2(texVec.x, texVec.y));\n'+
 				'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
-					'rgba = vec4(texture.rgb/255.0,1.0);\n'+
+					'rgba = vec4(texture.rgb/255.0,distance(vec3(voxelToWorldX(voxel.x), voxelToWorldX(voxel.y), voxelToWorldX(voxel.z)),RayOrigin));\n'+
 				'}\n'+
 	
 				'return rgba;\n'+
@@ -137,67 +137,78 @@ function VFP_GI(resolution) { VFP.call(this);
 
 
        		 	'vec3 pixelCoord = vposScreen.xyz / vposScreen.w;'+
-	 			'vec3 RayOrigin; vec3 RayDir; vec3 ro; vec3 rd;'+
+	 			
 	
 	 			'vec4 color;'+
-	 			'float maxang=0.75;'+
+	 			'float maxang=0.15;'+
+	 			'float maxB = 0.0;'+ 
 	 			
 	 			'int typePass = int(uTypePass);'+
 	 			'if(typePass != 3) {'+
 		 			'vec4 texScreenColor = texture2D(sampler_screenColor,  vec2(pixelCoord.x,pixelCoord.y));\n'+
 		 			'vec4 texScreenPos = texture2D(sampler_screenPos,  vec2(pixelCoord.x,pixelCoord.y));\n'+
 		 			'vec4 texScreenNormal = texture2D(sampler_screenNormal,  vec2(pixelCoord.x,pixelCoord.y));\n'+
-		 			'if(texScreenNormal.a == 0.0) {'+ // IF texScreenNormal.a == 0.0 Return to origin.
-		 				'if(typePass == 0) color = vec4(1.0,1.0,1.0, 0.0);\n'+ // save in textureFB_GIv2_screenColorTEMP
-		 				'else if(typePass == 1) color = vec4(0.0,0.0,0.0, 0.0);\n'+ // save in textureFB_GIv2_screenPosTEMP
-		 				'else color = vec4(0.0,0.0,0.0, 0.5);\n'+ // save in textureFB_GIv2_screenNormalTEMP // alpha 1.0 (found solid)
-		 			'} else if(texScreenNormal.a == 0.5) {'+ // IF texScreenNormal.a == 0.5 Start.
-		 				'RayOrigin = vec3(vposition.x,vposition.y,vposition.z);\n'+
-		 				'RayDir = vec3(vnormal.x,vnormal.y,vnormal.z);\n'+
-		 				'ro = RayOrigin*vec3(1.0,1.0,-1.0);'+
-		 				//'ro = RayOrigin;'+
-		 				'rd = RayDir*vec3(1.0,1.0,-1.0);'+
-		 				//'rd = RayDir;'+
-		 			'} else if(texScreenNormal.a == 1.0) {'+
-		 				'RayOrigin = vec3(texScreenPos.xyz);\n'+
-		 				'RayDir = vec3(texScreenNormal.xyz);\n'+
-		 				'ro = RayOrigin;'+
-		 				'rd = RayDir;'+
-		 			'}'+
-		 			'if(texScreenNormal.a > 0.0) {'+
-		 				'vec3 vectorRandom = getVector(reflect(normalize(ro),rd), maxang, vec2(randX1,randY1));'+
-		 				'vec4 rayT = rayTraversal(ro+(rd*(cs+cs)), vectorRandom);\n'+     // rX 0.0 perpend to normal; 0.5 parallel; 1.0 perpend
-		
+		 			
+		 			'if(texScreenNormal.a == 0.0) {'+ // IF texScreenNormal.a == 0.0 Prepare to start
+		 				'if(typePass == 0) color = vec4(1.0,1.0,1.0, 0.0);\n'+ // SAVE IN sampler_screenColor
+		 				'else if(typePass == 1) color = vec4(0.0,0.0,0.0, 0.0);\n'+ // SAVE IN sampler_screenPos
+		 				'else color = vec4(0.0,0.0,0.0, 0.5);\n'+ // SAVE IN sampler_screenNormal // alpha 0.5 ready to start
+		 			'} else if(texScreenNormal.a > 0.0) {'+
+		 				'vec3 ro; vec3 rd; vec4 rayT;;'+
+		 				
+		 				'if(texScreenNormal.a == 0.5) {'+
+			 				'ro = vposition.xyz*vec3(1.0,1.0,1.0);'+
+			 				'rd = vnormal.xyz*vec3(1.0,1.0,1.0);'+
+			 				
+			 				
+			 				'vec3 vectorRandom = getVector(rd, maxang, vec2(randX1,randY1));'+
+			 				'rayT = rayTraversal(ro+(rd*(cs+cs+cs)), vectorRandom);\n'+     // rX 0.0 perpend to normal; 0.5 parallel; 1.0 perpend
+		 				'} else if(texScreenNormal.a == 1.0) {'+
+			 				'ro = texScreenPos.xyz;'+
+			 				'rd = texScreenNormal.xyz;'+
+		 				
+			 				//'rd = reflect(normalize(ro),rd);'+
+			 				
+			 				
+			 				'vec3 vectorRandom = getVector(rd, maxang, vec2(randX1,randY1));'+
+			 				'rayT = rayTraversal(ro+(rd*(cs+cs+cs)), vectorRandom);\n'+     // rX 0.0 perpend to normal; 0.5 parallel; 1.0 perpend
+			 				//'vec4 rayT = rayTraversal(ro+(rd*(cs+cs)), vectorRandom);\n'+     // rX 0.0 perpend to normal; 0.5 parallel; 1.0 perpend
+		 				'}'+
+		 						 				
+		 						
 	 					'if(rayT.a > 0.0) {'+ // hit in solid
 	 						'float rx = abs((randX1-0.5)*2.0);'+
 	 						'rx = 1.0-rx;'+
 	 						'float ry = abs((randY1-0.5)*2.0);'+
 	 						'ry = 1.0-ry;'+
-	
-	 						'if(typePass == 0) color = vec4(texScreenColor.r*rayT.r,texScreenColor.g*rayT.g,texScreenColor.b*rayT.b, texScreenColor.a+1.0);\n'+ // save in textureFB_GIv2_screenColorTEMP
-	 						'else if(typePass == 1) color = vec4(rayT.r,rayT.g,rayT.b, texScreenPos.a+(1.0));\n'+ // save in textureFB_GIv2_screenPosTEMP
-	 						'else color = vec4(rayT.r,rayT.g,rayT.b, 1.0);\n'+ // save in textureFB_GIv2_screenNormalTEMP // alpha 1.0 (found solid)
+	 						
+	 						'float proc = (texScreenPos.a == maxB) ? 0.0 : 1.0;'+ // 1.0  (hit in solid. do nothing alpha 1.0); 0.0 (make process and return to origin alpha 0.0).
+	 						
+	 						
+	 						'if(typePass == 0) color = vec4(texScreenColor.r*rayT.r,texScreenColor.g*rayT.g,texScreenColor.b*rayT.b, texScreenColor.a+(1.0));\n'+ // SAVE IN sampler_screenColor // -(rayT.a/uGridsize)
+	 						'else if(typePass == 1) color = vec4(rayT.r,rayT.g,rayT.b, texScreenPos.a+1.0);\n'+ // SAVE IN sampler_screenPos
+	 						'else color = vec4(rayT.r,rayT.g,rayT.b, proc);\n'+ // SAVE IN sampler_screenNormal
 	 					'} else {'+ // hit in light
-	 						'if(typePass == 0) color = vec4(texScreenColor.r,texScreenColor.g,texScreenColor.b, texScreenColor.a+1.0);\n'+ // save in textureFB_GIv2_screenColorTEMP
-	 						'else if(typePass == 1) color = vec4(1.0,1.0,1.0, texScreenPos.a-1.0);\n'+ // save in textureFB_GIv2_screenPosTEMP
-	 						'else color = vec4(1.0,1.0,1.0, 0.0);\n'+ // save in textureFB_GIv2_screenNormalTEMP  // alpha 0.0 (make process and return to origin).
+	 						'if(typePass == 0) color = vec4(texScreenColor.r,texScreenColor.g,texScreenColor.b, texScreenColor.a);\n'+ // SAVE IN sampler_screenColor
+	 						'else if(typePass == 1) color = vec4(1.0,1.0,1.0, texScreenPos.a+1.0);\n'+ // SAVE IN sampler_screenPos
+	 						'else color = vec4(1.0,1.0,1.0, 0.0);\n'+ // SAVE IN sampler_screenNormal  // (make process and return to origin alpha 0.0).
 	 					'}'+
 		 				
 		 			'}'+
 		 			//'color = vec4(ro, 1.0);\n'+ // for view pos
 		 			//'color = vec4(vposition.xyz, 1.0);\n'+ // for view pos
 		 			//'color = vec4(vnormal.xyz, 1.0);\n'+  // for view dir
-	 			'} else {'+
+	 			'} else {'+ // SAVE IN sampler_GIVoxel
 					'vec4 texScreenColor = texture2D(sampler_screenColor, vec2(pixelCoord.x,pixelCoord.y));\n'+
-					'vec4 texScreenPos = texture2D(sampler_screenPos, vec2(pixelCoord.x,pixelCoord.y));\n'+
 					'vec4 texScreenNormal = texture2D(sampler_screenNormal, vec2(pixelCoord.x,pixelCoord.y));\n'+
 					'vec4 texScreenGIVoxel = texture2D(sampler_GIVoxel, vec2(pixelCoord.x,pixelCoord.y));\n'+
-					'if(texScreenNormal.a == 0.0) {'+ // texScreenNormal.a == 0.0 (Se encontro luz o maxbounds).
-						'float am = (texScreenColor.a-texScreenPos.a)/(texScreenColor.a);'+
+					
+					'if(texScreenNormal.a == 0.0) {'+ //  alpha 1.0 (hit in light. make process)
+						'float am = 1.0-(texScreenColor.a/(maxB+1.0));'+
 						'vec3 amount = vec3(am, am, am);'+
-						//'color = vec4(texScreenGIVoxel.xyz+amount, texScreenGIVoxel.a+1.0);'+ // alpha is samples
-						'color = vec4(texScreenGIVoxel.xyz+(amount*texScreenColor.rgb), texScreenGIVoxel.a+1.0);'+ // alpha is samples
-					'} else {'+ // golpea en solido. No hacemos nada
+						'color = vec4(texScreenGIVoxel.xyz+amount, texScreenGIVoxel.a+1.0);'+ // alpha is samples
+						//'color = vec4(texScreenGIVoxel.xyz+(amount*texScreenColor.rgb), texScreenGIVoxel.a+1.0);'+ // alpha is samples 
+					'} else {'+ // alpha 1.0 (hit in solid. do nothing)
 						'color = texScreenGIVoxel;'+
 						//'color = vec4(texScreenGIVoxel.xyz-((texScreenColor.xyz*amount)*0.001), texScreenGIVoxel.a);'+
 					'}'+

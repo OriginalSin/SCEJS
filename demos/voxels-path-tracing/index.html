@@ -16,7 +16,9 @@
 	    
 	    <script src="../../SCEJS/Prefabs/GI/VFP_GI.class.js"></script>
 	    <script src="../../SCEJS/Prefabs/GI/SE_GI.class.js"></script>
-	    <script src="../../SCEJS/Prefabs/GI/GI.class.js"></script>	    
+	    <script src="../../SCEJS/Prefabs/GI/GI.class.js"></script>
+	    
+	    <script src="../../SCEJS/Prefabs/VolumeView/SE_VolumeView.class.js"></script>	    
 	</head>
 
 	<body>
@@ -54,7 +56,7 @@
 
 
 			// VOXELIZATOR & GI PREFABS
-			var _gridSize = 105.1, _resolution = 128;
+			var _gridSize = 5.1, _resolution = 128; 
 			var OFFSET = 1000.0;
 			
 			var voxelizator = new Voxelizator(sce);
@@ -62,7 +64,7 @@
 			gi.setResolution(_resolution);
 			gi.setGridSize(_gridSize);			
 			
-			var mesh = new Mesh().loadObj("../_RESOURCES/sponza.obj", (function(mesh, textures) {
+			var mesh = new Mesh().loadObj("../_RESOURCES/cornellBox3wall.obj", (function(mesh, textures) {
 				voxelizator.setMesh(mesh);
 				voxelizator.setImage("../_RESOURCES/white.jpg"); 
 				
@@ -98,6 +100,37 @@
 											
 											gi.setVoxelsArrays(voxelizator.getGeneratedArrays());											
 											gi.runGI();
+											
+											
+											
+											var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+											comp_screenEffects.addKernel({	"name": "sampler_volume",
+																			"kernel": new SE_VolumeView(_resolution),			
+																			"width": sce.getCanvas().width, 
+																			"height": sce.getCanvas().height,
+																			"enableDepthTest": false,
+																			"enableBlend": false, 
+																			"blendSrc": Constants.BLENDING_MODES.ONE_MINUS_DST_ALPHA,
+																			"blendDst": Constants.BLENDING_MODES.SRC_COLOR,
+																			"onPostTick": (function() {						
+																				
+																			}).bind(this)});
+											console.log(voxelizator.getGeneratedArrays().normal);
+											comp_screenEffects.setArg("sampler_volume", (function(){return voxelizator.getGeneratedArrays().normal;}).bind(this));
+											//comp_screenEffects.clearArg("sampler_volume", [1.0, 1.0, 1.0, 1.0]); 
+											
+											var comp_cam_tranf_target = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
+											comp_screenEffects.setArg("posCamGoal", (function(){return [comp_cam_tranf_target.getPositionGoal().e[0], comp_cam_tranf_target.getPositionGoal().e[1], comp_cam_tranf_target.getPositionGoal().e[2], 1.0];}).bind(this));
+											comp_screenEffects.setArgUpdatable("posCamGoal", true);
+											
+											comp_screenEffects.setArg("posCamTarget", (function(){return [comp_cam_tranf_target.getPositionTarget().e[0], comp_cam_tranf_target.getPositionTarget().e[1], comp_cam_tranf_target.getPositionTarget().e[2], 1.0];}).bind(this));
+											comp_screenEffects.setArgUpdatable("posCamTarget", true);
+											
+											comp_screenEffects.setArg("viewportWidth", (function(){return sce.getCanvas().width;}).bind(this));
+											comp_screenEffects.setArg("viewportHeight", (function(){return sce.getCanvas().height;}).bind(this));
+											
+											comp_screenEffects.setArg("uGridsize", (function(){return _gridSize;}).bind(this));
+											comp_screenEffects.setArg("uResolution", (function(){return _resolution;}).bind(this));
 										}
 									});
 			}).bind(this));

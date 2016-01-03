@@ -3,9 +3,45 @@ function VFP_VOXELIZATOR() { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [
        	    // vertex head
-       		['varying vec4 vVN;\n'+
+       		['varying vec4 vVPos;\n'+
+       		 'varying vec4 vVN;\n'+
 			'varying vec4 vVT;\n'+
-			'varying float vVTU;\n'],
+			'varying float vVTU;\n'+
+			'mat4 lookAt(vec3 eye, vec3 center, vec3 up) {'+
+	  		     'vec3 zaxis = normalize(center - eye);'+
+	  		     'vec3 xaxis = normalize(cross(up, zaxis));'+
+	  		     'vec3 yaxis = cross(zaxis, xaxis);'+
+	
+	  		     'mat4 matrix;'+
+	  		     //Column Major
+	  		     'matrix[0][0] = xaxis.x;'+
+	  		     'matrix[1][0] = yaxis.x;'+
+	  		     'matrix[2][0] = zaxis.x;'+
+	  		     'matrix[3][0] = 0.0;'+
+	
+	  		     'matrix[0][1] = xaxis.y;'+
+	  		     'matrix[1][1] = yaxis.y;'+
+	  		     'matrix[2][1] = zaxis.y;'+
+	  		     'matrix[3][1] = 0.0;'+
+	
+	  		     'matrix[0][2] = xaxis.z;'+
+	  		     'matrix[1][2] = yaxis.z;'+
+	  		     'matrix[2][2] = zaxis.z;'+
+	  		     'matrix[3][2] = 0.0;'+
+	
+	  		     'matrix[0][3] = -dot(xaxis, eye);'+
+	  		     'matrix[1][3] = -dot(yaxis, eye);'+
+	  		     'matrix[2][3] = -dot(zaxis, eye);'+
+	  		     'matrix[3][3] = 1.0;'+
+	
+	  		     'return matrix;'+
+	  		 '}'+
+	  		'mat4 transpose(mat4 m) {'+
+ 			  'return mat4(  m[0][0], m[1][0], m[2][0], m[3][0],'+
+ 			                'm[0][1], m[1][1], m[2][1], m[3][1],'+
+ 			  				'm[0][2], m[1][2], m[2][2], m[3][2],'+
+ 			  				'm[0][3], m[1][3], m[2][3], m[3][3]);'+
+ 			 '}'],
 
        		// vertex source
        		['void main(float4* vertexPos,'+
@@ -27,22 +63,34 @@ function VFP_VOXELIZATOR() { VFP.call(this);
        				'float gridSize = uGridsize;'+
 					'int maxLevelCells = int(uResolution);'+
 					'float cs = gridSize/float(maxLevelCells);\n'+ // cell size
+										
+
+       				'mat4 mCam = transpose(lookAt( 	vec3(0.0, (-(gridSize/2.0)+(uCurrentHeight*cs)), 0.0),'+
+			       									'vec3(0.0, (-(gridSize/2.0)+(uCurrentHeight*cs))-1.0, 0.001),'+
+			       									'vec3(0.0, 1.0, 0.0)));'+
+       									
+       									
+					'vec3 vp = vertexPos[x].xyz;\n'+
+					'vp = vp*vec3(1.0, 1.0, 1.0);'+
 					
-       				'vec3 vp = vec3(vertexPos[x].x, vertexPos[x].y + (gridSize/2.0) - (cs*uCurrentHeight), vertexPos[x].z);\n'+ 
-    				'vec3 vertexPositionFlipX = vp*vec3(1.0,1.0,1.0);'+
-    				'vec4 vPosition = PMatrix*cameraWMatrix*nodeWMatrix*vec4(vertexPositionFlipX,1.0);'+  
-    				'vec3 verP; float doffset = 0.02*uGridsize*vPosition.z;'+   
-    				'int offs = int(uCurrentOffset);'+
-    				'if(offs == 0) verP = vec3(vertexPositionFlipX)+(vec3(	doffset,	0.0,	doffset));'+  
-    				'if(offs == 1) verP = vec3(vertexPositionFlipX)+(vec3(	-doffset,	0.0,	-doffset));'+  
-    				'if(offs == 2) verP = vec3(vertexPositionFlipX)+(vec3(	-doffset,	0.0,	doffset));'+  
-    				'if(offs == 3) verP = vec3(vertexPositionFlipX)+(vec3(	doffset,	0.0,	-doffset));'+  
+					'vec4 vPosition = PMatrix*mCam*nodeWMatrix*vec4(vp,1.0);'+					  
+    				'float lengthOffs = 0.005*gridSize*vPosition.z;'+  
     				
-    				'if(offs == 4) verP = vec3(vertexPositionFlipX)+(vec3(	0.0,		0.0,	doffset));'+  
-    				'if(offs == 5) verP = vec3(vertexPositionFlipX)+(vec3(	0.0,		0.0,	-doffset));'+  
-    				'if(offs == 6) verP = vec3(vertexPositionFlipX)+(vec3(	doffset,	0.0,	0.0));'+  
-    				'if(offs == 7) verP = vec3(vertexPositionFlipX)+(vec3(	-doffset,	0.0,	0.0));'+  
-    				'gl_Position = PMatrix*cameraWMatrix*nodeWMatrix*vec4(verP,1.0);\n'+   
+       				//'float lengthOffs = 1.0+((( vp.y+(gridSize/2.0) )/gridSize)*5.0);'+       				       				
+       									
+    				'int currOffs = int(uCurrentOffset);'+ 
+    				'if(currOffs == 0) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+  
+    				'if(currOffs == 1) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+  
+    				'if(currOffs == 2) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+  
+    				'if(currOffs == 3) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+       				
+    				'if(currOffs == 4) vp = vp+vec3(0.0,		0.0,	-lengthOffs);'+  
+    				'if(currOffs == 5) vp = vp+vec3(0.0,		0.0,	-lengthOffs);'+  
+    				'if(currOffs == 6) vp = vp+vec3(-lengthOffs,	0.0,	0.0);'+  
+    				'if(currOffs == 7) vp = vp+vec3(-lengthOffs,	0.0,	0.0);'+
+    				
+    				'vVPos = vertexPos[x];'+
+    				'gl_Position = PMatrix * mCam * nodeWMatrix * vec4(vp, 1.0);\n'+   
+    				
     				
     				'vVN = vertexNormal[x];\n'+
     				'vVT = vertexTexture[x];\n'+
@@ -50,7 +98,8 @@ function VFP_VOXELIZATOR() { VFP.call(this);
        		'}'],
 
        		// fragment head
-       		['varying vec4 vVN;\n'+
+       		['varying vec4 vVPos;\n'+
+       		 'varying vec4 vVN;\n'+
 			 'varying vec4 vVT;\n'+
 			 'varying float vVTU;\n'+
  			new Utils().packGLSLFunctionString()],
@@ -75,12 +124,19 @@ function VFP_VOXELIZATOR() { VFP.call(this);
 					'float cs = gridSize/float(maxLevelCells);\n'+ // cell size
 					'float chs = cs/2.0;\n'+
 					
+					
+					/*'float ccX = gl_FragCoord.x;'+
+					//'int ccY = int(uCurrentHeight);'+
+					//'float currentCameraPosY = vPosition.y + (gridSize/2.0) - (cs*uCurrentHeight);'+
+					'float ccZ = uResolution-gl_FragCoord.y;'+ 
+					
 					'vec3 p = vec3(0.0,0.0,0.0)+vec3(-(gridSize/2.0), -(gridSize/2.0), -(gridSize/2.0));\n'+ // init position
-					'float ccX = gl_FragCoord.x;'+
-					'int ccY = int(uCurrentHeight);'+
-					'float ccZ = float(maxLevelCells)-gl_FragCoord.y;'+ 		 			
-					'p = p+vec3(cs*ccX, cs*float(ccY), cs*ccZ);\n'+
-					'p = p+vec3(cs, cs, cs);\n'+
+					'p = p+vec3(cs*ccX, 0.0, cs*ccZ);\n'+
+					'p = vec3(p.x, (cs*uCurrentHeight), p.z);\n'+
+					'p = p+vec3(cs, cs, cs);\n'+*/
+					
+					'vec3 p = vVPos.xyz;'+
+					//'p = p+vec3(cs, cs, cs);\n'+ 
 					
 					'if(fillMode == 1) {'+ // posX
 						'gl_FragColor = pack((p.x+(gridSize/2.0))/gridSize);\n'+

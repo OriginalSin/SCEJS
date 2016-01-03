@@ -43,6 +43,8 @@ Voxelizator = function(sce) {
 		//"geometryLength": 4,
 		//"enableDepthTest": false,
 		"enableBlend": true, 
+		"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
+		"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
 		"onPreTick": (function() {
 			comp_renderer_node.setVfpArgDestination("VOXELIZATOR", undefined);
 			if(_makeVoxels == true) {
@@ -69,31 +71,60 @@ Voxelizator = function(sce) {
 				comp_renderer_node.setArg("uCurrentOffset", (function(){return _currentOffset;}).bind(this));
 				if(_currentOffset == 0) {
 					//_gl.clearColor(0.0,0.0,0.0,0.0); 
-					_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
+					//_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
 				}
 			}
 		}).bind(this),
 		"onPostTick": (function() {
 			if(_makeVoxels == true) {				
+				var setadd = (function(arrOrig, addarr, id) {
+					var idOrig = id/4;
+					for(var n=0; n < addarr.length/4; n++) {
+						var iddOrig = idOrig*4;
+						var iddAdd = n*4;
+						
+						if(arrOrig[iddOrig+3] == 0) {
+							arrOrig[iddOrig] = addarr[iddAdd];
+							arrOrig[iddOrig+1] = addarr[iddAdd+1];
+							arrOrig[iddOrig+2] = addarr[iddAdd+2];
+							arrOrig[iddOrig+3] = addarr[iddAdd+3];
+						} else {
+							arrOrig[iddOrig] = arrOrig[iddOrig];
+							arrOrig[iddOrig+1] = arrOrig[iddOrig+1];
+							arrOrig[iddOrig+2] = arrOrig[iddOrig+2];
+							arrOrig[iddOrig+3] = arrOrig[iddOrig+3];
+						}
+						
+						idOrig++;
+					}
+					return arrOrig;
+				}).bind(this);
+				
+				
+				var heightImageResult = new Uint8Array(_resolution*_resolution*4);
+				_gl.readPixels(0, 0, _resolution, _resolution, _gl.RGBA, _gl.UNSIGNED_BYTE, heightImageResult);
+
+				var idx3d = (_currentHeight*(_resolution*_resolution))*4;  
+				var num = idx3d/_wh;
+				var col = _utils.fract(num)*_wh; 
+				var row = Math.floor(num);
+				if(_typeFillMode[0] == "albedo")		
+					//_arr_VoxelsColor.set(heightImageResult, idx3d);		
+					_arr_VoxelsColor = setadd(_arr_VoxelsColor, heightImageResult, idx3d);
+				else if(_typeFillMode[0] == "positionX")
+					//_arr_VoxelsPositionX.set(heightImageResult, idx3d);
+					_arr_VoxelsPositionX = setadd(_arr_VoxelsPositionX, heightImageResult, idx3d);
+				else if(_typeFillMode[0] == "positionY")
+					//_arr_VoxelsPositionY.set(heightImageResult, idx3d);	
+					_arr_VoxelsPositionY = setadd(_arr_VoxelsPositionY, heightImageResult, idx3d);				
+				else if(_typeFillMode[0] == "positionZ")
+					//_arr_VoxelsPositionZ.set(heightImageResult, idx3d);	
+					_arr_VoxelsPositionZ = setadd(_arr_VoxelsPositionZ, heightImageResult, idx3d);				
+				else if(_typeFillMode[0] == "normal")
+					//_arr_VoxelsNormal.set(heightImageResult, idx3d);
+					_arr_VoxelsNormal = setadd(_arr_VoxelsNormal, heightImageResult, idx3d);
+					
 				if(_currentOffset == 7) {
-					var heightImageResult = new Uint8Array(_resolution*_resolution*4);
-					_gl.readPixels(0, 0, _resolution, _resolution, _gl.RGBA, _gl.UNSIGNED_BYTE, heightImageResult);
-					
-					var idx3d = (_currentHeight*(_resolution*_resolution))*4;  
-					var num = idx3d/_wh;
-					var col = _utils.fract(num)*_wh; 
-					var row = Math.floor(num);
-					if(_typeFillMode[0] == "albedo")		
-						_arr_VoxelsColor.set(heightImageResult, idx3d);					
-					else if(_typeFillMode[0] == "positionX")
-						_arr_VoxelsPositionX.set(heightImageResult, idx3d);
-					else if(_typeFillMode[0] == "positionY")
-						_arr_VoxelsPositionY.set(heightImageResult, idx3d);					
-					else if(_typeFillMode[0] == "positionZ")
-						_arr_VoxelsPositionZ.set(heightImageResult, idx3d);					
-					else if(_typeFillMode[0] == "normal")
-						_arr_VoxelsNormal.set(heightImageResult, idx3d);
-					
 					_currentHeight++;
 					_currentOffset = 0;
 				} else {
