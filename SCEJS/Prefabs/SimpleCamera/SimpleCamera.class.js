@@ -43,7 +43,7 @@ SimpleCamera = function(sce, jsonIn) {
 									"width": _sce.getCanvas().width,
 									"height": _sce.getCanvas().height,
 									"onPostTick": (function() {									
-										comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+										//comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
 									}).bind(this)});
 	//_sce.setDimensions(_sce.getCanvas().width, _sce.getCanvas().height);
 	
@@ -176,7 +176,7 @@ SimpleCamera = function(sce, jsonIn) {
 				//comp_transformTarget.getMatrix().setRotation(new Utils().degToRad(180),false,$V3([0.0,1.0,0.0]));
 				break;
 			case Constants.VIEW_TYPES.TOP:
-				comp_transformTarget.pitch(-90);
+				comp_transformTarget.pitch(-89.9);
 				break;
 			case Constants.VIEW_TYPES.BOTTOM:			
 				comp_transformTarget.pitch(90);

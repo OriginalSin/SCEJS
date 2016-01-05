@@ -153,7 +153,7 @@ ComponentProjection = function() { Component.call(this);
 		if(proy == Constants.PROJECTION_TYPES.PERSPECTIVE)
 			mProjectionMatrix = $M16().setPerspectiveProjection(fovy, aspect, _near, _far);
 		else
-			mProjectionMatrix = $M16().setOrthographicProjection(-aspect*fovy, aspect*fovy, -fovy, fovy, _nearOrtho, _farOrtho); 
+			mProjectionMatrix = $M16().setOrthographicProjection(-aspect*fovy, aspect*fovy, -aspect*fovy, aspect*fovy, _nearOrtho, _farOrtho); 
 	}).bind(this);
 };
 ComponentProjection.prototype = Object.create(Component.prototype);

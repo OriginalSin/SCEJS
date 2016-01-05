@@ -11,6 +11,8 @@ SystemEvents = function(sce, target) {
 
 	var _utils = new Utils();
 
+	var mousePosX_orig = 0;
+	var mousePosY_orig = 0;
 	var mousePosX = 0;
 	var mousePosY = 0;
 	var mouseOldPosX = 0;
@@ -66,23 +68,21 @@ SystemEvents = function(sce, target) {
 			if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN) {
 				divPositionX = _utils.getElementPosition(_sce.getCanvas()).x;
 				divPositionY = _utils.getElementPosition(_sce.getCanvas()).y;
+				
 				mousePosX = (evt.clientX - divPositionX);
 				mousePosY = (evt.clientY - divPositionY);
+				mousePosX_orig = mousePosX;
+				mousePosY_orig = mousePosY;
 				mouseOldPosX = mousePosX;
 				mouseOldPosY = mousePosY;
 			}
 			if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE) {
-				var factordist = comp_projection.getFov()*0.0039;
-				var factorxdim = (mouseOldPosX - mousePosX) * factordist;
-				var factorydim = (mouseOldPosY - mousePosY) * factordist;
 				mouseOldPosX = mousePosX;
 				mouseOldPosY = mousePosY;
 				mousePosX = (evt.clientX - divPositionX);
 				mousePosY = (evt.clientY - divPositionY);
-				var m = stage.getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix();
-				var X = m.getLeft().x(factorxdim*-1.0);
-				var Y = m.getUp().x(factorydim*((comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO) ? -1.0 : 1.0));
-				dir = X.add(Y);
+				
+				dir = $V3([mousePosX-mousePosX_orig, 0.0, mousePosY-mousePosY_orig]);
 			}
 			if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL) {
 				var weightX = 0;

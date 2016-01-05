@@ -198,7 +198,7 @@ SCE = function() {
 							"width": dimensions.width,
 							"height": dimensions.width,
 							"onPostTick": (function() {									
-								cse.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+								//cse.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
 							}).bind(this)});
 		}
 	};

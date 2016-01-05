@@ -9,11 +9,6 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
        		['void main(float4* data'+ // data = 0: nodeId, 1: linkId, 2: oppositeId, 3: isTarget
 						',float4* posXYZW'+
 						',float4* dir'+
-						',float enableDrag'+
-						',float idToDrag'+
-						',float MouseDragTranslationX'+
-						',float MouseDragTranslationY'+
-						',float MouseDragTranslationZ'+
 						',float isLink'+
 						',float isNode'+
 						','+customArgs+
@@ -35,19 +30,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			'vec3 currentPos = posXYZW[x].xyz;\n'+
 			'vec3 currentPos_opposite = posXYZW[x_opposite].xyz;\n'+ 
 			
-			'if(enableDrag == 1.0) {'+
-				'if(isLink == 0.0) {'+
-					'if(linkId == idToDrag) {'+
-						'vec3 dp = vec3(MouseDragTranslationX, MouseDragTranslationY, MouseDragTranslationZ);'+ 
-						'currentDir = dp;\n'+
-					'}\n'+
-				'} else {'+
-					'if(nodeId == idToDrag) {'+
-						'vec3 dp = vec3(MouseDragTranslationX, MouseDragTranslationY, MouseDragTranslationZ);'+ 
-						'currentDir = dp;\n'+
-					'}\n'+
-				'}\n'+
-			'}\n'+ 
+			
 			
 			'currentDir = currentDir*0.995;'+ // air resistence
 			
