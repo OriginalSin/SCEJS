@@ -25,6 +25,7 @@ Graph = function(sce) {
 	var readPixel = false;
 	var selectedId = -1;
 	var _initialPosDrag;
+	var _currN = 0;
 	
 	// meshes
 	var circleSegments = 12;
@@ -290,20 +291,26 @@ Graph = function(sce) {
 				ctxNodeImgTMP.drawImage(image, 0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
 
 				// apply mask to thumb image
-				var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( new Utils().getImageFromCanvas(canvasNodeImgTMP) );
-				var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
-				for(var n=0; n < datMask.length/4; n++) {
-					var idx = n*4;
-					if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
-				}
-				image = new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH) );
+				new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(img) {
+					var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( img );
+					var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
+					for(var n=0; n < datMask.length/4; n++) {
+						var idx = n*4;
+						if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
+					}
+					new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
+						// draw thumb image on atlas & update the 'nodesImg' argument
+						var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
+						ctxNodeImg.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
 
-				// draw thumb image on atlas & update the 'nodesImg' argument
-				var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
-				ctxNodeImg.drawImage(image, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-
-				var imgAtlas = new Utils().getImageFromCanvas(canvasNodeImg);
-				comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
+						new Utils().getImageFromCanvas(canvasNodeImg, (function(imgAtlas) {
+							comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
+						}).bind(this));
+						
+					}).bind(this));
+					
+				}).bind(this));
+				
 			}).bind(this, nodesImgMask);
 			image.src = url;
 		}
@@ -423,7 +430,7 @@ Graph = function(sce) {
 		for(var n=0; n < mesh_nodes.vertexArray.length/4; n++) {
 			var idxVertex = n*4;
 
-			this.arrayNodeData.push(this.currentNodeId, this.currentNodeId, 0.0, 0.0);
+			this.arrayNodeData.push(this.currentNodeId, -1.0, 0.0, 0.0);
 			this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
 			this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
 			this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
@@ -576,6 +583,21 @@ Graph = function(sce) {
 			// ADD LINK TO ARRAY LINKS
 			_links[jsonIn.origin+"->"+jsonIn.target] = json;
 			//console.log("link "+jsonIn.origin+"->"+jsonIn.target);
+			
+			
+			//
+			for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+				var id = n*4;
+				if(this.arrayNodeData[id] == _nodesByName[jsonIn.origin].nodeId) {
+					this.arrayNodeData[id+1] = _nodesByName[jsonIn.target].nodeId;
+					this.arrayNodeData[id+2] = this.arrayNodeData[id+2];
+				}
+				if(this.arrayNodeData[id] == _nodesByName[jsonIn.target].nodeId) {
+					this.arrayNodeData[id+1] = _nodesByName[jsonIn.origin].nodeId;
+					this.arrayNodeData[id+2] = this.arrayNodeData[id+2]+1.0;
+				}
+			}
+			
 		} else console.log("link "+jsonIn.origin+"->"+jsonIn.target+" already exists");
 	};
 	/**
@@ -595,7 +617,7 @@ Graph = function(sce) {
 	 */
 	var addLinkNow = (function(jsonIn) {
 		// (origin)
-		this.arrayLinkData.push(jsonIn.origin_nodeId, this.currentLinkId, 0.0, 0.0);
+		this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, 0.0);
 		this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
 		this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
 		this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
@@ -617,7 +639,7 @@ Graph = function(sce) {
 		}
 
 		// (target)
-		this.arrayLinkData.push(jsonIn.target_nodeId, this.currentLinkId+1, 0.0, 1.0);
+		this.arrayLinkData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, 0.0);
 		this.arrayLinkNodeName.push(jsonIn.target_nodeName);
 		this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
 		this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
@@ -666,6 +688,7 @@ Graph = function(sce) {
 	 * updateLinks
 	 */
 	this.updateLinks = function() {
+		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
 		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
@@ -736,7 +759,7 @@ Graph = function(sce) {
 				this.arrayArrowVertexNormal.push(mesh_arrows.normalArray[idxVertex], mesh_arrows.normalArray[idxVertex+1], mesh_arrows.normalArray[idxVertex+2], 1.0);
 				this.arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
 				if(o == 0) {
-					this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0);
+					this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, 0.0);
 					this.arrayArrowNodeName.push(jsonIn.origin_nodeName);
 					if(jsonIn.origin_layoutNodeArgumentData != undefined) {
 						for(var argNameKey in _customArgs) {
@@ -755,7 +778,7 @@ Graph = function(sce) {
 						}
 					}
 				} else {
-					this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0);
+					this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, 0.0);
 					this.arrayArrowNodeName.push(jsonIn.target_nodeName);
 					if(jsonIn.target_layoutNodeArgumentData != undefined) {
 						for(var argNameKey in _customArgs) {
@@ -990,7 +1013,38 @@ Graph = function(sce) {
 
 		// nodes
 		comp_renderer_nodes.addKernel({	"name": "dir",
-										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection)});
+										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
+										"onPreTick": (function() {
+											var A = parseInt(Math.random()*this.currentNodeId);
+											var B = parseInt(Math.random()*this.currentNodeId);
+											
+											comp_renderer_nodes.setArg("originId", (function() {return A;}).bind(this));
+											comp_renderer_nodes.setArg("targetId", (function() {return B;}).bind(this)); 
+											
+											if(_links.hasOwnProperty(_nodesById[A].nodeName+"->"+_nodesById[B].nodeName) == false)
+												comp_renderer_nodes.setArg("isConnected", (function() {return 0.0;}).bind(this));
+											else
+												comp_renderer_nodes.setArg("isConnected", (function() {return 1.0;}).bind(this));
+											
+											
+											
+											/*var n=0;
+											for(var key in _links) {
+												if(n == _currN) {
+													console.log(_links[key].origin_nodeId+" "+_links[key].target_nodeId);
+													comp_renderer_nodes.setArg("originId", (function() {return _links[key].origin_nodeId;}).bind(this));
+													comp_renderer_nodes.setArg("targetId", (function() {return _links[key].target_nodeId;}).bind(this)); 
+													
+													_currN++;
+													if(_currN == Object.keys(_links).length)
+														_currN = 0;
+													
+													break;
+												}
+												n++;
+											}*/
+											
+										}).bind(this)});
 		comp_renderer_nodes.addKernel({	"name": "posXYZW",
 										"kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition),
 										"onPostTick": (function() {
@@ -1007,7 +1061,7 @@ Graph = function(sce) {
 									"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
 									"onPreTick": (function() {
 										 comp_renderer_nodes.setVfpArgDestination("NODES_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-										 _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
+										 //_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT); 
 									}).bind(this)});
 		comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",
 									"vfp": new VFP_NODEPICKDRAG(),
@@ -1166,8 +1220,12 @@ Graph = function(sce) {
 				setVal(type, jsonIn.argName, "nodes_array_value", n, jsonIn.value);
 			else {
 				var id = (type == "float") ? n : n*4;
-				if(_customArgs[jsonIn.argName]["nodes_array_value"][id] == undefined)
-					setVal(type, jsonIn.argName, "nodes_array_value", n, 0.0);
+				if(_customArgs[jsonIn.argName]["nodes_array_value"][id] == undefined) {
+					if(type == "float")
+						setVal(type, jsonIn.argName, "nodes_array_value", n, 0.0);
+					else 
+						setVal(type, jsonIn.argName, "nodes_array_value", n, [0.0,0.0,0.0,0.0]);
+				}
 			}
 		}
 		comp_renderer_nodes.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodes_array_value;}).bind(this), this.splitNodes);
@@ -1178,8 +1236,12 @@ Graph = function(sce) {
 				setVal(type, jsonIn.argName, "links_array_value", n, jsonIn.value);
 			else {
 				var id = (type == "float") ? n : n*4;
-				if(_customArgs[jsonIn.argName]["links_array_value"][id] == undefined)
-					setVal(type, jsonIn.argName, "links_array_value", n, 0.0);
+				if(_customArgs[jsonIn.argName]["links_array_value"][id] == undefined) {
+					if(type == "float")
+						setVal(type, jsonIn.argName, "links_array_value", n, 0.0);
+					else 
+						setVal(type, jsonIn.argName, "links_array_value", n, [0.0,0.0,0.0,0.0]);
+				}
 			}
 		}
 		comp_renderer_links.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this), this.splitLinks);
@@ -1190,8 +1252,12 @@ Graph = function(sce) {
 				setVal(type, jsonIn.argName, "arrows_array_value", n, jsonIn.value);
 			else {
 				var id = (type == "float") ? n : n*4;
-				if(_customArgs[jsonIn.argName]["arrows_array_value"][id] == undefined)
-					setVal(type, jsonIn.argName, "arrows_array_value", n, 0.0);
+				if(_customArgs[jsonIn.argName]["arrows_array_value"][id] == undefined) {
+					if(type == "float")
+						setVal(type, jsonIn.argName, "arrows_array_value", n, 0.0);
+					else 
+						setVal(type, jsonIn.argName, "arrows_array_value", n, [0.0,0.0,0.0,0.0]);
+				}
 			}
 		}
 		comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this), this.splitArrows);
@@ -1203,8 +1269,12 @@ Graph = function(sce) {
 				setVal(type, jsonIn.argName, "nodestext_array_value", n, jsonIn.value);
 			else {
 				var id = (type == "float") ? n : n*4;
-				if(_customArgs[jsonIn.argName]["nodestext_array_value"][id] == undefined)
-					setVal(type, jsonIn.argName, "nodestext_array_value", n, 0.0);
+				if(_customArgs[jsonIn.argName]["nodestext_array_value"][id] == undefined) {
+					if(type == "float")
+						setVal(type, jsonIn.argName, "nodestext_array_value", n, 0.0);
+					else 
+						setVal(type, jsonIn.argName, "nodestext_array_value", n, [0.0,0.0,0.0,0.0]);
+				}
 			}
 		}
 		comp_renderer_nodesText.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodestext_array_value;}).bind(this), this.splitNodesText);

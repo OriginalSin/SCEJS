@@ -72,19 +72,40 @@ ArrayGenerator = function() {
 	/**
 	* @param {Object} jsonIn
 	* @param {Int} jsonIn.count - count
-	* @param {Float} jsonIn.radius - radius
+	* @param {Float} [jsonIn.radius=1.0] - radius
 	* @return {Array<Float>}
 	*/
 	this.sphericalArray = function(jsonIn) {
 		var arr = [];
+		var rad = (jsonIn == undefined) ? 1.0 : jsonIn.radius;
+		
 		for(var n=0; n < jsonIn.count; n++) {
-			var rad = (jsonIn == undefined) ? 1.0 : jsonIn.radius;
 			var currAngleH = Math.random()*360.0;
 			var currAngleV = Math.random()*180.0;
 			arr.push(	Math.cos(currAngleH) * Math.abs(Math.sin(currAngleV)) * rad,  
 						Math.cos(currAngleV) * rad * Math.random(),
 						Math.sin(currAngleH) * Math.abs(Math.sin(currAngleV)) * rad,
 						1.0);
+		}
+		
+		return arr;
+	};	
+	/**
+	 * hemArray
+	 * @param {Object} jsonIn
+	 * @param {Int} jsonIn.count - count
+	 * @param {Float} [jsonIn.radius=1.0] - radius
+	 * @param {StormV3} jsonIn.normalVector
+	 * @param {Float} jsonIn.degrees
+	 */
+	this.hemArray = function(jsonIn) {
+		var arr = [];		
+		var rad = (jsonIn == undefined) ? 1.0 : jsonIn.radius;
+		
+		for(var n=0; n < jsonIn.count; n++) {
+			var v3 = new Utils().getVector(jsonIn.normalVector, jsonIn.degrees);
+			
+			arr.push(v3.e[0]*rad, v3.e[1]*rad, v3.e[2]*rad, 1.0);
 		}
 		
 		return arr;

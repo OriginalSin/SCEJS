@@ -49,17 +49,21 @@ Utils.prototype.getCanvasFromUint8Array = function(uint8arr, width, height) {
 
     return e;
 };
-
+/**
+ * @callback Utils~getImageFromCanvas~onload
+ * @param {HTMLImageElement} img
+ */
 /**
 * Get HTMLImageElement from canvas
-* @returns {HTMLImageElement}
 * @param {HTMLCanvasElement} canvasElement
+* @param {Utils~getImageFromCanvas~onload} canvasElement
 */
-Utils.prototype.getImageFromCanvas = function(oldCanvas) {
+Utils.prototype.getImageFromCanvas = function(oldCanvas, onload) {
 	var imagen = document.createElement('img');
+	imagen.onload = (function(img, onload){
+		onload(img);
+    }).bind(this, imagen, onload);
 	imagen.src = oldCanvas.toDataURL();
-
-    return imagen;
 };
 
 /**
@@ -90,7 +94,7 @@ Utils.prototype.getVector = function(vecNormal, degrees) {
 	var angleLng = ob.lng;
 			
 	var desvLat = (Math.random()*180.0)-90.0;
-	var desvLng = (Math.random()*360.0)-180.0;
+	var desvLng = (Math.random()*180.0)-90.0;
 	angleLat += (degrees*desvLat);
 	angleLng += (degrees*desvLng);
 
@@ -101,13 +105,13 @@ Utils.prototype.getVector = function(vecNormal, degrees) {
 * @returns {String}
 */
 Utils.prototype.getVectorGLSLFunctionString = function() {
-	return 'vec3 getVector(vec3 vecNormal, float degrees, vec2 vecNoise) {\n'+
+	return 'vec3 getVector(vec3 vecNormal, float degrees, vec2 vecNoise) {\n'+ 
 		'vec3 ob = cartesianToSpherical(vecNormal);'+
 		'float angleLat = ob.y;'+
 		'float angleLng = ob.z;'+
 	
 		'float desvLat = (vecNoise.x*180.0)-90.0;'+
-		'float desvLng = (vecNoise.y*360.0)-180.0;'+
+		'float desvLng = (vecNoise.y*180.0)-90.0;'+
 		'angleLat += (degrees*desvLat);'+
 		'angleLng += (degrees*desvLng);'+
 	

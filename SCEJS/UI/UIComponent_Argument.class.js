@@ -22,14 +22,14 @@ UIComponent_Argument = function(targetElement, selectedNode, comp, args) {
 				if(arg.value instanceof WebCLGLBuffer) {
 					var strItems = "", sep = "";
 					for(var j=0; j < arg.value.items.length; j++) {
-						strItems += sep+"<span title='"+arg.value.items[j].inData+"'>"+arg.value.items[j].length+"</span>";
+						strItems += sep+"<span>"+arg.value.items[j].length+"</span>"; // arg.value.items[j].inData
 						sep = ",";
 					}
 					str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+strItems+"}</span>";
 				} else if(arg.value instanceof Float32Array || arg.value instanceof Array) {
-					str += " <span style='color:rgb(150, 255, 150)'> {"+arg.value.constructor.name+" <span title='"+arg.value+"'>"+arg.value.length+"</span>}</span>";
+					str += " <span style='color:rgb(150, 255, 150)'> {"+arg.value.constructor.name+" <span>"+arg.value.length+"</span>}</span>"; // arg.value
 				} else {
-					str += " <span style='color:rgb(150, 255, 150)'> {<span title='"+arg.value+"'>"+arg.value.constructor.name+"</span>}</span>";
+					str += " <span style='color:rgb(150, 255, 150)'> {<span>"+arg.value.constructor.name+"</span>}</span>"; // arg.value
 				}
 			}
 			str += "</div>";

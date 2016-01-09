@@ -126,6 +126,10 @@ Stage = function() {
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
 			
+			var comp_screen_effects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS); 
+			if(comp_screen_effects != undefined)
+				comp_screen_effects.clearArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
+			
 			for(var n=0, fn = nodes.length; n < fn; n++) {
 				for(var key in nodes[n].getComponents()) {
 					var component = nodes[n].getComponent(key);
@@ -139,9 +143,9 @@ Stage = function() {
 			
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 						
-			if(activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS) != undefined) {
+			if(comp_screen_effects != undefined) {
 				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
-				activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).tick();
+				comp_screen_effects.tick();
 			}
 		}
 		if(paused == false) window.requestAnimFrame(tick);

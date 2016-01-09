@@ -16,13 +16,18 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 						'float MouseDragTranslationY,'+
 						'float MouseDragTranslationZ,'+
 						customArgs+') {'+
-							'vec2 x = get_global_id();'+
+							'vec2 x = get_global_id();\n'+	 
+							
+							'vec2 xx = get_global_id(data[x].x);'+
+							'vec2 xx_opposite = get_global_id(data[x].y);'+
+						
+						
 							'vec3 currentPos = posXYZW[x].xyz;\n'+
 							'vec3 currentDir = dir[x].xyz;\n'+
 
 							customCode+
 
-							'float nodeId = data[x].x;\n'+ 
+							'float nodeId = data[x].x;\n'+  
 							'if(enableDrag == 1.0) {'+							
 								'if(nodeId == idToDrag) {'+
 									'currentPos = vec3(MouseDragTranslationX, MouseDragTranslationY, MouseDragTranslationZ);\n'+

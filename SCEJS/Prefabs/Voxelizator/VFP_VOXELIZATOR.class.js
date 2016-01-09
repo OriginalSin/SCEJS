@@ -79,20 +79,20 @@ function VFP_VOXELIZATOR() { VFP.call(this);
        				//'float lengthOffs = 1.0+((( vp.y+(gridSize/2.0) )/gridSize)*5.0);'+       				       				
        									
     				'int currOffs = int(uCurrentOffset);'+ 
-    				'if(currOffs == 0) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+  
+    				'if(currOffs == 0) vp = vp+vec3(lengthOffs,	0.0,	lengthOffs);'+  
     				'if(currOffs == 1) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+  
-    				'if(currOffs == 2) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+  
-    				'if(currOffs == 3) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+       				
-    				'if(currOffs == 4) vp = vp+vec3(0.0,		0.0,	-lengthOffs);'+  
+    				'if(currOffs == 2) vp = vp+vec3(-lengthOffs,	0.0,	lengthOffs);'+  
+    				'if(currOffs == 3) vp = vp+vec3(lengthOffs,	0.0,	-lengthOffs);'+       				
+    				'if(currOffs == 4) vp = vp+vec3(0.0,		0.0,	lengthOffs);'+  
     				'if(currOffs == 5) vp = vp+vec3(0.0,		0.0,	-lengthOffs);'+  
-    				'if(currOffs == 6) vp = vp+vec3(-lengthOffs,	0.0,	0.0);'+  
+    				'if(currOffs == 6) vp = vp+vec3(lengthOffs,	0.0,	0.0);'+  
     				'if(currOffs == 7) vp = vp+vec3(-lengthOffs,	0.0,	0.0);'+
     				
-    				'vVPos = vertexPos[x];'+
+    				'vVPos = vec4(vp, 1.0);'+
     				'gl_Position = PMatrix * mCam * nodeWMatrix * vec4(vp, 1.0);\n'+   
     				
     				
-    				'vVN = vertexNormal[x];\n'+
+    				'vVN = vertexNormal[x]*vec4(-1.0, -1.0, -1.0, 1.0);\n'+ 
     				'vVT = vertexTexture[x];\n'+
     				'vVTU = vertexTextureUnit[x];\n'+
        		'}'],
@@ -117,36 +117,19 @@ function VFP_VOXELIZATOR() { VFP.call(this);
 	       		 
 					'gl_FragColor = texture2D(texAlbedo, vVT.xy);\n'+
 					
-				'} else if(fillMode == 1 || fillMode == 2 || fillMode == 3) {'+ // fill with position
+				'} else if(fillMode == 1) {'+ // fill with position
 				
 					'float gridSize = uGridsize;'+
 					'int maxLevelCells = int(uResolution);'+
 					'float cs = gridSize/float(maxLevelCells);\n'+ // cell size
 					'float chs = cs/2.0;\n'+
+
 					
+					'vec3 p = ((vVPos.xyz*vec3(-1.0, -1.0, -1.0))+(gridSize/2.0))/gridSize;'+
 					
-					/*'float ccX = gl_FragCoord.x;'+
-					//'int ccY = int(uCurrentHeight);'+
-					//'float currentCameraPosY = vPosition.y + (gridSize/2.0) - (cs*uCurrentHeight);'+
-					'float ccZ = uResolution-gl_FragCoord.y;'+ 
+					'gl_FragColor = vec4(p, 1.0);\n'+ 
 					
-					'vec3 p = vec3(0.0,0.0,0.0)+vec3(-(gridSize/2.0), -(gridSize/2.0), -(gridSize/2.0));\n'+ // init position
-					'p = p+vec3(cs*ccX, 0.0, cs*ccZ);\n'+
-					'p = vec3(p.x, (cs*uCurrentHeight), p.z);\n'+
-					'p = p+vec3(cs, cs, cs);\n'+*/
-					
-					'vec3 p = vVPos.xyz;'+
-					//'p = p+vec3(cs, cs, cs);\n'+ 
-					
-					'if(fillMode == 1) {'+ // posX
-						'gl_FragColor = pack((p.x+(gridSize/2.0))/gridSize);\n'+
-					'} else if(fillMode == 2) {'+ // posY
-						'gl_FragColor = pack((p.y+(gridSize/2.0))/gridSize);\n'+
-					'} else {'+ // posZ
-						'gl_FragColor = pack((p.z+(gridSize/2.0))/gridSize);\n'+
-					'}'+
-					
-				'} else if(fillMode == 4) {'+ // fill with normal
+				'} else if(fillMode == 2) {'+ // fill with normal
 				
 					'gl_FragColor = vec4((vVN.r+1.0)/2.0,(vVN.g+1.0)/2.0,(vVN.b+1.0)/2.0, 1.0);\n'+
 					

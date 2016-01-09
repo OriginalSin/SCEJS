@@ -43,7 +43,7 @@ SimpleCamera = function(sce, jsonIn) {
 									"width": _sce.getCanvas().width,
 									"height": _sce.getCanvas().height,
 									"onPostTick": (function() {									
-										//comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+										comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
 									}).bind(this)});
 	//_sce.setDimensions(_sce.getCanvas().width, _sce.getCanvas().height);
 	
@@ -132,9 +132,9 @@ SimpleCamera = function(sce, jsonIn) {
 		
 		if(comp_controllerTransformTarget.isRightBtnActive() == true && comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO && altKeyPressed == true) {
 			if(dir.e[2] > 0) {
-				comp_projection.setFov(comp_projection.getFov()*(1.0+Math.abs(dir.e[2]*0.5)));				
+				comp_projection.setFov(comp_projection.getFov()*(1.0+Math.abs(dir.e[2]*0.005)));				
 			} else {
-				comp_projection.setFov(comp_projection.getFov()/(1.0+Math.abs(dir.e[2]*0.5))); 
+				comp_projection.setFov(comp_projection.getFov()/(1.0+Math.abs(dir.e[2]*0.005))); 
 			}
 			//comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir.x(dir.e[2]))); 
 			//comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir.x(dir.e[2]))); 
@@ -176,7 +176,7 @@ SimpleCamera = function(sce, jsonIn) {
 				//comp_transformTarget.getMatrix().setRotation(new Utils().degToRad(180),false,$V3([0.0,1.0,0.0]));
 				break;
 			case Constants.VIEW_TYPES.TOP:
-				comp_transformTarget.pitch(-89.9);
+				comp_transformTarget.pitch(-89.9); 
 				break;
 			case Constants.VIEW_TYPES.BOTTOM:			
 				comp_transformTarget.pitch(90);

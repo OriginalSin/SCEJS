@@ -56,9 +56,9 @@ GI = function(sce) {
 						comp_renderer_node.getWebCLGL().copy(comp_renderer_node.getTempBuffers()["sampler_screenNormal"], comp_renderer_node.getBuffers()["sampler_screenNormal"]);
 
 						
-						comp_renderer_node.clearTempArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
-						comp_renderer_node.clearTempArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
-						comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
+						//comp_renderer_node.clearTempArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
+						//comp_renderer_node.clearTempArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+						//comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
 					} else if(_currentDestinationSampler == 4) {
 						comp_renderer_node.getWebCLGL().copy(comp_renderer_node.getTempBuffers()["sampler_GIVoxel"], comp_renderer_node.getBuffers()["sampler_GIVoxel"]);
 					}
@@ -125,24 +125,16 @@ GI = function(sce) {
 	/**
 	* setVoxelsArrays
 	* @param {Object} jsonIn
-	* @param {Object} [jsonIn.albedo=undefined]
-	* @param {Object} [jsonIn.positionX=undefined]
-	* @param {Object} [jsonIn.positionY=undefined]
-	* @param {Object} [jsonIn.positionZ=undefined]
-	* @param {Object} [jsonIn.normal=undefined]
+	* @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} [jsonIn.albedo=undefined]
+	* @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} [jsonIn.position=undefined]
+	* @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} [jsonIn.normal=undefined]
 	*/
 	this.setVoxelsArrays = function(jsonIn) {
 		if(jsonIn.hasOwnProperty("albedo") == true)
-			comp_renderer_node.setArg("sampler_voxelColor", (function(){return jsonIn.albedo;}).bind(this));
+			comp_renderer_node.setArg("sampler_voxelColor", (function(){return jsonIn.albedo;}).bind(this)); 
 		
-		if(jsonIn.hasOwnProperty("positionX") == true)
-			comp_renderer_node.setArg("sampler_voxelPosX", (function(){return jsonIn.positionX;}).bind(this));
-		
-		if(jsonIn.hasOwnProperty("positionY") == true)
-			comp_renderer_node.setArg("sampler_voxelPosY", (function(){return jsonIn.positionY;}).bind(this));
-		
-		if(jsonIn.hasOwnProperty("positionZ") == true)
-			comp_renderer_node.setArg("sampler_voxelPosZ", (function(){return jsonIn.positionZ;}).bind(this));
+		if(jsonIn.hasOwnProperty("position") == true)
+			comp_renderer_node.setArg("sampler_voxelPos", (function(){return jsonIn.position;}).bind(this));
 		
 		if(jsonIn.hasOwnProperty("normal") == true)
 			comp_renderer_node.setArg("sampler_voxelNormal", (function(){return jsonIn.normal;}).bind(this));
@@ -212,14 +204,14 @@ GI = function(sce) {
 	*/
 	this.resume = function() {
 		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 0.0]);
 		
 		comp_renderer_node.clearTempArg("sampler_screenColor", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearTempArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearTempArg("sampler_screenPos", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearTempArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearTempArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.clearTempArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 0.0]);
 		
 		_currentDestinationSampler = 4;
 		

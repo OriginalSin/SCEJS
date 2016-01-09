@@ -15,10 +15,12 @@ function SE_GI() { SE.call(this);
 						 	'vec4 textureFBGIVoxel = sampler_GIVoxel[x];\n'+				
 							'vec3 GIweight = vec3((textureFBGIVoxel.r/textureFBGIVoxel.a), (textureFBGIVoxel.g/textureFBGIVoxel.a), (textureFBGIVoxel.b/textureFBGIVoxel.a));'+
 							
+							'out_float4 = vec4(GIweight, 1.0);'+
+							//'out_float4 = vec4(textureFBGIVoxel.rgb, 1.0);\n'+ 
+							
+							
 							//'out_float4 = vec4(out_float4.xyz*(0.75+(length(GIVoxelsShadow)/4.0)), out_float4.a);\n'+
 							//'out_float4 = vec4(GIweight, GIweight, GIweight, 1.0);\n'+ 
-							'out_float4 = vec4(GIweight, 1.0);'+
-							//'out_float4 = vec4(GIVoxelsShadow, out_float4.a);\n'+ 
 			 '}']];
 		
 		return str_se;

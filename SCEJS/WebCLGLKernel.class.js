@@ -151,7 +151,7 @@ WebCLGLKernel.prototype.compile = function() {
 		'}\n'+
 
 		'vec2 get_global_id(float id) {\n'+
-			'float num = id/uBufferWidth;'+
+			'float num = (id*4.0)/uBufferWidth;'+
 			'float column = fract(num)*uBufferWidth;'+
 			'float row = floor(num);'+
 

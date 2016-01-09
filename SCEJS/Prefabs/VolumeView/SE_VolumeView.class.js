@@ -17,7 +17,7 @@ function SE_VolumeView(resolution) { SE.call(this);
  			new Utils().rayTraversalInitSTR()+
  			
 
-			'vec4 getVoxel(vec3 voxel, vec3 RayOrigin) {\n'+
+ 			'vec4 getVoxel_Color(vec3 voxel, vec3 RayOrigin) {\n'+
 				'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
 	
 				'int tex3dId = (int(voxel.y)*(int(uResolution)*int(uResolution)))+(int(voxel.z)*(int(uResolution)))+int(voxel.x);\n'+
@@ -25,17 +25,50 @@ function SE_VolumeView(resolution) { SE.call(this);
 				'float col = fract(num)*wh;\n'+
 				'float row = floor(num);\n'+
 				'vec2 texVec = vec2(col*texelSize, row*texelSize);\n'+
-				'vec4 texture = texture2D(sampler_volume, vec2(texVec.x, texVec.y));\n'+
+				'vec4 texture = texture2D(sampler_voxelColor,vec2(texVec.x, texVec.y));\n'+
+				'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
+					'rgba = vec4(texture.rgb/255.0,distance(vec3(voxelToWorldX(voxel.x), voxelToWorldX(voxel.y), voxelToWorldX(voxel.z)),RayOrigin));\n'+
+				'}\n'+
+	
+				'return rgba;\n'+
+			'}\n'+
+			'vec4 getVoxel_Pos(vec3 voxel, vec3 RayOrigin) {\n'+
+				'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
+	
+				'int tex3dId = (int(voxel.y)*(int(uResolution)*int(uResolution)))+(int(voxel.z)*(int(uResolution)))+int(voxel.x);\n'+
+				'float num = float(tex3dId)/wh;\n'+
+				'float col = fract(num)*wh;\n'+
+				'float row = floor(num);\n'+
+				'vec2 texVec = vec2(col*texelSize, row*texelSize);\n'+
+				'vec4 texture = texture2D(sampler_voxelPos,vec2(texVec.x, texVec.y));\n'+
+				'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
+					'vec4 texVoxelPosX = texture2D(sampler_voxelPos,  vec2(texVec.x,texVec.y))/255.0;\n'+
+	
+					'rgba = vec4( (texVoxelPosX.xyz*uGridsize)-(uGridsize/2.0), 1.0);\n'+
+				'}\n'+
+	
+				'return rgba;\n'+
+			'}\n'+
+			'vec4 getVoxel_Normal(vec3 voxel, vec3 RayOrigin) {\n'+
+				'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
+	
+				'int tex3dId = (int(voxel.y)*(int(uResolution)*int(uResolution)))+(int(voxel.z)*(int(uResolution)))+int(voxel.x);\n'+
+				'float num = float(tex3dId)/wh;\n'+
+				'float col = fract(num)*wh;\n'+
+				'float row = floor(num);\n'+
+				'vec2 texVec = vec2(col*texelSize, row*texelSize);\n'+
+				'vec4 texture = texture2D(sampler_voxelNormal,vec2(texVec.x, texVec.y));\n'+
 				'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
 					'rgba = vec4(((texture.rgb/255.0)*2.0)-1.0,1.0);\n'+
-					//'rgba = vec4(texture.rgb/255.0,1.0);\n'+
 				'}\n'+
 	
 				'return rgba;\n'+
 			'}\n'+
 	
 			new Utils().rayTraversalSTR(resolution, ''+
-				'gv = getVoxel(voxel, RayOrigin);'+
+				//'gv = getVoxel_Color(voxel, RayOrigin);'+
+				'gv = getVoxel_Pos(voxel, RayOrigin);'+
+				//'gv = getVoxel_Normal(voxel, RayOrigin);'+
 				'if(gv.a != 0.0) {'+
 					'color = gv;\n'+
 					'break;\n'+
@@ -43,7 +76,9 @@ function SE_VolumeView(resolution) { SE.call(this);
 			'')],
 			 
 			[// fragment source
-			 'void main(float4* sampler_volume,'+
+			 'void main(float4* sampler_voxelColor,'+
+			       		'float4* sampler_voxelPos,'+
+			       		'float4* sampler_voxelNormal,'+
 			 			'float4 posCamGoal,'+
 			 			'float4 posCamTarget,'+
 			 			'float viewportWidth,'+

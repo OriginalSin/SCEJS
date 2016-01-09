@@ -14,7 +14,7 @@ Voxelizator = function(sce) {
 	var _makeVoxels = false;
 	var _mesh;
 	var _size,	_resolution, _cs, _chs,	_wh;	
-	var _arr_VoxelsColor, _arr_VoxelsPositionX, 	_arr_VoxelsPositionY, _arr_VoxelsPositionZ,	_arr_VoxelsNormal;
+	var _arr_VoxelsColor, _arr_VoxelsPosition, _arr_VoxelsNormal;
 	var _typeFillMode, _currentHeight, _currentOffset;
 	
 	var _nativePosTarget;
@@ -23,7 +23,7 @@ Voxelizator = function(sce) {
 	var _nativeDimensions;
 	var _ongeneratefunction;
 	
-	var _image3D_VoxelsColor, _image3D_VoxelsPositionX, _image3D_VoxelsPositionY, _image3D_VoxelsPositionZ, _image3D_VoxelsNormal;
+	var _image3D_VoxelsColor, _image3D_VoxelsPosition, _image3D_VoxelsNormal;
 	
 	var nodes = new Node();
 	nodes.setName("voxelizator");
@@ -52,10 +52,8 @@ Voxelizator = function(sce) {
 				
 				var fm;
 				if(_typeFillMode[0] == "albedo") fm = 0;
-				else if(_typeFillMode[0] == "positionX") fm = 1;
-				else if(_typeFillMode[0] == "positionY") fm = 2;
-				else if(_typeFillMode[0] == "positionZ") fm = 3;
-				else if(_typeFillMode[0] == "normal") fm = 4;
+				else if(_typeFillMode[0] == "position") fm = 1;
+				else if(_typeFillMode[0] == "normal") fm = 2;
 				comp_renderer_node.setArg("uTypeFillMode", (function(){return fm;}).bind(this));
 				
 				// CAMERA CURRENT HEIGHT POSITION
@@ -108,20 +106,11 @@ Voxelizator = function(sce) {
 				var num = idx3d/_wh;
 				var col = _utils.fract(num)*_wh; 
 				var row = Math.floor(num);
-				if(_typeFillMode[0] == "albedo")		
-					//_arr_VoxelsColor.set(heightImageResult, idx3d);		
+				if(_typeFillMode[0] == "albedo")	
 					_arr_VoxelsColor = setadd(_arr_VoxelsColor, heightImageResult, idx3d);
-				else if(_typeFillMode[0] == "positionX")
-					//_arr_VoxelsPositionX.set(heightImageResult, idx3d);
-					_arr_VoxelsPositionX = setadd(_arr_VoxelsPositionX, heightImageResult, idx3d);
-				else if(_typeFillMode[0] == "positionY")
-					//_arr_VoxelsPositionY.set(heightImageResult, idx3d);	
-					_arr_VoxelsPositionY = setadd(_arr_VoxelsPositionY, heightImageResult, idx3d);				
-				else if(_typeFillMode[0] == "positionZ")
-					//_arr_VoxelsPositionZ.set(heightImageResult, idx3d);	
-					_arr_VoxelsPositionZ = setadd(_arr_VoxelsPositionZ, heightImageResult, idx3d);				
+				else if(_typeFillMode[0] == "position")
+					_arr_VoxelsPosition = setadd(_arr_VoxelsPosition, heightImageResult, idx3d);			
 				else if(_typeFillMode[0] == "normal")
-					//_arr_VoxelsNormal.set(heightImageResult, idx3d);
 					_arr_VoxelsNormal = setadd(_arr_VoxelsNormal, heightImageResult, idx3d);
 					
 				if(_currentOffset == 7) {
@@ -136,12 +125,8 @@ Voxelizator = function(sce) {
 					
 					if(_typeFillMode[0] == "albedo")
 						_setVoxels({'fillMode': 'albedo', 'arr3d':_arr_VoxelsColor, 'wh':_wh});
-					else if(_typeFillMode[0] == "positionX")
-						_setVoxels({'fillMode': 'positionX', 'arr3d':_arr_VoxelsPositionX, 'wh':_wh});
-					else if(_typeFillMode[0] == "positionY")
-						_setVoxels({'fillMode': 'positionY', 'arr3d':_arr_VoxelsPositionY, 'wh':_wh});
-					else if(_typeFillMode[0] == "positionZ")
-						_setVoxels({'fillMode': 'positionZ', 'arr3d':_arr_VoxelsPositionZ, 'wh':_wh});
+					else if(_typeFillMode[0] == "position")
+						_setVoxels({'fillMode': 'position', 'arr3d':_arr_VoxelsPosition, 'wh':_wh});
 					else if(_typeFillMode[0] == "normal")
 						_setVoxels({'fillMode': 'normal', 'arr3d':_arr_VoxelsNormal, 'wh':_wh});
 					
@@ -163,7 +148,7 @@ Voxelizator = function(sce) {
 						comp_cam_tf_target.setPositionGoal(_nativePosGoal);
 						comp_cam_tf_target.setTargetDistance(_nativeTargetDistance);
 						
-						if(_ongeneratefunction != undefined) _ongeneratefunction(); 
+						
 					}
 				}
 			}
@@ -174,19 +159,20 @@ Voxelizator = function(sce) {
 	var _setVoxels = (function(jsonIn) {
 		if(jsonIn.fillMode == "albedo") {
 			var canvas = (jsonIn.arr3d instanceof Uint8Array) ? _utils.getCanvasFromUint8Array(jsonIn.arr3d,jsonIn.wh,jsonIn.wh) : _utils.getCanvasFromUint8Array(_utils.getUint8ArrayFromHTMLImageElement(jsonIn.arr3d),jsonIn.wh,jsonIn.wh);
-			_image3D_VoxelsColor = _utils.getImageFromCanvas(canvas);
-		} else if(jsonIn.fillMode == "positionX") {
+			_utils.getImageFromCanvas(canvas, (function(img) {
+				_image3D_VoxelsColor = img;
+			}).bind(this));
+		} else if(jsonIn.fillMode == "position") {
 			var canvas = (jsonIn.arr3d instanceof Uint8Array) ? _utils.getCanvasFromUint8Array(jsonIn.arr3d,jsonIn.wh,jsonIn.wh) : _utils.getCanvasFromUint8Array(_utils.getUint8ArrayFromHTMLImageElement(jsonIn.arr3d),jsonIn.wh,jsonIn.wh);
-			_image3D_VoxelsPositionX = _utils.getImageFromCanvas(canvas);
-		} else if(jsonIn.fillMode == "positionY") {
-			var canvas = (jsonIn.arr3d instanceof Uint8Array) ? _utils.getCanvasFromUint8Array(jsonIn.arr3d,jsonIn.wh,jsonIn.wh) : _utils.getCanvasFromUint8Array(_utils.getUint8ArrayFromHTMLImageElement(jsonIn.arr3d),jsonIn.wh,jsonIn.wh);
-			_image3D_VoxelsPositionY = _utils.getImageFromCanvas(canvas);
-		} else if(jsonIn.fillMode == "positionZ") {
-			var canvas = (jsonIn.arr3d instanceof Uint8Array) ? _utils.getCanvasFromUint8Array(jsonIn.arr3d,jsonIn.wh,jsonIn.wh) : _utils.getCanvasFromUint8Array(_utils.getUint8ArrayFromHTMLImageElement(jsonIn.arr3d),jsonIn.wh,jsonIn.wh);
-			_image3D_VoxelsPositionZ = _utils.getImageFromCanvas(canvas);
+			_utils.getImageFromCanvas(canvas, (function(img) {
+				_image3D_VoxelsPosition = img;
+			}).bind(this));
 		} else if(jsonIn.fillMode == "normal") {
 			var canvas = (jsonIn.arr3d instanceof Uint8Array) ? _utils.getCanvasFromUint8Array(jsonIn.arr3d,jsonIn.wh,jsonIn.wh) : _utils.getCanvasFromUint8Array(_utils.getUint8ArrayFromHTMLImageElement(jsonIn.arr3d),jsonIn.wh,jsonIn.wh);
-			_image3D_VoxelsNormal = _utils.getImageFromCanvas(canvas);
+			_utils.getImageFromCanvas(canvas, (function(img) {
+				_image3D_VoxelsNormal = img;
+				if(_ongeneratefunction != undefined) _ongeneratefunction(); 
+			}).bind(this));
 		}
 	}).bind(this);
 	
@@ -233,7 +219,7 @@ Voxelizator = function(sce) {
 	* @param	{Object} jsonIn
 	* @param {Float} [jsonIn.size=2.1] Grid size.
 	* @param {Int} [jsonIn.resolution=32] Grid resolution.
-	* @param {Array<String>} [jsonIn.fillmode=["albedo"]] Modes of data fill. "albedo"|"positionX"|"positionY"|"positionZ"|"normal"
+	* @param {Array<String>} [jsonIn.fillmode=["albedo"]] Modes of data fill. "albedo"|"position"|"normal"
 	* @param {Function} [jsonIn.ongenerate] On generate event.
 	*/
 	this.generate = function(jsonIn) { 	
@@ -259,9 +245,7 @@ Voxelizator = function(sce) {
 		
 		
 		_arr_VoxelsColor = new Uint8Array(_wh*_wh*4); 
-		_arr_VoxelsPositionX = new Uint8Array(_wh*_wh*4); 
-		_arr_VoxelsPositionY = new Uint8Array(_wh*_wh*4); 
-		_arr_VoxelsPositionZ = new Uint8Array(_wh*_wh*4); 
+		_arr_VoxelsPosition = new Uint8Array(_wh*_wh*4);
 		_arr_VoxelsNormal = new Uint8Array(_wh*_wh*4);
 		
 		var comp_cam_tf_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
@@ -279,9 +263,7 @@ Voxelizator = function(sce) {
 	/**
 	 * @typedef {Object} Voxelizator~getGeneratedArrays
 	 * @property {Array<Uint8Array>} Voxelizator~getGeneratedArrays.albedo
-	 * @property {Array<Uint8Array>} Voxelizator~getGeneratedArrays.positionX
-	 * @property {Array<Uint8Array>} Voxelizator~getGeneratedArrays.positionY
-	 * @property {Array<Uint8Array>} Voxelizator~getGeneratedArrays.positionZ
+	 * @property {Array<Uint8Array>} Voxelizator~getGeneratedArrays.position
 	 * @property {Array<Uint8Array>} Voxelizator~getGeneratedArrays.normal
 	 */
 	/**
@@ -289,18 +271,14 @@ Voxelizator = function(sce) {
 	 */
 	this.getGeneratedArrays = function() {
 		return {	"albedo": _arr_VoxelsColor,
-					"positionX": _arr_VoxelsPositionX,
-					"positionY": _arr_VoxelsPositionY,
-					"positionZ": _arr_VoxelsPositionZ,
+					"position": _arr_VoxelsPosition,
 					"normal": _arr_VoxelsNormal};
 	};
 	
 	/**
 	 * @typedef {Object} Voxelizator~getGeneratedImages
 	 * @property {HTMLImageElement} Voxelizator~getGeneratedImages.albedo
-	 * @property {HTMLImageElement} Voxelizator~getGeneratedImages.positionX
-	 * @property {HTMLImageElement} Voxelizator~getGeneratedImages.positionY
-	 * @property {HTMLImageElement} Voxelizator~getGeneratedImages.positionZ
+	 * @property {HTMLImageElement} Voxelizator~getGeneratedImages.position
 	 * @property {HTMLImageElement} Voxelizator~getGeneratedImages.normal
 	 */
 	/**
@@ -308,9 +286,7 @@ Voxelizator = function(sce) {
 	 */
 	this.getGeneratedImages = function() {
 		return {	"albedo": _image3D_VoxelsColor,
-					"positionX": _image3D_VoxelsPositionX,
-					"positionY": _image3D_VoxelsPositionY,
-					"positionZ": _image3D_VoxelsPositionZ,
+					"position": _image3D_VoxelsPosition,
 					"normal": _image3D_VoxelsNormal};
 	};
 };

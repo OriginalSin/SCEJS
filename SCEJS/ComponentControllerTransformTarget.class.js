@@ -15,6 +15,8 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	var comp_transformTarget;
 	var comp_projection;
 	
+	var _vel = 0.1;
+	
 	var forward = 0;
 	var backward = 0;
 	var left = 0;
@@ -234,17 +236,17 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	this.tick = function(elapsed) {	
 		var dir = $V3([0.0, 0.0, 0.0]);
 		if(forward == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(-1.0));
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(-_vel));
 		if(backward == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward());
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(_vel));
 		if(left == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(-1.0));
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(-_vel));
 		if(right == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft());
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(_vel));
 		if(back == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(-1.0));
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(-_vel));
 		if(front == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp());
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(_vel));
 		
 		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
 		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
