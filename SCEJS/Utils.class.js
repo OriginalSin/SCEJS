@@ -49,17 +49,21 @@ Utils.prototype.getCanvasFromUint8Array = function(uint8arr, width, height) {
 
     return e;
 };
-
+/**
+ * @callback Utils~getImageFromCanvas~onload
+ * @param {HTMLImageElement} img
+ */
 /**
 * Get HTMLImageElement from canvas
-* @returns {HTMLImageElement}
 * @param {HTMLCanvasElement} canvasElement
+* @param {Utils~getImageFromCanvas~onload} canvasElement
 */
-Utils.prototype.getImageFromCanvas = function(oldCanvas) {
+Utils.prototype.getImageFromCanvas = function(oldCanvas, onload) {
 	var imagen = document.createElement('img');
+	imagen.onload = (function(img, onload){
+		onload(img);
+    }).bind(this, imagen, onload);
 	imagen.src = oldCanvas.toDataURL();
-
-    return imagen;
 };
 
 /**
@@ -90,14 +94,33 @@ Utils.prototype.getVector = function(vecNormal, degrees) {
 	var angleLng = ob.lng;
 			
 	var desvLat = (Math.random()*180.0)-90.0;
-	var desvLng = (Math.random()*360.0)-180.0;
+	var desvLng = (Math.random()*180.0)-90.0;
 	angleLat += (degrees*desvLat);
 	angleLng += (degrees*desvLng);
 
 	return this.sphericalToCartesian(1.0, angleLat, angleLng);
 };
+/**
+* Get random vector from vecNormal with deviation in degrees (GLSL)
+* @returns {String}
+*/
+Utils.prototype.getVectorGLSLFunctionString = function() {
+	return 'vec3 getVector(vec3 vecNormal, float degrees, vec2 vecNoise) {\n'+ 
+		'vec3 ob = cartesianToSpherical(vecNormal);'+
+		'float angleLat = ob.y;'+
+		'float angleLng = ob.z;'+
+	
+		'float desvLat = (vecNoise.x*180.0)-90.0;'+
+		'float desvLng = (vecNoise.y*180.0)-90.0;'+
+		'angleLat += (degrees*desvLat);'+
+		'angleLng += (degrees*desvLng);'+
+	
+		'return sphericalToCartesian(vec3(1.0, angleLat, angleLng));'+
+	'}\n';
+};
 
 /**
+ * cartesianToSpherical
  * @param {StormV3} vec
  * @returns {Object}
  * @example
@@ -116,8 +139,23 @@ Utils.prototype.cartesianToSpherical = function(vec) {
 			"lat": angleLat,
 			"lng": angleLng};
 }	
+/**
+ * cartesianToSpherical (GLSL)
+* @returns {String}
+*/
+Utils.prototype.cartesianToSphericalGLSLFunctionString = function() {
+	return 'vec3 cartesianToSpherical(vec3 vect) {\n'+
+		'float r = sqrt(vect.x*vect.x + vect.y*vect.y + vect.z*vect.z);'+
+	
+		'float angleLat = radToDeg(acos(vect.y/r));'+
+		'float angleLng = radToDeg(atan(vect.z, vect.x));'+
+	
+		'return vec3(r, angleLat, angleLng);'+
+	'}\n';
+};
 
 /**
+ * sphericalToCartesian
  * @param {Float} radius
  * @param {Float} lat Lat in degrees
  * @param {Float} lng Lng in degrees
@@ -139,6 +177,23 @@ Utils.prototype.sphericalToCartesian = function(radius, lat, lng) {
 	
 	return new $V3([x,y,z]);
 }
+/**
+ * sphericalToCartesian (GLSL)
+* @returns {String}
+*/
+Utils.prototype.sphericalToCartesianGLSLFunctionString = function() {
+	return 'vec3 sphericalToCartesian(vec3 vect) {\n'+
+		'float r = vect.x;'+
+		'float angleLat = degToRad(vect.y);'+
+		'float angleLng = degToRad(vect.z);'+
+	
+		'float x = r*sin(angleLat)*cos(angleLng);'+
+		'float z = r*sin(angleLat)*sin(angleLng);'+
+		'float y = r*cos(angleLat);'+
+	
+		'return vec3(x,y,z);'+
+	'}\n';
+};
 
 /**
 * Refract
@@ -164,6 +219,15 @@ Utils.prototype.refract = function(V, N, n1, n2) {
 Utils.prototype.degToRad = function(deg) {
 	return (deg*3.14159)/180;
 };
+/**
+ * Degrees to radians. Full circle = 360 degrees. (GLSL)
+* @returns {String}
+*/
+Utils.prototype.degToRadGLSLFunctionString = function() {
+	return 'float degToRad(float deg) {'+
+		'return (deg*3.14159)/180.0;'+
+	'}';
+};
 
 /**
 * Radians to degrees
@@ -172,6 +236,15 @@ Utils.prototype.degToRad = function(deg) {
 */
 Utils.prototype.radToDeg = function(rad) {
 	return rad*(180/3.14159);
+};
+/**
+ * Radians to degrees (GLSL)
+* @returns {String}
+*/
+Utils.prototype.radToDegGLSLFunctionString = function() {
+	return 'float radToDeg(float rad) {'+
+		'return rad*(180.0/3.14159);'+
+	'}';
 };
 
 /**
@@ -285,15 +358,6 @@ Utils.prototype.pack = function(v) {
 	return [colour[0]-dd[0],colour[1]-dd[1],colour[2]-dd[2],colour[3]-dd[3] ];
 };
 /**
-* Unpack 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0) to 1float (0.0-1.0)
-* @returns {Float}
-* @param {Array<Float>} value
-*/
-Utils.prototype.unpack = function(colour) {
-	var bitShifts = [1.0, 1.0/255.0, 1.0/(255.0*255.0), 1.0/(255.0*255.0*255.0)];
-	return this.dot4(colour, bitShifts);
-};
-/**
 * Get pack GLSL function string
 * @returns {String}
 */
@@ -314,6 +378,15 @@ Utils.prototype.packGLSLFunctionString = function() {
 			'}';
 };
 /**
+* Unpack 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0) to 1float (0.0-1.0)
+* @returns {Float}
+* @param {Array<Float>} value
+*/
+Utils.prototype.unpack = function(colour) {
+	var bitShifts = [1.0, 1.0/255.0, 1.0/(255.0*255.0), 1.0/(255.0*255.0*255.0)];
+	return this.dot4(colour, bitShifts);
+};
+/**
 * Get unpack GLSL function string
 * @returns {String}
 */
@@ -326,6 +399,89 @@ Utils.prototype.unpackGLSLFunctionString = function() {
 				'return dot(colour, bitShifts);'+
 			'}';
 };
+/** @private  */
+Utils.prototype.rayTraversalInitSTR = function() {  
+	return ''+
+	'float wh = ceil(sqrt(uResolution*uResolution*uResolution));\n'+  	
+	'float cs = uGridsize/uResolution;\n'+ // cell size 
+	'float chs = cs/2.0;\n'+ // cell size 
+	'float texelSize = 1.0/(wh-1.0);\n'+  // 1.0/(wh-1.0)??
+	
+	// Fast Voxel Traversal Algorithm for Ray Tracing. John Amanatides & Andrew Woo.
+	// http://www.cse.chalmers.se/edu/course/TDA361/grid.pdf
+	// More info:
+	// http://www.researchgate.net/publication/228770849_Ray_tracing_on_GPU/file/79e415105577b914fd.pdf
+	// http://www.clockworkcoders.com/oglsl/rt/gpurt3.htm
+	// http://www.gamerendering.com/2009/07/20/grid-traversal/
+	'vec3 gl = vec3(-(uGridsize/2.0), -(uGridsize/2.0), -(uGridsize/2.0));\n'+    
+	'vec3 _r = vec3(uGridsize, uGridsize, uGridsize);\n'+
+	'vec3 _rRes = vec3(uResolution, uResolution, uResolution);\n'+
+	'vec3 _len = _r/_rRes;\n'+  
+	'vec3 worldToVoxel(vec3 world) {\n'+
+		'vec3 ijk = (world - gl) / _len;\n'+ // (1.0-(-1.0)) / (2/64) = 64 
+		'ijk = vec3(floor(ijk.x), floor(ijk.y), floor(ijk.z));\n'+
+		'return ijk;\n'+
+	'}\n'+
+	'float voxelToWorldX(float x) {return x * _len.x + gl.x;}\n'+ // 64*(2/64)+(-1.0) = 1.0
+	'float voxelToWorldY(float y) {return y * _len.y + gl.y;}\n'+
+	'float voxelToWorldZ(float z) {return z * _len.z + gl.z;}\n';
+};
+/** @private  */
+Utils.prototype.rayTraversalSTR = function(resolution, getVoxelFunctionGLSLStr) {  
+	return ''+
+	'vec4 rayTraversal(vec3 RayOrigin, vec3 RayDir) {\n'+
+		'vec3 voxel = worldToVoxel(RayOrigin);'+   
+		'vec3 _dir = normalize(RayDir);'+   
+		'vec3 tMax;'+  
+		'if(RayDir.x < 0.0) tMax.x = (voxelToWorldX(voxel.x)-RayOrigin.x)/RayDir.x;'+ 	      
+		'if(RayDir.x > 0.0) tMax.x = (voxelToWorldX(voxel.x+1.0)-RayOrigin.x)/RayDir.x;'+
+		'if(RayDir.y < 0.0) tMax.y = (voxelToWorldY(voxel.y)-RayOrigin.y)/RayDir.y;'+
+		'if(RayDir.y < 0.0) tMax.y = (voxelToWorldY(voxel.y+1.0)-RayOrigin.y)/RayDir.y;'+
+		'if(RayDir.z < 0.0) tMax.z = (voxelToWorldZ(voxel.z)-RayOrigin.z)/RayDir.z;'+
+		'if(RayDir.z < 0.0) tMax.z = (voxelToWorldZ(voxel.z+1.0)-RayOrigin.z)/RayDir.z;'+
+		 
+		'float tDeltaX = _r.x/abs(RayDir.x);'+// hasta qué punto se debe avanzar en la dirección del rayo antes de que nos encontramos con un nuevo voxel en la dirección x
+		'float tDeltaY = _r.y/abs(RayDir.y);'+
+		'float tDeltaZ = _r.z/abs(RayDir.z);'+   
+
+		'float stepX = 1.0; float stepY = 1.0; float stepZ = 1.0;\n'+
+		'float outX = _r.x; float outY = _r.y; float outZ = _r.z;\n'+
+		'if(RayDir.x < 0.0) {stepX = -1.0; outX = -1.0;}'+
+		'if(RayDir.y < 0.0) {stepY = -1.0; outY = -1.0;}'+
+		'if(RayDir.z < 0.0) {stepZ = -1.0; outZ = -1.0;}'+ 
+			
+		'vec4 color = vec4(0.0,0.0,0.0,0.0);\n'+
+		'vec4 gv = vec4(0.0,0.0,0.0,0.0);\n'+
+		'bool c1; bool c2; bool c3; bool isOut;'+
+		'for(int c = 0; c < ('+resolution+'*2); c++) {\n'+      
+			'c1 = bool(tMax.x < tMax.y);'+
+			'c2 = bool(tMax.x < tMax.z);'+
+			'c3 = bool(tMax.y < tMax.z);'+
+			'isOut = false;'+
+			'if (c1 && c2) {'+
+				'voxel.x += stepX;'+
+				'if(voxel.x==outX) isOut=true;'+
+				'tMax.x += tDeltaX;'+
+			'} else if(( (c1 && !c2) || (!c1 && !c3) )) {'+
+				'voxel.z += stepZ;'+
+				'if(voxel.z==outZ) isOut=true;'+
+				'tMax.z += tDeltaZ;'+
+			'} else if(!c1 && c3) {'+
+				'voxel.y += stepY;'+
+				'if(voxel.y==outY) isOut=true;'+
+				'tMax.y += tDeltaY;'+
+			'}'+       
+			'if(isOut == true) break;\n'+  
+			'else {'+
+				'if((voxel.x >= 0.0 && voxel.x <= _rRes.x && voxel.y >= 0.0 && voxel.y <= _rRes.y && voxel.z >= 0.0 && voxel.z <= _rRes.z)) {;\n'+  
+					getVoxelFunctionGLSLStr+ 
+				'}'+ 
+			'}'+
+		'}'+
+		'return color;'+
+	'}\n';
+};
+
 /** @private  */
 Utils.prototype.isPowerOfTwo = function(x) {
     return (x & (x - 1)) == 0;

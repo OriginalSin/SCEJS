@@ -15,10 +15,15 @@ ComponentProjection = function() { Component.call(this);
 	var proy = Constants.PROJECTION_TYPES.PERSPECTIVE;
 	var _width = 512;	
 	var _height = 512;
+	
 	var _fov = 45;
 	var _fovOrtho = 20;	
-	var near = 0.1;
-	var far = 1000;
+	
+	var _near = 0.1;
+	var _nearOrtho = -1000;
+	
+	var _far = 1000;
+	var _farOrtho = 1000;
 	
 	
 	/**
@@ -43,6 +48,7 @@ ComponentProjection = function() { Component.call(this);
 	};
 	
 	/**
+	 * getProjection
 	 * @returns {Constants.PROJECTION_TYPES}
 	 */
 	this.getProjection = function() {
@@ -50,6 +56,7 @@ ComponentProjection = function() { Component.call(this);
 	};	
 	
 	/**
+	 * setProjection
 	 * @param {Constants.PROJECTION_TYPES} projection_type
 	 */
 	this.setProjection = function(projection_type) {
@@ -58,6 +65,7 @@ ComponentProjection = function() { Component.call(this);
 	};	
 	
 	/**
+	 * setResolution
 	 * @param {Int} width
 	 * @param {Int} height
 	 */
@@ -67,14 +75,20 @@ ComponentProjection = function() { Component.call(this);
 		updateProjectionMatrix();
 	};
 	/**
+	 * @typedef {Object} ComponentProjection~getResolution
+	 * @property {Int} ComponentProjection~getResolution.width
+	 * @property {Int} ComponentProjection~getResolution.height
+	 */
+	/**
 	 * getResolution
-	 * @returns {Object}
+	 * @returns {SCE~getDimensions}
 	 */
 	this.getResolution = function() {
 		return {"width": _width,
 				"height": _height};
 	};
 	/**
+	 * setFov
 	 * @param {Float} fov
 	 */
 	this.setFov = function(fov) {
@@ -84,6 +98,7 @@ ComponentProjection = function() { Component.call(this);
 		updateProjectionMatrix();
 	};
 	/**
+	 * getFov
 	 * @returns {Float}
 	 */
 	this.getFov = function() {
@@ -91,42 +106,54 @@ ComponentProjection = function() { Component.call(this);
 		else return _fovOrtho;
 	};
 	/**
+	 * setNear
 	 * @param {Float} near
 	 */
 	this.setNear = function(near) {
-		near = near;
+		if(proy == Constants.PROJECTION_TYPES.PERSPECTIVE) _near = near;
+		else _nearOrtho = near;
+		
 		updateProjectionMatrix();
 	};
 	/**
+	 * getNear
 	 * @returns {Float}
 	 */
 	this.getNear = function() {
-		return near;
+		if(proy == Constants.PROJECTION_TYPES.PERSPECTIVE) return _near;
+		else return _nearOrtho;
 	};
 	/**
+	 * setFar
 	 * @param {Float} far
 	 */
 	this.setFar = function(far) {
-		far = far;
+		if(proy == Constants.PROJECTION_TYPES.PERSPECTIVE) _far = far;
+		else _farOrtho = far;
+		
 		updateProjectionMatrix();
 	};
 	/**
+	 * getFar
 	 * @returns {Float}
 	 */
 	this.getFar = function() {
-		return far;
+		if(proy == Constants.PROJECTION_TYPES.PERSPECTIVE) return _far;
+		else return _farOrtho;
 	};
+	
 	/**
 	 * updateProjectionMatrix
+	 * @private
 	 */
 	var updateProjectionMatrix = (function() {		
 		var fovy = (proy == Constants.PROJECTION_TYPES.PERSPECTIVE) ? _fov : _fovOrtho;
 		var aspect = _width / _height;
 		
 		if(proy == Constants.PROJECTION_TYPES.PERSPECTIVE)
-			mProjectionMatrix = $M16().setPerspectiveProjection(fovy, aspect, near, far);
+			mProjectionMatrix = $M16().setPerspectiveProjection(fovy, aspect, _near, _far);
 		else
-			mProjectionMatrix = $M16().setOrthographicProjection(-aspect*fovy, aspect*fovy, -fovy, fovy, -far, far);
+			mProjectionMatrix = $M16().setOrthographicProjection(-aspect*fovy, aspect*fovy, -aspect*fovy, aspect*fovy, _nearOrtho, _farOrtho); 
 	}).bind(this);
 };
 ComponentProjection.prototype = Object.create(Component.prototype);

@@ -51,7 +51,7 @@ Stage = function() {
 	this.addNode = function(node) {
 		nodes.push(node);
 		
-		node.initialize("node "+(nodes.length-1).toString(), gl);
+		node.initialize(((node.getName() != null) ? node.getName() : "node "+(nodes.length-1)), gl);
 	};
 		
 	/**
@@ -121,10 +121,14 @@ Stage = function() {
 			var resolution = activeCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution();
 			gl.viewport(0, 0, resolution.width, resolution.height);
 			 
-			//gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
+			gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 			gl.clearDepth(1.0);
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
+			
+			var comp_screen_effects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS); 
+			if(comp_screen_effects != undefined)
+				comp_screen_effects.clearArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
 			
 			for(var n=0, fn = nodes.length; n < fn; n++) {
 				for(var key in nodes[n].getComponents()) {
@@ -138,10 +142,11 @@ Stage = function() {
 			}
 			
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
-			
-			if(activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS) != undefined)
-				activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).tick();
+						
+			if(comp_screen_effects != undefined) {
+				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
+				comp_screen_effects.tick();
+			}
 		}
 		if(paused == false) window.requestAnimFrame(tick);
 	}).bind(this);

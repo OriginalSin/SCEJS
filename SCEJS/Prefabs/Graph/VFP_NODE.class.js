@@ -82,17 +82,19 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        			'float fontImgColumns,'+
        			customArgs+') {'+
        				'vec2 x = get_global_id();'+
+       				
 					'vec2 xx = get_global_id(data[x].x);'+
-					'vec2 x_opposite = get_global_id(data[x].z);'+
+					'vec2 xx_opposite = get_global_id(data[x].y);'+
 
-					'vec4 nodePosition = posXYZW[xx];\n'+
-					'vec4 XYZW_opposite = posXYZW[x_opposite];\n'+
+					
+					'vec4 nodePosition = posXYZW[xx];\n'+  
+					'vec4 XYZW_opposite = posXYZW[xx_opposite];\n'+
 
-   				'vec4 nodeVertexPosition = nodeVertexPos[x];\n'+
-   				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
-   				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+
+	   				'vec4 nodeVertexPosition = nodeVertexPos[x];\n'+ 
+	   				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
+	   				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+
 
-					'float isTarget = data[x].w;'+
+					'float isTarget = data[x].z;'+
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
 

@@ -9,47 +9,70 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
        		['void main(float4* data'+ // data = 0: nodeId, 1: linkId, 2: oppositeId, 3: isTarget
 						',float4* posXYZW'+
 						',float4* dir'+
-						',float enableDrag'+
-						',float idToDrag'+
-						',float MouseDragTranslationX'+
-						',float MouseDragTranslationY'+
-						',float MouseDragTranslationZ'+
 						',float isLink'+
 						',float isNode'+
+						',float originId'+
+						',float targetId'+
+						',float isConnected'+
 						','+customArgs+
 						') {\n'+
 			'vec2 x = get_global_id();\n'+	 
-			'vec2 x_opposite = get_global_id(data[x].z);'+
 			
-			'vec4 dat = data[x];\n'+ 
-			'vec4 dat_opposite = data[x_opposite];\n'+ 
+			'vec2 xx = get_global_id(data[x].x);'+
+			'vec2 xx_opposite = get_global_id(data[x].y);'+
 			
-			'float nodeId = dat.x;'+
-			'float nodeId_opposite = dat_opposite.x;'+
-			'float linkId = dat.y;'+
-			'float linkId_opposite = dat_opposite.y;'+
-			'float isTarget = data[x].w;'+
 			
+			
+			'float nodeId = data[x].x;'+ 
 			'vec3 currentDir = dir[x].xyz;\n'+
-			'vec3 currentDir_opposite = dir[x_opposite].xyz;\n'+ 
 			'vec3 currentPos = posXYZW[x].xyz;\n'+
-			'vec3 currentPos_opposite = posXYZW[x_opposite].xyz;\n'+ 
 			
-			'if(enableDrag == 1.0) {'+
-				'if(isLink == 0.0) {'+
-					'if(linkId == idToDrag) {'+
-						'vec3 dp = vec3(MouseDragTranslationX, MouseDragTranslationY, MouseDragTranslationZ);'+ 
-						'currentDir = dp;\n'+
-					'}\n'+
-				'} else {'+
-					'if(nodeId == idToDrag) {'+
-						'vec3 dp = vec3(MouseDragTranslationX, MouseDragTranslationY, MouseDragTranslationZ);'+ 
-						'currentDir = dp;\n'+
-					'}\n'+
-				'}\n'+
-			'}\n'+ 
+			// if isLink == 1
+			//'float linkId = data[x].x;'+
+			'float isTarget = data[x].z;'+
 			
-			'currentDir = currentDir*0.995;'+ // air resistence
+			
+			
+			'float nodeId_opposite = data[xx_opposite].x;'+
+			'vec3 currentDir_opposite = dir[xx_opposite].xyz;\n'+ 			
+			'vec3 currentPos_opposite = posXYZW[xx_opposite].xyz;\n'+ 
+			
+			// if isLink == 1
+			'float linkId_opposite = data[xx_opposite].y;'+
+			'float targets_opposite = data[xx_opposite].z;'+
+			
+			
+			
+			
+			'if(nodeId == originId) {'+
+				'vec2 id_opposite = get_global_id(targetId);'+
+				'vec3 destPos = posXYZW[id_opposite].xyz;'+
+				
+				'vec3 destDir = normalize(destPos-currentPos);'+
+				'if(isConnected == 1.0) destDir *= (distance(destPos,currentPos)/1000.0);'+
+				'else destDir *= (1.0-(distance(destPos,currentPos)/1000.0))*-1.0;'+
+				//'destDir *= targets_opposite;'+				
+				'currentDir = currentDir+(destDir*0.1);'+
+				
+				//'vec3 toc = (vec3(0.0,0.0,0.0)-currentPos)*(isTarget/100.0);'+
+				//'currentDir = currentDir+(toc*0.001);'+
+			'}'+			
+			'if(nodeId == targetId) {'+
+				'vec2 id_opposite = get_global_id(originId);'+
+				'vec3 destPos = posXYZW[id_opposite].xyz;'+
+				
+				'vec3 destDir = normalize(destPos-currentPos);'+
+				'if(isConnected == 1.0) destDir *= (distance(destPos,currentPos)/1000.0);'+
+				'else destDir *= (1.0-(distance(destPos,currentPos)/1000.0))*-1.0;'+
+				//'destDir *= targets_opposite;'+
+				'currentDir = currentDir+(destDir*0.1);'+
+				
+				//'vec3 toc = (vec3(0.0,0.0,0.0)-currentPos)*(isTarget/100.0);'+
+				//'currentDir = currentDir+(toc*0.001);'+
+			'}'+
+			
+			
+			'currentDir = currentDir*0.95;'+ // air resistence
 			
 			customCode+
 			

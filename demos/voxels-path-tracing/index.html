@@ -7,18 +7,28 @@
 
 		<script src="../../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
 
-    <script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
-    <script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
-
-
-    <script src="../../SCEJS/Prefabs/Voxelizator/VFP_Voxelizator.class.js"></script>
-    <script src="../../SCEJS/Prefabs/Voxelizator/Voxelizator.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
+	
+	
+	    <script src="../../SCEJS/Prefabs/Voxelizator/VFP_Voxelizator.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/Voxelizator/Voxelizator.class.js"></script>
+	    
+	    <script src="../../SCEJS/Prefabs/GI/VFP_GI.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/GI/SE_GI.class.js"></script>
+	    <script src="../../SCEJS/Prefabs/GI/GI.class.js"></script>
+	    
+	    <script src="../../SCEJS/Prefabs/VolumeView/SE_VolumeView.class.js"></script>	    
 	</head>
 
 	<body>
 		<div id="SCEJS"></div>
 
-		<button id="BTNID_makeVoxels">make voxels</button><br />
+		<button id="BTNID_makeVoxels">voxelizate & make path tracing</button><br />
+		<button id="BTNID_loadimage">load image & make path tracing</button><br />
+		<img id="img_albedo" src="../_RESOURCES/cornellbox_albedo.png" />
+		<img id="img_position" src="../_RESOURCES/cornellbox_position.png" />
+		<img id="img_normal" src="../_RESOURCES/cornellbox_normal.png" />
 		
 		<script>
 			var sce = new SCE();
@@ -34,20 +44,36 @@
 			project.setActiveStage(stage);
 
 			// CAMERA
-			var simpleCamera = new SimpleCamera(sce);
+			var simpleCamera = new SimpleCamera(sce, {	"onmousedown": (function() {
+															if(gi.isRunned() == true) {
+																gi.stop();
+															}
+														}).bind(this), "onmouseup": (function() {
+															if(gi.isRunned() == true) {
+																gi.resume();
+															}
+														}).bind(this)});
 
 			// GRID
 			var grid = new Grid(sce);
 			grid.generate(100.0, 1.0);
 
 
-			// VOXELIZATOR
+			// GI
+			var _gridSize = 105.1, _resolution = 128; 
 			var OFFSET = 1000.0;
-			var voxelizator = new Voxelizator(sce);
+						
+			var gi = new GI(sce);
+			gi.setResolution(_resolution);
+			gi.setGridSize(_gridSize);			
 			
-			var mesh = new Mesh().loadBox();
-			voxelizator.setMesh(mesh);
-			voxelizator.setImage("../_RESOURCES/cartman08.jpg"); 
+			var _mesh;
+			new Mesh().loadObj("../_RESOURCES/sponza.obj", (function(mesh, textures) {
+				_mesh = mesh;
+				gi.setMesh(_mesh);
+				gi.setImage("../_RESOURCES/white.jpg"); 				
+			}).bind(this));
+			
 
 
 
@@ -63,9 +89,71 @@
 				//sce.setDimensions(512, 128);
 		    }).bind(this);
 			
+			var addVolumeView = (function(sampler_voxelColor, sampler_voxelPos, sampler_voxelNormal) {
+				var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+				comp_screenEffects.addKernel({	"name": "sampler_volume",
+												"kernel": new SE_VolumeView(_resolution),			
+												"width": sce.getCanvas().width, 
+												"height": sce.getCanvas().height,
+												"enableDepthTest": false,
+												"enableBlend": false, 
+												"blendSrc": Constants.BLENDING_MODES.ONE_MINUS_DST_ALPHA,
+												"blendDst": Constants.BLENDING_MODES.SRC_COLOR,
+												"onPostTick": (function() {						
+													
+												}).bind(this)});
+				comp_screenEffects.setArg("sampler_voxelColor", (function(){return sampler_voxelColor;}).bind(this));
+				comp_screenEffects.setArg("sampler_voxelPos", (function(){return sampler_voxelPos;}).bind(this));
+				comp_screenEffects.setArg("sampler_voxelNormal", (function(){return sampler_voxelNormal;}).bind(this));
+				
+				var comp_cam_tranf_target = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
+				comp_screenEffects.setArg("posCamGoal", (function(){return [comp_cam_tranf_target.getPositionGoal().e[0], comp_cam_tranf_target.getPositionGoal().e[1], comp_cam_tranf_target.getPositionGoal().e[2], 1.0];}).bind(this));
+				comp_screenEffects.setArgUpdatable("posCamGoal", true);
+				
+				comp_screenEffects.setArg("posCamTarget", (function(){return [comp_cam_tranf_target.getPositionTarget().e[0], comp_cam_tranf_target.getPositionTarget().e[1], comp_cam_tranf_target.getPositionTarget().e[2], 1.0];}).bind(this));
+				comp_screenEffects.setArgUpdatable("posCamTarget", true);
+				
+				comp_screenEffects.setArg("viewportWidth", (function(){return sce.getCanvas().width;}).bind(this));
+				comp_screenEffects.setArg("viewportHeight", (function(){return sce.getCanvas().height;}).bind(this));
+				
+				comp_screenEffects.setArg("uGridsize", (function(){return _gridSize;}).bind(this));
+				comp_screenEffects.setArg("uResolution", (function(){return _resolution;}).bind(this));
+			}).bind(this);
  
 			document.getElementById("BTNID_makeVoxels").addEventListener("click", (function() {
-				voxelizator.makeVoxels();
+				var voxelizator = new Voxelizator(sce);
+				voxelizator.setMesh(_mesh);  
+				voxelizator.setImage("../_RESOURCES/white.jpg"); 
+				voxelizator.generate({	"size": _gridSize,
+										"resolution": _resolution,
+										"fillmode": ["albedo","position","normal"],
+										"ongenerate": function() {
+											var images = voxelizator.getGeneratedImages();
+											for(var key in images) {
+												document.body.appendChild(images[key]);
+											}
+											
+											// GI
+											gi.setVoxelsArrays(voxelizator.getGeneratedArrays());											
+											gi.runGI();
+											
+											// volume view
+											addVolumeView(	voxelizator.getGeneratedArrays().albedo, 
+															voxelizator.getGeneratedArrays().position,
+															voxelizator.getGeneratedArrays().normal);											
+										}
+									});
+			}).bind(this));
+			
+			document.getElementById("BTNID_loadimage").addEventListener("click", (function() {
+				// GI
+				gi.setVoxelsArrays({"albedo": document.getElementById("img_albedo"),
+									"position": document.getElementById("img_position"),
+									"normal": document.getElementById("img_normal")});											
+				gi.runGI();
+				
+				// volume view
+				addVolumeView(document.getElementById("img_normal"));
 			}).bind(this));
 		</script>
 

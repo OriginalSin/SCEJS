@@ -1,21 +1,31 @@
 /**
 * @class
 */
-SimpleCamera = function(sce) {	
+SimpleCamera = function(sce, jsonIn) {	
 	"use strict";
 	
 	var _sce = sce;
 	var _project = _sce.getLoadedProject();
 	
+	
+	var _onkeydown = (jsonIn != undefined && jsonIn.onkeydown != undefined) ? jsonIn.onkeydown: null;
+	var _onkeyup = (jsonIn != undefined && jsonIn.onkeyup != undefined) ? jsonIn.onkeyup: null;
+	
+	var _onmousedown = (jsonIn != undefined && jsonIn.onmousedown != undefined) ? jsonIn.onmousedown: null;
+	var _onmouseup = (jsonIn != undefined && jsonIn.onmouseup != undefined) ? jsonIn.onmouseup: null;
+	var _onmousemove = (jsonIn != undefined && jsonIn.onmousemove != undefined) ? jsonIn.onmousemove: null;
+	
 	var altKeyPressed = false;
 	
 	var camera = new Node();
+	camera.setName("simple camera");
 	_project.getActiveStage().addNode(camera);
 	_project.getActiveStage().setActiveCamera(camera);
 	
 	// ComponentTransformTarget 
 	var comp_transformTarget = new ComponentTransformTarget();
 	camera.addComponent(comp_transformTarget);
+	comp_transformTarget.setTargetDistance(0.5);
 	
 	// ComponentProjection
 	var comp_projection = new ComponentProjection();
@@ -28,9 +38,13 @@ SimpleCamera = function(sce) {
 	// ComponentScreenEffects
 	var comp_screenEffects = new ComponentScreenEffects();
 	camera.addComponent(comp_screenEffects);
-	comp_screenEffects.addSE({	"se": new SE_RGB(),
-								"width": _sce.getCanvas().width,
-								"height": _sce.getCanvas().height});
+	comp_screenEffects.addKernel({	"name": "RGB",
+									"kernel": new SE_RGB(),
+									"width": _sce.getCanvas().width,
+									"height": _sce.getCanvas().height,
+									"onPostTick": (function() {									
+										comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+									}).bind(this)});
 	//_sce.setDimensions(_sce.getCanvas().width, _sce.getCanvas().height);
 	
 	// ComponentKeyboardEvents
@@ -70,6 +84,9 @@ SimpleCamera = function(sce) {
 		
 		if(evt.altKey == true)
 			altKeyPressed = true;
+		
+		if(_onkeydown != null)
+			_onkeydown();
 	}).bind(this));
 	comp_keyboardEvents.onkeyup(function(evt) {		
 		var key = String.fromCharCode(evt.keyCode);
@@ -89,6 +106,9 @@ SimpleCamera = function(sce) {
 		
 		if(evt.altKey == false)
 			altKeyPressed = false;
+		
+		if(_onkeyup != null)
+			_onkeyup();
 	});			
 	
 	// ComponentMouseEvents 
@@ -96,9 +116,15 @@ SimpleCamera = function(sce) {
 	camera.addComponent(comp_mouseEvents);
 	comp_mouseEvents.onmousedown(function(evt) {
 			comp_controllerTransformTarget.mouseDown(evt);
+			
+			if(_onmousedown != null)
+				_onmousedown();
 	});
 	comp_mouseEvents.onmouseup(function(evt) {
 			comp_controllerTransformTarget.mouseUp(evt);
+			
+			if(_onmouseup != null)
+				_onmouseup();
 	});
 	comp_mouseEvents.onmousemove(function(evt, dir) {
 		if(comp_projection.getProjection() == Constants.PROJECTION_TYPES.PERSPECTIVE || altKeyPressed == true)
@@ -106,13 +132,16 @@ SimpleCamera = function(sce) {
 		
 		if(comp_controllerTransformTarget.isRightBtnActive() == true && comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO && altKeyPressed == true) {
 			if(dir.e[2] > 0) {
-				comp_projection.setFov(comp_projection.getFov()*(1.0+Math.abs(dir.e[2]*0.5)));				
+				comp_projection.setFov(comp_projection.getFov()*(1.0+Math.abs(dir.e[2]*0.005)));				
 			} else {
-				comp_projection.setFov(comp_projection.getFov()/(1.0+Math.abs(dir.e[2]*0.5))); 
+				comp_projection.setFov(comp_projection.getFov()/(1.0+Math.abs(dir.e[2]*0.005))); 
 			}
 			//comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir.x(dir.e[2]))); 
 			//comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir.x(dir.e[2]))); 
 		}
+		
+		if(_onmousemove != null)
+			_onmousemove();
 	});
 	comp_mouseEvents.onmousewheel(function(evt, dir) {
 		if(evt.wheelDeltaY >= 0)
@@ -147,7 +176,7 @@ SimpleCamera = function(sce) {
 				//comp_transformTarget.getMatrix().setRotation(new Utils().degToRad(180),false,$V3([0.0,1.0,0.0]));
 				break;
 			case Constants.VIEW_TYPES.TOP:
-				comp_transformTarget.pitch(-90);
+				comp_transformTarget.pitch(-89.9); 
 				break;
 			case Constants.VIEW_TYPES.BOTTOM:			
 				comp_transformTarget.pitch(90);
