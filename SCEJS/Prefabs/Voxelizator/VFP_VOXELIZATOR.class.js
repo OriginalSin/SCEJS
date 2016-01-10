@@ -74,9 +74,7 @@ function VFP_VOXELIZATOR() { VFP.call(this);
 					'vp = vp*vec3(1.0, 1.0, 1.0);'+
 					
 					'vec4 vPosition = PMatrix*mCam*nodeWMatrix*vec4(vp,1.0);'+					  
-    				'float lengthOffs = 0.005*gridSize*vPosition.z;'+  
-    				
-       				//'float lengthOffs = 1.0+((( vp.y+(gridSize/2.0) )/gridSize)*5.0);'+       				       				
+    				'float lengthOffs = 0.005*gridSize*vPosition.z;'+   				       				
        									
     				'int currOffs = int(uCurrentOffset);'+ 
     				'if(currOffs == 0) vp = vp+vec3(lengthOffs,	0.0,	lengthOffs);'+  
@@ -88,12 +86,12 @@ function VFP_VOXELIZATOR() { VFP.call(this);
     				'if(currOffs == 6) vp = vp+vec3(lengthOffs,	0.0,	0.0);'+  
     				'if(currOffs == 7) vp = vp+vec3(-lengthOffs,	0.0,	0.0);'+
     				
-    				'vVPos = vec4(vp, 1.0);'+
+    				'vVPos = vec4(vp*vec3(-1.0, -1.0, -1.0), 1.0);'+
     				'gl_Position = PMatrix * mCam * nodeWMatrix * vec4(vp, 1.0);\n'+   
     				
     				
     				'vVN = vertexNormal[x]*vec4(-1.0, -1.0, -1.0, 1.0);\n'+ 
-    				'vVT = vertexTexture[x];\n'+
+    				'vVT = vertexTexture[x];\n'+ 
     				'vVTU = vertexTextureUnit[x];\n'+
        		'}'],
 
@@ -125,7 +123,7 @@ function VFP_VOXELIZATOR() { VFP.call(this);
 					'float chs = cs/2.0;\n'+
 
 					
-					'vec3 p = ((vVPos.xyz*vec3(-1.0, -1.0, -1.0))+(gridSize/2.0))/gridSize;'+
+					'vec3 p = (vVPos.xyz+(gridSize/2.0))/gridSize;'+
 					
 					'gl_FragColor = vec4(p, 1.0);\n'+ 
 					
