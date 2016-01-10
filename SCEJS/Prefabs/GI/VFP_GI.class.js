@@ -131,7 +131,7 @@ function VFP_GI(resolution) { VFP.call(this);
 	 			
 	
 	 			'vec4 color;'+
-	 			'float maxang=0.85;'+
+	 			'float maxang=0.7;'+
 	 			'float maxB = 3.0;'+ 
 	 			
 	 			'int typePass = int(uTypePass);'+
@@ -166,10 +166,11 @@ function VFP_GI(resolution) { VFP.call(this);
 		 						 				
 		 						
 	 					'if(rayT.a > 0.0) {'+ // hit in solid	 	 					
-	 						'float proc = (texScreenPos.a == maxB) ? 0.0 : 1.0;'+ // 1.0  (hit in solid. do nothing alpha 1.0); 0.0 (make process and return to origin alpha 0.0).
+	 						//'float proc = (texScreenPos.a == maxB) ? 0.0 : 1.0;'+ // 1.0  (hit in solid. do nothing alpha 1.0); 0.0 (make process and return to origin alpha 0.0).
+	 						'float rx = abs((randX1-0.5)*2.0);'+
+	 						'float ry = abs((randY1-0.5)*2.0);'+
 	 						
-	 						
-	 						'if(typePass == 0) color = vec4(texScreenColor.r*rayT.r,texScreenColor.g*rayT.g,texScreenColor.b*rayT.b, texScreenColor.a*0.5);\n'+ // SAVE IN sampler_screenColor // -(rayT.a/uGridsize)
+	 						'if(typePass == 0) color = vec4(texScreenColor.r*rayT.r,texScreenColor.g*rayT.g,texScreenColor.b*rayT.b, texScreenColor.a*(rayT.a/uGridsize));\n'+ // SAVE IN sampler_screenColor // -(rayT.a/uGridsize)
 	 						'else if(typePass == 1) color = vec4(rayT.r,rayT.g,rayT.b, texScreenPos.a+1.0);\n'+ // SAVE IN sampler_screenPos
 	 						'else color = vec4(rayT.r,rayT.g,rayT.b, 1.0);\n'+ // SAVE IN sampler_screenNormal
 	 					'} else {'+ // hit in light
@@ -191,7 +192,7 @@ function VFP_GI(resolution) { VFP.call(this);
 					'if(texScreenNormal.a == 0.0) {'+ //  alpha 1.0 (hit in light. make process)
 						//'float am = (texScreenPos.a)-(texScreenColor.a);'+
 						//'vec3 amount = vec3(am, am, am);'+
-						'color = vec4(texScreenGIVoxel.xyz+texScreenColor.a, texScreenGIVoxel.a+(1.0));'+ // alpha is samples
+						'color = vec4(texScreenGIVoxel.xyz+(texScreenColor.a*texScreenColor.rgb), texScreenGIVoxel.a+(1.0));'+ // alpha is samples
 						//'color = vec4(texScreenGIVoxel.xyz+(amount*texScreenColor.rgb), texScreenGIVoxel.a+1.0);'+ // alpha is samples 
 					'} else {'+ // alpha 1.0 (hit in solid. do nothing)
 						'color = texScreenGIVoxel;'+
