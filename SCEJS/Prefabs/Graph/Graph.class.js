@@ -27,7 +27,7 @@ Graph = function(sce) {
 	var _initialPosDrag;
 	 
 	var numResponses = 0;	
-	var num_workers = 10;
+	var num_workers = 40;
 	var arrayNodeDir;
 	var _workers = [];
 	for(var n=0; n < num_workers; n++) {
@@ -47,12 +47,6 @@ Graph = function(sce) {
 			}
 		}).bind(this), false);
 	}
-	/*var worker = new Worker(sceDirectory+'/Prefabs/Graph/worker_layout.js');
-	worker.addEventListener('message', (function(e) {
-		var arr = new Float32Array(e.data.arrayNodeDir);
-		comp_renderer_nodes.setArg("dir", (function() {return arr;}).bind(this), this.splitNodes);
-		this.runFL();
-	}).bind(this), false);*/
 	
 	// meshes
 	var circleSegments = 12;
@@ -1014,28 +1008,6 @@ Graph = function(sce) {
 	this.runFL = function() {
 		var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
 		
-		
-		
-		
-		
-		/*worker.postMessage({'arr4Uint8_XYZW_0': a,
-							'arr4Uint8_XYZW_1': b,
-							'arr4Uint8_XYZW_2': c,
-							'arr4Uint8_XYZW_3': d,
-							'arrayNodeData': nodeData,
-							'_nodesById': nbi,
-							'_links': li}, [a, b, c, d, nodeData]);*/
-		
-		
-		
-		
-		
-		
-		//var arrayNodeData = new Float32Array(e.data.arrayNodeData);
-		
-		//var arrayNodeDir_bv = new ArrayBuffer(this.arrayNodeData.length*Float32Array.BYTES_PER_ELEMENT);
-		arrayNodeDir = new Float32Array(this.arrayNodeData.length);
-		
 		var items_per_worker = parseInt(this.arrayNodeData.length/num_workers);
 		for(var n=0; n < num_workers; n++) {
 			var a = new ArrayBuffer(arr4Uint8_XYZW[0].length*Float32Array.BYTES_PER_ELEMENT);
@@ -1064,20 +1036,15 @@ Graph = function(sce) {
 			var li = JSON.stringify(_links);
 			
 			
-			
-			
-			
-			
-			
-			_workers[n].postMessage({'arr4Uint8_XYZW_0': a,
-								'arr4Uint8_XYZW_1': b,
-								'arr4Uint8_XYZW_2': c,
-								'arr4Uint8_XYZW_3': d,
-								'arrayNodeData': nodeData,
-								'_nodesById': nbi,
-								'_links': li,
-								'from': items_per_worker*n,
-								'to': items_per_worker*(n+1)}, [a, b, c, d, nodeData]);
+			_workers[n].postMessage({	'arr4Uint8_XYZW_0': a,
+										'arr4Uint8_XYZW_1': b,
+										'arr4Uint8_XYZW_2': c,
+										'arr4Uint8_XYZW_3': d,
+										'arrayNodeData': nodeData,
+										'_nodesById': nbi,
+										'_links': li,
+										'from': items_per_worker*n,
+										'to': items_per_worker*(n+1)}, [a, b, c, d, nodeData]);
 		}
 	};
 

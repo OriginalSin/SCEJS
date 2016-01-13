@@ -39,7 +39,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			
 			// if isLink == 1
 			'float linkId_opposite = data[xx_opposite].y;'+
-			'float targets_opposite = data[xx_opposite].z;'+
+			'float targets = 1.0/(1.0+data[x].w);'+
 			
 			
 			

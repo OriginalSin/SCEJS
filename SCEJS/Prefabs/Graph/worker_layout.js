@@ -51,7 +51,11 @@ self.addEventListener('message', function(e) {
 				
 				var dir = (posA.e[0] == posB.e[0] && posA.e[1] == posB.e[1] && posA.e[2] == posB.e[2]) ? $V3([0.0, 0.0, 0.0]) : posB.subtract(posA).normalize();
 				var distanceN = posB.subtract(posA).x(0.001).modulus(); // near=0.0 ; far=1.0
+				var targetsA = 1.0/(1.0+(arrayNodeData[id+3])); // 1targets=1.0 ; 10targets=0.1
 				var targetsB = 1.0/(1.0+(arrayNodeData[idb+3])); // 1targets=1.0 ; 10targets=0.1
+				
+				var dir_C = $V3([0.0, 0.0, 0.0]).subtract(posA).normalize();
+				var distanceN_C = $V3([0.0, 0.0, 0.0]).subtract(posA).x(0.001).modulus(); // near=0.0 ; far=1.0
 				
 				if(_links.hasOwnProperty(_nodesById[nodeIdA].nodeName+"->"+_nodesById[nodeIdB].nodeName) == true) {
 					var dirAtraction = dir.x(1.0-targetsB);
@@ -60,17 +64,37 @@ self.addEventListener('message', function(e) {
 										
 					var dirRepulsion = dir.x(-1.0);
 					dirRepulsion = dirRepulsion.x(targetsB);
-					dirRepulsion = dirRepulsion.x(distanceN);					
+					dirRepulsion = dirRepulsion.x(1.0-distanceN);					
 					d_r = d_r.add(dirRepulsion);
+					
+					
+					var dirAtract_C = dir_C.x(1.0-targetsA);
+					dirAtract_C = dirAtract_C.x(distanceN_C);
+					d_a = d_a.add(dirAtract_C);
+					
+					var dirRepulsion_C = dir_C.x(-1.0);
+					dirRepulsion_C = dirRepulsion_C.x(targetsA);
+					dirRepulsion_C = dirRepulsion_C.x(1.0-distanceN_C);					
+					d_r = d_r.add(dirRepulsion_C);
 				} else if(_links.hasOwnProperty(_nodesById[nodeIdB].nodeName+"->"+_nodesById[nodeIdA].nodeName) == true) {
 					var dirAtraction = dir.x(1.0-targetsB);
 					dirAtraction = dirAtraction.x(distanceN);
 					d_a = d_a.add(dirAtraction);
-										
+								
 					var dirRepulsion = dir.x(-1.0);
 					dirRepulsion = dirRepulsion.x(targetsB);
-					dirRepulsion = dirRepulsion.x(distanceN);					
+					dirRepulsion = dirRepulsion.x(1.0-distanceN);					
 					d_r = d_r.add(dirRepulsion);
+					
+					
+					var dirAtract_C = dir_C.x(1.0-targetsA);
+					dirAtract_C = dirAtract_C.x(distanceN_C);
+					d_a = d_a.add(dirAtract_C);
+					
+					var dirRepulsion_C = dir_C.x(-1.0);
+					dirRepulsion_C = dirRepulsion_C.x(targetsA);
+					dirRepulsion_C = dirRepulsion_C.x(1.0-distanceN_C);					
+					d_r = d_r.add(dirRepulsion_C);
 				} else {
 					var dirRepulsion = dir.x(-1.0);
 					dirRepulsion = dirRepulsion.x(1.0-targetsB);
@@ -78,8 +102,8 @@ self.addEventListener('message', function(e) {
 					d_r = d_r.add(dirRepulsion);
 				}													
 			}			
-			d_a = $V3([d_a.e[0]/(arrayNodeData[id+3]), d_a.e[1]/(arrayNodeData[id+3]), d_a.e[2]/(arrayNodeData[id+3])]).x(10);
-			d_r = $V3([d_r.e[0]/(arrayNodeData.length/4), d_r.e[1]/(arrayNodeData.length/4), d_r.e[2]/(arrayNodeData.length/4)]).x(0.5);
+			d_a = $V3([d_a.e[0]/(arrayNodeData[id+3]*2), d_a.e[1]/(arrayNodeData[id+3]*2), d_a.e[2]/(arrayNodeData[id+3]*2)]).x(10);
+			d_r = $V3([d_r.e[0]/(arrayNodeData.length/4), d_r.e[1]/(arrayNodeData.length/4), d_r.e[2]/(arrayNodeData.length/4)]).x(2);
 			
 			
 			var fd = d_r.add(d_a);
