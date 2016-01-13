@@ -25,7 +25,28 @@ Graph = function(sce) {
 	var readPixel = false;
 	var selectedId = -1;
 	var _initialPosDrag;
-	var _currN = 0;
+	 
+	var numResponses = 0;	
+	var num_workers = 40;
+	var arrayNodeDir;
+	var _workers = [];
+	for(var n=0; n < num_workers; n++) {
+		_workers.push(new Worker(sceDirectory+'/Prefabs/Graph/worker_layout.js'));
+		
+		_workers[n].addEventListener('message', (function(e) {
+			var arr = new Float32Array(e.data.arrayNodeDir);
+			arrayNodeDir.set(arr, e.data.from);
+			
+			numResponses++;
+			if(numResponses == num_workers) {
+				numResponses = 0;
+				
+				comp_renderer_nodes.setArg("dir", (function() {return arrayNodeDir;}).bind(this), this.splitNodes);
+				setTimeout(this.runFL.bind(this), 2000);
+				//self.postMessage({'arrayNodeDir': arrayNodeDir_bv}, [arrayNodeDir_bv]);
+			}
+		}).bind(this), false);
+	}
 	
 	// meshes
 	var circleSegments = 12;
@@ -591,10 +612,12 @@ Graph = function(sce) {
 				if(this.arrayNodeData[id] == _nodesByName[jsonIn.origin].nodeId) {
 					this.arrayNodeData[id+1] = _nodesByName[jsonIn.target].nodeId;
 					this.arrayNodeData[id+2] = this.arrayNodeData[id+2];
+					this.arrayNodeData[id+3] = this.arrayNodeData[id+3]+1.0;
 				}
 				if(this.arrayNodeData[id] == _nodesByName[jsonIn.target].nodeId) {
 					this.arrayNodeData[id+1] = _nodesByName[jsonIn.origin].nodeId;
 					this.arrayNodeData[id+2] = this.arrayNodeData[id+2]+1.0;
+					this.arrayNodeData[id+3] = this.arrayNodeData[id+3]+1.0;
 				}
 			}
 			
@@ -982,7 +1005,48 @@ Graph = function(sce) {
 
 
 
-
+	this.runFL = function() {
+		var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
+		
+		var items_per_worker = parseInt(this.arrayNodeData.length/num_workers);
+		for(var n=0; n < num_workers; n++) {
+			var a = new ArrayBuffer(arr4Uint8_XYZW[0].length*Float32Array.BYTES_PER_ELEMENT);
+			var b = new ArrayBuffer(arr4Uint8_XYZW[1].length*Float32Array.BYTES_PER_ELEMENT);
+			var c = new ArrayBuffer(arr4Uint8_XYZW[2].length*Float32Array.BYTES_PER_ELEMENT);
+			var d = new ArrayBuffer(arr4Uint8_XYZW[3].length*Float32Array.BYTES_PER_ELEMENT);
+			var _a = new Float32Array(a);
+			var _b = new Float32Array(b);
+			var _c = new Float32Array(c);
+			var _d = new Float32Array(d);
+			for(var nb=0; nb < arr4Uint8_XYZW[0].length; nb++) {
+				_a[nb] = arr4Uint8_XYZW[0][nb];
+				_b[nb] = arr4Uint8_XYZW[1][nb];
+				_c[nb] = arr4Uint8_XYZW[2][nb];
+				_d[nb] = arr4Uint8_XYZW[3][nb];
+			}
+			
+			var nodeData = new ArrayBuffer(this.arrayNodeData.length*Float32Array.BYTES_PER_ELEMENT);		
+			var _nodeData = new Float32Array(nodeData);
+			for(var nb=0; nb < this.arrayNodeData.length; nb++) {
+				_nodeData[nb] = this.arrayNodeData[nb];
+			}
+			
+			
+			var nbi = JSON.stringify(_nodesById);
+			var li = JSON.stringify(_links);
+			
+			
+			_workers[n].postMessage({	'arr4Uint8_XYZW_0': a,
+										'arr4Uint8_XYZW_1': b,
+										'arr4Uint8_XYZW_2': c,
+										'arr4Uint8_XYZW_3': d,
+										'arrayNodeData': nodeData,
+										'_nodesById': nbi,
+										'_links': li,
+										'from': items_per_worker*n,
+										'to': items_per_worker*(n+1)}, [a, b, c, d, nodeData]);
+		}
+	};
 
 
 	/**
@@ -1015,34 +1079,7 @@ Graph = function(sce) {
 		comp_renderer_nodes.addKernel({	"name": "dir",
 										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
 										"onPreTick": (function() {
-											var A = parseInt(Math.random()*this.currentNodeId);
-											var B = parseInt(Math.random()*this.currentNodeId);
 											
-											comp_renderer_nodes.setArg("originId", (function() {return A;}).bind(this));
-											comp_renderer_nodes.setArg("targetId", (function() {return B;}).bind(this)); 
-											
-											if(_links.hasOwnProperty(_nodesById[A].nodeName+"->"+_nodesById[B].nodeName) == false)
-												comp_renderer_nodes.setArg("isConnected", (function() {return 0.0;}).bind(this));
-											else
-												comp_renderer_nodes.setArg("isConnected", (function() {return 1.0;}).bind(this));
-											
-											
-											
-											/*var n=0;
-											for(var key in _links) {
-												if(n == _currN) {
-													console.log(_links[key].origin_nodeId+" "+_links[key].target_nodeId);
-													comp_renderer_nodes.setArg("originId", (function() {return _links[key].origin_nodeId;}).bind(this));
-													comp_renderer_nodes.setArg("targetId", (function() {return _links[key].target_nodeId;}).bind(this)); 
-													
-													_currN++;
-													if(_currN == Object.keys(_links).length)
-														_currN = 0;
-													
-													break;
-												}
-												n++;
-											}*/
 											
 										}).bind(this)});
 		comp_renderer_nodes.addKernel({	"name": "posXYZW",

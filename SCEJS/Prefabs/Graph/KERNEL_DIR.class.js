@@ -13,7 +13,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						',float isNode'+
 						',float originId'+
 						',float targetId'+
-						',float isConnected'+
+						//',float isConnected'+
 						','+customArgs+
 						') {\n'+
 			'vec2 x = get_global_id();\n'+	 
@@ -39,20 +39,20 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			
 			// if isLink == 1
 			'float linkId_opposite = data[xx_opposite].y;'+
-			'float targets_opposite = data[xx_opposite].z;'+
+			'float targets = 1.0/(1.0+data[x].w);'+
 			
 			
 			
 			
-			'if(nodeId == originId) {'+
+			/*'if(nodeId == originId) {'+
 				'vec2 id_opposite = get_global_id(targetId);'+
 				'vec3 destPos = posXYZW[id_opposite].xyz;'+
 				
-				'vec3 destDir = normalize(destPos-currentPos);'+
+				'vec3 destDir = clamp(destPos-currentPos, -1.0, 1.0);'+
 				'if(isConnected == 1.0) destDir *= (distance(destPos,currentPos)/1000.0);'+
-				'else destDir *= (1.0-(distance(destPos,currentPos)/1000.0))*-1.0;'+
+				'else destDir *= (1.0-(distance(destPos,currentPos)/1000.0))*-0.001;'+
 				//'destDir *= targets_opposite;'+				
-				'currentDir = currentDir+(destDir*0.1);'+
+				'currentDir = currentDir+(destDir*10.0);'+
 				
 				//'vec3 toc = (vec3(0.0,0.0,0.0)-currentPos)*(isTarget/100.0);'+
 				//'currentDir = currentDir+(toc*0.001);'+
@@ -61,15 +61,15 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				'vec2 id_opposite = get_global_id(originId);'+
 				'vec3 destPos = posXYZW[id_opposite].xyz;'+
 				
-				'vec3 destDir = normalize(destPos-currentPos);'+
+				'vec3 destDir = clamp(destPos-currentPos, -1.0, 1.0);'+
 				'if(isConnected == 1.0) destDir *= (distance(destPos,currentPos)/1000.0);'+
-				'else destDir *= (1.0-(distance(destPos,currentPos)/1000.0))*-1.0;'+
+				'else destDir *= (1.0-(distance(destPos,currentPos)/1000.0))*-0.001;'+
 				//'destDir *= targets_opposite;'+
-				'currentDir = currentDir+(destDir*0.1);'+
+				'currentDir = currentDir+(destDir*10.0);'+
 				
 				//'vec3 toc = (vec3(0.0,0.0,0.0)-currentPos)*(isTarget/100.0);'+
 				//'currentDir = currentDir+(toc*0.001);'+
-			'}'+
+			'}'+*/
 			
 			
 			'currentDir = currentDir*0.95;'+ // air resistence
