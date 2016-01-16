@@ -64,7 +64,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'}'],
 
        		// vertex source
-       		['void main(float4* data,'+ // data = 0: nodeId, 1: linkId, 2: oppositeId, 3: isTarget
+       		['void main(float4* data,'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
        		 	'float* letterId,'+
        		 	'float* nodeImgId,'+
        			'float4*kernel posXYZW,'+

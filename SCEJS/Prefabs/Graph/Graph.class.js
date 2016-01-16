@@ -19,34 +19,13 @@ Graph = function(sce) {
 	var _nodesByName = {};
 	var _nodesById = {};
 	var _links = {};
-
+	var adjacencyMatrix;
+	
 	var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
 
 	var readPixel = false;
 	var selectedId = -1;
 	var _initialPosDrag;
-	 
-	var numResponses = 0;	
-	var num_workers = 40;
-	var arrayNodeDir;
-	var _workers = [];
-	for(var n=0; n < num_workers; n++) {
-		_workers.push(new Worker(sceDirectory+'/Prefabs/Graph/worker_layout.js'));
-		
-		_workers[n].addEventListener('message', (function(e) {
-			var arr = new Float32Array(e.data.arrayNodeDir);
-			arrayNodeDir.set(arr, e.data.from);
-			
-			numResponses++;
-			if(numResponses == num_workers) {
-				numResponses = 0;
-				
-				comp_renderer_nodes.setArg("dir", (function() {return arrayNodeDir;}).bind(this), this.splitNodes);
-				setTimeout(this.runFL.bind(this), 2000);
-				//self.postMessage({'arrayNodeDir': arrayNodeDir_bv}, [arrayNodeDir_bv]);
-			}
-		}).bind(this), false);
-	}
 	
 	// meshes
 	var circleSegments = 12;
@@ -711,6 +690,21 @@ Graph = function(sce) {
 	 * updateLinks
 	 */
 	this.updateLinks = function() {
+		// FORCE LAYOUT BY DEFAULT
+		var width = this.currentNodeId;
+		adjacencyMatrix = new Float32Array(width*width);
+		for(var key in _links) {
+			var origin = _links[key].origin_nodeId;
+			var target = _links[key].target_nodeId;
+			
+			adjacencyMatrix[(origin*width)+target] = 1;
+			adjacencyMatrix[(target*width)+origin] = 1;
+		}
+		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return adjacencyMatrix;}).bind(this));
+		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return width;}).bind(this));
+		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
+		
+		
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
 		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
@@ -736,7 +730,34 @@ Graph = function(sce) {
 		updateArrows();
 	};
 
-
+	/**
+	 * adjacencyMatrixToImage
+	 */
+	this.adjacencyMatrixToImage = function() {
+		var toArrF = (function(arr) {
+			var arrO = new Uint8Array(arr.length*4);
+			for(var n=0; n < arr.length; n++) {
+				var idO = n*4;
+				arrO[idO] = arr[n]*255;
+				arrO[idO+1] = arr[n]*255;
+				arrO[idO+2] = arr[n]*255;
+				arrO[idO+3] = 255;
+			}
+			
+			return arrO;
+		}).bind(this);
+		
+		var toImage = (function(arrO, w, h) {			
+			var canvas = new Utils().getCanvasFromUint8Array(arrO, w, h);
+			new Utils().getImageFromCanvas(canvas, function(im) {
+				document.body.appendChild(im);
+				im.style.border = "1px solid red";
+			});
+		}).bind(this);
+		
+		var arrF = toArrF(adjacencyMatrix);
+		toImage(arrF, width, width);
+	};
 
 
 
@@ -1000,53 +1021,6 @@ Graph = function(sce) {
 		}
 	}).bind(this);
 
-
-
-
-
-
-	this.runFL = function() {
-		var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
-		
-		var items_per_worker = parseInt(this.arrayNodeData.length/num_workers);
-		for(var n=0; n < num_workers; n++) {
-			var a = new ArrayBuffer(arr4Uint8_XYZW[0].length*Float32Array.BYTES_PER_ELEMENT);
-			var b = new ArrayBuffer(arr4Uint8_XYZW[1].length*Float32Array.BYTES_PER_ELEMENT);
-			var c = new ArrayBuffer(arr4Uint8_XYZW[2].length*Float32Array.BYTES_PER_ELEMENT);
-			var d = new ArrayBuffer(arr4Uint8_XYZW[3].length*Float32Array.BYTES_PER_ELEMENT);
-			var _a = new Float32Array(a);
-			var _b = new Float32Array(b);
-			var _c = new Float32Array(c);
-			var _d = new Float32Array(d);
-			for(var nb=0; nb < arr4Uint8_XYZW[0].length; nb++) {
-				_a[nb] = arr4Uint8_XYZW[0][nb];
-				_b[nb] = arr4Uint8_XYZW[1][nb];
-				_c[nb] = arr4Uint8_XYZW[2][nb];
-				_d[nb] = arr4Uint8_XYZW[3][nb];
-			}
-			
-			var nodeData = new ArrayBuffer(this.arrayNodeData.length*Float32Array.BYTES_PER_ELEMENT);		
-			var _nodeData = new Float32Array(nodeData);
-			for(var nb=0; nb < this.arrayNodeData.length; nb++) {
-				_nodeData[nb] = this.arrayNodeData[nb];
-			}
-			
-			
-			var nbi = JSON.stringify(_nodesById);
-			var li = JSON.stringify(_links);
-			
-			
-			_workers[n].postMessage({	'arr4Uint8_XYZW_0': a,
-										'arr4Uint8_XYZW_1': b,
-										'arr4Uint8_XYZW_2': c,
-										'arr4Uint8_XYZW_3': d,
-										'arrayNodeData': nodeData,
-										'_nodesById': nbi,
-										'_links': li,
-										'from': items_per_worker*n,
-										'to': items_per_worker*(n+1)}, [a, b, c, d, nodeData]);
-		}
-	};
 
 
 	/**
