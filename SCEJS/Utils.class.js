@@ -11,6 +11,16 @@ DCE = alias(document, 'createElement');
 D$ = alias(document, 'querySelector');
 D$$ = alias(document, 'querySelectorAll');
 
+// XHR
+XHR = function() {
+	var req;
+	if (window.XMLHttpRequest) {
+	      req = new XMLHttpRequest();
+	} else {      // code for IE6, IE5
+	      req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	return req;
+};
 
 window.requestAnimFrame = (function(){
 	return  window.requestAnimationFrame       || 

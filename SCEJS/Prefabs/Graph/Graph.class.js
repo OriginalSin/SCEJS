@@ -521,7 +521,7 @@ Graph = function(sce) {
 
 		this.arrayNodeDir = [];
 		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-			this.arrayNodeDir.push(0, 0, 0, 255);
+			this.arrayNodeDir.push(0, 0, 0, 1.0);
 		}
 		comp_renderer_nodes.setArg("dir", (function() {return this.arrayNodeDir;}).bind(this), this.splitNodes);
 
@@ -691,18 +691,7 @@ Graph = function(sce) {
 	 */
 	this.updateLinks = function() {
 		// FORCE LAYOUT BY DEFAULT
-		var width = this.currentNodeId;
-		adjacencyMatrix = new Float32Array(width*width);
-		for(var key in _links) {
-			var origin = _links[key].origin_nodeId;
-			var target = _links[key].target_nodeId;
-			
-			adjacencyMatrix[(origin*width)+target] = 1;
-			adjacencyMatrix[(target*width)+origin] = 1;
-		}
-		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return adjacencyMatrix;}).bind(this));
-		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return width;}).bind(this));
-		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
+		this.enableForceLayout();
 		
 		
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
@@ -729,11 +718,148 @@ Graph = function(sce) {
 
 		updateArrows();
 	};
+	
+	/**
+	 * clear
+	 */
+	this.clear = function() {
+		_project.getActiveStage().removeNode(nodes);
+		_project.getActiveStage().removeNode(links);
+		_project.getActiveStage().removeNode(arrows);
+		_project.getActiveStage().removeNode(nodesText);
+		
+		/*_nodesByName = {};
+		_nodesById = {};
+		_links = {};
+		adjacencyMatrix = null;
+		
+		_customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
+
+		// nodes image
+		objNodeImages = {};
+		canvasNodeImg = document.createElement('canvas');
+		canvasNodeImg.width = NODE_IMG_WIDTH;
+		canvasNodeImg.height = NODE_IMG_WIDTH;
+		ctxNodeImg = canvasNodeImg.getContext('2d');
+
+		canvasNodeImgTMP = document.createElement('canvas');
+		canvasNodeImgTMP.width = NODE_IMG_SPRITE_WIDTH;
+		canvasNodeImgTMP.height = NODE_IMG_SPRITE_WIDTH;
+		ctxNodeImgTMP = canvasNodeImgTMP.getContext('2d');
+
+		nodesImgMask = null;
+		nodesImgMaskLoaded = false;
+		
+		//**************************************************
+		//  NODES
+		//**************************************************
+		this.splitNodes = [];
+		this.splitNodesIndices = [];
+
+		this.arrayNodeData = [];
+		this.arrayNodePosXYZW = [];
+		this.arrayNodeVertexPos = [];
+		this.arrayNodeVertexNormal = [];
+		this.arrayNodeVertexTexture = [];
+		this.startIndexId = 0;
+		this.arrayNodeIndices = [];
+
+		this.arrayNodeImgId = [];
+
+		this.arrayNodeDir = [];
+
+		this.currentNodeId = 0;
+		this.nodeArrayItemStart = 0;
+
+		//**************************************************
+		//  LINKS
+		//**************************************************
+		this.splitLinks = [];
+		this.splitLinksIndices = [];
+
+		this.arrayLinkData = [];
+		this.arrayLinkNodeName = [];
+		this.arrayLinkPosXYZW = [];
+		this.arrayLinkVertexPos = [];
+		this.startIndexId_link = 0;
+		this.arrayLinkIndices = [];
+
+		this.currentLinkId = 0;
+
+		//**************************************************
+		//  ARROWS
+		//**************************************************
+		this.splitArrows = [];
+		this.splitArrowsIndices = [];
+
+		this.arrayArrowData = [];
+		this.arrayArrowNodeName = [];
+		this.arrayArrowPosXYZW = [];
+		this.arrayArrowVertexPos = [];
+		this.arrayArrowVertexNormal = [];
+		this.arrayArrowVertexTexture = [];
+		this.startIndexId_arrow = 0;
+		this.arrayArrowIndices = [];
+
+		this.currentArrowId = 0;
+		this.arrowArrayItemStart = 0;
+
+		//**************************************************
+		//  NODESTEXT
+		//**************************************************
+		this.splitNodesText = [];
+		this.splitNodesTextIndices = [];
+
+		this.arrayNodeTextData = [];
+		this.arrayNodeTextNodeName = [];
+		this.arrayNodeTextPosXYZW = [];
+		this.arrayNodeTextVertexPos = [];
+		this.arrayNodeTextVertexNormal = [];
+		this.arrayNodeTextVertexTexture = [];
+		this.startIndexId_nodestext = 0;
+		this.arrayNodeTextIndices = [];
+
+		this.arrayNodeText_itemStart = [];
+		this.arrayNodeTextLetterId = [];
+
+		this.currentNodeTextId = 0;
+		this.nodeTextArrayItemStart = 0;*/
+	};
+	
+	/**
+	 * enableForceLayout
+	 */
+	this.enableForceLayout = function() {
+		var width = this.currentNodeId;
+		adjacencyMatrix = new Float32Array(width*width);
+		for(var key in _links) {
+			var origin = _links[key].origin_nodeId;
+			var target = _links[key].target_nodeId;
+			
+			adjacencyMatrix[(origin*width)+target] = 1;
+			adjacencyMatrix[(target*width)+origin] = 1;
+		}
+		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return adjacencyMatrix;}).bind(this));
+		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return width;}).bind(this));
+		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
+	};
+	
+	/**
+	 * disableForceLayout
+	 */
+	this.disableForceLayout = function() {
+		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 0.0;}).bind(this));
+	};
 
 	/**
-	 * adjacencyMatrixToImage
+	 * @callback Graph~adjacencyMatrixToImage~onload
+	 * @param {HTMLImageElement} img
 	 */
-	this.adjacencyMatrixToImage = function() {
+	/**
+	 * adjacencyMatrixToImage
+	 * @param {Graph~adjacencyMatrixToImage~onload} onload
+	 */
+	this.adjacencyMatrixToImage = function(onload) {
 		var toArrF = (function(arr) {
 			var arrO = new Uint8Array(arr.length*4);
 			for(var n=0; n < arr.length; n++) {
@@ -747,19 +873,153 @@ Graph = function(sce) {
 			return arrO;
 		}).bind(this);
 		
-		var toImage = (function(arrO, w, h) {			
+		var toImage = (function(fn, arrO, w, h) {			
 			var canvas = new Utils().getCanvasFromUint8Array(arrO, w, h);
-			new Utils().getImageFromCanvas(canvas, function(im) {
-				document.body.appendChild(im);
-				im.style.border = "1px solid red";
-			});
-		}).bind(this);
+			new Utils().getImageFromCanvas(canvas, (function(fn, im) {
+				fn(im);
+			}).bind(this, fn));
+		}).bind(this, onload);
+		
+		var width = this.currentNodeId;
 		
 		var arrF = toArrF(adjacencyMatrix);
 		toImage(arrF, width, width);
 	};
+	
+	/**
+	 * loadRBFromFile
+	 * @param {String} fileurl
+	 */
+	this.loadRBFromFile = function(fileurl) {
+		var req = new XHR();
+		req.open("GET", fileurl, true);
+		req.addEventListener("load", (function(evt) {
+			this.loadRBFromStr(evt.target.responseText);
+		}).bind(this));
+		
+		req.addEventListener("error", (function(evt) { 
+			console.log(evt);
+		}).bind(this));
+		
+	    req.send(null);
+	};
 
+	/**
+	 * loadRBFromStr
+	 * @param {String} str
+	 */
+	this.loadRBFromStr = function(str) {
+		var _sourceText = str;
+		var lines = _sourceText.split("\r\n");
+		if(lines.length == 1) lines = _sourceText.split("\n");
+		
+		//if(lines[0].match(/OBJ/gim) == null) {alert('Not OBJ file');	return;}
+		var line0 = lines[0].replace(/(\s|\t)+/gi, ' ').trim().split(" ");
+		var title = (line0[0] != undefined) ? line0[0] : null; // Title
+		var key = (line0[1] != undefined) ? line0[1] : null; // Key
+		console.log(line0);
+		
+		var line1 = lines[1].replace(/(\s|\t)+/gi, ' ').trim().split(" ");
+		var tLines = (line1[0] != undefined) ? parseInt(line1[0]) : null; // Total number of lines excluding header (TOTCRD)
+		var tLinesPointers = (line1[1] != undefined) ? parseInt(line1[1]) : null; // Number of lines for pointers (PTRCRD)
+		var tLinesRowIndices = (line1[2] != undefined) ? parseInt(line1[2]) : null; // Number of lines for row (or variable) indices (INDCRD)
+		var tLinesValues = (line1[3] != undefined) ? parseInt(line1[3]) : null; // Number of lines for numerical values (VALCRD)
+		var tLinesRH = (line1[4] != undefined) ? parseInt(line1[4]) : null; // Number of lines for right-hand sides (RHSCRD)		
+		console.log(line1);
+		
+		
+		var line2 = lines[2].replace(/(\s|\t)+/gi, ' ').trim().split(" ");
+		var matType = (line2[0] != undefined) ? line2[0] : null; // Matrix type (see below) (MXTYPE)
+		var rowCount = (line2[1] != undefined) ? parseInt(line2[1]) : null; // Number of rows (or variables) (NROW)
+		var colCount = (line2[2] != undefined) ? parseInt(line2[2]) : null; // Number of columns (or elements) (NCOL)
+		var rowIndCount = (line2[3] != undefined) ? parseInt(line2[3]) : null; // Number of row (or variable) indices (NNZERO)		(equal to number of entries for assembled matrices)
+		var matEntCount = (line2[4] != undefined) ? parseInt(line2[4]) : null; // Number of elemental matrix entries (NELTVL)		(zero in the case of assembled matrices)
+		console.log(line2);
+		
+		var line3 = lines[3].replace(/(\s|\t)+/gi, ' ').trim().split(" ");
+		var pointerFormat = (line3[0] != undefined) ? line3[0] : null; // Format for pointers (PTRFMT)
+		var rowIndFormat = (line3[1] != undefined) ? line3[1] : null; // Format for row (or variable) indices (INDFMT)
+		var valuesFormat = (line3[2] != undefined) ? line3[2] : null; // Format for numerical values of coefficient matrix (VALFMT)
+		var RHFormat = (line3[3] != undefined) ? line3[3] : null; // Format for numerical values of right-hand sides (RHSFMT)
+		console.log(line3);
+		
+		
+		var offs = 1000/10;
+		for(var n = 0; n <= rowCount; n++) {
+			var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
+			var node = this.addNode({
+				"name": n.toString(),
+				"data": n.toString(),
+				"position": pos,
+				"color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+				"layoutNodeArgumentData": {
+											// dir
+											"ndirect": [0.0, 0.0, 0.0, 1.0],
+											// pp
+											"particlePolarity": 0.0,
+											// destination
+											"dest": [0.0, 0.0, 0.0, 0.0],
+											// lifeDistance
+											"initPos": pos, "initDir": [0.0, 0.0, 0.0, 0.0],
+											// nodeColor
+											"nodeColor": [Math.random(), Math.random(), Math.random(), 1.0],
+											// lock
+											"nodeLock": 0.0},
+				"onmouseup": (function(nodeData) {
+
+				}).bind(this)});
+		}
+		this.updateNodes();
+
+		
+		var startValues = 4;
+		var str = "";
+		for(var n = startValues; n < startValues+tLinesPointers; n++) {
+			str += lines[n];
+		}
+		console.log(str);
+		var pointers = str.replace(/(\s|\t)+/gi, ' ').trim().split(" ");
+		
+		str = "";
+		for(var n = startValues+tLinesPointers; n < startValues+tLinesPointers+tLinesRowIndices; n++) {
+			str += lines[n];
+		}
+		console.log(str);		
+		var rowIndices = str.replace(/(\s|\t)+/gi, ' ').trim().split(" ");
+		
+		
+		
+		
+		var yy = 0;
+		for(var n=0, fn = pointers.length; n < fn; n++) {
+			var pointer = parseInt(pointers[n])-1;
+			var nextPointer = parseInt(pointers[n+1])-1;
+			
+			
+			var nextRowIndice = parseInt(rowIndices[nextPointer]);
+			
+			for(var nb=0, fnb = nextPointer-pointer; nb < fnb; nb++) {
+				var rowIndice = parseInt(rowIndices[pointer+nb])-1;
+				var xx = rowIndice;  
+				
+				this.addLink({	"origin": xx,
+								"target": yy,
+								"directed": true});
+			}
+			
+			yy++;
+		}
+		this.updateLinks();
+		
+		
+		
+		
+		/*this.adjacencyMatrixToImage(function(im) {
+			document.body.appendChild(im);
+			im.style.border = "1px solid red";
+		})*/
+	};
 
 
 
@@ -1045,9 +1305,9 @@ Graph = function(sce) {
 			return obj;
 		}).bind(this);
 		_customArgs = {};
-		_customArgs = createArgs(_customArgs, jsonIn.argsDirection.split(","));
-		_customArgs = createArgs(_customArgs, jsonIn.argsPosition.split(","));
-		_customArgs = createArgs(_customArgs, jsonIn.argsObject.split(","));
+		if(jsonIn.argsDirection != undefined) _customArgs = createArgs(_customArgs, jsonIn.argsDirection.split(","));
+		if(jsonIn.argsPosition != undefined) _customArgs = createArgs(_customArgs, jsonIn.argsPosition.split(","));
+		if(jsonIn.argsObject != undefined) _customArgs = createArgs(_customArgs, jsonIn.argsObject.split(","));
 
 		// nodes
 		comp_renderer_nodes.addKernel({	"name": "dir",

@@ -53,6 +53,19 @@ Stage = function() {
 		
 		node.initialize(((node.getName() != null) ? node.getName() : "node "+(nodes.length-1)), gl);
 	};
+	
+	/**
+	* removeNode
+	* @param {Node} node.
+	*/
+	this.removeNode = function(node) {
+		for(var n=0; n < nodes.length; n++) {
+			if(nodes[n] == node) {
+				nodes.splice(n, 1);
+				break;
+			}
+		}
+	};
 		
 	/**
 	* getNodes

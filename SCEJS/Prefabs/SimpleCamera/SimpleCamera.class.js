@@ -183,4 +183,12 @@ SimpleCamera = function(sce, jsonIn) {
 				break;
 		}
 	};
+	
+	/**
+	 * setVelocity
+	 * @param {Float} velocity
+	 */
+	this.setVelocity = function(velocity) {
+		comp_controllerTransformTarget.setVelocity(velocity);
+	};
 };

@@ -7,14 +7,14 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
        		
        		// kernel source
        		['void main(float4* data'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
+			       		',float* adjacencyMatrix'+
+						',float widthAdjMatrix'+
+						',float enableForceLayout'+
 						',float4* posXYZW'+
 						',float4* dir'+
 						',float isLink'+
-						',float isNode'+
-						',float* adjacencyMatrix'+
-						',float widthAdjMatrix'+
-						',float enableForceLayout'+
-						','+customArgs+
+						',float isNode'+ 						
+						((customArgs != undefined) ? ','+customArgs : '')+
 						') {\n'+
 			'vec2 x = get_global_id();\n'+	 
 			
@@ -67,7 +67,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						
 						'if(distN > 0.0) {'+
 							'atraction = atraction+(ddir*distN);\n'+
-							'atraction = atraction+(((ddir*-1.0)*(1.0-distN))*0.003);\n'+
+							'atraction = atraction+(((ddir*-1.0)*(1.0-distN))*0.007);\n'+
 							'acumAtraction += 1.0;'+
 						'}'+
 						
@@ -75,8 +75,8 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						'vec3 dir_C = normalize(vec3(0.0, 0.0, 0.0)-currentPos);'+
 						'float distanceN_C = distance(vec3(0.0, 0.0, 0.0), currentPos)*0.001;'+ // near=0.0 ; far=1.0
 						
-						'atraction = atraction+((dir_C*distanceN_C*(1.0-targets)));'+
-						'atraction = atraction+(((dir_C*-1.0)*(1.0-distanceN_C)*targets)*0.1);\n'+
+						//'atraction = atraction+((dir_C*distanceN_C*(1.0-targets)));'+
+						//'atraction = atraction+(((dir_C*-1.0)*(1.0-distanceN_C)*targets)*0.1);\n'+
 					'} else {'+
 						'vec3 ddir = normalize(currentPosB-currentPos);'+
 						'float distN = distance(currentPosB, currentPos)*0.001;'+ // near=0.0 ; far=1.0
@@ -88,13 +88,13 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 					'}'+
 				'}'+
 				'atraction = (atraction/acumAtraction)*10.0;'+
-				'repulsion = (repulsion/acumRepulsion);'+
+				'repulsion = (repulsion/acumRepulsion)*0.05;'+
 				'currentDir = (currentDir+(atraction+repulsion));\n'+										
 			"}"+
 			
 			'currentDir = currentDir*0.95;'+ // air resistence
 			
-			customCode+
+			((customCode != undefined) ? customCode : '')+
 			
 			'vec3 newDir = currentDir;\n'+
 	
