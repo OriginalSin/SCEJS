@@ -51,6 +51,14 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	};	
 	
 	/**
+	 * setVelocity
+	 * @param {Float} velocity
+	 */
+	this.setVelocity = function(velocity) {
+		_vel = velocity;
+	};
+	
+	/**
 	 * lockRotX
 	 */
 	this.lockRotX = function() {

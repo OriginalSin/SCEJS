@@ -1,0 +1,243 @@
+<html>
+	<head>
+		<title>SCEJS Graph</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		
+		<script src="../../SCEJS/SCE.class.js"></script>
+
+		<script src="../../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
+
+		<script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
+		<script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
+
+
+		<script src="../../SCEJS/Prefabs/Graph/KERNEL_DIR.class.js"></script>
+		<script src="../../SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js"></script>
+		<script src="../../SCEJS/Prefabs/Graph/VFP_NODEPICKDRAG.class.js"></script>
+		<script src="../../SCEJS/Prefabs/Graph/VFP_NODE.class.js"></script>
+		<script src="../../SCEJS/Prefabs/Graph/Graph.class.js"></script>
+	</head>
+
+	<body>
+		<div id="SCEJS"></div>
+
+		<script>
+			var sce = new SCE();
+			sce.initialize({"target": document.getElementById("SCEJS"),
+							"dimensions": {"width": 512, "height": 512}});
+
+
+			var project = new Project();
+			sce.loadProject(project);
+
+			var stage = new Stage();
+			project.addStage(stage);
+			project.setActiveStage(stage);
+
+			// CAMERA
+			var simpleCamera = new SimpleCamera(sce);
+			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
+			simpleCamera.setVelocity(1.0);
+			sce.setDimensions(1024, 750);	
+			
+			// GRID
+			var grid = new Grid(sce);
+			grid.generate(100.0, 1.0);
+
+
+			// GRAPH
+			var OFFSET = 1000.0;
+			var offs = OFFSET/10;
+			
+			var graph;
+			var loadGraph = function(rbUrl) {
+				if(graph != undefined) graph.clear();
+				
+				graph = new Graph(sce);
+				graph.setOffset(OFFSET);
+
+				graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
+				
+				// APPLY THIS LAYOUT
+				graph.applyLayout({	// DIRECTION
+									// [x], [xx_opposite]
+									// vec3 currentDir, vec3 currentDir_opposite, vec3 currentPos, vec3 currentPos_opposite
+									// float isNode, float isLink, float isTarget,
+									// float nodeId, float nodeId_opposite, linkId, linkId_opposite
+									"argsDirection":
+											// dir
+											"float4* ndirect,float enableNDirect,"+
+											// destination
+											"float4* dest,float destinationForce,float enableDestination",
+									"codeDirection":
+										// destination
+										'if(enableDestination == 1.0) {\n'+
+											'vec3 destinationPos = dest[x].xyz;\n'+
+											'vec3 dirDestination = normalize(destinationPos-currentPos);\n'+
+											'float distan = abs(distance(currentPos,destinationPos));\n'+
+											'float dirDestWeight = sqrt(distan);\n'+
+											'currentDir = (currentDir+(dirDestination*dirDestWeight*destinationForce))*dirDestWeight*0.1;\n'+
+										'}\n'+
+										// dir
+										"if(enableNDirect == 1.0) currentDir += (ndirect[x].xyz*0.0001);",
+
+									// OBJECT
+									// [x], vec4 nodeVertexColor, vec4 nodeVertexPosition, vec4 XYZW_opposite
+									// float isNode, float isLink, float isArrow, float isNodeText, float isTarget
+									"argsObject":
+										// nodeColor
+										"float4* nodeColor",
+									"codeObject":
+										// nodeColor
+										'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
+										'if(isLink == 1.0 && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
+										'if(isLink == 1.0 && isTarget == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 1.0);'+
+										'if(isArrow == 1.0 && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
+										'if(isArrow == 1.0 && isTarget == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);'
+										
+									});
+
+
+				// SET LAYOUT GLOBAL ARGUMENTS DATA
+				// destination
+				graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
+				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
+
+
+
+				// NODES AND LINKS CREATION
+				graph.updateNodes();
+				graph.updateLinks();
+				graph.loadRBFromFile(rbUrl);
+			};			
+			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
+			
+			
+			//*********
+			// RENDER STAGE
+			//*********
+			project.getActiveStage().render();
+
+
+			window.onresize = (function() {
+				//sce.setDimensions(512, 128);
+		    }).bind(this);
+		</script>
+		
+		<p>Graph visualization of matrices from the <a href="http://www.cise.ufl.edu/research/sparse/matrices/">University of Florida Collection</a></p>
+		
+		T for top view<br />
+		Alt+LeftMouse for Orbit<br />
+		Alt+MiddleMouse for Pan<br />		
+		P for perspective view<br />
+		WASD for to move<br />
+		
+		<br />
+		Load RB: <select id="select_rb">			
+			<option>b1_ss.rb</option>
+			<option>grid1.rb</option>
+			<option>blckhole.rb</option>
+			<option>dwt_307.rb</option>
+			<option>dwt_492.rb</option>
+			<option>rw496.rb</option>
+			<option>west0497.rb</option>
+		</select><br /><br />
+		
+		<button id="BTNID_FORCELAYOUT_ON">ForceLayout On</button><br />
+		<button id="BTNID_FORCELAYOUT_OFF">ForceLayout Off</button><br />
+		<br />
+		<button id="BTNID_RD">random destination</button><br />
+		<button id="BTNID_WH">widthheight destination</button><br />
+		<button id="BTNID_SPHERICAL">spherical destination</button><br />
+		<button id="BTNID_HEM">hemispherical destination</button><br />
+		<button id="BTNID_DESTINATION_OFF">Destination Off</button><br />
+		<br />
+		<button id="BTNID_DIR">random direction</button><br />
+		<button id="BTNID_DIRECTION_OFF">Direction Off</button><br />
+		<br />
+		<button id="BTNID_IMG">node per pixel color</button><br />
+		<img id="IMGID_lena" src="../_RESOURCES/lena_128x128.jpg" /><br />
+		<script>
+			var select = document.getElementById("select_rb");
+			select.addEventListener("change", (function() {
+				loadGraph("../_RESOURCES/rb-files/"+select.options[select.selectedIndex].value);
+			}).bind(this));
+		
+			// BUTTONS UI
+			var arrayGenerator = new ArrayGenerator();
+												
+												
+												
+			document.getElementById("BTNID_FORCELAYOUT_ON").addEventListener("click", (function() {
+				graph.enableForceLayout();
+			}).bind(this));
+			document.getElementById("BTNID_FORCELAYOUT_OFF").addEventListener("click", (function() {
+				graph.disableForceLayout();
+			}).bind(this));
+
+
+
+			document.getElementById("BTNID_RD").addEventListener("click", (function() {
+				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 1.0});
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": arrayGenerator.randomArray({	"count": (graph.currentNodeId+1),
+																								"offset": 100.0,
+																								"type": "float4"})
+													});
+			}).bind(this));
+			document.getElementById("BTNID_WH").addEventListener("click", (function() {
+				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 1.0});
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": arrayGenerator.widthHeightArray({	"count": (graph.currentNodeId+1),
+																									"width": 128,
+																									"height": 128,
+																									"spacing": 3.0})
+													});
+			}).bind(this));
+			document.getElementById("BTNID_SPHERICAL").addEventListener("click", (function() {
+				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 1.0});
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": arrayGenerator.sphericalArray({"count": (graph.currentNodeId+1),
+																								"radius": 100.0})
+													});
+			}).bind(this));
+			document.getElementById("BTNID_HEM").addEventListener("click", (function() {
+				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 1.0});
+				graph.setLayoutNodeArgumentArrayData({	"argName": "dest",
+														"value": arrayGenerator.hemArray({	"count": (graph.currentNodeId+1),
+																							"radius": 100.0,
+																							"normalVector": $V3([0.0, 1.0, 0.0]),
+																							"degrees": 1.0})
+													});
+			}).bind(this));
+			document.getElementById("BTNID_DESTINATION_OFF").addEventListener("click", (function() {
+				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
+			}).bind(this));
+
+
+			document.getElementById("BTNID_DIR").addEventListener("click", (function() {
+				graph.setLayoutArgumentData({"argName": "enableNDirect", "value": 1.0});
+				graph.setLayoutNodeArgumentArrayData({	"argName": "ndirect",
+														"value": arrayGenerator.randomArray({	"count": (graph.currentNodeId+1),
+																								"offset": 100.0,
+																								"type": "float4"})
+													});
+													setTimeout(function() {
+														graph.setLayoutArgumentData({"argName": "enableNDirect", "value": 0.0});
+													}, 100);
+			}).bind(this));
+			document.getElementById("BTNID_DIRECTION_OFF").addEventListener("click", (function() {
+				graph.setLayoutArgumentData({"argName": "enableNDirect", "value": 0.0});
+			}).bind(this));
+
+
+			document.getElementById("BTNID_IMG").addEventListener("click", (function() {
+				graph.setLayoutNodeArgumentArrayData({	"argName": "nodeColor",
+														"value": arrayGenerator.imageArray({"count": (graph.currentNodeId+1),
+																							"image": document.getElementById("IMGID_lena")})
+													});
+			}).bind(this));
+		</script>
+
+	</body>
+</html>

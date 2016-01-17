@@ -12,6 +12,12 @@ Multipurpose Javascript 3D graphic library<br />
 		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/graph/index.html">- Graph</a><br />
 		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/graph/index.html"><img src="demos/graph/capture.jpg" style="width:150px"/></a> <br />
 <br />
+		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/graph-rb-files/index.html">- Graph from RB files</a><br />
+		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/graph-rb-files/index.html"><img src="demos/graph-rb-files/capture.jpg" style="width:150px"/></a> <br />
+<br />
+		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/graph-custom-layout/index.html">- Graph Custom</a><br />
+		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/graph-custom-layout/index.html"><img src="demos/graph-custom-layout/capture.jpg" style="width:150px"/></a> <br />
+<br />
 		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/voxels-path-tracing/index.html">- Voxels Path-Tracing</a><br />
 		<a href="http://stormcolour.appspot.com/js/SCEJS/demos/voxels-path-tracing/index.html"><img src="demos/voxels-path-tracing/capture.jpg" style="width:150px"/></a> <br />
 

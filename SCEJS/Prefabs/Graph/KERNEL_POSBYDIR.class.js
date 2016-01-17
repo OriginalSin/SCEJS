@@ -14,8 +14,9 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 						'float idToDrag,'+
 						'float MouseDragTranslationX,'+
 						'float MouseDragTranslationY,'+
-						'float MouseDragTranslationZ,'+
-						customArgs+') {'+
+						'float MouseDragTranslationZ'+
+						((customArgs != undefined) ? ','+customArgs : '')+
+						') {\n'+
 							'vec2 x = get_global_id();\n'+	 
 							
 							'vec2 xx = get_global_id(data[x].x);'+
@@ -25,7 +26,7 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 							'vec3 currentPos = posXYZW[x].xyz;\n'+
 							'vec3 currentDir = dir[x].xyz;\n'+
 
-							customCode+
+							((customCode != undefined) ? customCode : '')+
 
 							'float nodeId = data[x].x;\n'+  
 							'if(enableDrag == 1.0) {'+							
