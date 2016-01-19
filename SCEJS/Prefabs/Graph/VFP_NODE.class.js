@@ -7,7 +7,10 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'varying vec2 vVertexUV;\n'+
        		'varying float vUseTex;\n'+
        		'varying vec4 vWNMatrix;\n'+
-
+       		'varying float vDist;\n'+
+       		'uniform sampler2D adjacencyMatrix;\n'+
+       		'varying float vIsSelected;\n'+
+       		
        		'vec2 get2Dfrom1D(float idx, float columns) {'+
        			'float n = idx/columns;'+
        			'float row = float(int(n));'+
@@ -67,6 +70,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		['void main(float4* data,'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
        		 	'float* letterId,'+
        		 	'float* nodeImgId,'+
+       		 	//'float*kernel adjacencyMatrix,'+
+				'float widthAdjMatrix,'+
        			'float4*kernel posXYZW,'+
        			'float4* nodeVertexPos,'+
        			'float4* nodeVertexNormal,'+
@@ -78,6 +83,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        			'float isLink,'+
        			'float isArrow,'+
        			'float isNodeText,'+
+				'float idToDrag,'+
        			'float nodeImgColumns,'+
        			'float fontImgColumns,'+
        			customArgs+') {'+
@@ -150,8 +156,35 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'mat4 nodeposG = nodeWMatrix;'+
        				'vWNMatrix = nodeposG * nodeVertexNormal[x];\n'+
 
+       				'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
+       				
        				customCode+
 
+       				'float acum = 1.0;'+
+       				'float dist = 0.01;'+
+       				'float wh = widthAdjMatrix-1.0;'+
+					'float ts = 1.0/wh;'+
+					'float xN = data[x].x*ts;'+
+					'for(int n=0; n < 1000000; n++) {'+
+						'if(n == int(wh)) break;'+
+						
+						'float yN = (float(n)*ts);'+  
+						
+						'float idb = yN*wh;'+    
+						'vec2 xx_oppo = get_global_id(idb);'+
+						'vec3 currentPosB = texture2D(posXYZW, xx_oppo).xyz;\n'+
+						
+						'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));'+
+						'if(it.x > 0.5) {'+
+							'float distN = distance(currentPosB, nodePosition.xyz)*0.001;'+ // near=0.0 ; far=1.0
+							
+							'if(distN > 0.0) {'+
+								'acum += 1.0;'+
+								'dist += (1.0-distN);'+
+							'}'+
+						'}'+
+					'}'+
+					'vDist = 1.0;\n'+ // dist/acum
        				'vVertexColor = nodeVertexColor;'+
 
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPosition;\n'+
@@ -161,7 +194,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		['varying vec4 vVertexColor;\n'+
        		'varying vec2 vVertexUV;\n'+
        		'varying float vUseTex;\n'+
-       		 'varying vec4 vWNMatrix;\n'],
+       		 'varying vec4 vWNMatrix;\n'+
+       		'varying float vDist;\n'+
+       		'varying float vIsSelected;\n'],
 
        		[// fragment source
        		 'void main(float4* fontsImg,'+
@@ -173,15 +208,19 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		 	'vec2 x = get_global_id();'+
 
        			'if(isNode == 1.0) {'+
-	       			'gl_FragColor = vVertexColor;\n'+
+	       			'vec4 color = vVertexColor;\n'+
+	       			
+	       			'if(vIsSelected == 1.0) color *= vec4(1.0, 0.3, 0.3, 1.0);'+
 
 	       			'if(vUseTex == 1.0) {'+
-								'vec4 tex = texture2D(nodesImg, vVertexUV.xy);'+
-	       				'gl_FragColor = vec4(tex.rgb*vVertexColor.rgb, tex.a);\n'+
-							'}'+
+						'vec4 tex = texture2D(nodesImg, vVertexUV.xy);'+
+	       				'color = vec4(tex.rgb*color.rgb, tex.a);\n'+
+					'}'+
+							
+					'gl_FragColor = color;'+
 	       		'}'+
 	       		'if(isLink == 1.0) {'+
-	       			'gl_FragColor = vVertexColor;\n'+
+	       			'gl_FragColor = vec4(vVertexColor.rgb, vDist);\n'+
 	       		'}'+
 	       		'if(isArrow == 1.0) {'+
 	       			'gl_FragColor = vVertexColor;\n'+

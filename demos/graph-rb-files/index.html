@@ -35,7 +35,15 @@
 			project.setActiveStage(stage);
 
 			// CAMERA
-			var simpleCamera = new SimpleCamera(sce);
+			var simpleCamera = new SimpleCamera(sce, {	"onmousemove": (function() {
+				if(simpleCamera.isAltKeyEnabled() == false) {
+					if(graph.getSelectedId() != -1) {
+						simpleCamera.preventMove(true);
+					} else {
+						simpleCamera.preventMove(false); 
+					}
+				}
+			}).bind(this)});
 			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
 			simpleCamera.setVelocity(1.0);
 			sce.setDimensions(1024, 750);	
@@ -56,6 +64,9 @@
 				graph = new Graph(sce);
 				graph.setOffset(OFFSET);
 
+				var mesh_point = new Mesh().loadPoint();
+				//graph.setNodeMesh(mesh_point);
+				
 				graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
 				
 				// APPLY THIS LAYOUT
@@ -141,6 +152,12 @@
 			<option>dwt_492.rb</option>
 			<option>rw496.rb</option>
 			<option>west0497.rb</option>
+			<option>diag.rb</option>
+			<option>dwt_2680.rb</option>
+			<option>delaunay_n11.rb</option>
+			<option>utm3060.rb</option>
+			<option>cegb3306.rb</option>
+			<option>flower_8_1.rb</option>
 		</select><br /><br />
 		
 		<button id="BTNID_FORCELAYOUT_ON">ForceLayout On</button><br />

@@ -92,61 +92,41 @@ Graph = function(sce) {
 			if(n != undefined && n.onmouseup != undefined) n.onmouseup(n.data);
 		}
 
-		selectedId = -1;
+		//selectedId = -1;
 
 		comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
+		//comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
 		comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 
 		comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
+		//comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 
 		comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
+		//comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 
 		comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
+		//comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
 		comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+		
+		if(selectedId == -1) {
+			comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
+			comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
+			comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
+			comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
+		}
 	}).bind(this));
 	comp_mouseEvents.onmousemove((function(evt, dir) {
-		if(selectedId != -1) {
-			var comp_projection = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
-			var finalPos = _initialPosDrag.add(dir.x((comp_projection.getFov()*2.0)/_sce.getCanvas().width));
-			
-			comp_renderer_nodes.setArg("enableDrag", (function() {return 1;}).bind(this));
-			comp_renderer_nodes.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-			comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-			comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-			comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-
-			comp_renderer_links.setArg("enableDrag", (function() {return 1;}).bind(this));
-			comp_renderer_links.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-			comp_renderer_links.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-			comp_renderer_links.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-			comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-
-			comp_renderer_arrows.setArg("enableDrag", (function() {return 1;}).bind(this));
-			comp_renderer_arrows.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-			comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-			comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-			comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-
-			comp_renderer_nodesText.setArg("enableDrag", (function() {return 1;}).bind(this));
-			comp_renderer_nodesText.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-			comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-			comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-			comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-		}
+		makeDrag(evt, dir);
 	}).bind(this));
 	comp_mouseEvents.onmousewheel((function(evt) {
 	}).bind(this));
@@ -264,8 +244,66 @@ Graph = function(sce) {
 	this.nodeTextArrayItemStart = 0;
 
 
+	this.getSelectedId = function() {
+		return selectedId;
+	};
+	
+	var makeDrag = function(evt, dir) {
+		var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET)
+		if(selectedId != -1 && comp_controller_trans_target.isLeftBtnActive() == true) {
+			var comp_projection = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
+			var finalPos = _initialPosDrag.add(dir.x((comp_projection.getFov()*2.0)/_sce.getCanvas().width));
+			
+			comp_renderer_nodes.setArg("enableDrag", (function() {return 1;}).bind(this));
+			comp_renderer_nodes.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
 
+			comp_renderer_links.setArg("enableDrag", (function() {return 1;}).bind(this));
+			comp_renderer_links.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
 
+			comp_renderer_arrows.setArg("enableDrag", (function() {return 1;}).bind(this));
+			comp_renderer_arrows.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+
+			comp_renderer_nodesText.setArg("enableDrag", (function() {return 1;}).bind(this));
+			comp_renderer_nodesText.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+			comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+			comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+			comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+		} else if(selectedId == -1 && comp_controller_trans_target.isLeftBtnActive() == true) {
+			comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
+			comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+			comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+
+			comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
+			comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+			comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+
+			comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
+			comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+			comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+
+			comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
+			comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
+			comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+			comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+			comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+		}
+	};
+	
 	var setNodesImage = (function(/*String*/ url, /*Int*/ locationIdx) {
 		var get2Dfrom1D = function(/*Int*/ idx, /*Int*/ columns) {
 			var n = idx/columns;
@@ -996,12 +1034,8 @@ Graph = function(sce) {
 			var pointer = parseInt(pointers[n])-1;
 			var nextPointer = parseInt(pointers[n+1])-1;
 			
-			
-			var nextRowIndice = parseInt(rowIndices[nextPointer]);
-			
 			for(var nb=0, fnb = nextPointer-pointer; nb < fnb; nb++) {
-				var rowIndice = parseInt(rowIndices[pointer+nb])-1;
-				var xx = rowIndice;  
+				var xx = parseInt(rowIndices[pointer+nb])-1;  
 				
 				this.addLink({	"origin": xx,
 								"target": yy,
@@ -1311,12 +1345,14 @@ Graph = function(sce) {
 
 		// nodes
 		comp_renderer_nodes.addKernel({	"name": "dir",
+										"geometryLength": 4,
 										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
 										"onPreTick": (function() {
 											
 											
 										}).bind(this)});
 		comp_renderer_nodes.addKernel({	"name": "posXYZW",
+										"geometryLength": 4,
 										"kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition),
 										"onPostTick": (function() {
 											comp_renderer_nodes.getWebCLGL().copy(comp_renderer_nodes.getTempBuffers()["dir"], comp_renderer_nodes.getBuffers()["dir"]);
@@ -1365,6 +1401,8 @@ Graph = function(sce) {
 												var z = arr4Uint8_XYZW[2][_nodesById[selectedId].itemStart];
 												var w = arr4Uint8_XYZW[3][_nodesById[selectedId].itemStart];
 												_initialPosDrag = $V3([x,y,z]);
+												
+												makeDrag(undefined, $V3([0.0, 0.0, 0.0]));
 											}
 											
 											comp_renderer_nodes.disableVfp("NODES_PICKDRAG");

@@ -179,7 +179,8 @@ GI = function(sce) {
 		
 		_currentDestinationSampler = 4;
 		
-		comp_renderer_node.enableVfp("GI");
+		comp_renderer_node.enableVfp("GI");		
+		comp_screenEffects.enableKernel("sampler_GIVoxel");
 		_runGI = true;
 	};
 	
@@ -196,6 +197,7 @@ GI = function(sce) {
 	*/
 	this.stop = function() {
 		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+		comp_renderer_node.disableVfp("GI");
 		comp_screenEffects.disableKernel("sampler_GIVoxel");
 	};
 	
@@ -216,6 +218,7 @@ GI = function(sce) {
 		_currentDestinationSampler = 4;
 		
 		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+		comp_renderer_node.enableVfp("GI");
 		comp_screenEffects.enableKernel("sampler_GIVoxel");
 	};
 };

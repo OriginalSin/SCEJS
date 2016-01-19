@@ -15,7 +15,9 @@ SimpleCamera = function(sce, jsonIn) {
 	var _onmouseup = (jsonIn != undefined && jsonIn.onmouseup != undefined) ? jsonIn.onmouseup: null;
 	var _onmousemove = (jsonIn != undefined && jsonIn.onmousemove != undefined) ? jsonIn.onmousemove: null;
 	
+	var _useAltKey = true;
 	var altKeyPressed = false;
+	var _preventMove = false;
 	
 	var camera = new Node();
 	camera.setName("simple camera");
@@ -127,21 +129,24 @@ SimpleCamera = function(sce, jsonIn) {
 				_onmouseup();
 	});
 	comp_mouseEvents.onmousemove(function(evt, dir) {
-		if(comp_projection.getProjection() == Constants.PROJECTION_TYPES.PERSPECTIVE || altKeyPressed == true)
-			comp_controllerTransformTarget.mouseMove(evt);
-		
-		if(comp_controllerTransformTarget.isRightBtnActive() == true && comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO && altKeyPressed == true) {
-			if(dir.e[2] > 0) {
-				comp_projection.setFov(comp_projection.getFov()*(1.0+Math.abs(dir.e[2]*0.005)));				
-			} else {
-				comp_projection.setFov(comp_projection.getFov()/(1.0+Math.abs(dir.e[2]*0.005))); 
-			}
-			//comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir.x(dir.e[2]))); 
-			//comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir.x(dir.e[2]))); 
-		}
-		
 		if(_onmousemove != null)
 			_onmousemove();
+		
+		if(_preventMove == false) {
+			if(comp_projection.getProjection() == Constants.PROJECTION_TYPES.PERSPECTIVE || (((_useAltKey == true && altKeyPressed == true) || _useAltKey == false)))
+				comp_controllerTransformTarget.mouseMove(evt);
+			
+			
+			if(comp_controllerTransformTarget.isRightBtnActive() == true && comp_projection.getProjection() == Constants.PROJECTION_TYPES.ORTHO && altKeyPressed == true) {
+				if(dir.e[2] > 0) {
+					comp_projection.setFov(comp_projection.getFov()*(1.0+Math.abs(dir.e[2]*0.005)));				
+				} else {
+					comp_projection.setFov(comp_projection.getFov()/(1.0+Math.abs(dir.e[2]*0.005))); 
+				}
+				//comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir.x(dir.e[2]))); 
+				//comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir.x(dir.e[2]))); 
+			}		
+		}
 	});
 	comp_mouseEvents.onmousewheel(function(evt, dir) {
 		if(evt.wheelDeltaY >= 0)
@@ -182,6 +187,62 @@ SimpleCamera = function(sce, jsonIn) {
 				comp_transformTarget.pitch(90);
 				break;
 		}
+	};
+	
+	/**
+	 * setLeftButtonAction
+	 * @param {String} [action="ORBIT"]
+	 */
+	this.setLeftButtonAction = function(action) {
+		comp_controllerTransformTarget.setLeftButtonAction(action);
+	};
+	
+	/**
+	 * setMiddleButtonAction
+	 * @param {String} [action="PAN"]
+	 */
+	this.setMiddleButtonAction = function(action) {
+		comp_controllerTransformTarget.setMiddleButtonAction(action);
+	};
+	
+	/**
+	 * setRightButtonAction
+	 * @param {String} [action="ZOOM"]
+	 */
+	this.setRightButtonAction = function(action) {
+		comp_controllerTransformTarget.setRightButtonAction(action);
+	};
+	
+	/**
+	 * preventMove
+	 * @param {Bool} preventMove
+	 */
+	this.preventMove = function(preventMove) {
+		_preventMove = preventMove;
+	};
+	
+	/**
+	 * isAltKeyEnabled
+	 * @returns {Bool}
+	 */
+	this.isAltKeyEnabled = function() {
+		return _useAltKey;
+	};
+	
+	/**
+	 * isAltKeyPressed
+	 * @returns {Bool}
+	 */
+	this.isAltKeyPressed = function() {
+		return altKeyPressed;
+	};
+	
+	/**
+	 * useAltKey
+	 * @param {Bool} altkey
+	 */
+	this.useAltKey = function(useAltKey) {
+		_useAltKey = useAltKey;
 	};
 	
 	/**

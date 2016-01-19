@@ -28,6 +28,10 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	var middleButton = 0;
 	var rightButton = 0;
 	
+	var leftButtonAction = "ORBIT";
+	var middleButtonAction = "PAN";
+	var rightButtonAction = "ZOOM";
+	
 	
 	var lastX = 0;
 	var lastY = 0;
@@ -235,6 +239,30 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	this.isRightBtnActive = function() {
 		return (rightButton == 1) ? true : false;
 	};
+	
+	/**
+	 * setLeftButtonAction
+	 * @param {String} [action="ORBIT"]
+	 */
+	this.setLeftButtonAction = function(action) {
+		leftButtonAction = action;
+	};
+	
+	/**
+	 * setMiddleButtonAction
+	 * @param {String} [action="PAN"]
+	 */
+	this.setMiddleButtonAction = function(action) {
+		middleButtonAction = action;
+	};
+	
+	/**
+	 * setRightButtonAction
+	 * @param {String} [action="ZOOM"]
+	 */
+	this.setRightButtonAction = function(action) {
+		rightButtonAction = action;
+	};
 
 	/**
 	* @param {Float} elapsed
@@ -263,32 +291,49 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	/** @private */
 	var updateGoal = function(event) {
 		if(middleButton == 1) {
-			event.preventDefault(); 
-			var X = comp_transformTarget.getMatrix().getLeft().x((lastX - event.screenX)*(comp_projection.getFov()*0.005));
-			var Y = comp_transformTarget.getMatrix().getUp().x((lastY - event.screenY)*(comp_projection.getFov()*-0.005));  
-			var dir = X.add(Y.x(-1.0));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
+			if(middleButtonAction == "PAN") {
+				makePan(event);
+			} else if(middleButtonAction == "ORBIT") {
+				makeOrbit(event);
+			}
 		} else {
-			var factorRot = 0.5;
-			if(lockRotY == false) {
-				if(lastX > event.screenX) {
-					comp_transformTarget.yaw(-(lastX - event.screenX)*factorRot);
-				} else {
-					comp_transformTarget.yaw((event.screenX - lastX)*factorRot);
-				}
-			}
-			if(lockRotX == false) {
-				if(lastY > event.screenY) {
-					comp_transformTarget.pitch((lastY - event.screenY)*factorRot);
-				} else {
-					comp_transformTarget.pitch(-(event.screenY - lastY)*factorRot);
-				}
-			}
+			if(leftButtonAction == "PAN") {
+				if(comp_projection.getProjection() == Constants.PROJECTION_TYPES.PERSPECTIVE) makeOrbit(event);
+				else makePan(event);
+			} else if(leftButtonAction == "ORBIT") {
+				makeOrbit(event);
+			}			
 		}
 		lastX = event.screenX;
 		lastY = event.screenY;
 	};
+	
+	var makePan = (function(event) {
+		event.preventDefault(); 
+		var X = comp_transformTarget.getMatrix().getLeft().x((lastX - event.screenX)*(comp_projection.getFov()*0.005));
+		var Y = comp_transformTarget.getMatrix().getUp().x((lastY - event.screenY)*(comp_projection.getFov()*-0.005));  
+		var dir = X.add(Y.x(-1.0));
+		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
+		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
+	}).bind(this);
+	
+	var makeOrbit = (function(event) {
+		var factorRot = 0.5;
+		if(lockRotY == false) {
+			if(lastX > event.screenX) {
+				comp_transformTarget.yaw(-(lastX - event.screenX)*factorRot);
+			} else {
+				comp_transformTarget.yaw((event.screenX - lastX)*factorRot);
+			}
+		}
+		if(lockRotX == false) {
+			if(lastY > event.screenY) {
+				comp_transformTarget.pitch((lastY - event.screenY)*factorRot);
+			} else {
+				comp_transformTarget.pitch(-(event.screenY - lastY)*factorRot);
+			}
+		}
+	}).bind(this);
 };
 ComponentControllerTransformTarget.prototype = Object.create(Component.prototype);
 ComponentControllerTransformTarget.prototype.constructor = ComponentControllerTransformTarget;
