@@ -201,7 +201,7 @@ ActionHelpers = function() {
 		};
 		
 		var e = document.getElementById("INPUTID_"+name+"X_slider");
-		e.addEventListener("change", set_range.bind(this, onChangeCallback, e));
+		e.addEventListener("input", set_range.bind(this, onChangeCallback, e));
 	};
 
 	/**

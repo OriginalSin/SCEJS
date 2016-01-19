@@ -12,6 +12,7 @@ Component_Kernel = function() {
 	 * @param {Object} jsonIn
 	 * @param {KERNEL} jsonIn.kernel
 	 * @param {String} jsonIn.name - Used only for identify. not for output to buffer (ScreenEffect output always to 'null')
+	 * @param {Int} [jsonIn.geometryLength=1]
 	 * @param {Int} [jsonIn.width]
 	 * @param {Int} [jsonIn.height]
 	 * @param {Callback} [jsonIn.onPreTick=undefined]
@@ -31,6 +32,7 @@ Component_Kernel = function() {
 		this.kernels[jsonIn.name] = {	"enabled": true,
 										"kernel": kernel,
 										"name": jsonIn.name,
+										"geometryLength": jsonIn.geometryLength,
 										"onPreTick": jsonIn.onPreTick,
 										"onPostTick": jsonIn.onPostTick,
 										"enableDepthTest": ((jsonIn.enableDepthTest != undefined) ? jsonIn.enableDepthTest : true),
@@ -147,7 +149,7 @@ Component_Kernel = function() {
 					kernel.onPreTick();
 				
 				var buffDest = (isScreenEffects != undefined && isScreenEffects == true) ? null : this.getTempBuffers()[this.getKernels()[key].name];
-				this.clglWork.enqueueNDRangeKernel(key, buffDest);	
+				this.clglWork.enqueueNDRangeKernel(key, buffDest, kernel.geometryLength);	
 				
 				if(this.getKernels()[key].onPostTick != undefined)
 					this.getKernels()[key].onPostTick();
