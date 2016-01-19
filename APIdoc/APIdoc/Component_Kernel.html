@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>SCEJS API DOC Class: ComponentMouseEvents</title>
+	<title>SCEJS API DOC Class: Component_Kernel</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -199,12 +199,12 @@
 					
 
 
-	<h1 class="page-title">Class: ComponentMouseEvents</h1>
+	<h1 class="page-title">Class: Component_Kernel</h1>
 <section>
 
 <header>
     <h2>
-    ComponentMouseEvents
+    Component_Kernel
     </h2>
     
 </header>
@@ -216,7 +216,7 @@
     
         
 <dt>
-    <h4 class="name" id="ComponentMouseEvents"><span class="type-signature"></span>new ComponentMouseEvents<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Component_Kernel"><span class="type-signature"></span>new Component_Kernel<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -253,7 +253,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-5">line 5</a>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-5">line 5</a>
     </li></ul></dd>
     
 
@@ -301,7 +301,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="initialize"><span class="type-signature"></span>initialize<span class="signature">(nod)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addKernel"><span class="type-signature"></span>addKernel<span class="signature">(jsonIn, <span class="optional">enableDepthTest</span>, <span class="optional">enableBlend</span>)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -309,7 +309,7 @@
     
     
     <div class="description">
-        <p>initialize</p>
+        <p>addKernel</p>
     </div>
     
 
@@ -331,7 +331,11 @@
 		<th>Type</th>
 
 		
+		<th>Argument</th>
+		
 
+		
+		<th>Default</th>
 		
 
 		<th class="last">Description</th>
@@ -343,20 +347,90 @@
 
         <tr>
             
-                <td class="name"><code>nod</code></td>
+                <td class="name"><code>jsonIn</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="Node.html">Node</a></span>
+<span class="param-type">Object</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+                
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+		<th>Argument</th>
+		
+
+		
+		<th>Default</th>
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>kernel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">KERNEL</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last"></td>
@@ -366,20 +440,425 @@
 
         <tr>
             
-                <td class="name"><code>glCtx.</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">WebGLRenderingContext</span>
+<span class="param-type">String</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Used only for identify. not for output to buffer (ScreenEffect output always to 'null')</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>geometryLength</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Int</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    1
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>width</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Int</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>height</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Int</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>onPreTick</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    undefined
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>onPostTick</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    undefined
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+            </td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enableDepthTest</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enableBlend</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>jsonIn.blendEquation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_EQUATION_TYPES</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Constants.BLENDING_EQUATION_TYPES.FUNC_ADD
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>jsonIn.blendSrc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_MODES</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Constants.BLENDING_MODES.ONE
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>jsonIn.blendDst</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_MODES</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Constants.BLENDING_MODES.ZERO
+                
+                </td>
             
 
             <td class="description last"></td>
@@ -414,7 +893,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-25">line 25</a>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-26">line 26</a>
     </li></ul></dd>
     
 
@@ -444,7 +923,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="onmousedown"><span class="type-signature"></span>onmousedown<span class="signature">(cb)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="disableKernel"><span class="type-signature"></span>disableKernel<span class="signature">(name)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -452,7 +931,7 @@
     
     
     <div class="description">
-        <p>onmousedown</p>
+        <p>disableKernel</p>
     </div>
     
 
@@ -486,13 +965,13 @@
 
         <tr>
             
-                <td class="name"><code>cb</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="ComponentMouseEvents.html#onmousedown">ComponentMouseEvents~onmousedown</a></span>
+<span class="param-type">String</span>
 
 
             
@@ -534,7 +1013,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-38">line 38</a>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-70">line 70</a>
     </li></ul></dd>
     
 
@@ -564,7 +1043,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="onmousemove"><span class="type-signature"></span>onmousemove<span class="signature">(cb)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="enableKernel"><span class="type-signature"></span>enableKernel<span class="signature">(name)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -572,7 +1051,7 @@
     
     
     <div class="description">
-        <p>onmousedown</p>
+        <p>enableKernel</p>
     </div>
     
 
@@ -606,13 +1085,13 @@
 
         <tr>
             
-                <td class="name"><code>cb</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="ComponentMouseEvents.html#onmousemove">ComponentMouseEvents~onmousemove</a></span>
+<span class="param-type">String</span>
 
 
             
@@ -654,7 +1133,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-63">line 63</a>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-62">line 62</a>
     </li></ul></dd>
     
 
@@ -684,7 +1163,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="onmouseup"><span class="type-signature"></span>onmouseup<span class="signature">(cb)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getKernels"><span class="type-signature"></span>getKernels<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
     
 </dt>
@@ -692,7 +1171,97 @@
     
     
     <div class="description">
-        <p>onmousedown</p>
+        <p>getKernels</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-54">line 54</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Object</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="setKernelBlendDst"><span class="type-signature"></span>setKernelBlendDst<span class="signature">(name, blend)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setKernelBlendDst</p>
     </div>
     
 
@@ -726,13 +1295,36 @@
 
         <tr>
             
-                <td class="name"><code>cb</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="ComponentMouseEvents.html#onmouseup">ComponentMouseEvents~onmouseup</a></span>
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>blend</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_MODES</span>
 
 
             
@@ -774,7 +1366,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-50">line 50</a>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-118">line 118</a>
     </li></ul></dd>
     
 
@@ -804,7 +1396,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="onmousewheel"><span class="type-signature"></span>onmousewheel<span class="signature">(cb)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setKernelBlendEquation"><span class="type-signature"></span>setKernelBlendEquation<span class="signature">(name, equation)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -812,7 +1404,7 @@
     
     
     <div class="description">
-        <p>onmousedown</p>
+        <p>setKernelBlendEquation</p>
     </div>
     
 
@@ -846,13 +1438,36 @@
 
         <tr>
             
-                <td class="name"><code>cb</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="ComponentMouseEvents.html#onmousewheel">ComponentMouseEvents~onmousewheel</a></span>
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>equation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_EQUATION_TYPES</span>
 
 
             
@@ -894,7 +1509,436 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-76">line 76</a>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-100">line 100</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="setKernelBlendSrc"><span class="type-signature"></span>setKernelBlendSrc<span class="signature">(name, blend)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setKernelBlendSrc</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>blend</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_MODES</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-109">line 109</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="setKernelEnableBlend"><span class="type-signature"></span>setKernelEnableBlend<span class="signature">(name, enable)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setKernelEnableBlend</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enable</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-91">line 91</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="setKernelEnableDepthTest"><span class="type-signature"></span>setKernelEnableDepthTest<span class="signature">(name, enable)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setKernelEnableDepthTest</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enable</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Kernel.class.js.html">Component_Kernel.class.js</a>, <a href="Component_Kernel.class.js.html#sunlight-1-line-82">line 82</a>
     </li></ul></dd>
     
 
@@ -935,517 +1979,19 @@
         
 			
         
-		
-		
-    
-
-	
-    
-        <h3 class="subsection-title">Type Definitions</h3>
-
-        <dl>
-                
-<dt>
-    <h4 class="name" id="onmousedown"><span class="type-signature"></span>onmousedown<span class="signature">(evt)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
+			
         
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>evt</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">MouseEvent</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-30">line 30</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-            
-                
-<dt>
-    <h4 class="name" id="onmousemove"><span class="type-signature"></span>onmousemove<span class="signature">(evt, dir)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
+			
         
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>evt</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">MouseEvent</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>dir</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="StormV3.html">StormV3</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-54">line 54</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-            
-                
-<dt>
-    <h4 class="name" id="onmouseup"><span class="type-signature"></span>onmouseup<span class="signature">(evt)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
+			
         
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>evt</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">MouseEvent</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-42">line 42</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-            
-                
-<dt>
-    <h4 class="name" id="onmousewheel"><span class="type-signature"></span>onmousewheel<span class="signature">(evt, dir)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
+			
         
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
 		
-		<th>Name</th>
 		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>evt</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">MouseWheelEvent</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
+    
 
 	
-
-        <tr>
-            
-                <td class="name"><code>dir</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="StormV3.html">StormV3</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ComponentMouseEvents.class.js.html">ComponentMouseEvents.class.js</a>, <a href="ComponentMouseEvents.class.js.html#sunlight-1-line-67">line 67</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-            </dl>
     
 
     
@@ -1472,7 +2018,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Tue Jan 19 2016 22:55:24 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Jan 19 2016 22:55:23 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>

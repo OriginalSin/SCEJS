@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>SCEJS API DOC Class: ArrayGenerator</title>
+	<title>SCEJS API DOC Class: Component_Vfp</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -199,12 +199,12 @@
 					
 
 
-	<h1 class="page-title">Class: ArrayGenerator</h1>
+	<h1 class="page-title">Class: Component_Vfp</h1>
 <section>
 
 <header>
     <h2>
-    ArrayGenerator
+    Component_Vfp
     </h2>
     
 </header>
@@ -216,7 +216,7 @@
     
         
 <dt>
-    <h4 class="name" id="ArrayGenerator"><span class="type-signature"></span>new ArrayGenerator<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Component_Vfp"><span class="type-signature"></span>new Component_Vfp<span class="signature">()</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -253,7 +253,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-5">line 5</a>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-5">line 5</a>
     </li></ul></dd>
     
 
@@ -301,7 +301,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="float4Array"><span class="type-signature"></span>float4Array<span class="signature">(jsonIn)</span><span class="type-signature"> &rarr; {Array.&lt;Float>}</span></h4>
+    <h4 class="name" id="addVFP"><span class="type-signature"></span>addVFP<span class="signature">(jsonIn, <span class="optional">enableDepthTest</span>, <span class="optional">enableBlend</span>)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -327,7 +327,11 @@
 		<th>Type</th>
 
 		
+		<th>Argument</th>
+		
 
+		
+		<th>Default</th>
 		
 
 		<th class="last">Description</th>
@@ -352,7 +356,19 @@
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last">
@@ -369,7 +385,11 @@
 		<th>Type</th>
 
 		
+		<th>Argument</th>
+		
 
+		
+		<th>Default</th>
 		
 
 		<th class="last">Description</th>
@@ -381,7 +401,77 @@
 
         <tr>
             
-                <td class="name"><code>count</code></td>
+                <td class="name"><code>vfp</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">VFP</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>drawMode</code></td>
             
 
             <td class="type">
@@ -394,33 +484,143 @@
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>count</p></td>
+            
+                <td class="default">
+                
+                    4
+                
+                </td>
+            
+
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>float4</code></td>
+                <td class="name"><code>geometryLength</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;Float4></span>
+<span class="param-type">Int</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>direction</p></td>
+            
+                <td class="default">
+                
+                    1
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>onPreTick</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    undefined
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>onPostTick</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    undefined
+                
+                </td>
+            
+
+            <td class="description last"></td>
         </tr>
 
 	
@@ -428,6 +628,201 @@
 </table>
 
             </td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enableDepthTest</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enableBlend</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>jsonIn.blendEquation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_EQUATION_TYPES</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Constants.BLENDING_EQUATION_TYPES.FUNC_ADD
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>jsonIn.blendSrc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_MODES</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Constants.BLENDING_MODES.ONE
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>jsonIn.blendDst</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_MODES</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    Constants.BLENDING_MODES.ZERO
+                
+                </td>
+            
+
+            <td class="description last"></td>
         </tr>
 
 	
@@ -459,7 +854,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-64">line 64</a>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-24">line 24</a>
     </li></ul></dd>
     
 
@@ -480,25 +875,6 @@
     
     
     
-    <h5>Returns:</h5>
-    
-            
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Array.&lt;Float></span>
-
-
-	</dd>
-</dl>
-
-
-        
     
     
 </dd>
@@ -508,7 +884,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="hemArray"><span class="type-signature"></span>hemArray<span class="signature">(jsonIn)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="disableVfp"><span class="type-signature"></span>disableVfp<span class="signature">(name)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -516,7 +892,7 @@
     
     
     <div class="description">
-        <p>hemArray</p>
+        <p>disableVfp</p>
     </div>
     
 
@@ -550,13 +926,13 @@
 
         <tr>
             
-                <td class="name"><code>jsonIn</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">String</span>
 
 
             
@@ -564,183 +940,9 @@
 
             
 
-            
-
-            <td class="description last">
-                <h6>Properties</h6>
-                
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-		<th>Argument</th>
-		
-
-		
-		<th>Default</th>
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>count</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>count</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>radius</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Float</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    1.0
-                
-                </td>
-            
-
-            <td class="description last"><p>radius</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>normalVector</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="StormV3.html">StormV3</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
             
 
             <td class="description last"></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>degrees</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Float</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-            </td>
         </tr>
 
 	
@@ -772,7 +974,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-101">line 101</a>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-79">line 79</a>
     </li></ul></dd>
     
 
@@ -802,12 +1004,16 @@
 			
 				
 <dt>
-    <h4 class="name" id="imageArray"><span class="type-signature"></span>imageArray<span class="signature">(jsonIn)</span><span class="type-signature"> &rarr; {Array.&lt;Float>}</span></h4>
+    <h4 class="name" id="enableVfp"><span class="type-signature"></span>enableVfp<span class="signature">(name)</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
+    
+    <div class="description">
+        <p>enableVfp</p>
+    </div>
     
 
     
@@ -840,13 +1046,13 @@
 
         <tr>
             
-                <td class="name"><code>jsonIn</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">String</span>
 
 
             
@@ -856,79 +1062,7 @@
 
             
 
-            <td class="description last">
-                <h6>Properties</h6>
-                
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>count</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>count</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>image</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Float</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>image</p></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-            </td>
+            <td class="description last"></td>
         </tr>
 
 	
@@ -960,7 +1094,78 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-119">line 119</a>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-71">line 71</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="getVFPs"><span class="type-signature"></span>getVFPs<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>getVFPs</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-63">line 63</a>
     </li></ul></dd>
     
 
@@ -992,7 +1197,7 @@
 	</dt>
 	<dd>
 		
-<span class="param-type">Array.&lt;Float></span>
+<span class="param-type">Object</span>
 
 
 	</dd>
@@ -1009,12 +1214,16 @@
 			
 				
 <dt>
-    <h4 class="name" id="randomArray"><span class="type-signature"></span>randomArray<span class="signature">(jsonIn)</span><span class="type-signature"> &rarr; {Array.&lt;Float>}</span></h4>
+    <h4 class="name" id="setVfpArgDestination"><span class="type-signature"></span>setVfpArgDestination<span class="signature">(vfpName, <span class="optional">argDestination</span>)</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
+    
+    <div class="description">
+        <p>setVfpArgDestination</p>
+    </div>
     
 
     
@@ -1024,48 +1233,6 @@
     
         <h5>Parameters:</h5>
         
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>jsonIn</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <h6>Properties</h6>
-                
 
 <table class="params table table-striped">
     <thead>
@@ -1093,77 +1260,7 @@
 
         <tr>
             
-                <td class="name"><code>count</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>count</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>offset</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Float</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>Offset</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>vfpName</code></td>
             
 
             <td class="type">
@@ -1191,20 +1288,20 @@
                 </td>
             
 
-            <td class="description last"><p>&quot;float&quot; | &quot;float4&quot;</p></td>
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>spacing</code></td>
+                <td class="name"><code>argDestination</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Float</span>
+<span class="param-type">String</span>
 
 
             
@@ -1225,19 +1322,12 @@
             
                 <td class="default">
                 
-                    0.01
+                    undefined
                 
                 </td>
             
 
-            <td class="description last"><p>Spacing</p></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-            </td>
+            <td class="description last"></td>
         </tr>
 
 	
@@ -1269,7 +1359,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-16">line 16</a>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-50">line 50</a>
     </li></ul></dd>
     
 
@@ -1290,25 +1380,6 @@
     
     
     
-    <h5>Returns:</h5>
-    
-            
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Array.&lt;Float></span>
-
-
-	</dd>
-</dl>
-
-
-        
     
     
 </dd>
@@ -1318,12 +1389,16 @@
 			
 				
 <dt>
-    <h4 class="name" id="sphericalArray"><span class="type-signature"></span>sphericalArray<span class="signature">(jsonIn)</span><span class="type-signature"> &rarr; {Array.&lt;Float>}</span></h4>
+    <h4 class="name" id="setVfpBlendDst"><span class="type-signature"></span>setVfpBlendDst<span class="signature">(name, blend)</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
+    
+    <div class="description">
+        <p>setVfpBlendDst</p>
+    </div>
     
 
     
@@ -1356,13 +1431,13 @@
 
         <tr>
             
-                <td class="name"><code>jsonIn</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">String</span>
 
 
             
@@ -1372,236 +1447,20 @@
 
             
 
-            <td class="description last">
-                <h6>Properties</h6>
-                
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-		<th>Argument</th>
-		
-
-		
-		<th>Default</th>
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>count</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>count</p></td>
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>radius</code></td>
+                <td class="name"><code>blend</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Float</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    1.0
-                
-                </td>
-            
-
-            <td class="description last"><p>radius</p></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-            </td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-78">line 78</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Array.&lt;Float></span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-			
-        
-			
-				
-<dt>
-    <h4 class="name" id="volumeArray"><span class="type-signature"></span>volumeArray<span class="signature">(voxelizator)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>voxelizator</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">StormVoxelizator</span>
+<span class="param-type">Constants.BLENDING_MODES</span>
 
 
             
@@ -1643,7 +1502,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-135">line 135</a>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-136">line 136</a>
     </li></ul></dd>
     
 
@@ -1673,12 +1532,16 @@
 			
 				
 <dt>
-    <h4 class="name" id="widthHeightArray"><span class="type-signature"></span>widthHeightArray<span class="signature">(jsonIn)</span><span class="type-signature"> &rarr; {Array.&lt;Float>}</span></h4>
+    <h4 class="name" id="setVfpBlendEquation"><span class="type-signature"></span>setVfpBlendEquation<span class="signature">(name, equation)</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
+    
+    <div class="description">
+        <p>setVfpBlendEquation</p>
+    </div>
     
 
     
@@ -1711,13 +1574,13 @@
 
         <tr>
             
-                <td class="name"><code>jsonIn</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">String</span>
 
 
             
@@ -1727,181 +1590,30 @@
 
             
 
-            <td class="description last">
-                <h6>Properties</h6>
-                
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-		<th>Argument</th>
-		
-
-		
-		<th>Default</th>
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>count</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>count</p></td>
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>width</code></td>
+                <td class="name"><code>equation</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Float</span>
+<span class="param-type">Constants.BLENDING_EQUATION_TYPES</span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
 
             
-                <td class="default">
-                
-                </td>
-            
 
-            <td class="description last"><p>width</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>height</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Float</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>height</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>spacing</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Float</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    0.01
-                
-                </td>
-            
-
-            <td class="description last"><p>Spacing</p></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-            </td>
+            <td class="description last"></td>
         </tr>
 
 	
@@ -1933,7 +1645,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ArrayGenerator.class.js.html">ArrayGenerator.class.js</a>, <a href="ArrayGenerator.class.js.html#sunlight-1-line-33">line 33</a>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-118">line 118</a>
     </li></ul></dd>
     
 
@@ -1954,25 +1666,578 @@
     
     
     
-    <h5>Returns:</h5>
     
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="setVfpBlendSrc"><span class="type-signature"></span>setVfpBlendSrc<span class="signature">(name, blend)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setVfpBlendSrc</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
             
 
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Array.&lt;Float></span>
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
 
 
-	</dd>
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>blend</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.BLENDING_MODES</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-127">line 127</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
 </dl>
 
+    
+    
 
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
         
+			
+				
+<dt>
+    <h4 class="name" id="setVfpDrawMode"><span class="type-signature"></span>setVfpDrawMode<span class="signature">(name, draw)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setVfpDrawMode</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>draw</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Constants.DRAW_MODES</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-91">line 91</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="setVfpEnableBlend"><span class="type-signature"></span>setVfpEnableBlend<span class="signature">(name, enable)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setVfpEnableBlend</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enable</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-109">line 109</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="setVfpEnableDepthTest"><span class="type-signature"></span>setVfpEnableDepthTest<span class="signature">(name, enable)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>setVfpEnableDepthTest</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>enable</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Bool</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Component_Vfp.class.js.html">Component_Vfp.class.js</a>, <a href="Component_Vfp.class.js.html#sunlight-1-line-100">line 100</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
     
     
 </dd>
@@ -1983,6 +2248,14 @@
 		
 		
 		
+			
+        
+			
+        
+			
+        
+			
+        
 			
         
 			
@@ -2028,7 +2301,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Tue Jan 19 2016 22:55:22 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Jan 19 2016 22:55:23 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>

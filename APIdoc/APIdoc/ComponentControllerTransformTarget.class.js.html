@@ -37,6 +37,26 @@
 						</li>
 						
 						<li>
+							<a href="Component_Argument.html">Component_Argument</a>
+						</li>
+						
+						<li>
+							<a href="Component_Indices.html">Component_Indices</a>
+						</li>
+						
+						<li>
+							<a href="Component_Kernel.html">Component_Kernel</a>
+						</li>
+						
+						<li>
+							<a href="Component_Vfp.html">Component_Vfp</a>
+						</li>
+						
+						<li>
+							<a href="Component_Work.html">Component_Work</a>
+						</li>
+						
+						<li>
 							<a href="ComponentControllerTransformTarget.html">ComponentControllerTransformTarget</a>
 						</li>
 						
@@ -69,6 +89,10 @@
 						</li>
 						
 						<li>
+							<a href="Graph.html">Graph</a>
+						</li>
+						
+						<li>
 							<a href="Mesh.html">Mesh</a>
 						</li>
 						
@@ -82,6 +106,10 @@
 						
 						<li>
 							<a href="SCE.html">SCE</a>
+						</li>
+						
+						<li>
+							<a href="SimpleCamera.html">SimpleCamera</a>
 						</li>
 						
 						<li>
@@ -192,6 +220,8 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	var comp_transformTarget;
 	var comp_projection;
 	
+	var _vel = 0.1;
+	
 	var forward = 0;
 	var backward = 0;
 	var left = 0;
@@ -202,6 +232,10 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	var leftButton = 0;
 	var middleButton = 0;
 	var rightButton = 0;
+	
+	var leftButtonAction = "ORBIT";
+	var middleButtonAction = "PAN";
+	var rightButtonAction = "ZOOM";
 	
 	
 	var lastX = 0;
@@ -224,6 +258,14 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 		comp_transformTarget = node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
 		comp_projection = node.getComponent(Constants.COMPONENT_TYPES.PROJECTION);
 	};	
+	
+	/**
+	 * setVelocity
+	 * @param {Float} velocity
+	 */
+	this.setVelocity = function(velocity) {
+		_vel = velocity;
+	};
 	
 	/**
 	 * lockRotX
@@ -402,6 +444,30 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	this.isRightBtnActive = function() {
 		return (rightButton == 1) ? true : false;
 	};
+	
+	/**
+	 * setLeftButtonAction
+	 * @param {String} [action="ORBIT"]
+	 */
+	this.setLeftButtonAction = function(action) {
+		leftButtonAction = action;
+	};
+	
+	/**
+	 * setMiddleButtonAction
+	 * @param {String} [action="PAN"]
+	 */
+	this.setMiddleButtonAction = function(action) {
+		middleButtonAction = action;
+	};
+	
+	/**
+	 * setRightButtonAction
+	 * @param {String} [action="ZOOM"]
+	 */
+	this.setRightButtonAction = function(action) {
+		rightButtonAction = action;
+	};
 
 	/**
 	* @param {Float} elapsed
@@ -411,17 +477,17 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	this.tick = function(elapsed) {	
 		var dir = $V3([0.0, 0.0, 0.0]);
 		if(forward == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(-1.0));
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(-_vel));
 		if(backward == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward());
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getForward().x(_vel));
 		if(left == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(-1.0));
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(-_vel));
 		if(right == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft());
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getLeft().x(_vel));
 		if(back == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(-1.0));
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(-_vel));
 		if(front == 1)
-			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp());
+			dir = dir.add(comp_transformTarget.getMatrix().inverse().getUp().x(_vel));
 		
 		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
 		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
@@ -430,32 +496,49 @@ ComponentControllerTransformTarget = function() { Component.call(this);
 	/** @private */
 	var updateGoal = function(event) {
 		if(middleButton == 1) {
-			event.preventDefault(); 
-			var X = comp_transformTarget.getMatrix().getLeft().x((lastX - event.screenX)*(comp_projection.getFov()*0.005));
-			var Y = comp_transformTarget.getMatrix().getUp().x((lastY - event.screenY)*(comp_projection.getFov()*-0.005));  
-			var dir = X.add(Y.x(-1.0));
-			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
-			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
+			if(middleButtonAction == "PAN") {
+				makePan(event);
+			} else if(middleButtonAction == "ORBIT") {
+				makeOrbit(event);
+			}
 		} else {
-			var factorRot = 0.5;
-			if(lockRotY == false) {
-				if(lastX > event.screenX) {
-					comp_transformTarget.yaw(-(lastX - event.screenX)*factorRot);
-				} else {
-					comp_transformTarget.yaw((event.screenX - lastX)*factorRot);
-				}
-			}
-			if(lockRotX == false) {
-				if(lastY > event.screenY) {
-					comp_transformTarget.pitch((lastY - event.screenY)*factorRot);
-				} else {
-					comp_transformTarget.pitch(-(event.screenY - lastY)*factorRot);
-				}
-			}
+			if(leftButtonAction == "PAN") {
+				if(comp_projection.getProjection() == Constants.PROJECTION_TYPES.PERSPECTIVE) makeOrbit(event);
+				else makePan(event);
+			} else if(leftButtonAction == "ORBIT") {
+				makeOrbit(event);
+			}			
 		}
 		lastX = event.screenX;
 		lastY = event.screenY;
 	};
+	
+	var makePan = (function(event) {
+		event.preventDefault(); 
+		var X = comp_transformTarget.getMatrix().getLeft().x((lastX - event.screenX)*(comp_projection.getFov()*0.005));
+		var Y = comp_transformTarget.getMatrix().getUp().x((lastY - event.screenY)*(comp_projection.getFov()*-0.005));  
+		var dir = X.add(Y.x(-1.0));
+		comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir));
+		comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir));
+	}).bind(this);
+	
+	var makeOrbit = (function(event) {
+		var factorRot = 0.5;
+		if(lockRotY == false) {
+			if(lastX > event.screenX) {
+				comp_transformTarget.yaw(-(lastX - event.screenX)*factorRot);
+			} else {
+				comp_transformTarget.yaw((event.screenX - lastX)*factorRot);
+			}
+		}
+		if(lockRotX == false) {
+			if(lastY > event.screenY) {
+				comp_transformTarget.pitch((lastY - event.screenY)*factorRot);
+			} else {
+				comp_transformTarget.pitch(-(event.screenY - lastY)*factorRot);
+			}
+		}
+	}).bind(this);
 };
 ComponentControllerTransformTarget.prototype = Object.create(Component.prototype);
 ComponentControllerTransformTarget.prototype.constructor = ComponentControllerTransformTarget;</pre>
@@ -482,7 +565,7 @@ ComponentControllerTransformTarget.prototype.constructor = ComponentControllerTr
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Thu Dec 24 2015 19:35:39 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Tue Jan 19 2016 22:55:22 GMT+0100 (CET) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
