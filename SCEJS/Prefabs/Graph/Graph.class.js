@@ -11,7 +11,7 @@ Graph = function(sce) {
 
 	var MAX_ITEMS_PER_ARRAY = 4294967295/*4294967295*/; // unsigned int 65535 for limit on indices of 16bit; long unsigned int 4294967295
 	var NODE_IMG_COLUMNS = 8.0;
-	var NODE_IMG_WIDTH = 1024;
+	var NODE_IMG_WIDTH = 2048;
 	var NODE_IMG_SPRITE_WIDTH = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
 	var OFFSET = 1000.0;
 
@@ -41,14 +41,23 @@ Graph = function(sce) {
 	canvasNodeImg.width = NODE_IMG_WIDTH;
 	canvasNodeImg.height = NODE_IMG_WIDTH;
 	var ctxNodeImg = canvasNodeImg.getContext('2d');
+	
+	var canvasNodeImgCrosshair = document.createElement('canvas');
+	canvasNodeImgCrosshair.width = NODE_IMG_WIDTH;
+	canvasNodeImgCrosshair.height = NODE_IMG_WIDTH;
+	var ctxNodeImgCrosshair = canvasNodeImgCrosshair.getContext('2d');
 
 	var canvasNodeImgTMP = document.createElement('canvas');
 	canvasNodeImgTMP.width = NODE_IMG_SPRITE_WIDTH;
 	canvasNodeImgTMP.height = NODE_IMG_SPRITE_WIDTH;
 	var ctxNodeImgTMP = canvasNodeImgTMP.getContext('2d');
 
+	var _stackNodesImg = [];
+	var _makingNodesImg = false;
 	var nodesImgMask = null;
 	var nodesImgMaskLoaded = false;
+	var nodesImgCrosshair = null;
+	var nodesImgCrosshairLoaded = false;
 
 
 	var FONT_IMG_COLUMNS = 7.0;
@@ -92,31 +101,10 @@ Graph = function(sce) {
 			if(n != undefined && n.onmouseup != undefined) n.onmouseup(n.data);
 		}
 
-		//selectedId = -1;
-
 		comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
-		//comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-
 		comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
-		//comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-
 		comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
-		//comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-
 		comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
-		//comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 		
 		if(selectedId == -1) {
 			comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
@@ -321,36 +309,80 @@ Graph = function(sce) {
 				setNodesImage(url, locationIdx);
 			}).bind(this, url, locationIdx);
 			nodesImgMask.src = sceDirectory+"/Prefabs/Graph/nodesImgMask.png";
+		} else if(nodesImgCrosshairLoaded == false) {
+			nodesImgCrosshair = new Image();
+			nodesImgCrosshair.onload = (function() {
+				nodesImgCrosshairLoaded = true;
+				setNodesImage(url, locationIdx);
+			}).bind(this, url, locationIdx);
+			nodesImgCrosshair.src = sceDirectory+"/Prefabs/Graph/nodesImgCrosshair.png";
 		} else {
-			var image = new Image();
-			image.onload = (function(nodesImgMask) {
-				// draw userImg on temporal canvas reducing the thumb size
-				ctxNodeImgTMP.clearRect(0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-				ctxNodeImgTMP.drawImage(image, 0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-
-				// apply mask to thumb image
-				new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(img) {
-					var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( img );
-					var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
-					for(var n=0; n < datMask.length/4; n++) {
-						var idx = n*4;
-						if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
-					}
-					new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
-						// draw thumb image on atlas & update the 'nodesImg' argument
-						var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
-						ctxNodeImg.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-
-						new Utils().getImageFromCanvas(canvasNodeImg, (function(imgAtlas) {
-							comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
+			if(_makingNodesImg == false) {
+				_makingNodesImg = true;
+				
+				var image = new Image();
+				image.onload = (function(nodesImgMask, nodesImgCrosshair) {
+					// draw userImg on temporal canvas reducing the thumb size
+					ctxNodeImgTMP.clearRect(0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
+					var quarter = NODE_IMG_SPRITE_WIDTH/4;
+					ctxNodeImgTMP.drawImage(image, 0, 0, image.width, image.height, quarter, quarter, NODE_IMG_SPRITE_WIDTH/2, NODE_IMG_SPRITE_WIDTH/2);
+	
+					// apply mask to thumb image
+					new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(img) {
+						var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( img );
+						
+						
+						var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
+						for(var n=0; n < datMask.length/4; n++) {
+							var idx = n*4;
+							if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
+						}
+						new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
+							// draw thumb image on atlas & update the 'nodesImg' argument
+							var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
+							ctxNodeImg.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
+	
+							new Utils().getImageFromCanvas(canvasNodeImg, (function(imgAtlas) {
+								comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
+							}).bind(this));						
+						}).bind(this));
+						
+						
+						var datCrosshair = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgCrosshair);
+						for(var n=0; n < datCrosshair.length/4; n++) {
+							var idx = n*4;
+							
+							newImgData[idx] = ((datCrosshair[idx]*datCrosshair[idx+3]) + (newImgData[idx]*(255-datCrosshair[idx+3])))/255;
+							newImgData[idx+1] =( (datCrosshair[idx+1]*datCrosshair[idx+3]) + (newImgData[idx+1]*(255-datCrosshair[idx+3])))/255;
+							newImgData[idx+2] = ((datCrosshair[idx+2]*datCrosshair[idx+3]) + (newImgData[idx+2]*(255-datCrosshair[idx+3])))/255;
+							newImgData[idx+3] = ((datCrosshair[idx+3]*datCrosshair[idx+3]) + (newImgData[idx+3]*(255-datCrosshair[idx+3])))/255;						
+						}					
+						new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
+							// draw thumb image on atlas & update the 'nodesImg' argument
+							var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
+							ctxNodeImgCrosshair.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
+	
+							new Utils().getImageFromCanvas(canvasNodeImgCrosshair, (function(imgAtlas) {
+								comp_renderer_nodes.setArg("nodesImgCrosshair", (function(){return imgAtlas;}).bind(this));
+								
+								_makingNodesImg = false;
+								if(_stackNodesImg.length > 0) {
+									var urlT = _stackNodesImg[0].url;
+									var locIdx = _stackNodesImg[0].locationIdx;
+									_stackNodesImg.shift();
+									setNodesImage(urlT, locIdx);
+								}
+							}).bind(this));						
 						}).bind(this));
 						
 					}).bind(this));
-					
-				}).bind(this));
 				
-			}).bind(this, nodesImgMask);
-			image.src = url;
+				}).bind(this, nodesImgMask, nodesImgCrosshair);
+				image.src = url;
+			} else {
+				_stackNodesImg.push({	"url": url,
+										"locationIdx": locationIdx});
+			}
 		}
 	}).bind(this);
 
@@ -1187,7 +1219,7 @@ Graph = function(sce) {
 		comp_renderer_arrows.setArgUpdatable("nodeWMatrix", true);
 
 		comp_renderer_arrows.setArg("isArrow", (function() {return 1.0;}).bind(this));
-		comp_renderer_arrows.setArg("isLink", (function() {return 1.0;}).bind(this));
+		//comp_renderer_arrows.setArg("isLink", (function() {return 1.0;}).bind(this));
 
 		for(var argNameKey in _customArgs) {
 			var expl = _customArgs[argNameKey].arg.split("*");
