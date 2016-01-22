@@ -10,6 +10,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'varying float vDist;\n'+
        		'uniform sampler2D adjacencyMatrix;\n'+
        		'varying float vIsSelected;\n'+
+       		'varying float vUseCrosshair;\n'+
+       		'varying float vIstarget;\n'+
        		
        		'vec2 get2Dfrom1D(float idx, float columns) {'+
        			'float n = idx/columns;'+
@@ -115,9 +117,11 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   						'vUseTex = 1.0;'+
 	   						'vVertexUV = get2Dfrom1D(nodeImgId, nodeImgColumns)+vec2(nodeVertexTexture.x/nodeImgColumns,nodeVertexTexture.y/nodeImgColumns);'+
 	   					'}'+
+	   					
+	   					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
 	   				'}'+
 	   				'if(isLink == 1.0) {'+
-
+	   					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+ 
 		       		'}'+
        				'if(isArrow == 1.0) {'+
        					'mat4 pp = lookAt(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
@@ -140,6 +144,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
        					'vec3 dir = normalize(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z));'+
        					'nodePosition = nodePosition+(vec4(dir,1.0)*0.565);'+
+       					
+       					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+  
        				'}'+
        				'if(isNodeText == 1.0) {'+
        					'float letId = letterId[x];\n'+
@@ -148,6 +154,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
        					'vVertexUV = get2Dfrom1D(letId, fontImgColumns)+vec2(nodeVertexTexture.x/fontImgColumns,nodeVertexTexture.y/fontImgColumns);'+
        					'nodeVertexPosition = vec4(nodeVertexPosition.x*0.1, nodeVertexPosition.y*0.1, nodeVertexPosition.z*0.1, 1.0);'+
+       					
+       					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
        				'}'+
        				'nodepos[3][0] = nodePosition.x;'+
        				'nodepos[3][1] = nodePosition.y;'+
@@ -155,11 +163,13 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
        				'mat4 nodeposG = nodeWMatrix;'+
        				'vWNMatrix = nodeposG * nodeVertexNormal[x];\n'+
-
-       				'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
+       				
+       				'vUseCrosshair = 0.0;'+
+       				'vIstarget = (isTarget == 1.0) ? 1.0 : 0.0;'+
        				
        				customCode+
-
+       				'vVertexColor = nodeVertexColor;'+     
+       				
        				'float acum = 1.0;'+
        				'float dist = 0.01;'+
        				'float wh = widthAdjMatrix-1.0;'+
@@ -185,8 +195,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 						'}'+
 					'}'+
 					'vDist = 1.0;\n'+ // dist/acum
-       				'vVertexColor = nodeVertexColor;'+
-
+       				   				
+       				
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPosition;\n'+
        		'}'],
 
@@ -196,36 +206,54 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'varying float vUseTex;\n'+
        		 'varying vec4 vWNMatrix;\n'+
        		'varying float vDist;\n'+
-       		'varying float vIsSelected;\n'],
+       		'varying float vIsSelected;\n'+
+       		'varying float vUseCrosshair;\n'+
+       		'varying float vIstarget;\n'],
 
        		[// fragment source
        		 'void main(float4* fontsImg,'+
        		 			'float4* nodesImg,'+
+       		 			'float4* nodesImgCrosshair,'+
        		 			'float isNode,'+
        		 			'float isLink,'+
        		 			'float isArrow,'+
        		 			'float isNodeText) {'+
        		 	'vec2 x = get_global_id();'+
-
+       		 	
+       		 	'vec4 color = vVertexColor;\n'+
+       		 	'vec4 colorOrange = vec4(255.0/255.0, 131.0/255.0, 0.0/255.0, 1.0);'+
+       		 	'vec4 colorOrangeDark = vec4(255.0/255.0, 80.0/255.0, 0.0/255.0, 1.0);'+
+       		 	
        			'if(isNode == 1.0) {'+
-	       			'vec4 color = vVertexColor;\n'+
-	       			
-	       			'if(vIsSelected == 1.0) color *= vec4(1.0, 0.3, 0.3, 1.0);'+
-
 	       			'if(vUseTex == 1.0) {'+
-						'vec4 tex = texture2D(nodesImg, vVertexUV.xy);'+
+	       				'vec4 tex;'+
+	       				'if(vUseCrosshair == 1.0) {'+
+	       					'tex = texture2D(nodesImgCrosshair, vVertexUV.xy);'+
+	       				'} else if(vIsSelected == 1.0) {'+
+		       				'color = colorOrangeDark;'+
+	       					'tex = texture2D(nodesImgCrosshair, vVertexUV.xy);'+	       					
+	       				'} else {'+
+	       					'tex = texture2D(nodesImg, vVertexUV.xy);'+
+	       				'}'+
 	       				'color = vec4(tex.rgb*color.rgb, tex.a);\n'+
-					'}'+
-							
+					'}'+							
 					'gl_FragColor = color;'+
-	       		'}'+
-	       		'if(isLink == 1.0) {'+
-	       			'gl_FragColor = vec4(vVertexColor.rgb, vDist);\n'+
-	       		'}'+
-	       		'if(isArrow == 1.0) {'+
-	       			'gl_FragColor = vVertexColor;\n'+
-	       		'}'+
-       			'if(isNodeText == 1.0) {'+
+	       		'} else if(isLink == 1.0) {'+
+	       			'if(vIsSelected == 1.0) {'+
+	       				'color = colorOrange;'+
+	       			'}'+
+	       			'gl_FragColor = vec4(color.rgb, vDist);\n'+
+	       		'} else if(isArrow == 1.0) {'+
+	       			'if(vIstarget == 1.0) {'+
+		       			'if(vIsSelected == 1.0) {'+
+		       				'color = colorOrange;'+
+			   			'}'+		   				
+		   			'} else {'+
+		   				'color = vec4(1.0, 0.0, 0.0, 0.0);'+
+		   			'}'+
+		       		
+	       			'gl_FragColor = color;\n'+
+	       		'} else if(isNodeText == 1.0) {'+
        				'gl_FragColor = texture2D(fontsImg, vVertexUV.xy);\n'+
        			'}'+
        		 '}']];
