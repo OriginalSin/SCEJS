@@ -289,5 +289,5 @@ WebCLGLWork.prototype.enqueueNDRangeKernel = function(kernelName, argumentToUpda
  */
 WebCLGLWork.prototype.enqueueVertexFragmentProgram = function(argument, vertexFragmentProgramName, drawMode, geometryLength) {
 	var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argument];
-	this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[vertexFragmentProgramName], buff, drawMode, geometryLength);
+	if(buff.length > 0) this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[vertexFragmentProgramName], buff, drawMode, geometryLength);
 };

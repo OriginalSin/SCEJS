@@ -270,11 +270,13 @@ WebCLGL.prototype.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffers,
 		for(var i=0; i < webCLGLBuffers.items.length; i++) {
 			webCLGLBuffer = webCLGLBuffers.items[i];
 
-			this.gl.viewport(0, 0, webCLGLBuffer.W, webCLGLBuffer.H);
-			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
-			this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
-
-			this.enqueueNDRangeKernelNow(webCLGLKernel, i, geometryLength);
+			if(webCLGLBuffer.length > 0) {
+				this.gl.viewport(0, 0, webCLGLBuffer.W, webCLGLBuffer.H);
+				this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
+				this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
+	
+				this.enqueueNDRangeKernelNow(webCLGLKernel, i, geometryLength);
+			}
 		}
 	} else {
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);

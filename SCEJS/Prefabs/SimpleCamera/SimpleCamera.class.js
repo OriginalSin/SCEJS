@@ -14,6 +14,7 @@ SimpleCamera = function(sce, jsonIn) {
 	var _onmousedown = (jsonIn != undefined && jsonIn.onmousedown != undefined) ? jsonIn.onmousedown: null;
 	var _onmouseup = (jsonIn != undefined && jsonIn.onmouseup != undefined) ? jsonIn.onmouseup: null;
 	var _onmousemove = (jsonIn != undefined && jsonIn.onmousemove != undefined) ? jsonIn.onmousemove: null;
+	var _onmousewheel = (jsonIn != undefined && jsonIn.onmousewheel != undefined) ? jsonIn.onmousewheel: null;
 	
 	var _useAltKey = true;
 	var altKeyPressed = false;
@@ -158,6 +159,9 @@ SimpleCamera = function(sce, jsonIn) {
 			comp_transformTarget.setPositionTarget(comp_transformTarget.getPositionTarget().add(dir)); 
 			comp_transformTarget.setPositionGoal(comp_transformTarget.getPositionGoal().add(dir)); 
 		}
+		
+		if(_onmousewheel != null)
+			_onmousewheel();
 	});		
 	
 	/**
@@ -251,5 +255,20 @@ SimpleCamera = function(sce, jsonIn) {
 	 */
 	this.setVelocity = function(velocity) {
 		comp_controllerTransformTarget.setVelocity(velocity);
+	};
+	
+	/**
+	 * setFov
+	 * @param {Float} fov
+	 */
+	this.setFov = function(fov) {
+		comp_projection.setFov(fov);
+	};
+	/**
+	 * getFov
+	 * @returns {Float}
+	 */
+	this.getFov = function() {
+		return comp_projection.getFov();
 	};
 };
