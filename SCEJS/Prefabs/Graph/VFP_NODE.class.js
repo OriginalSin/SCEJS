@@ -143,7 +143,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        					'nodepos = nodepos*(mm*mmB);'+
 
        					'vec3 dir = normalize(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z));'+
-       					'nodePosition = nodePosition+(vec4(dir,1.0)*0.565);'+
+       					'nodePosition = nodePosition+(vec4(dir,1.0)*2.0);'+
        					
        					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+  
        				'}'+
