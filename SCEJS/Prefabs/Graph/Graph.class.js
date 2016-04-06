@@ -21,6 +21,14 @@ Graph = function(sce) {
 	var _links = {};
 	var adjacencyMatrix;
 	var arrAdjMatrix = [];
+
+	var _ADJ_MATRIX_WIDTH = 2048;
+	var _currentAdjMatrix = 0;
+	var _numberOfColumns;
+	var _numberOfAdjMatrix;
+	var _enabledForceLayout = false;
+
+
 	
 	var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
 
@@ -848,8 +856,7 @@ Graph = function(sce) {
 	this.updateLinks = function() {
 		console.log(Object.keys(_links).length+" links");
 		
-		// FORCE LAYOUT BY DEFAULT
-		this.enableForceLayout();
+
 		
 		
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
@@ -874,7 +881,7 @@ Graph = function(sce) {
 			}
 		}
 
-		updateArrows();
+		//updateArrows();
 	};
 	
 	/**
@@ -983,12 +990,38 @@ Graph = function(sce) {
 		this.currentNodeTextId = 0;
 		this.nodeTextArrayItemStart = 0;*/
 	};
-	
+
+	var setAdjMat = function(id, width) {
+		var num = id/width;
+		var idX = new Utils().fract(num)*width;
+		var idY = Math.floor(num);
+
+
+		var x = idX/_ADJ_MATRIX_WIDTH;
+		var xx = Math.floor(x);
+
+		var y = idY/_ADJ_MATRIX_WIDTH;
+		var yy = Math.floor(y);
+
+
+		var currentItemArrayAdjMatrix = (yy*_numberOfColumns)+xx;
+
+		var iX = new Utils().fract(x)*_ADJ_MATRIX_WIDTH;
+		var iY = new Utils().fract(y)*_ADJ_MATRIX_WIDTH;
+
+		var currentItemAdjMatrix = (iY*_ADJ_MATRIX_WIDTH)+iX;
+
+
+		arrAdjMatrix[currentItemArrayAdjMatrix][currentItemAdjMatrix] = 1;
+	};
+
 	/**
 	 * enableForceLayout
 	 */
 	this.enableForceLayout = function() {
-		var width = 2; //  this.currentNodeId
+
+
+		/*var width = 2; //  this.currentNodeId
 		
 		var adjMatrixSize = 5000;
 		for(var n=0, fn=Math.ceil(this.currentNodeId/adjMatrixSize)*2; n < fn; n++) {
@@ -1001,10 +1034,51 @@ Graph = function(sce) {
 			
 			adjacencyMatrix[(origin*width)+target] = 1;
 			adjacencyMatrix[(target*width)+origin] = 1;
+		}*/
+
+
+
+
+
+
+		// new
+		_numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
+		_numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
+
+		// creating adjMatrixArray
+		for(var n=0; n < _numberOfAdjMatrix; n++) {
+			arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
 		}
-		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return adjacencyMatrix;}).bind(this));
-		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return width;}).bind(this));
+
+		// walk relations and adding in corresponding adjMatrixArray item
+		for(var key in _links) {
+			var _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
+
+
+			var origin = _links[key].origin_nodeId;
+			var target = _links[key].target_nodeId;
+
+			var id = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+target;
+			var idSymmetrical = (target*_ADJ_MATRIX_WIDTH_TOTAL)+origin;
+
+
+			// id
+			setAdjMat(id, _ADJ_MATRIX_WIDTH_TOTAL);
+			setAdjMat(idSymmetrical, _ADJ_MATRIX_WIDTH_TOTAL);
+		}
+
+
+
+
+
+		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
 		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
+
+		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[_currentAdjMatrix];}).bind(this));
+		comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+		comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+
+		_enabledForceLayout = true;
 	};
 	
 	/**
@@ -1506,8 +1580,22 @@ Graph = function(sce) {
 										"geometryLength": 4,
 										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
 										"onPreTick": (function() {
-											
-											
+
+											if(this.currentNodeId > 0 && _enabledForceLayout == true) {
+												comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[_currentAdjMatrix];}).bind(this));
+												comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+												comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+
+
+
+												_currentAdjMatrix++;
+												if(_currentAdjMatrix == _numberOfAdjMatrix) {
+													comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
+													_currentAdjMatrix = 0;
+												} else {
+													comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
+												}
+											}
 										}).bind(this)});
 		comp_renderer_nodes.addKernel({	"name": "posXYZW",
 										"geometryLength": 4,
@@ -1578,7 +1666,7 @@ Graph = function(sce) {
 									}).bind(this)});
 
 		// arrows
-		comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
+		/*comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
 										"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
 										"drawMode": 4,
 										"geometryLength": 4,
@@ -1587,7 +1675,7 @@ Graph = function(sce) {
 										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
 										"onPreTick": (function() {	
 											comp_renderer_arrows.setVfpArgDestination("ARROWS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-										}).bind(this)});
+										}).bind(this)});*/
 
 		// nodestext
 		/*comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
