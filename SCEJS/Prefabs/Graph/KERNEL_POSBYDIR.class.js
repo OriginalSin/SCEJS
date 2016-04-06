@@ -36,7 +36,7 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 								'}\n'+
 							'}\n'+ 
 
-							'if(performFL == 1.0)'+
+							//'if(performFL == 1.0)'+
 								'currentPos += currentDir;\n'+
 
 							'out_float4 = vec4(currentPos.x, currentPos.y, currentPos.z, 1.0);\n'+

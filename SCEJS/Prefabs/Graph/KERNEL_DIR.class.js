@@ -73,26 +73,30 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				
 				'float wh = widthAdjMatrix-1.0;'+
 				'float ts = 1.0/wh;'+
-				'float xN = nodeId*ts;'+
+
 				
 				'int colExists = 0;'+
+
 				'float currentColumn = currentAdjMatrix/numberOfColumns;'+
 				'float rowAdjMat = floor(currentColumn);'+
 				'float colAdjMat = fract(currentColumn)*numberOfColumns;'+
 
+
 				'float initA = colAdjMat*widthAdjMatrix;'+
+                'float xN = (nodeId-initA)*ts;'+
 
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 1000000; n++) {'+
-						'if(n == int(wh)) break;'+
+					'for(int n=0; n < 128; n++) {'+
+						//'if(n == int(wh)) break;'+
 
-						'float yN = (float(n)*ts);'+
 
-						'float idb = yN*wh;'+
-						'float initB = rowAdjMat*widthAdjMatrix;'+
+                        'float initB = rowAdjMat*widthAdjMatrix;'+
+						'float idb = float(n)+initB;'+
 
-						'if(idb >= initB && nodeId < (initB+widthAdjMatrix)) {'+
+                        'float yN = float(n)*ts;'+
+
+						//'if(idb >= initB && idb < (initB+widthAdjMatrix)) {'+
 							'vec2 xx_oppo = get_global_id(idb);'+
 							'vec3 currentPosB = posXYZW[xx_oppo].xyz;\n'+
 							'vec3 currentDirB = dir[xx_oppo].xyz;\n'+
@@ -140,9 +144,9 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 									'}'+ // end spherical collision
 								'}'+
 							'}'+ // end connection not exists
-						'} else {'+
+						//'} else {'+
 
-						'}'+
+						//'}'+
 					'}'+ // end for
 					'if(colExists == 1) {'+
 						'currentDir = repulsionColl;\n'+
@@ -158,8 +162,8 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 
 			"}"+
-			
-			//'currentDir = currentDir*0.96;'+ // air resistence
+
+            'currentDir = currentDir*0.96;'+ // air resistence
 			
 			((customCode != undefined) ? customCode : '')+
 			

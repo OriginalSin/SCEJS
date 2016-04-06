@@ -21,8 +21,9 @@ Graph = function(sce) {
 	var _links = {};
 	var adjacencyMatrix;
 	var arrAdjMatrix = [];
+	var arrAdjMatrix_WCLGL = [];
 
-	var _ADJ_MATRIX_WIDTH = 2048;
+	var _ADJ_MATRIX_WIDTH = 128;
 	var _currentAdjMatrix = 0;
 	var _numberOfColumns;
 	var _numberOfAdjMatrix;
@@ -1048,6 +1049,7 @@ Graph = function(sce) {
 		// creating adjMatrixArray
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
 			arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
+            arrAdjMatrix_WCLGL[n] = comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[n];}).bind(this));
 		}
 
 		// walk relations and adding in corresponding adjMatrixArray item
@@ -1074,11 +1076,17 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
 		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
 
-		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[_currentAdjMatrix];}).bind(this));
+		//comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[_currentAdjMatrix];}).bind(this));
 		comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 		comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
 
 		_enabledForceLayout = true;
+
+		for(var n=0; n < _numberOfAdjMatrix; n++) {
+			this.adjacencyMatrixToImage(arrAdjMatrix[n], _ADJ_MATRIX_WIDTH, (function(img) {
+			    document.body.appendChild(img);
+            }).bind(this));
+        }
 	};
 	
 	/**
@@ -1122,9 +1130,10 @@ Graph = function(sce) {
 	 */
 	/**
 	 * adjacencyMatrixToImage
+     * @param {Float32Array} adjMat
 	 * @param {Graph~adjacencyMatrixToImage~onload} onload
 	 */
-	this.adjacencyMatrixToImage = function(onload) {
+	this.adjacencyMatrixToImage = function(adjMat, width, onload) {
 		var toArrF = (function(arr) {
 			var arrO = new Uint8Array(arr.length*4);
 			for(var n=0; n < arr.length; n++) {
@@ -1145,9 +1154,9 @@ Graph = function(sce) {
 			}).bind(this, fn));
 		}).bind(this, onload);
 		
-		var width = this.currentNodeId;
+		//var width = this.currentNodeId;
 		
-		var arrF = toArrF(adjacencyMatrix);
+		var arrF = toArrF(adjMat);
 		toImage(arrF, width, width);
 	};
 	
@@ -1582,11 +1591,11 @@ Graph = function(sce) {
 										"onPreTick": (function() {
 
 											if(this.currentNodeId > 0 && _enabledForceLayout == true) {
-												comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[_currentAdjMatrix];}).bind(this));
+												comp_renderer_nodes.setArg("adjacencyMatrix", arrAdjMatrix_WCLGL[_currentAdjMatrix]);
 												comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 												comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
 
-
+                                                //console.log(_currentAdjMatrix);
 
 												_currentAdjMatrix++;
 												if(_currentAdjMatrix == _numberOfAdjMatrix) {

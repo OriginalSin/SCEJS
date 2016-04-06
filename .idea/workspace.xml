@@ -2,102 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4ba124e0-b0c6-489c-8c26-79131cd64c35" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/.name" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/SCEJS.iml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/G57.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/G62.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/G67.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/big_dual.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/cvxbqp1.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/ford2.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/gearbox.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/jnlbrng1.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/man_5976.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/n4c6-b11.rb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/demos/_RESOURCES/rb-files/sit100.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ArrayGenerator.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ArrayGenerator.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ArrayGenerator.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ArrayGenerator.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentControllerTransformTarget.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentControllerTransformTarget.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentControllerTransformTarget.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentControllerTransformTarget.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentKeyboardEvents.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentKeyboardEvents.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentKeyboardEvents.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentKeyboardEvents.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentMouseEvents.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentMouseEvents.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentMouseEvents.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentMouseEvents.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentProjection.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentProjection.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentProjection.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentProjection.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentRenderer.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentRenderer.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentRenderer.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentRenderer.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentScreenEffects.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentScreenEffects.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentScreenEffects.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentScreenEffects.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransform.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransform.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransform.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransform.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransformTarget.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransformTarget.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransformTarget.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/ComponentTransformTarget.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Argument.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Argument.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Argument.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Argument.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Indices.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Indices.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Indices.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Indices.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Kernel.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Kernel.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Kernel.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Kernel.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Vfp.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Vfp.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Vfp.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Vfp.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Work.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Work.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Work.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Component_Work.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Graph.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Graph.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Graph.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Graph.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Mesh.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Mesh.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Mesh.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Mesh.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Node.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Node.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Node.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Node.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Project.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Project.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Project.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Project.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/SCE.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/SCE.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/SCE.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/SCE.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/SimpleCamera.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/SimpleCamera.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/SimpleCamera.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/SimpleCamera.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Stage.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Stage.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Stage.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Stage.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/StormM16.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/StormM16.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/StormMath.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/StormMath.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/StormV3.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/StormV3.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/SystemEvents.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/SystemEvents.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/SystemEvents.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/SystemEvents.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Utils.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Utils.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/Utils.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/Utils.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGL.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGL.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGL.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGL.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBuffer.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBuffer.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBuffer.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBuffer.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBufferItem.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBufferItem.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBufferItem.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLBufferItem.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernel.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernel.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernel.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernel.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernelProgram.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernelProgram.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernelProgram.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLKernelProgram.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLUtils.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLUtils.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLUtils.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLUtils.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLVertexFragmentProgram.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLVertexFragmentProgram.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLVertexFragmentProgram.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLVertexFragmentProgram.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLWork.class.js.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLWork.class.js.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLWork.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/WebCLGLWork.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/classes.list.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/classes.list.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/global.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/global.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/APIdoc/APIdoc/index.html" afterPath="$PROJECT_DIR$/APIdoc/APIdoc/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Component_Argument.class.js" afterPath="$PROJECT_DIR$/SCEJS/Component_Argument.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/SCE.class.js" afterPath="$PROJECT_DIR$/SCEJS/SCE.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/demos/graph-rb-files/index.html" afterPath="$PROJECT_DIR$/demos/graph-rb-files/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" afterPath="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" />
     </list>
     <ignored path="SCEJS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -120,11 +31,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.90909094">
+              <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="SCE.class.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="64" column="48" selection-start-line="64" selection-start-column="48" selection-end-line="64" selection-end-column="48" />
+              <caret line="122" column="24" selection-start-line="122" selection-start-column="24" selection-end-line="122" selection-end-column="24" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -135,8 +56,8 @@
       <file leaf-file-name="Graph.class.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5616622">
-              <caret line="998" column="37" selection-start-line="998" selection-start-column="37" selection-end-line="998" selection-end-column="37" />
+            <state vertical-scroll-proportion="0.40389973">
+              <caret line="1593" column="132" selection-start-line="1593" selection-start-column="132" selection-end-line="1593" selection-end-column="132" />
               <folding />
             </state>
           </provider>
@@ -145,18 +66,38 @@
       <file leaf-file-name="KERNEL_DIR.class.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="134" column="53" selection-start-line="134" selection-start-column="53" selection-end-line="134" selection-end-column="53" />
+            <state vertical-scroll-proportion="-10.896552">
+              <caret line="89" column="41" selection-start-line="89" selection-start-column="41" selection-end-line="89" selection-end-column="41" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <file leaf-file-name="Component_Argument.class.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SCEJS/Component_Argument.class.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+              <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="WebCLGLWork.class.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="170" column="33" selection-start-line="170" selection-start-column="33" selection-end-line="170" selection-end-column="33" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="KERNEL_POSBYDIR.class.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="41" column="61" selection-start-line="41" selection-start-column="61" selection-end-line="41" selection-end-column="73" />
               <folding />
             </state>
           </provider>
@@ -173,13 +114,17 @@
     </option>
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/SCEJS/SCE.class.js" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+        <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js" />
+        <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" />
+        <option value="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" />
+        <option value="$PROJECT_DIR$/SCEJS/Component_Argument.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" />
       </list>
     </option>
@@ -204,6 +149,22 @@
     <option name="y" value="-8" />
     <option name="width" value="1936" />
     <option name="height" value="1056" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+        </expanded-state>
+        <selected-state>
+          <State>
+            <id>Android</id>
+          </State>
+        </selected-state>
+      </profile-state>
+    </entry>
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -230,8 +191,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
-      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -338,14 +298,15 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="Scratches" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="aspect.path.notification.shown" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.tools" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
   <component name="RunManager">
@@ -793,15 +754,16 @@
       <workItem from="1459494763936" duration="1969000" />
       <workItem from="1459765491804" duration="2701000" />
       <workItem from="1459840655939" duration="1197000" />
+      <workItem from="1459928674039" duration="21127000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="22291000" />
+    <option name="totallyTimeSpent" value="43418000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -809,7 +771,8 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32995737" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16558442" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16576381" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12526652" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -817,14 +780,13 @@
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -884,139 +846,17 @@
     <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <caret line="64" column="48" selection-start-line="64" selection-start-column="48" selection-end-line="64" selection-end-column="48" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/SystemEvents.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30957684">
-          <caret line="98" column="31" selection-start-line="98" selection-start-column="31" selection-end-line="98" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
           <folding />
         </state>
       </provider>
@@ -1029,23 +869,246 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="64" column="48" selection-start-line="64" selection-start-column="48" selection-end-line="64" selection-end-column="48" />
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5616622">
-          <caret line="998" column="37" selection-start-line="998" selection-start-column="37" selection-end-line="998" selection-end-column="37" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
           <folding />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="27" column="93" selection-start-line="27" selection-start-column="93" selection-end-line="27" selection-end-column="93" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SystemEvents.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.30957684">
+          <caret line="98" column="31" selection-start-line="98" selection-start-column="31" selection-end-line="98" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.90909094">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="122" column="24" selection-start-line="122" selection-start-column="24" selection-end-line="122" selection-end-column="24" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLBufferItem.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.52348995">
+          <caret line="102" column="3" selection-start-line="102" selection-start-column="3" selection-end-line="102" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLBuffer.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4966443">
+          <caret line="37" column="27" selection-start-line="37" selection-start-column="27" selection-end-line="37" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGL.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.35973155">
+          <caret line="210" column="2" selection-start-line="210" selection-start-column="2" selection-end-line="210" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="41" column="61" selection-start-line="41" selection-start-column="61" selection-end-line="41" selection-end-column="73" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-10.896552">
+          <caret line="89" column="41" selection-start-line="89" selection-start-column="41" selection-end-line="89" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="170" column="33" selection-start-line="170" selection-start-column="33" selection-end-line="170" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Component_Argument.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.40389973">
+          <caret line="1593" column="132" selection-start-line="1593" selection-start-column="132" selection-end-line="1593" selection-end-column="132" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ProjectJDKs.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
   </component>
 </project>

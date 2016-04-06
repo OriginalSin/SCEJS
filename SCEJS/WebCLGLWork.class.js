@@ -152,12 +152,23 @@ WebCLGLWork.prototype.checkArg = function(argument) {
 * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
 * @param {Array<Float>} [splits=[value.length]]
 * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
+ * @returns {WebCLGLBuffer}
  */
 WebCLGLWork.prototype.setArg = function(argument, value, splits, overrideDimensions) {
 	this.checkArg(argument);
 
+    if(value.writeWebGLBuffer != undefined) {
+        for(var n=0; n < kernelPr.length; n++)
+            kernelPr[n].setKernelArg(argument, value);
 
-	if(isBuffer == true) {
+        for(var n=0; n < vPr.length; n++)
+            vPr[n].setVertexArg(argument, value);
+
+        for(var n=0; n < fPr.length; n++)
+            fPr[n].setFragmentArg(argument, value);
+
+        return value;
+    } else if(isBuffer == true) {
 		if(updatedFromKernel == true && usedInVertex == true) {
 			mode = "VERTEX_FROM_KERNEL";
 		} else if(usedInVertex == true) {
@@ -196,6 +207,8 @@ WebCLGLWork.prototype.setArg = function(argument, value, splits, overrideDimensi
 
 		for(var n=0; n < fPr.length; n++)
 			fPr[n].setFragmentArg(argument, this.buffers[argument]);
+
+        return this.buffers[argument];
 	} else {
 		for(var n=0; n < kernelPr.length; n++)
 			kernelPr[n].setKernelArg(argument, value);
@@ -205,6 +218,8 @@ WebCLGLWork.prototype.setArg = function(argument, value, splits, overrideDimensi
 
 		for(var n=0; n < fPr.length; n++)
 			fPr[n].setFragmentArg(argument, value);
+
+        return value;
 	}
 };
 
