@@ -45,6 +45,7 @@
 				}
 			}).bind(this)});
 			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
+			simpleCamera.setFov(500);
 			simpleCamera.setVelocity(1.0);
 			sce.setDimensions(1024, 750);	
 			
@@ -119,7 +120,9 @@
 				// NODES AND LINKS CREATION
 				graph.updateNodes();
 				graph.updateLinks();
-				graph.loadRBFromFile(rbUrl);
+				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
+					
+				}).bind(this));
 			};			
 			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
 			
@@ -135,33 +138,38 @@
 		    }).bind(this);
 		</script>
 		
-		<p>Graph visualization of matrices from the <a href="http://www.cise.ufl.edu/research/sparse/matrices/">University of Florida Collection</a></p>
 		
-		T for top view<br />
-		Alt+LeftMouse for Orbit<br />
-		Alt+MiddleMouse for Pan<br />		
-		P for perspective view<br />
-		WASD for to move<br />
 		
 		<br />
 		Load RB: <select id="select_rb">			
-			<option>b1_ss.rb</option>
-			<option>grid1.rb</option>
-			<option>blckhole.rb</option>
-			<option>dwt_307.rb</option>
-			<option>dwt_492.rb</option>
-			<option>rw496.rb</option>
-			<option>west0497.rb</option>
-			<option>diag.rb</option>
-			<option>dwt_2680.rb</option>
-			<option>delaunay_n11.rb</option>
-			<option>utm3060.rb</option>
-			<option>cegb3306.rb</option>
-			<option>flower_8_1.rb</option>
-		</select><br /><br />
+			<option>b1_ss.rb (7 7 15)</option>
+			<option>grid1.rb (252 252 952)</option>			
+			<option>dwt_307.rb (307 307 2523)</option>
+			<option>dwt_492.rb (492 492 3156)</option>
+			<option>rw496.rb (496 496 1859)</option>
+			<option>west0497.rb (497 497 1721)</option>
+			<option>flower_8_1.rb (625 513 1538)</option>
+			<option>delaunay_n11.rb (2048 2048 12254)</option>
+			<option>blckhole.rb (2132 2132 14872)</option>
+			<option>diag.rb (2559 2559 8184)</option>
+			<option>dwt_2680.rb (2680 2680 25026)</option>			
+			<option>utm3060.rb (3060 3060 42211)</option>
+			<option>cegb3306.rb (3306 3306 74916)</option>			
+			<option>G57.rb (5000 5000 20000)</option>
+			<option>man_5976.rb (5976 5976 225046)</option>
+			<option>G62.rb (7000 7000 28000)</option>
+			<option>G67.rb (10000 10000 40000)</option>
+			<option>big_dual.rb (30269 30269 89858)</option>
+			<option>jnlbrng1.rb (40000 40000 199200)</option>
+			<option>cvxbqp1.rb (50000 50000 349968)</option>
+			<option>n4c6-b11.rb (69235 132402 830820)</option>
+			<option>ford2.rb (100196 100196 544688)</option>
+			<option>gearbox.rb (153746 153746 9080404)</option>
+		</select>Graph visualization of matrices from the <a href="http://www.cise.ufl.edu/research/sparse/matrices/">University of Florida Collection</a><br />
 		
-		<button id="BTNID_FORCELAYOUT_ON">ForceLayout On</button><br />
-		<button id="BTNID_FORCELAYOUT_OFF">ForceLayout Off</button><br />
+		<button id="BTNID_FORCELAYOUT_ON">ForceLayout On</button> <button id="BTNID_FORCELAYOUT_OFF">ForceLayout Off</button><br />
+		<button id="BTNID_FORCELAYOUT_COLLISION_ON">ForceLayoutCollision On</button> <button id="BTNID_FORCELAYOUT_COLLISION_OFF">ForceLayoutCollision Off</button><br />
+		<button id="BTNID_FORCELAYOUT_REPULSION_ON">ForceLayoutRepulsion On</button> <button id="BTNID_FORCELAYOUT_REPULSION_OFF">ForceLayoutRepulsion Off</button><br />
 		<br />
 		<button id="BTNID_RD">random destination</button><br />
 		<button id="BTNID_WH">widthheight destination</button><br />
@@ -171,9 +179,20 @@
 		<br />
 		<button id="BTNID_DIR">random direction</button><br />
 		<button id="BTNID_DIRECTION_OFF">Direction Off</button><br />
+		
+		<input type="text" id="INPUTID_ADDNODE_ID" /><button id="BTNID_ADDNODE">AddNode</button><br />
+		<input type="text" id="INPUTID_ADDLINK_ORIGIN" /><input type="text" id="INPUTID_ADDLINK_TARGET" /><button id="BTNID_ADDLINK">AddLink</button><br />
 		<br />
 		<button id="BTNID_IMG">node per pixel color</button><br />
 		<img id="IMGID_lena" src="../_RESOURCES/lena_128x128.jpg" /><br />
+		
+		
+		
+		T for top view<br />
+		Alt+LeftMouse for Orbit<br />
+		Alt+MiddleMouse for Pan<br />		
+		P for perspective view<br />
+		WASD for to move<br />
 		<script>
 			var select = document.getElementById("select_rb");
 			select.addEventListener("change", (function() {
@@ -191,7 +210,21 @@
 			document.getElementById("BTNID_FORCELAYOUT_OFF").addEventListener("click", (function() {
 				graph.disableForceLayout();
 			}).bind(this));
+			
+			document.getElementById("BTNID_FORCELAYOUT_COLLISION_ON").addEventListener("click", (function() {
+				graph.enableForceLayoutCollision();
+			}).bind(this));
+			document.getElementById("BTNID_FORCELAYOUT_COLLISION_OFF").addEventListener("click", (function() {
+				graph.disableForceLayoutCollision();
+			}).bind(this));
 
+			document.getElementById("BTNID_FORCELAYOUT_REPULSION_ON").addEventListener("click", (function() {
+				graph.enableForceLayoutRepulsion();
+			}).bind(this));
+			document.getElementById("BTNID_FORCELAYOUT_REPULSION_OFF").addEventListener("click", (function() {
+				graph.disableForceLayoutRepulsion();
+			}).bind(this));
+			
 
 
 			document.getElementById("BTNID_RD").addEventListener("click", (function() {
@@ -248,6 +281,41 @@
 			}).bind(this));
 
 
+			document.getElementById("BTNID_ADDNODE").addEventListener("click", (function() {				
+				var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
+
+				var node = graph.addNode({
+					"name": document.getElementById("INPUTID_ADDNODE_ID").value,
+					"data": "",
+					"position": pos,
+					"color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+					"layoutNodeArgumentData": {
+												// dir
+												"ndirect": [0.0, 0.0, 0.0, 1.0],
+												// pp
+												"particlePolarity": 0.0,
+												// destination
+												"dest": [0.0, 0.0, 0.0, 0.0],
+												// lifeDistance
+												"initPos": pos, "initDir": [0.0, 0.0, 0.0, 0.0],
+												// nodeColor
+												"nodeColor": [Math.random(), Math.random(), Math.random(), 1.0],
+												// lock
+												"nodeLock": 0.0},
+					"onmouseup": (function(nodeData) {
+
+					}).bind(this)});
+				graph.updateNodes();
+			}).bind(this));
+			
+			document.getElementById("BTNID_ADDLINK").addEventListener("click", (function() {
+				graph.addLink({	"origin": document.getElementById("INPUTID_ADDLINK_ORIGIN").value,
+								"target": document.getElementById("INPUTID_ADDLINK_TARGET").value,
+								"directed": false});
+				graph.updateLinks();
+			}).bind(this));
+			
+			
 			document.getElementById("BTNID_IMG").addEventListener("click", (function() {
 				graph.setLayoutNodeArgumentArrayData({	"argName": "nodeColor",
 														"value": arrayGenerator.imageArray({"count": (graph.currentNodeId+1),
