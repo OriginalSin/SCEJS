@@ -158,6 +158,8 @@ WebCLGLWork.prototype.setArg = function(argument, value, splits, overrideDimensi
 	this.checkArg(argument);
 
     if(value.writeWebGLBuffer != undefined) {
+        this.buffers[argument] = value;
+
         for(var n=0; n < kernelPr.length; n++)
             kernelPr[n].setKernelArg(argument, value);
 

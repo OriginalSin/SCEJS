@@ -82,16 +82,16 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				'float colAdjMat = fract(currentColumn)*numberOfColumns;'+
 
 
-				'float initA = colAdjMat*widthAdjMatrix;'+
+				'float initA = float(int(colAdjMat*widthAdjMatrix));'+
                 'float xN = (nodeId-initA)*ts;'+
 
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 128; n++) {'+
+					'for(int n=0; n < 512; n++) {'+
 						//'if(n == int(wh)) break;'+
 
 
-                        'float initB = rowAdjMat*widthAdjMatrix;'+
+                        'float initB = float(int(rowAdjMat*widthAdjMatrix));'+
 						'float idb = float(n)+initB;'+
 
                         'float yN = float(n)*ts;'+

@@ -2,12 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4ba124e0-b0c6-489c-8c26-79131cd64c35" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/codeStyleSettings.xml" afterPath="$PROJECT_DIR$/.idea/codeStyleSettings.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Component_Argument.class.js" afterPath="$PROJECT_DIR$/SCEJS/Component_Argument.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" afterPath="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" />
     </list>
     <ignored path="SCEJS.iws" />
@@ -34,7 +33,7 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.90909094">
+            <state vertical-scroll-proportion="-0.45454547">
               <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
               <folding />
             </state>
@@ -56,8 +55,8 @@
       <file leaf-file-name="Graph.class.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.40389973">
-              <caret line="1593" column="132" selection-start-line="1593" selection-start-column="132" selection-end-line="1593" selection-end-column="132" />
+            <state vertical-scroll-proportion="0.7530201">
+              <caret line="888" column="8" selection-start-line="888" selection-start-column="8" selection-end-line="888" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -66,28 +65,8 @@
       <file leaf-file-name="KERNEL_DIR.class.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-10.896552">
+            <state vertical-scroll-proportion="-15.137931">
               <caret line="89" column="41" selection-start-line="89" selection-start-column="41" selection-end-line="89" selection-end-column="41" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Component_Argument.class.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SCEJS/Component_Argument.class.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="WebCLGLWork.class.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="170" column="33" selection-start-line="170" selection-start-column="33" selection-end-line="170" selection-end-column="33" />
               <folding />
             </state>
           </provider>
@@ -97,7 +76,27 @@
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="41" column="61" selection-start-line="41" selection-start-column="61" selection-end-line="41" selection-end-column="73" />
+              <caret line="38" column="30" selection-start-line="38" selection-start-column="30" selection-end-line="38" selection-end-column="30" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Component_Argument.class.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SCEJS/Component_Argument.class.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="124" column="55" selection-start-line="124" selection-start-column="55" selection-end-line="124" selection-end-column="55" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="WebCLGLWork.class.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="160" column="38" selection-start-line="160" selection-start-column="38" selection-end-line="160" selection-end-column="38" />
               <folding />
             </state>
           </provider>
@@ -121,10 +120,10 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+        <option value="$PROJECT_DIR$/SCEJS/Component_Argument.class.js" />
+        <option value="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" />
-        <option value="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" />
-        <option value="$PROJECT_DIR$/SCEJS/Component_Argument.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" />
       </list>
     </option>
@@ -191,7 +190,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -298,6 +296,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="PackagesPane" />
     </panes>
@@ -755,15 +754,16 @@
       <workItem from="1459765491804" duration="2701000" />
       <workItem from="1459840655939" duration="1197000" />
       <workItem from="1459928674039" duration="21127000" />
+      <workItem from="1460012956010" duration="21608000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="43418000" />
+    <option name="totallyTimeSpent" value="65026000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -809,6 +809,64 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="122" column="24" selection-start-line="122" selection-start-column="24" selection-end-line="122" selection-end-column="24" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="89" column="41" selection-start-line="89" selection-start-column="41" selection-end-line="89" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Component_Argument.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="170" column="33" selection-start-line="170" selection-start-column="33" selection-end-line="170" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="41" column="61" selection-start-line="41" selection-start-column="61" selection-end-line="41" selection-end-column="73" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/SCEJS/SCE.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1004,7 +1062,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/demos/graph-rb-files/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.90909094">
+        <state vertical-scroll-proportion="-0.45454547">
           <caret line="240" column="89" selection-start-line="240" selection-start-column="89" selection-end-line="240" selection-end-column="89" />
           <folding />
         </state>
@@ -1024,7 +1082,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.52348995">
           <caret line="102" column="3" selection-start-line="102" selection-start-column="3" selection-end-line="102" selection-end-column="3" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1032,7 +1089,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.4966443">
           <caret line="37" column="27" selection-start-line="37" selection-start-column="27" selection-end-line="37" selection-end-column="27" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1044,18 +1100,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
+    <entry file="file://$PROJECT_DIR$/SCEJS/Component_Argument.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="41" column="61" selection-start-line="41" selection-start-column="61" selection-end-line="41" selection-end-column="73" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.896552">
-          <caret line="89" column="41" selection-start-line="89" selection-start-column="41" selection-end-line="89" selection-end-column="41" />
+          <caret line="124" column="55" selection-start-line="124" selection-start-column="55" selection-end-line="124" selection-end-column="55" />
           <folding />
         </state>
       </provider>
@@ -1063,23 +1111,31 @@
     <entry file="file://$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="170" column="33" selection-start-line="170" selection-start-column="33" selection-end-line="170" selection-end-column="33" />
+          <caret line="160" column="38" selection-start-line="160" selection-start-column="38" selection-end-line="160" selection-end-column="38" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/Component_Argument.class.js">
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
+          <caret line="38" column="30" selection-start-line="38" selection-start-column="30" selection-end-line="38" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-15.137931">
+          <caret line="89" column="41" selection-start-line="89" selection-start-column="41" selection-end-line="89" selection-end-column="41" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.40389973">
-          <caret line="1593" column="132" selection-start-line="1593" selection-start-column="132" selection-end-line="1593" selection-end-column="132" />
+        <state vertical-scroll-proportion="0.7530201">
+          <caret line="888" column="8" selection-start-line="888" selection-start-column="8" selection-end-line="888" selection-end-column="8" />
           <folding />
         </state>
       </provider>

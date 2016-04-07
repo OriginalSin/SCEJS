@@ -19,11 +19,15 @@ Graph = function(sce) {
 	var _nodesByName = {};
 	var _nodesById = {};
 	var _links = {};
-	var adjacencyMatrix;
+
+
+    var arrAdjMatrix_STORE = [];
+    var arrAdjMatrix_STORE_WCLGL = [];
+    var maxItemsInSTORE = 10;
 	var arrAdjMatrix = [];
 	var arrAdjMatrix_WCLGL = [];
-
-	var _ADJ_MATRIX_WIDTH = 128;
+	var _ADJ_MATRIX_WIDTH = 512;
+    var _ADJ_MATRIX_WIDTH_TOTAL;
 	var _currentAdjMatrix = 0;
 	var _numberOfColumns;
 	var _numberOfAdjMatrix;
@@ -882,7 +886,7 @@ Graph = function(sce) {
 			}
 		}
 
-		//updateArrows();
+		updateArrows();
 	};
 	
 	/**
@@ -992,9 +996,9 @@ Graph = function(sce) {
 		this.nodeTextArrayItemStart = 0;*/
 	};
 
-	var setAdjMat = function(id, width) {
-		var num = id/width;
-		var idX = new Utils().fract(num)*width;
+	var setAdjMat = function(id) {
+		var num = id/_ADJ_MATRIX_WIDTH_TOTAL;
+		var idX = new Utils().fract(num)*_ADJ_MATRIX_WIDTH_TOTAL;
 		var idY = Math.floor(num);
 
 
@@ -1013,7 +1017,10 @@ Graph = function(sce) {
 		var currentItemAdjMatrix = (iY*_ADJ_MATRIX_WIDTH)+iX;
 
 
-		arrAdjMatrix[currentItemArrayAdjMatrix][currentItemAdjMatrix] = 1;
+		//arrAdjMatrix[currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
+
+        var idSTORE = Math.floor(currentItemArrayAdjMatrix/maxItemsInSTORE);
+        arrAdjMatrix_STORE[idSTORE][currentItemArrayAdjMatrix-(idSTORE*maxItemsInSTORE)][Math.round(currentItemAdjMatrix)] = 1;
 	};
 
 	/**
@@ -1045,18 +1052,24 @@ Graph = function(sce) {
 		// new
 		_numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
 		_numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
+        _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
+
+        arrAdjMatrix_STORE = [];
+        arrAdjMatrix = [];
+        arrAdjMatrix_WCLGL = [];
+
 
 		// creating adjMatrixArray
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
-			arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
-            arrAdjMatrix_WCLGL[n] = comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[n];}).bind(this));
+            var idSTORE = Math.floor(n/maxItemsInSTORE);
+            if(arrAdjMatrix_STORE[idSTORE] == undefined)
+                arrAdjMatrix_STORE[idSTORE] = [];
+
+            arrAdjMatrix_STORE[idSTORE][n-(idSTORE*maxItemsInSTORE)] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
 		}
 
 		// walk relations and adding in corresponding adjMatrixArray item
 		for(var key in _links) {
-			var _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
-
-
 			var origin = _links[key].origin_nodeId;
 			var target = _links[key].target_nodeId;
 
@@ -1065,10 +1078,18 @@ Graph = function(sce) {
 
 
 			// id
-			setAdjMat(id, _ADJ_MATRIX_WIDTH_TOTAL);
-			setAdjMat(idSymmetrical, _ADJ_MATRIX_WIDTH_TOTAL);
+			setAdjMat(id);
+			setAdjMat(idSymmetrical);
 		}
 
+        // creating adjMatrixArray
+        for(var n=0; n < _numberOfAdjMatrix; n++) {
+            var idSTORE = Math.floor(n/maxItemsInSTORE);
+            if(arrAdjMatrix_STORE_WCLGL[idSTORE] == undefined)
+                arrAdjMatrix_STORE_WCLGL[idSTORE] = [];
+
+            arrAdjMatrix_STORE_WCLGL[idSTORE][n-(idSTORE*maxItemsInSTORE)] = comp_renderer_nodes.setArg("adjacencyMatrix", (function(nn) {return arrAdjMatrix_STORE[idSTORE][nn-(idSTORE*maxItemsInSTORE)];}).bind(this, n));
+        }
 
 
 
@@ -1083,7 +1104,8 @@ Graph = function(sce) {
 		_enabledForceLayout = true;
 
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
-			this.adjacencyMatrixToImage(arrAdjMatrix[n], _ADJ_MATRIX_WIDTH, (function(img) {
+            var idSTORE = Math.floor(n/maxItemsInSTORE);
+			this.adjacencyMatrixToImage(arrAdjMatrix_STORE[idSTORE][n-(idSTORE*maxItemsInSTORE)], _ADJ_MATRIX_WIDTH, (function(img) {
 			    document.body.appendChild(img);
             }).bind(this));
         }
@@ -1591,19 +1613,24 @@ Graph = function(sce) {
 										"onPreTick": (function() {
 
 											if(this.currentNodeId > 0 && _enabledForceLayout == true) {
-												comp_renderer_nodes.setArg("adjacencyMatrix", arrAdjMatrix_WCLGL[_currentAdjMatrix]);
+                                                if(_currentAdjMatrix == _numberOfAdjMatrix-1) {
+                                                    comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
+                                                } else {
+                                                    comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
+                                                }
+
+                                                var idSTORE = Math.floor(_currentAdjMatrix/maxItemsInSTORE);
+												comp_renderer_nodes.setArg("adjacencyMatrix", arrAdjMatrix_STORE_WCLGL[idSTORE][_currentAdjMatrix-(idSTORE*maxItemsInSTORE)]);
+
 												comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 												comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
 
                                                 //console.log(_currentAdjMatrix);
 
 												_currentAdjMatrix++;
-												if(_currentAdjMatrix == _numberOfAdjMatrix) {
-													comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
-													_currentAdjMatrix = 0;
-												} else {
-													comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
-												}
+                                                if(_currentAdjMatrix == _numberOfAdjMatrix) {
+                                                    _currentAdjMatrix = 0;
+                                                }
 											}
 										}).bind(this)});
 		comp_renderer_nodes.addKernel({	"name": "posXYZW",
@@ -1675,7 +1702,7 @@ Graph = function(sce) {
 									}).bind(this)});
 
 		// arrows
-		/*comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
+		comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
 										"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
 										"drawMode": 4,
 										"geometryLength": 4,
@@ -1684,7 +1711,7 @@ Graph = function(sce) {
 										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
 										"onPreTick": (function() {	
 											comp_renderer_arrows.setVfpArgDestination("ARROWS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-										}).bind(this)});*/
+										}).bind(this)});
 
 		// nodestext
 		/*comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
