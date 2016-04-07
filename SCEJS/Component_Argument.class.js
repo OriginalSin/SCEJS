@@ -12,13 +12,25 @@ Component_Argument = function() {
 	* @param {Function} fnvalue
 	* @param {Array<Float>} [splits=[array.length]]
 	* @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
+    * @returns {WebCLGLBuffer}
 	*/
 	this.setArg = function(argument, fnvalue, splits, overrideDimensions) {
-		this.clglWork.setArg(argument, fnvalue(), splits, overrideDimensions);
-		this.args[argument] = {	"fnvalue": fnvalue,
-								"updatable": null,
-								"splits": splits,
-								"overrideDimensions": overrideDimensions};
+	    if(fnvalue.writeWebGLBuffer != undefined) {
+            this.args[argument] = {	"fnvalue": fnvalue,
+                "updatable": null,
+                "splits": splits,
+                "overrideDimensions": overrideDimensions};
+
+            return this.clglWork.setArg(argument, fnvalue, splits, overrideDimensions);
+        } else {
+            var buff = this.clglWork.setArg(argument, fnvalue(), splits, overrideDimensions);
+            this.args[argument] = {	"fnvalue": fnvalue,
+                "updatable": null,
+                "splits": splits,
+                "overrideDimensions": overrideDimensions};
+
+            return buff;
+        }
 	};
 	
 	/**

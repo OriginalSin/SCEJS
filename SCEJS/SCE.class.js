@@ -116,6 +116,7 @@ SCE = function() {
 	canvas = null,
 	gl = null,
 	_UI = null,
+	_enableUI = null,
 	_events = null;
 	
 	/**
@@ -123,11 +124,13 @@ SCE = function() {
 	* @type Void
 	* @param {Object} jsonIn
 	* @param {HTMLDivElement} jsonIn.target
-	* @param {Object} [jsonIn.dimensions={width: Int, height: Int}]
+	* @param {Object} [jsonIn.dimensions={width: Int, height: Int}],
+	* @param {Bool} [enableUI=true]
 	*/
 	this.initialize = function(jsonIn) {
 		target = (jsonIn != undefined && jsonIn.target != undefined) ? jsonIn.target : undefined;
 		dimensions = (jsonIn != undefined && jsonIn.dimensions != undefined) ? jsonIn.dimensions : {"width": 512, "height": 512};
+		_enableUI = (jsonIn != undefined && jsonIn.enableUI != undefined) ? jsonIn.enableUI : true;
 			
 		if(target != null) {
 			canvas = document.createElement("canvas");
@@ -149,7 +152,9 @@ SCE = function() {
 		project = prj; 
 		project.setWebGLContext(gl);
 		
-		_UI = new UI(project).render(target);
+		if(_enableUI == true) 
+			_UI = new UI(project).render(target);
+		
 		_events = new SystemEvents(this, canvas);
 		_events.initialize();
 	};

@@ -11,6 +11,7 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
        		 			'float4* posXYZW,'+
 						'float4* dir,'+
 						'float enableDrag,'+
+						'float performFL,'+
 						'float idToDrag,'+
 						'float MouseDragTranslationX,'+
 						'float MouseDragTranslationY,'+
@@ -34,10 +35,11 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 									'currentPos = vec3(MouseDragTranslationX, MouseDragTranslationY, MouseDragTranslationZ);\n'+
 								'}\n'+
 							'}\n'+ 
-					
-							'currentPos += currentDir;\n'+
 
-							'out_float4 = vec4(currentPos, 1.0);\n'+
+							//'if(performFL == 1.0)'+
+								'currentPos += currentDir;\n'+
+
+							'out_float4 = vec4(currentPos.x, currentPos.y, currentPos.z, 1.0);\n'+
 			'}']];
 
        	return str_vfp;
