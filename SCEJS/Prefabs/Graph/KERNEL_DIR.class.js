@@ -87,7 +87,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 512; n++) {'+
+					'for(int n=0; n < 256; n++) {'+
 						//'if(n == int(wh)) break;'+
 
 

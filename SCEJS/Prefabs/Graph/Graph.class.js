@@ -26,7 +26,7 @@ Graph = function(sce) {
     var maxItemsInSTORE = 10;
 	var arrAdjMatrix = [];
 	var arrAdjMatrix_WCLGL = [];
-	var _ADJ_MATRIX_WIDTH = 512;
+	var _ADJ_MATRIX_WIDTH = 256;
     var _ADJ_MATRIX_WIDTH_TOTAL;
 	var _currentAdjMatrix = 0;
 	var _numberOfColumns;
@@ -658,6 +658,7 @@ Graph = function(sce) {
 			}
 
 		}
+        comp_renderer_nodes.setUpdateFromKernel("posXYZW");
 		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this), this.splitNodes);
 
 		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this), this.splitNodes);
@@ -672,6 +673,7 @@ Graph = function(sce) {
 		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
 			this.arrayNodeDir.push(0, 0, 0, 1.0);
 		}
+        comp_renderer_nodes.setUpdateFromKernel("dir");
 		comp_renderer_nodes.setArg("dir", (function() {return this.arrayNodeDir;}).bind(this), this.splitNodes);
 
 		comp_renderer_nodes.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
