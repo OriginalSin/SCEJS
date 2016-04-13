@@ -163,20 +163,7 @@ WebCLGLWork = function(webCLGL, offset) {
     this.setArg = function(argument, value, splits, overrideDimensions) {
         this.checkArg(argument);
 
-        if(value.writeWebGLBuffer != undefined) {
-            this.buffers[argument] = value;
-
-            for(var n=0; n < kernelPr.length; n++)
-                kernelPr[n].setKernelArg(argument, value);
-
-            for(var n=0; n < vPr.length; n++)
-                vPr[n].setVertexArg(argument, value);
-
-            for(var n=0; n < fPr.length; n++)
-                fPr[n].setFragmentArg(argument, value);
-
-            return value;
-        } else if(isBuffer == true) {
+        if(isBuffer == true) {
             if(this.updatedFromKernel.hasOwnProperty(argument) && usedInVertex == true) {
                 mode = "VERTEX_FROM_KERNEL";
             } else if(usedInVertex == true) {

@@ -26,12 +26,14 @@ Graph = function(sce) {
     var maxItemsInSTORE = 10;
 	var arrAdjMatrix = [];
 	var arrAdjMatrix_WCLGL = [];
-	var _ADJ_MATRIX_WIDTH = 256;
+	var _ADJ_MATRIX_WIDTH = 4096;
     var _ADJ_MATRIX_WIDTH_TOTAL;
 	var _currentAdjMatrix = 0;
 	var _numberOfColumns;
 	var _numberOfAdjMatrix;
 	var _enabledForceLayout = false;
+	var _buffAdjMatrix;
+	var _adjMatrixTime = 100;
 
 
 	
@@ -1021,8 +1023,8 @@ Graph = function(sce) {
 
 		//arrAdjMatrix[currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
 
-        var idSTORE = Math.floor(currentItemArrayAdjMatrix/maxItemsInSTORE);
-        arrAdjMatrix_STORE[idSTORE][currentItemArrayAdjMatrix-(idSTORE*maxItemsInSTORE)][Math.round(currentItemAdjMatrix)] = 1;
+        var idSTORE = currentItemArrayAdjMatrix/maxItemsInSTORE;
+        arrAdjMatrix_STORE[Math.floor(idSTORE)][currentItemArrayAdjMatrix-Math.floor(idSTORE*maxItemsInSTORE)][Math.round(currentItemAdjMatrix)] = 1;
 	};
 
 	/**
@@ -1063,11 +1065,11 @@ Graph = function(sce) {
 
 		// creating adjMatrixArray
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = Math.floor(n/maxItemsInSTORE);
-            if(arrAdjMatrix_STORE[idSTORE] == undefined)
-                arrAdjMatrix_STORE[idSTORE] = [];
+            var idSTORE = n/maxItemsInSTORE;
+            if(arrAdjMatrix_STORE[Math.floor(idSTORE)] == undefined)
+                arrAdjMatrix_STORE[Math.floor(idSTORE)] = [];
 
-            arrAdjMatrix_STORE[idSTORE][n-(idSTORE*maxItemsInSTORE)] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
+            arrAdjMatrix_STORE[Math.floor(idSTORE)][n-Math.floor(idSTORE*maxItemsInSTORE)] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
 		}
 
 		// walk relations and adding in corresponding adjMatrixArray item
@@ -1085,13 +1087,13 @@ Graph = function(sce) {
 		}
 
         // creating adjMatrixArray
-        for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = Math.floor(n/maxItemsInSTORE);
-            if(arrAdjMatrix_STORE_WCLGL[idSTORE] == undefined)
-                arrAdjMatrix_STORE_WCLGL[idSTORE] = [];
+        /*for(var n=0; n < _numberOfAdjMatrix; n++) {
+            var idSTORE = n/maxItemsInSTORE;
+            if(arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)] == undefined)
+                arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)] = [];
 
-            arrAdjMatrix_STORE_WCLGL[idSTORE][n-(idSTORE*maxItemsInSTORE)] = comp_renderer_nodes.setArg("adjacencyMatrix", (function(nn) {return arrAdjMatrix_STORE[idSTORE][nn-(idSTORE*maxItemsInSTORE)];}).bind(this, n));
-        }
+            arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)][n-Math.floor(idSTORE*maxItemsInSTORE)] = comp_renderer_nodes.setArg("adjacencyMatrix", (function(nn) {return arrAdjMatrix_STORE[idSTORE][nn-(idSTORE*maxItemsInSTORE)];}).bind(this, n));
+        }*/
 
 
 
@@ -1099,18 +1101,20 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
 		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
 
-		//comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[_currentAdjMatrix];}).bind(this));
+		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
 		comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 		comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
 
 		_enabledForceLayout = true;
 
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = Math.floor(n/maxItemsInSTORE);
-			this.adjacencyMatrixToImage(arrAdjMatrix_STORE[idSTORE][n-(idSTORE*maxItemsInSTORE)], _ADJ_MATRIX_WIDTH, (function(img) {
+            var idSTORE = n/maxItemsInSTORE;
+			this.adjacencyMatrixToImage(arrAdjMatrix_STORE[Math.floor(idSTORE)][n-Math.floor(idSTORE*maxItemsInSTORE)], _ADJ_MATRIX_WIDTH, (function(img) {
 			    document.body.appendChild(img);
             }).bind(this));
         }
+
+		_buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 	};
 	
 	/**
@@ -1615,23 +1619,34 @@ Graph = function(sce) {
 										"onPreTick": (function() {
 
 											if(this.currentNodeId > 0 && _enabledForceLayout == true) {
-                                                if(_currentAdjMatrix == _numberOfAdjMatrix-1) {
+                                                if(_currentAdjMatrix == _numberOfAdjMatrix) {
                                                     comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
                                                 } else {
                                                     comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
+
+
+													var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
+													if(_numberOfAdjMatrix > 1)
+														_buffAdjMatrix.items[0].writeWebGLTextureBuffer(arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix-Math.floor(idSTORE*maxItemsInSTORE)]);
+													//comp_renderer_nodes.setArg("adjacencyMatrix", arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)][_currentAdjMatrix-Math.floor(idSTORE*maxItemsInSTORE)]);
+
+													comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+													comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
                                                 }
 
-                                                var idSTORE = Math.floor(_currentAdjMatrix/maxItemsInSTORE);
-												comp_renderer_nodes.setArg("adjacencyMatrix", arrAdjMatrix_STORE_WCLGL[idSTORE][_currentAdjMatrix-(idSTORE*maxItemsInSTORE)]);
 
-												comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-												comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
 
                                                 //console.log(_currentAdjMatrix);
 
 												_currentAdjMatrix++;
-                                                if(_currentAdjMatrix == _numberOfAdjMatrix) {
-                                                    _currentAdjMatrix = 0;
+                                                if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
+													if(_adjMatrixTime == 0) {
+														_adjMatrixTime = 100;
+														_currentAdjMatrix = 0;
+													} else {
+														_adjMatrixTime--;
+														_currentAdjMatrix--;
+													}
                                                 }
 											}
 										}).bind(this)});

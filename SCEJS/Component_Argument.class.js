@@ -23,22 +23,13 @@ Component_Argument = function() {
      * @returns {WebCLGLBuffer}
      */
     this.setArg = function(argument, fnvalue, splits, overrideDimensions) {
-        if(fnvalue.writeWebGLBuffer != undefined) {
-            this.args[argument] = {	"fnvalue": fnvalue,
-                "updatable": null,
-                "splits": splits,
-                "overrideDimensions": overrideDimensions};
+        var buff = this.clglWork.setArg(argument, fnvalue(), splits, overrideDimensions);
+        this.args[argument] = {	"fnvalue": fnvalue,
+            "updatable": null,
+            "splits": splits,
+            "overrideDimensions": overrideDimensions};
 
-            return this.clglWork.setArg(argument, fnvalue, splits, overrideDimensions);
-        } else {
-            var buff = this.clglWork.setArg(argument, fnvalue(), splits, overrideDimensions);
-            this.args[argument] = {	"fnvalue": fnvalue,
-                "updatable": null,
-                "splits": splits,
-                "overrideDimensions": overrideDimensions};
-
-            return buff;
-        }
+        return buff;
     };
 
     /**

@@ -23,6 +23,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						',float currentAdjMatrix'+
 						',float numberOfColumns'+
 						',float enableForceLayout'+
+						',float performFL'+
 						',float enableForceLayoutCollision'+
 						',float enableForceLayoutRepulsion'+
 						',float4* posXYZW'+
@@ -62,7 +63,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			'float targets = 1.0/(1.0+data[x].w);'+
 			
 			// FORCE LAYOUT
-			"if(enableForceLayout == 1.0) {"+
+			"if(enableForceLayout == 1.0 && performFL == 1.0) {"+
 				'float radius = 4.0;'+
 			
 				'float acumAtraction = 1.0;'+
@@ -87,7 +88,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 256; n++) {'+
+					'for(int n=0; n < 4096; n++) {'+
 						//'if(n == int(wh)) break;'+
 
 
