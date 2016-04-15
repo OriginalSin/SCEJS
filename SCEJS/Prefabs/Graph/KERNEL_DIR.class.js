@@ -157,7 +157,8 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 					'} else {'+
 						'atraction = (atraction/acumAtraction);'+
 						'repulsion = (repulsion/acumRepulsion);'+
-						'currentDir = currentDir+((atraction+repulsion)*100.0);\n'+
+						//'float multi = min(500.0, (100.0+(length(atraction)*2000000.0)));'+
+						'currentDir = currentDir+( (atraction+repulsion)*100.0 );\n'+
 					'}'+
 
 				'} else {'+
