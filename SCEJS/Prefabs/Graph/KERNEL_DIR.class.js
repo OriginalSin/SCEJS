@@ -26,6 +26,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						',float performFL'+
 						',float enableForceLayoutCollision'+
 						',float enableForceLayoutRepulsion'+
+						',float nodesCount'+
 						',float4* posXYZW'+
 						',float4* dir'+
 						',float isLink'+
@@ -88,12 +89,14 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 4096; n++) {'+
+					'for(int n=0; n < 1024; n++) {'+
 						//'if(n == int(wh)) break;'+
-
 
                         'float initB = float(int(rowAdjMat*widthAdjMatrix));'+
 						'float idb = float(n)+initB;'+
+
+                        'if(initB == nodesCount)'+
+                            'break;'+
 
                         'float yN = float(n)*ts;'+
 
@@ -105,7 +108,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 							'vec3 dirToB = (currentPosB-currentPos);'+
 							'vec3 dirToBN = normalize(dirToB);'+
 							'float dist = distance(currentPosB, currentPos);'+ // near=0.0 ; far=1.0
-							'float distN = distance(currentPosB, currentPos)*0.001;'+ // near=0.0 ; far=1.0
+							'float distN = distance(currentPosB, currentPos)*0.0001;'+ // near=0.0 ; far=1.0
 							'vec3 dirS;'+
 							'float pPoint;'+
 
@@ -113,7 +116,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 							'if(it.x > 0.5) {'+ // connection exists
 								'if(dist > 0.0) {'+
 									'atraction = atraction+(dirToBN*distN);\n'+
-									'atraction = atraction+(((dirToBN*-1.0)*(0.02)));\n'+
+									'atraction = atraction+(((dirToBN*-1.0)*(0.002)));\n'+
 									'acumAtraction += 1.0;'+
 
 									// SPHERICAL COLLISION
@@ -133,7 +136,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 							'} else {'+ // connection not exists
 								'if(dist > 0.0) {'+
 									'if(enableForceLayoutRepulsion == 1.0) {'+
-										'repulsion = repulsion+(((dirToBN*-1.0)*(0.005)));\n'+
+										'repulsion = repulsion+(((dirToBN*-1.0)*(0.002)));\n'+
 										'acumRepulsion += 1.0;'+
 									'}'+
 
@@ -152,9 +155,9 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 					'if(colExists == 1) {'+
 						'currentDir = repulsionColl;\n'+
 					'} else {'+
-						'atraction = (atraction/acumAtraction)*25.0;'+
-						'repulsion = (repulsion/acumRepulsion)*25.0;'+
-						'currentDir = currentDir+(atraction+repulsion);\n'+
+						'atraction = (atraction/acumAtraction);'+
+						'repulsion = (repulsion/acumRepulsion);'+
+						'currentDir = currentDir+((atraction+repulsion)*100.0);\n'+
 					'}'+
 
 				'} else {'+
@@ -165,7 +168,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			"}"+
 
 			"if(enableForceLayout == 1.0) {"+
-				"if(performFL == 1.0) {"+
+				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
 					'currentDir = currentDir*0.96;'+ // air resistence
 				"}"+
 			"} else {"+
