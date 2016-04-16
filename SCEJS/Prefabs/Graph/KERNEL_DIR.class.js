@@ -79,90 +79,82 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				
 				'int colExists = 0;'+
 
-				'float currentColumn = currentAdjMatrix/numberOfColumns;'+
-				'float rowAdjMat = floor(currentColumn);'+
-				'float colAdjMat = fract(currentColumn)*numberOfColumns;'+
+				'float num = currentAdjMatrix/numberOfColumns;'+
+				'float rowAdjMat = floor(num);'+
+				'float colAdjMat = float(int( fract(num)*numberOfColumns ));'+
 
+				'float initA = colAdjMat*widthAdjMatrix;'+
 
-				'float initA = float(int(colAdjMat*widthAdjMatrix));'+
-                'float xN = (nodeId-initA)*ts;'+
 
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 1024; n++) {'+
-						//'if(n == int(wh)) break;'+
-
-                        'float initB = float(int(rowAdjMat*widthAdjMatrix));'+
+					'for(int n=0; n < 256; n++) {'+
+                        'float initB = rowAdjMat*widthAdjMatrix;'+
 						'float idb = float(n)+initB;'+
 
-                        'if(initB == nodesCount)'+
-                            'break;'+
-
-                        'float yN = float(n)*ts;'+
+                        'if(idb == nodesCount) break;'+
 
 						//'if(idb >= initB && idb < (initB+widthAdjMatrix)) {'+
-							'vec2 xx_oppo = get_global_id(idb);'+
-							'vec3 currentPosB = posXYZW[xx_oppo].xyz;\n'+
-							'vec3 currentDirB = dir[xx_oppo].xyz;\n'+
 
-							'vec3 dirToB = (currentPosB-currentPos);'+
-							'vec3 dirToBN = normalize(dirToB);'+
-							'float dist = distance(currentPosB, currentPos);'+ // near=0.0 ; far=1.0
-							'float distN = distance(currentPosB, currentPos)*0.001;'+ // near=0.0 ; far=1.0
-							'vec3 dirS;'+
-							'float pPoint;'+
+						'vec2 xx_oppo = get_global_id(idb);'+
+						'vec3 currentPosB = posXYZW[xx_oppo].xyz;\n'+
+						'vec3 currentDirB = dir[xx_oppo].xyz;\n'+
 
-							'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));'+
+						'vec3 dirToB = (currentPosB-currentPos);'+
+						'vec3 dirToBN = normalize(dirToB);'+
+						'float dist = distance(currentPosB, currentPos);'+ // near=0.0 ; far=1.0
+						'float distN = distance(currentPosB, currentPos)*0.001;'+ // near=0.0 ; far=1.0
+						'vec3 dirS;'+
+						'float pPoint;'+
 
-							'if(dist > 0.0) {'+
-								'if(it.x > 0.5) {'+ // connection exists
-									'atraction = atraction+((dirToBN*dist));\n'+
-									'atraction = atraction+(dirToBN*-20.0);\n'+
 
-									'acumAtraction += 1.0;'+
-								'} else {'+ // connection not exists
-									'if(enableForceLayoutRepulsion == 1.0) {'+
-										'repulsion = repulsion+(((dirToBN*(1000.0-dist)*-0.01)));\n'+
+						'float xN = (nodeId-initA)*ts;'+
+						'float yN = float(n)*ts;'+
+						'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));'+
 
-										'acumRepulsion += 1.0;'+
-									'}'+
-								'}'+ // end connection not exists
+						'if(dist > 0.0) {'+
+							'if(it.x > 0.5) {'+ // connection exists
+								'atraction = atraction+((dirToBN*dist));\n'+
+								'atraction = atraction+(dirToBN*-20.0);\n'+
 
-								// SPHERICAL COLLISION
-								'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
-									'repulsionColl = sphericalColl(vec3(initialPosX, initialPosY, initialPosZ), currentPos, currentDir, currentDirB, dirToBN, repulsion, idb, idToDrag);'+
-									'colExists = 1;'+
-									'break;'+
-								'}'+ // end spherical collision
-							'}'+
+								'acumAtraction += 1.0;'+
+							'} else {'+ // connection not exists
+								'if(enableForceLayoutRepulsion == 1.0) {'+
+									'repulsion = repulsion+(((dirToBN*(1000.0-dist)*-0.01)));\n'+
 
-							// center force
-							//'vec3 dir_C = normalize(vec3(0.0, 0.0, 0.0)-currentPos);'+
-							//'float distanceN_C = distance(vec3(0.0, 0.0, 0.0), currentPos)*0.001;'+ // near=0.0 ; far=1.0
+									'acumRepulsion += 1.0;'+
+								'}'+
+							'}'+ // end connection not exists
 
-							//'atraction = atraction+((dir_C*distanceN_C*(1.0-targets)));'+
-							//'atraction = atraction+(((dir_C*-1.0)*(1.0-distanceN_C)*targets)*0.1);\n'+
+							// SPHERICAL COLLISION
+							'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
+								'repulsionColl = sphericalColl(vec3(initialPosX, initialPosY, initialPosZ), currentPos, currentDir, currentDirB, dirToBN, repulsion, idb, idToDrag);'+
+								'colExists = 1;'+
+								'break;'+
+							'}'+ // end spherical collision
+						'}'+
+
+						// center force
+						//'vec3 dir_C = normalize(vec3(0.0, 0.0, 0.0)-currentPos);'+
+						//'float distanceN_C = distance(vec3(0.0, 0.0, 0.0), currentPos)*0.001;'+ // near=0.0 ; far=1.0
+
+						//'atraction = atraction+((dir_C*distanceN_C*(1.0-targets)));'+
+						//'atraction = atraction+(((dir_C*-1.0)*(1.0-distanceN_C)*targets)*0.1);\n'+
+
 						//'} else {'+
-
 						//'}'+
 					'}'+ // end for
 
 					'if(colExists == 1) {'+
 						'currentDir = repulsionColl;\n'+
 					'} else {'+
-						'atraction = (atraction/acumAtraction);'+
-						'repulsion = (repulsion/acumRepulsion);'+
-						//'float multi = min(500.0, (100.0+(length(atraction)*2000000.0)));'+
-
-						'currentDir = currentDir+(atraction+repulsion);\n'+
+						'currentDir = (atraction/acumAtraction)+(repulsion/acumRepulsion);\n'+
 					'}'+
 
-				'} else {'+
-					// TODO
-				'}'+
+				'}'+ // END if(nodeId >= initA && nodeId < (initA+widthAdjMatrix))
 
+			"}"+ // END if(enableForceLayout == 1.0 && performFL == 0.0) {
 
-			"}"+
 
 			"if(enableForceLayout == 1.0) {"+
 				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+

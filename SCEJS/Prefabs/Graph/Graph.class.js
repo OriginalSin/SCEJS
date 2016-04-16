@@ -26,7 +26,7 @@ Graph = function(sce) {
     var maxItemsInSTORE = 10;
 	var arrAdjMatrix = [];
 	var arrAdjMatrix_WCLGL = [];
-	var _ADJ_MATRIX_WIDTH = 1024;
+	var _ADJ_MATRIX_WIDTH = 256;
     var _ADJ_MATRIX_WIDTH_TOTAL;
 	var _currentAdjMatrix = 0;
 	var _numberOfColumns;
@@ -1107,12 +1107,12 @@ Graph = function(sce) {
 
 		_enabledForceLayout = true;
 
-		/*for(var n=0; n < _numberOfAdjMatrix; n++) {
+		for(var n=0; n < _numberOfAdjMatrix; n++) {
             var idSTORE = n/maxItemsInSTORE;
 			this.adjacencyMatrixToImage(arrAdjMatrix_STORE[Math.floor(idSTORE)][n], _ADJ_MATRIX_WIDTH, (function(img) {
 			    document.body.appendChild(img);
             }).bind(this));
-        }*/
+        }
 
 		_buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 	};
@@ -1626,20 +1626,16 @@ Graph = function(sce) {
                                                     } else {
                                                         comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
 
-
-                                                        var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
                                                         if(_numberOfAdjMatrix > 1) {
-                                                            var iddd = Math.floor(idSTORE);
-                                                            var ggg = Math.floor(idSTORE*maxItemsInSTORE);
-                                                            var idddX = _currentAdjMatrix-ggg;
-                                                            _buffAdjMatrix.items[0].writeWebGLTextureBuffer(arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix]);
-                                                        }
-                                                        //comp_renderer_nodes.setArg("adjacencyMatrix", arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)][_currentAdjMatrix-Math.floor(idSTORE*maxItemsInSTORE)]);
+															var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
+                                                        	var bn = arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix];
+                                                            //_buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
+															comp_renderer_nodes.setArg("adjacencyMatrix", (function(bnn) {return bnn;}).bind(this, bn));
 
-                                                        comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-                                                        comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+															comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+															comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+                                                        }
                                                     }
-                                                    //console.log(_currentAdjMatrix);
 
                                                     _currentAdjMatrix++;
                                                     if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
