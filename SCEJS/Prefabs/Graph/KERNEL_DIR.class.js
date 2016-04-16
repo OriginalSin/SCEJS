@@ -108,57 +108,51 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 							'vec3 dirToB = (currentPosB-currentPos);'+
 							'vec3 dirToBN = normalize(dirToB);'+
 							'float dist = distance(currentPosB, currentPos);'+ // near=0.0 ; far=1.0
-							'float distN = distance(currentPosB, currentPos)*0.0001;'+ // near=0.0 ; far=1.0
+							'float distN = distance(currentPosB, currentPos)*0.001;'+ // near=0.0 ; far=1.0
 							'vec3 dirS;'+
 							'float pPoint;'+
 
 							'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));'+
-							'if(it.x > 0.5) {'+ // connection exists
-								'if(dist > 0.0) {'+
-									'atraction = atraction+(dirToBN*distN);\n'+
-									'atraction = atraction+(((dirToBN*-1.0)*(0.002)));\n'+
-									'acumAtraction += 1.0;'+
 
-									// SPHERICAL COLLISION
-									'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
-										'repulsionColl = sphericalColl(vec3(initialPosX, initialPosY, initialPosZ), currentPos, currentDir, currentDirB, dirToBN, repulsion, idb, idToDrag);'+
-										'colExists = 1;'+
-										'break;'+
-									'}'+ // end spherical collision
-								'}'+
-
-								// center force
-								//'vec3 dir_C = normalize(vec3(0.0, 0.0, 0.0)-currentPos);'+
-								//'float distanceN_C = distance(vec3(0.0, 0.0, 0.0), currentPos)*0.001;'+ // near=0.0 ; far=1.0
-
-								//'atraction = atraction+((dir_C*distanceN_C*(1.0-targets)));'+
-								//'atraction = atraction+(((dir_C*-1.0)*(1.0-distanceN_C)*targets)*0.1);\n'+
-							'} else {'+ // connection not exists
-								'if(dist > 0.0) {'+
+							'if(dist > 0.0) {'+
+								'if(it.x > 0.5) {'+ // connection exists
+									'atraction = atraction+((dirToBN*distN)*100.0);\n'+
+									'atraction = atraction+(dirToBN*-1.0);\n'+
+								'} else {'+ // connection not exists
 									'if(enableForceLayoutRepulsion == 1.0) {'+
-										'repulsion = repulsion+(((dirToBN*-1.0)*(0.002)));\n'+
+										'repulsion = repulsion+(((dirToBN*(1.0-distN)*-1.0)*100.0));\n'+
 										'acumRepulsion += 1.0;'+
 									'}'+
+								'}'+ // end connection not exists
 
-									// SPHERICAL COLLISION
-									'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
-										'repulsionColl = sphericalColl(vec3(initialPosX, initialPosY, initialPosZ), currentPos, currentDir, currentDirB, dirToBN, repulsion, idb, idToDrag);'+
-										'colExists = 1;'+
-										'break;'+
-									'}'+ // end spherical collision
-								'}'+
-							'}'+ // end connection not exists
+
+
+
+								// SPHERICAL COLLISION
+								'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
+									'repulsionColl = sphericalColl(vec3(initialPosX, initialPosY, initialPosZ), currentPos, currentDir, currentDirB, dirToBN, repulsion, idb, idToDrag);'+
+									'colExists = 1;'+
+									'break;'+
+								'}'+ // end spherical collision
+							'}'+
+
+							// center force
+							//'vec3 dir_C = normalize(vec3(0.0, 0.0, 0.0)-currentPos);'+
+							//'float distanceN_C = distance(vec3(0.0, 0.0, 0.0), currentPos)*0.001;'+ // near=0.0 ; far=1.0
+
+							//'atraction = atraction+((dir_C*distanceN_C*(1.0-targets)));'+
+							//'atraction = atraction+(((dir_C*-1.0)*(1.0-distanceN_C)*targets)*0.1);\n'+
 						//'} else {'+
 
 						//'}'+
 					'}'+ // end for
+
 					'if(colExists == 1) {'+
 						'currentDir = repulsionColl;\n'+
 					'} else {'+
-						'atraction = (atraction/acumAtraction);'+
 						'repulsion = (repulsion/acumRepulsion);'+
 						//'float multi = min(500.0, (100.0+(length(atraction)*2000000.0)));'+
-						'currentDir = currentDir+( (atraction+repulsion)*100.0 );\n'+
+						'currentDir = currentDir+(atraction+repulsion);\n'+
 					'}'+
 
 				'} else {'+
@@ -170,10 +164,10 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 			"if(enableForceLayout == 1.0) {"+
 				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
-					'currentDir = currentDir*0.96;'+ // air resistence
+					'currentDir = currentDir*0.4;'+ // air resistence
 				"}"+
 			"} else {"+
-				'currentDir = currentDir*0.96;'+ // air resistence
+				'currentDir = currentDir*0.4;'+ // air resistence
 			"}"+
 
 			

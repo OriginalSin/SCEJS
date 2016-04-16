@@ -1730,7 +1730,7 @@ Graph = function(sce) {
 									"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
 									"drawMode": 1,
 									"geometryLength": 4,
-									"onPreTick": (function() {	
+									"onPreTick": (function() {
 										comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
 									}).bind(this)});
 
