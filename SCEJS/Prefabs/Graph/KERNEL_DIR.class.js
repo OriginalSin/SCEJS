@@ -116,17 +116,17 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 							'if(dist > 0.0) {'+
 								'if(it.x > 0.5) {'+ // connection exists
-									'atraction = atraction+((dirToBN*distN)*100.0);\n'+
-									'atraction = atraction+(dirToBN*-1.0);\n'+
+									'atraction = atraction+((dirToBN*dist));\n'+
+									'atraction = atraction+(dirToBN*-20.0);\n'+
+
+									'acumAtraction += 1.0;'+
 								'} else {'+ // connection not exists
 									'if(enableForceLayoutRepulsion == 1.0) {'+
-										'repulsion = repulsion+(((dirToBN*(1.0-distN)*-1.0)*100.0));\n'+
+										'repulsion = repulsion+(((dirToBN*(1000.0-dist)*-0.01)));\n'+
+
 										'acumRepulsion += 1.0;'+
 									'}'+
 								'}'+ // end connection not exists
-
-
-
 
 								// SPHERICAL COLLISION
 								'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
@@ -150,8 +150,10 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 					'if(colExists == 1) {'+
 						'currentDir = repulsionColl;\n'+
 					'} else {'+
+						'atraction = (atraction/acumAtraction);'+
 						'repulsion = (repulsion/acumRepulsion);'+
 						//'float multi = min(500.0, (100.0+(length(atraction)*2000000.0)));'+
+
 						'currentDir = currentDir+(atraction+repulsion);\n'+
 					'}'+
 

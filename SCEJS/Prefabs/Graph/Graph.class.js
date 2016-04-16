@@ -33,7 +33,7 @@ Graph = function(sce) {
 	var _numberOfAdjMatrix;
 	var _enabledForceLayout = false;
 	var _buffAdjMatrix;
-	var _adjMatrixTime = 100;
+	var _adjMatrixTime = 10;
 
 
 	
@@ -1644,7 +1644,7 @@ Graph = function(sce) {
                                                     _currentAdjMatrix++;
                                                     if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
                                                         if(_adjMatrixTime == 0) {
-                                                            _adjMatrixTime = 100;
+                                                            _adjMatrixTime = 10;
                                                             _currentAdjMatrix = 0;
                                                         } else {
                                                             _adjMatrixTime--;
