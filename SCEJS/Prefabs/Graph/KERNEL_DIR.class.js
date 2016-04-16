@@ -66,26 +66,23 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			// FORCE LAYOUT
 			"if(enableForceLayout == 1.0 && performFL == 0.0) {"+
 				'float radius = 4.0;'+
-			
+				'float wh = widthAdjMatrix-1.0;'+
+				'float ts = 1.0/wh;'+
+
+
+				'int colExists = 0;'+
 				'float acumAtraction = 1.0;'+
 				'float acumRepulsion = 1.0;'+
 				'vec3 atraction = vec3(0.0, 0.0, 0.0);'+
 				'vec3 repulsion = vec3(0.0, 0.0, 0.0);'+
 				'vec3 repulsionColl = vec3(0.0, 0.0, 0.0);'+
-				
-				'float wh = widthAdjMatrix-1.0;'+
-				'float ts = 1.0/wh;'+
 
-				
-				'int colExists = 0;'+
 
 				'float num = currentAdjMatrix/numberOfColumns;'+
 				'float rowAdjMat = floor(num);'+
 				'float colAdjMat = float(int( fract(num)*numberOfColumns ));'+
 
-				'float initA = colAdjMat*widthAdjMatrix;'+
-
-
+				'float initA = colAdjMat*widthAdjMatrix;'+   
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
 					'for(int n=0; n < 256; n++) {'+

@@ -1031,37 +1031,13 @@ Graph = function(sce) {
 	 * enableForceLayout
 	 */
 	this.enableForceLayout = function() {
+		arrAdjMatrix_STORE = [];
+		arrAdjMatrix = [];
+		arrAdjMatrix_WCLGL = [];
 
-
-		/*var width = 2; //  this.currentNodeId
-		
-		var adjMatrixSize = 5000;
-		for(var n=0, fn=Math.ceil(this.currentNodeId/adjMatrixSize)*2; n < fn; n++) {
-			arrAdjMatrix[n] = new Float32Array(adjMatrixSize*adjMatrixSize);
-		}
-		adjacencyMatrix = new Float32Array(width*width);
-		for(var key in _links) {
-			var origin = _links[key].origin_nodeId;
-			var target = _links[key].target_nodeId;
-			
-			adjacencyMatrix[(origin*width)+target] = 1;
-			adjacencyMatrix[(target*width)+origin] = 1;
-		}*/
-
-
-
-
-
-
-		// new
 		_numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
 		_numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
         _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
-
-        arrAdjMatrix_STORE = [];
-        arrAdjMatrix = [];
-        arrAdjMatrix_WCLGL = [];
-
 
 		// creating adjMatrixArray
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
@@ -1086,25 +1062,14 @@ Graph = function(sce) {
 			setAdjMat(idSymmetrical);
 		}
 
-        // creating adjMatrixArray
-        /*for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = n/maxItemsInSTORE;
-            if(arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)] == undefined)
-                arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)] = [];
-
-            arrAdjMatrix_STORE_WCLGL[Math.floor(idSTORE)][n] = comp_renderer_nodes.setArg("adjacencyMatrix", (function(nn) {return arrAdjMatrix_STORE[idSTORE][nn];}).bind(this, n));
-        }*/
-
-
-
-
-		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
 
 		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
-		comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-		comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+		_buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 
+		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+		comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+		comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
 		_enabledForceLayout = true;
 
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
@@ -1113,8 +1078,6 @@ Graph = function(sce) {
 			    document.body.appendChild(img);
             }).bind(this));
         }
-
-		_buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 	};
 	
 	/**
@@ -1617,24 +1580,22 @@ Graph = function(sce) {
 										"geometryLength": 4,
 										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
 										"onPreTick": (function() {
-
 											if(this.currentNodeId > 0 && _enabledForceLayout == true) {
                                                 comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
+
                                                 if(_numberOfAdjMatrix > 1) {
                                                     if(_currentAdjMatrix == _numberOfAdjMatrix) {
                                                         comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
                                                     } else {
                                                         comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
 
-                                                        if(_numberOfAdjMatrix > 1) {
-															var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
-                                                        	var bn = arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix];
-                                                            //_buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
-															comp_renderer_nodes.setArg("adjacencyMatrix", (function(bnn) {return bnn;}).bind(this, bn));
+														var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
+														var bn = arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix];
+														_buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
+														//comp_renderer_nodes.setArg("adjacencyMatrix", (function(bnn) {return bnn;}).bind(this, bn));
 
-															comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-															comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-                                                        }
+														comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+														//comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
                                                     }
 
                                                     _currentAdjMatrix++;
@@ -1649,16 +1610,6 @@ Graph = function(sce) {
                                                     }
                                                 } else {
                                                     comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
-
-                                                     //_buffAdjMatrix.items[0].writeWebGLTextureBuffer(arrAdjMatrix_STORE[0][0]);
-
-                                                    comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-                                                    comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-
-                                                    _currentAdjMatrix++;
-                                                    if(_currentAdjMatrix == _numberOfAdjMatrix) {
-                                                        _currentAdjMatrix = 0;
-                                                    }
                                                 }
 											}
 										}).bind(this)});
