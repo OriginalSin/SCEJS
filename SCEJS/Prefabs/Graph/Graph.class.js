@@ -32,6 +32,8 @@ Graph = function(sce) {
 	var _numberOfColumns;
 	var _numberOfAdjMatrix;
 	var _enabledForceLayout = false;
+	var _buffAdjMatrix;
+	var _adjMatrixTime = 0;
 
 
 	
@@ -658,6 +660,7 @@ Graph = function(sce) {
 			}
 
 		}
+        comp_renderer_nodes.setUpdateFromKernel("posXYZW");
 		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this), this.splitNodes);
 
 		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this), this.splitNodes);
@@ -672,6 +675,7 @@ Graph = function(sce) {
 		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
 			this.arrayNodeDir.push(0, 0, 0, 1.0);
 		}
+        comp_renderer_nodes.setUpdateFromKernel("dir");
 		comp_renderer_nodes.setArg("dir", (function() {return this.arrayNodeDir;}).bind(this), this.splitNodes);
 
 		comp_renderer_nodes.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
@@ -1019,53 +1023,29 @@ Graph = function(sce) {
 
 		//arrAdjMatrix[currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
 
-        var idSTORE = Math.floor(currentItemArrayAdjMatrix/maxItemsInSTORE);
-        arrAdjMatrix_STORE[idSTORE][currentItemArrayAdjMatrix-(idSTORE*maxItemsInSTORE)][Math.round(currentItemAdjMatrix)] = 1;
+        var idSTORE = currentItemArrayAdjMatrix/maxItemsInSTORE;
+        arrAdjMatrix_STORE[Math.floor(idSTORE)][currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
 	};
 
 	/**
 	 * enableForceLayout
 	 */
 	this.enableForceLayout = function() {
+		arrAdjMatrix_STORE = [];
+		arrAdjMatrix = [];
+		arrAdjMatrix_WCLGL = [];
 
-
-		/*var width = 2; //  this.currentNodeId
-		
-		var adjMatrixSize = 5000;
-		for(var n=0, fn=Math.ceil(this.currentNodeId/adjMatrixSize)*2; n < fn; n++) {
-			arrAdjMatrix[n] = new Float32Array(adjMatrixSize*adjMatrixSize);
-		}
-		adjacencyMatrix = new Float32Array(width*width);
-		for(var key in _links) {
-			var origin = _links[key].origin_nodeId;
-			var target = _links[key].target_nodeId;
-			
-			adjacencyMatrix[(origin*width)+target] = 1;
-			adjacencyMatrix[(target*width)+origin] = 1;
-		}*/
-
-
-
-
-
-
-		// new
 		_numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
 		_numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
         _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
 
-        arrAdjMatrix_STORE = [];
-        arrAdjMatrix = [];
-        arrAdjMatrix_WCLGL = [];
-
-
 		// creating adjMatrixArray
 		for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = Math.floor(n/maxItemsInSTORE);
-            if(arrAdjMatrix_STORE[idSTORE] == undefined)
-                arrAdjMatrix_STORE[idSTORE] = [];
+            var idSTORE = n/maxItemsInSTORE;
+            if(arrAdjMatrix_STORE[Math.floor(idSTORE)] == undefined)
+                arrAdjMatrix_STORE[Math.floor(idSTORE)] = [];
 
-            arrAdjMatrix_STORE[idSTORE][n-(idSTORE*maxItemsInSTORE)] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
+            arrAdjMatrix_STORE[Math.floor(idSTORE)][n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
 		}
 
 		// walk relations and adding in corresponding adjMatrixArray item
@@ -1082,33 +1062,22 @@ Graph = function(sce) {
 			setAdjMat(idSymmetrical);
 		}
 
-        // creating adjMatrixArray
-        for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = Math.floor(n/maxItemsInSTORE);
-            if(arrAdjMatrix_STORE_WCLGL[idSTORE] == undefined)
-                arrAdjMatrix_STORE_WCLGL[idSTORE] = [];
 
-            arrAdjMatrix_STORE_WCLGL[idSTORE][n-(idSTORE*maxItemsInSTORE)] = comp_renderer_nodes.setArg("adjacencyMatrix", (function(nn) {return arrAdjMatrix_STORE[idSTORE][nn-(idSTORE*maxItemsInSTORE)];}).bind(this, n));
-        }
-
-
-
+		comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
+		_buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 
 		comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
-
-		//comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[_currentAdjMatrix];}).bind(this));
-		comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 		comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-
+		comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
 		_enabledForceLayout = true;
 
-		for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = Math.floor(n/maxItemsInSTORE);
-			this.adjacencyMatrixToImage(arrAdjMatrix_STORE[idSTORE][n-(idSTORE*maxItemsInSTORE)], _ADJ_MATRIX_WIDTH, (function(img) {
+		/*for(var n=0; n < _numberOfAdjMatrix; n++) {
+            var idSTORE = n/maxItemsInSTORE;
+			this.adjacencyMatrixToImage(arrAdjMatrix_STORE[Math.floor(idSTORE)][n], _ADJ_MATRIX_WIDTH, (function(img) {
 			    document.body.appendChild(img);
             }).bind(this));
-        }
+        }*/
 	};
 	
 	/**
@@ -1611,25 +1580,38 @@ Graph = function(sce) {
 										"geometryLength": 4,
 										"kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
 										"onPreTick": (function() {
-
 											if(this.currentNodeId > 0 && _enabledForceLayout == true) {
-                                                if(_currentAdjMatrix == _numberOfAdjMatrix-1) {
-                                                    comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
+                                                comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
+
+                                                if(_numberOfAdjMatrix > 1) {
+													comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
+                                                    if(_currentAdjMatrix == _numberOfAdjMatrix) {
+                                                        comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
+                                                    } else {
+                                                        comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
+
+														var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
+														var bn = arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix];
+														_buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
+														//comp_renderer_nodes.setArg("adjacencyMatrix", (function(bnn) {return bnn;}).bind(this, bn));
+
+
+														//comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+                                                    }
+
+                                                    _currentAdjMatrix++;
+                                                    if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
+                                                        if(_adjMatrixTime == 0) {
+                                                            _adjMatrixTime = 0;
+                                                            _currentAdjMatrix = 0;
+                                                        } else {
+                                                            _adjMatrixTime--;
+                                                            _currentAdjMatrix--;
+                                                        }
+                                                    }
                                                 } else {
                                                     comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
-                                                }
-
-                                                var idSTORE = Math.floor(_currentAdjMatrix/maxItemsInSTORE);
-												comp_renderer_nodes.setArg("adjacencyMatrix", arrAdjMatrix_STORE_WCLGL[idSTORE][_currentAdjMatrix-(idSTORE*maxItemsInSTORE)]);
-
-												comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-												comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-
-                                                //console.log(_currentAdjMatrix);
-
-												_currentAdjMatrix++;
-                                                if(_currentAdjMatrix == _numberOfAdjMatrix) {
-                                                    _currentAdjMatrix = 0;
                                                 }
 											}
 										}).bind(this)});
@@ -1697,7 +1679,7 @@ Graph = function(sce) {
 									"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
 									"drawMode": 1,
 									"geometryLength": 4,
-									"onPreTick": (function() {	
+									"onPreTick": (function() {
 										comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
 									}).bind(this)});
 
