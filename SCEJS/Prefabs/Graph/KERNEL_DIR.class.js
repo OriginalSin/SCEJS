@@ -82,14 +82,14 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				'float rowAdjMat = floor(num);'+
 				'float colAdjMat = float(int( fract(num)*numberOfColumns ));'+
 
-				'float initA = colAdjMat*widthAdjMatrix;'+   
+				'float initA = colAdjMat*widthAdjMatrix;'+
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 256; n++) {'+
+					'for(int n=0; n < 1024; n++) {'+
                         'float initB = rowAdjMat*widthAdjMatrix;'+
 						'float idb = float(n)+initB;'+
 
-                        'if(idb == nodesCount) break;'+
+                        'if(idb >= nodesCount) break;'+
 
 						//'if(idb >= initB && idb < (initB+widthAdjMatrix)) {'+
 
@@ -121,7 +121,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 									'acumRepulsion += 1.0;'+
 								'}'+
-							'}'+ // end connection not exists
+							'}'+
 
 							// SPHERICAL COLLISION
 							'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
@@ -142,11 +142,10 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						//'}'+
 					'}'+ // end for
 
-					'if(colExists == 1) {'+
-						'currentDir = repulsionColl;\n'+
-					'} else {'+
-						'currentDir = (atraction/acumAtraction)+(repulsion/acumRepulsion);\n'+
-					'}'+
+					'if(colExists == 1) '+
+						'currentDir = repulsionColl;'+
+					'else '+
+						'currentDir = (atraction/acumAtraction)+(repulsion/acumRepulsion);'+
 
 				'}'+ // END if(nodeId >= initA && nodeId < (initA+widthAdjMatrix))
 
@@ -154,19 +153,16 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 
 			"if(enableForceLayout == 1.0) {"+
-				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
+				//"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) "+
 					'currentDir = currentDir*0.4;'+ // air resistence
-				"}"+
 			"} else {"+
 				'currentDir = currentDir*0.4;'+ // air resistence
 			"}"+
 
 			
 			((customCode != undefined) ? customCode : '')+
-			
-			'vec3 newDir = currentDir;\n'+
 	
-			'out_float4 = vec4(newDir,1.0);\n'+
+			'out_float4 = vec4(currentDir,1.0);'+
 		'}']];
        	
        	return str_vfp;
