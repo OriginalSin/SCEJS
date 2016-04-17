@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4ba124e0-b0c6-489c-8c26-79131cd64c35" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js" />
     </list>
     <ignored path="SCEJS.iws" />
@@ -28,8 +29,8 @@
       <file leaf-file-name="Graph.class.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-27.555555">
-              <caret line="1605" column="77" selection-start-line="1605" selection-start-column="77" selection-end-line="1605" selection-end-column="77" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="28" column="31" selection-start-line="28" selection-start-column="31" selection-end-line="28" selection-end-column="31" />
               <folding />
             </state>
           </provider>
@@ -38,8 +39,8 @@
       <file leaf-file-name="KERNEL_DIR.class.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.33070865">
-              <caret line="121" column="73" selection-start-line="121" selection-start-column="73" selection-end-line="121" selection-end-column="73" />
+            <state vertical-scroll-proportion="0.43307087">
+              <caret line="120" column="67" selection-start-line="120" selection-start-column="67" selection-end-line="120" selection-end-column="68" />
               <folding />
             </state>
           </provider>
@@ -774,12 +775,12 @@
       <workItem from="1460819352815" duration="951000" />
       <workItem from="1460820428600" duration="4845000" />
       <workItem from="1460827566983" duration="24845000" />
-      <workItem from="1460858671909" duration="18913000" />
+      <workItem from="1460858671909" duration="21773000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="141351000" />
+    <option name="totallyTimeSpent" value="144211000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1296" height="1010" extended-state="6" />
@@ -1183,14 +1184,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-27.555555">
-          <caret line="1605" column="77" selection-start-line="1605" selection-start-column="77" selection-end-line="1605" selection-end-column="77" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1199,10 +1192,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="28" column="31" selection-start-line="28" selection-start-column="31" selection-end-line="28" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/KERNEL_DIR.class.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33070865">
-          <caret line="121" column="73" selection-start-line="121" selection-start-column="73" selection-end-line="121" selection-end-column="73" />
+        <state vertical-scroll-proportion="0.43307087">
+          <caret line="120" column="67" selection-start-line="120" selection-start-column="67" selection-end-line="120" selection-end-column="68" />
           <folding />
         </state>
       </provider>
