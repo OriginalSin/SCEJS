@@ -51,10 +51,10 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 			'float acumAtraction = dir[x].w;\n'+
 
-			/*'if(currentAdjMatrix == 0.0) {'+
+			'if(currentAdjMatrix == 0.0) {'+
 				'currentDir = vec3(0.0, 0.0, 0.0);'+
 				'acumAtraction = 1.0;'+
-			'}'+*/
+			'}'+
 
 			// if isLink == 1
 			//'float linkId = data[x].x;'+
@@ -76,14 +76,9 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				'float wh = widthAdjMatrix-1.0;'+
 				'float ts = 1.0/wh;'+
 
-
-				'int colExists = 0;'+
-
-
 				'vec3 atraction = vec3(0.0, 0.0, 0.0);'+
 				'vec3 repulsion = vec3(0.0, 0.0, 0.0);'+
 				'vec3 repulsionColl = vec3(0.0, 0.0, 0.0);'+
-
 
 				'float num = currentAdjMatrix/numberOfColumns;'+
 				'float rowAdjMat = floor(num);'+
@@ -118,20 +113,19 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 						'if(dist > 0.0) {'+
 							'if(it.x > 0.5) {'+ // connection exists
-								'atraction += dirToBN*(dist);\n'+
-								'atraction += dirToBN*-20.0;\n'+
+								'currentDir += dirToBN*(dist*0.1);\n'+
+								'currentDir += dirToBN*-10.0;\n'+
 
 								'acumAtraction += 1.0;'+
 							'} else {'+ // connection not exists
 								'if(enableForceLayoutRepulsion == 1.0) {'+
-									'repulsion += dirToBN*-100.0;\n'+
+									'currentDir += dirToBN*(1.0-distN)*-1.0;\n'+
 								'}'+
 							'}'+
 
 							// SPHERICAL COLLISION
 							'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
-								'repulsionColl = sphericalColl(vec3(initialPosX, initialPosY, initialPosZ), currentPos, currentDir, currentDirB, dirToBN, repulsion, idb, idToDrag);'+
-								'colExists = 1;'+
+								'currentDir = sphericalColl(vec3(initialPosX, initialPosY, initialPosZ), currentPos, currentDir, currentDirB, dirToBN, repulsion, idb, idToDrag);'+
 								'break;'+
 							'}'+ // end spherical collision
 						'}'+
@@ -146,11 +140,6 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						//'} else {'+
 						//'}'+
 					'}'+ // end for
-
-					'if(colExists == 1) '+
-						'currentDir = repulsionColl;'+
-					'else '+
-						'currentDir += (atraction+repulsion);'+
 
 				'}'+ // END if(nodeId >= initA && nodeId < (initA+widthAdjMatrix))
 
