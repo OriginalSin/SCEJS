@@ -48,7 +48,9 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			'float nodeId = data[x].x;'+ 
 			'vec3 currentDir = dir[x].xyz;\n'+
 			'vec3 currentPos = posXYZW[x].xyz;\n'+
-			
+
+			'float acumAtraction = dir[x].w;'+
+
 			// if isLink == 1
 			//'float linkId = data[x].x;'+
 			'float isTarget = data[x].z;'+
@@ -71,7 +73,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 
 				'int colExists = 0;'+
-				'float acumAtraction = 1.0;'+
+
 				'float acumRepulsion = 1.0;'+
 				'vec3 atraction = vec3(0.0, 0.0, 0.0);'+
 				'vec3 repulsion = vec3(0.0, 0.0, 0.0);'+
@@ -145,7 +147,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 					'if(colExists == 1) '+
 						'currentDir = repulsionColl;'+
 					'else '+
-						'currentDir = (atraction/acumAtraction)+(repulsion/acumRepulsion);'+
+						'currentDir = currentDir+(atraction+repulsion);'+
 
 				'}'+ // END if(nodeId >= initA && nodeId < (initA+widthAdjMatrix))
 
@@ -153,8 +155,10 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 
 			"if(enableForceLayout == 1.0) {"+
-				//"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) "+
-					'currentDir = currentDir*0.4;'+ // air resistence
+				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
+					'currentDir = (currentDir/acumAtraction)*0.4;'+ // air resistence
+					'acumAtraction = 1.0;'+  
+				"}"+
 			"} else {"+
 				'currentDir = currentDir*0.4;'+ // air resistence
 			"}"+
@@ -162,7 +166,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			
 			((customCode != undefined) ? customCode : '')+
 	
-			'out_float4 = vec4(currentDir,1.0);'+
+			'out_float4 = vec4(currentDir, acumAtraction);'+
 		'}']];
        	
        	return str_vfp;
