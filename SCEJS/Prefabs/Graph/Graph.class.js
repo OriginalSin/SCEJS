@@ -26,14 +26,14 @@ Graph = function(sce) {
     var maxItemsInSTORE = 10;
 	var arrAdjMatrix = [];
 	var arrAdjMatrix_WCLGL = [];
-	var _ADJ_MATRIX_WIDTH = 1024;
+	var _ADJ_MATRIX_WIDTH = 256;
     var _ADJ_MATRIX_WIDTH_TOTAL;
 	var _currentAdjMatrix = 0;
 	var _numberOfColumns;
 	var _numberOfAdjMatrix;
 	var _enabledForceLayout = false;
 	var _buffAdjMatrix;
-	var _adjMatrixTime = 10;
+	var _adjMatrixTime = 0;
 
 
 	
@@ -1072,12 +1072,12 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
 		_enabledForceLayout = true;
 
-		for(var n=0; n < _numberOfAdjMatrix; n++) {
+		/*for(var n=0; n < _numberOfAdjMatrix; n++) {
             var idSTORE = n/maxItemsInSTORE;
 			this.adjacencyMatrixToImage(arrAdjMatrix_STORE[Math.floor(idSTORE)][n], _ADJ_MATRIX_WIDTH, (function(img) {
 			    document.body.appendChild(img);
             }).bind(this));
-        }
+        }*/
 	};
 	
 	/**
@@ -1601,7 +1601,7 @@ Graph = function(sce) {
                                                     _currentAdjMatrix++;
                                                     if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
                                                         if(_adjMatrixTime == 0) {
-                                                            _adjMatrixTime = 10;
+                                                            _adjMatrixTime = 0;
                                                             _currentAdjMatrix = 0;
                                                         } else {
                                                             _adjMatrixTime--;

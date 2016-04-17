@@ -85,7 +85,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				'float initA = colAdjMat*widthAdjMatrix;'+
 				'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {'+
 
-					'for(int n=0; n < 1024; n++) {'+
+					'for(int n=0; n < 256; n++) {'+
                         'float initB = rowAdjMat*widthAdjMatrix;'+
 						'float idb = float(n)+initB;'+
 
@@ -117,7 +117,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 								'acumAtraction += 1.0;'+
 							'} else {'+ // connection not exists
 								'if(enableForceLayoutRepulsion == 1.0) {'+
-									'repulsion = repulsion+(((dirToBN*(1000.0-dist)*-0.01)));\n'+
+									'repulsion = repulsion+(((dirToBN*-100.0)));\n'+
 
 									'acumRepulsion += 1.0;'+
 								'}'+
