@@ -49,7 +49,12 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			'vec3 currentDir = dir[x].xyz;\n'+
 			'vec3 currentPos = posXYZW[x].xyz;\n'+
 
-			'float acumAtraction = dir[x].w;'+
+			'float acumAtraction = dir[x].w;\n'+
+
+			/*'if(currentAdjMatrix == 0.0) {'+
+				'currentDir = vec3(0.0, 0.0, 0.0);'+
+				'acumAtraction = 1.0;'+
+			'}'+*/
 
 			// if isLink == 1
 			//'float linkId = data[x].x;'+
@@ -74,7 +79,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 				'int colExists = 0;'+
 
-				'float acumRepulsion = 1.0;'+
+
 				'vec3 atraction = vec3(0.0, 0.0, 0.0);'+
 				'vec3 repulsion = vec3(0.0, 0.0, 0.0);'+
 				'vec3 repulsionColl = vec3(0.0, 0.0, 0.0);'+
@@ -113,15 +118,13 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 						'if(dist > 0.0) {'+
 							'if(it.x > 0.5) {'+ // connection exists
-								'atraction = atraction+((dirToBN*dist));\n'+
-								'atraction = atraction+(dirToBN*-20.0);\n'+
+								'atraction += dirToBN*(dist);\n'+
+								'atraction += dirToBN*-20.0;\n'+
 
 								'acumAtraction += 1.0;'+
 							'} else {'+ // connection not exists
 								'if(enableForceLayoutRepulsion == 1.0) {'+
-									'repulsion = repulsion+(((dirToBN*-100.0)));\n'+
-
-									'acumRepulsion += 1.0;'+
+									'repulsion += dirToBN*-100.0;\n'+
 								'}'+
 							'}'+
 
@@ -147,7 +150,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 					'if(colExists == 1) '+
 						'currentDir = repulsionColl;'+
 					'else '+
-						'currentDir = currentDir+(atraction+repulsion);'+
+						'currentDir += (atraction+repulsion);'+
 
 				'}'+ // END if(nodeId >= initA && nodeId < (initA+widthAdjMatrix))
 
@@ -156,11 +159,16 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 			"if(enableForceLayout == 1.0) {"+
 				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
-					'currentDir = (currentDir/acumAtraction)*0.4;'+ // air resistence
-					'acumAtraction = 1.0;'+  
+					'vec3 atrr = currentDir/acumAtraction;'+
+					'currentDir += atrr;'+
+
+					'vec3 repp = currentDir/((widthAdjMatrix*numberOfColumns)-acumAtraction);'+
+					'currentDir += repp;'+
+
+					'acumAtraction = 1.0;'+
 				"}"+
 			"} else {"+
-				'currentDir = currentDir*0.4;'+ // air resistence
+				'currentDir = currentDir;'+ // air resistence
 			"}"+
 
 			

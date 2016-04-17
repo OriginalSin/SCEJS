@@ -1584,6 +1584,8 @@ Graph = function(sce) {
                                                 comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
 
                                                 if(_numberOfAdjMatrix > 1) {
+													comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
                                                     if(_currentAdjMatrix == _numberOfAdjMatrix) {
                                                         comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
                                                     } else {
@@ -1594,7 +1596,7 @@ Graph = function(sce) {
 														_buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
 														//comp_renderer_nodes.setArg("adjacencyMatrix", (function(bnn) {return bnn;}).bind(this, bn));
 
-														comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
 														//comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
                                                     }
 
