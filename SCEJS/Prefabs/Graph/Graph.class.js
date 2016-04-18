@@ -26,7 +26,7 @@ Graph = function(sce) {
     var maxItemsInSTORE = 10;
 	var arrAdjMatrix = [];
 	var arrAdjMatrix_WCLGL = [];
-	var _ADJ_MATRIX_WIDTH = 512;
+	var _ADJ_MATRIX_WIDTH = 4096;
     var _ADJ_MATRIX_WIDTH_TOTAL;
 	var _currentAdjMatrix = 0;
 	var _numberOfColumns;
