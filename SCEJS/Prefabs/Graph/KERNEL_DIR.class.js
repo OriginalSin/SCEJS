@@ -55,6 +55,8 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				'currentDir = vec3(0.0, 0.0, 0.0);'+
 				'acumAtraction = 1.0;'+
 			'}'+
+            'vec3 atraction = vec3(0.0, 0.0, 0.0);'+
+            'vec3 repulsion = vec3(0.0, 0.0, 0.0);'+
 
 			// if isLink == 1
 			//'float linkId = data[x].x;'+
@@ -76,8 +78,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 				'float wh = widthAdjMatrix-1.0;'+
 				'float ts = 1.0/wh;'+
 
-				'vec3 atraction = vec3(0.0, 0.0, 0.0);'+
-				'vec3 repulsion = vec3(0.0, 0.0, 0.0);'+
+
 				'vec3 repulsionColl = vec3(0.0, 0.0, 0.0);'+
 
 				'float num = currentAdjMatrix/numberOfColumns;'+
@@ -113,13 +114,13 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 						'if(dist > 0.0) {'+
 							'if(it.x > 0.5) {'+ // connection exists
-								'currentDir += dirToBN*(dist*0.1);\n'+
-								'currentDir += dirToBN*-2.0;\n'+
+								'atraction += dirToBN*(dist*0.5);\n'+
+								'atraction += dirToBN*-2.0;\n'+
 
 								'acumAtraction += 1.0;'+
 							'} else {'+ // connection not exists
 								'if(enableForceLayoutRepulsion == 1.0) {'+
-									'currentDir += dirToBN*-0.1;\n'+
+									'repulsion += dirToBN*-1000.0;\n'+
 								'}'+
 							'}'+
 
@@ -141,21 +142,19 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						//'}'+
 					'}'+ // end for
 
+                    'currentDir += atraction/acumAtraction;'+
+
+                    'if(enableForceLayoutRepulsion == 1.0)'+
+                    'currentDir += repulsion/((widthAdjMatrix*numberOfColumns)-acumAtraction);'+
+
 				'}'+ // END if(nodeId >= initA && nodeId < (initA+widthAdjMatrix))
 
 			"}"+ // END if(enableForceLayout == 1.0 && performFL == 0.0) {
 
 
 			"if(enableForceLayout == 1.0) {"+
-				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
-					'vec3 atrr = currentDir/acumAtraction;'+
-					'currentDir += atrr;'+
-
-					'vec3 repp = currentDir/((widthAdjMatrix*numberOfColumns)-acumAtraction);'+
-					'currentDir += repp;'+
-
+				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) "+
 					'acumAtraction = 1.0;'+
-				"}"+
 			"} else {"+
 				'currentDir = currentDir;'+ // air resistence
 			"}"+
