@@ -102,7 +102,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
 	   				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+
 
-					'float isTarget = data[x].z;'+
+                    'float segments = data[x].z;'+ // this is isTarget for arrows
+                    'float repeatId = data[x].w;'+
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
 
@@ -121,7 +122,21 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
 	   				'}'+
 	   				'if(isLink == 1.0) {'+
-	   					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+ 
+	   					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+
+
+                        //'if(segments != -5.0 && segments != 5.0) {'+
+                            'vec3 dir = vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
+                            'float dist = length(dir);'+
+                            'float increments = dist/10.0;'+
+
+                            'vec3 dirN = normalize(dir);'+
+
+                            'vec3 cr = cross(dirN, vec3(0.0, 1.0, 0.0));'+
+
+                            'nodePosition += vec4(dirN*(dist/2.0), 1.0);'+
+                            'nodePosition += vec4(dirN*(increments*segments), 1.0);'+
+                            'nodePosition += vec4(cr*(5.0-abs(segments)), 1.0);'+
+                        //'}'+
 		       		'}'+
        				'if(isArrow == 1.0) {'+
        					'mat4 pp = lookAt(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
@@ -165,7 +180,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'vWNMatrix = nodeposG * nodeVertexNormal[x];\n'+
        				
        				'vUseCrosshair = 0.0;'+
-       				'vIstarget = (isTarget == 1.0) ? 1.0 : 0.0;'+
+       				'vIstarget = (segments == 1.0) ? 1.0 : 0.0;'+
        				
        				customCode+
        				'vVertexColor = nodeVertexColor;'+     

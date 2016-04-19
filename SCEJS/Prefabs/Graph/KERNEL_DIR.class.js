@@ -60,7 +60,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 			// if isLink == 1
 			//'float linkId = data[x].x;'+
-			'float isTarget = data[x].z;'+
+			'float isTarget = data[x].z;'+ 
 			
 			
 			
@@ -114,8 +114,12 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 						'if(dist > 0.0) {'+
 							'if(it.x > 0.5) {'+ // connection exists
-								'atraction += dirToBN*(dist*0.5);\n'+
-								'atraction += dirToBN*-2.0;\n'+
+                                'if(enableForceLayoutRepulsion == 0.0) {'+
+                                    'atraction += dirToBN*(dist*0.5);\n'+
+                                    'atraction += dirToBN*-10.0;\n'+
+                                '} else {'+
+                                    'atraction += dirToBN*(dist*0.5);\n'+
+                                '}'+
 
 								'acumAtraction += 1.0;'+
 							'} else {'+ // connection not exists

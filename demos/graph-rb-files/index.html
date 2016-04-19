@@ -102,10 +102,10 @@
 									"codeObject":
 										// nodeColor
 										'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
-										'if(isLink == 1.0 && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
-										'if(isLink == 1.0 && isTarget == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 1.0);'+
-										'if(isArrow == 1.0 && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
-										'if(isArrow == 1.0 && isTarget == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);'
+										'if(isLink == 1.0 && segments == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+										'if(isLink == 1.0 && segments == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 1.0);'+ // this is isTarget for arrows
+										'if(isArrow == 1.0 && segments == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+										'if(isArrow == 1.0 && segments == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
 										
 									});
 
