@@ -102,7 +102,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
 	   				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+
 
-                    'float segments = data[x].z;'+ // this is isTarget for arrows
+                    'vec3 dir = vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
+
+                    'float segment = data[x].z;'+ // this is isTarget for arrows
                     'float repeatId = data[x].w;'+
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
@@ -124,19 +126,21 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   				'if(isLink == 1.0) {'+
 	   					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+
 
-                        //'if(segments != -5.0 && segments != 5.0) {'+
-                            'vec3 dir = vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
-                            'float dist = length(dir);'+
-                            'float increments = dist/10.0;'+
+                        'dir = vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
+                        'float dist = length(dir);'+
+                        'float increments = dist/10.0;'+
+                        'vec3 dirN = normalize(dir);'+
 
-                            'vec3 dirN = normalize(dir);'+
-
+                        //'nodePosition += vec4(dirN*(dist/2.0), 1.0);'+
+                        'nodePosition += vec4(dirN*(increments*segment), 1.0);'+
+                        'if(segment != 0.0 && segment != 10.0) {'+
                             'vec3 cr = cross(dirN, vec3(0.0, 1.0, 0.0));'+
+                            'float seg = segment-5.0;'+
+                            'float displWeight = 1.0-(abs(seg)/5.0);'+
+                            'float displWeightN = sqrt(displWeight);'+
 
-                            'nodePosition += vec4(dirN*(dist/2.0), 1.0);'+
-                            'nodePosition += vec4(dirN*(increments*segments), 1.0);'+
-                            'nodePosition += vec4(cr*(5.0-abs(segments)), 1.0);'+
-                        //'}'+
+                            'nodePosition += vec4(cr*(displWeightN*repeatId*5.0), 1.0);'+
+                        '}'+
 		       		'}'+
        				'if(isArrow == 1.0) {'+
        					'mat4 pp = lookAt(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
@@ -155,11 +159,41 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
        					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), 3.1416/2.0);'+
        					'mat4 mmB = rotationMatrix(vec3(0.0,0.0,1.0), -3.1416/4.0);'+
-       					'nodepos = nodepos*(mm*mmB);'+
+                        'mat4 mmRepeats = rotationMatrix(vec3(0.0,1.0,0.0), (-3.1416/5.0)*repeatId );'+
+       					'nodepos = nodepos*mmRepeats;'+
 
-       					'vec3 dir = normalize(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z));'+
-       					'nodePosition = nodePosition+(vec4(dir,1.0)*2.0);'+
-       					
+
+
+
+
+
+                        // displacing from center
+       					'dir = normalize(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z));'+
+       					//'nodePosition = nodePosition+(vec4(dir,1.0)*2.0);'+
+
+
+                        // displacing if multiline
+
+                        'float dist = length(dir);'+
+                        'float increments = dist/10.0;'+
+                        'vec3 dirN = normalize(dir);'+
+
+                        'float seg = 1.0;'+
+                        'vec4 nodePositionB = nodePosition+vec4(dirN*(increments*seg), 1.0);'+
+                        'if(seg != 0.0 && seg != 10.0) {'+
+                            'vec3 cr = cross(dirN, vec3(0.0, 1.0, 0.0));'+
+                            'seg = seg-5.0;'+
+                            'float displWeight = 1.0-(abs(seg)/5.0);'+
+                            'float displWeightN = -sqrt(displWeight);'+
+
+                            'nodePositionB += vec4(cr*(displWeightN*repeatId*5.0), 1.0);'+
+                            'dir = normalize(vec3(nodePositionB.x, nodePositionB.y, nodePositionB.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z));'+
+                            'nodePosition += vec4(dir,1.0)*2.0;'+
+                        '}'+
+
+
+
+
        					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+  
        				'}'+
        				'if(isNodeText == 1.0) {'+
@@ -180,35 +214,35 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'vWNMatrix = nodeposG * nodeVertexNormal[x];\n'+
        				
        				'vUseCrosshair = 0.0;'+
-       				'vIstarget = (segments == 1.0) ? 1.0 : 0.0;'+
+       				'vIstarget = (segment == 1.0) ? 1.0 : 0.0;'+
        				
        				customCode+
        				'vVertexColor = nodeVertexColor;'+     
        				
-       				'float acum = 1.0;'+
+       				/*'float acum = 1.0;'+
        				'float dist = 0.01;'+
        				'float wh = widthAdjMatrix-1.0;'+
 					'float ts = 1.0/wh;'+
 					'float xN = data[x].x*ts;'+
 					'for(int n=0; n < 1000000; n++) {'+
 						'if(n == int(wh)) break;'+
-						
-						'float yN = (float(n)*ts);'+  
-						
-						'float idb = yN*wh;'+    
+
+						'float yN = (float(n)*ts);'+
+
+						'float idb = yN*wh;'+
 						'vec2 xx_oppo = get_global_id(idb);'+
 						'vec3 currentPosB = texture2D(posXYZW, xx_oppo).xyz;\n'+
-						
+
 						'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));'+
 						'if(it.x > 0.5) {'+
 							'float distN = distance(currentPosB, nodePosition.xyz)*0.001;'+ // near=0.0 ; far=1.0
-							
+
 							'if(distN > 0.0) {'+
 								'acum += 1.0;'+
 								'dist += (1.0-distN);'+
 							'}'+
 						'}'+
-					'}'+
+					'}'+*/
 					'vDist = 1.0;\n'+ // dist/acum
        				   				
        				
