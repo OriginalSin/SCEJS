@@ -33,9 +33,9 @@ Mesh = function() {
 		var sca = (jsonIn != undefined && jsonIn.scale != undefined) ? jsonIn.scale : 1.0;
 		var side = (jsonIn != undefined && jsonIn.side != undefined) ? jsonIn.side : 1.0 ;
 		
-		_obj.vertexArray = [0.0, 0.0, 1.0*sca, 1.0,
-							-(side/2)*sca, 0.0, -1.0*sca, 1.0,
-                            (side/2)*sca, 0.0, -1.0*sca, 1.0];
+		_obj.vertexArray = [0.0, 0.0, 0.0, 1.0,
+							(side/2)*sca, 0.0, -1.0*sca, 1.0,
+                            -(side/2)*sca, 0.0, -1.0*sca, 1.0];
 		_obj.normalArray = [0.0, 0.0, 1.0, 1.0,
 		                    0.0, 0.0, 1.0, 1.0,
 		                    0.0, 0.0, 1.0, 1.0];	

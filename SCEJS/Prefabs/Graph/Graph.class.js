@@ -34,7 +34,7 @@ Graph = function(sce) {
 	var _enabledForceLayout = false;
 	var _buffAdjMatrix;
 	var _adjMatrixTime = 0;
-	var _lineSegments = 10;
+	var lineVertexCount = 3;
 
 
 	
@@ -48,8 +48,8 @@ Graph = function(sce) {
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
-	var mesh_arrows = new Mesh().loadTriangle({"scale": 2.0,
-												"side": 0.6});
+	var mesh_arrows = new Mesh().loadTriangle({"scale": 3.5,
+												"side": 0.3});
 	var mesh_nodesText = new Mesh().loadQuad(4.0, 4.0);
 
 	// nodes image
@@ -747,6 +747,7 @@ Graph = function(sce) {
                 "directed": directed
                 };
 
+
         var repeatId = 0;
         while(true) {
             var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
@@ -778,7 +779,6 @@ Graph = function(sce) {
                 this.arrayNodeData[id+3] = this.arrayNodeData[id+3]+1.0;
             }
         }
-        comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
 	};
 	/**
 	* Create new link for the graph
@@ -795,12 +795,15 @@ Graph = function(sce) {
 	* @returns {Int}
 	* @private
 	 */
-	var addLinkNow = (function(jsonIn, repeatId) {	
-		var lineVertexCount = _lineSegments+1;
-		for(var n=0; n < lineVertexCount; n++) {
-			// (origin)
-            this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, n, repeatId);
-            this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
+	var addLinkNow = (function(jsonIn, repeatId) {
+		for(var n=0; n < lineVertexCount*2; n++) {
+            this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), repeatId);
+
+            if(Math.ceil(n/2) != (lineVertexCount-1)) {
+                this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
+            } else {
+                this.arrayLinkNodeName.push(jsonIn.target_nodeName);
+            }
             this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
             this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
 
@@ -820,35 +823,13 @@ Graph = function(sce) {
                     }
                 }
             }
-			
-			// (target)
-            /*this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, n, repeatId);
-            this.arrayLinkNodeName.push(jsonIn.target_nodeName);
-            this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
-            this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
-            if(jsonIn.target_layoutNodeArgumentData != undefined) {
-                for(var argNameKey in _customArgs) {
-                    var expl = _customArgs[argNameKey].arg.split("*");
-                    if(expl.length > 0) { // argument is type buffer
-                        if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.target_layoutNodeArgumentData[argNameKey] != undefined) {
-                            if(expl[0] == "float")
-                                _customArgs[argNameKey].links_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey]);
-                            else if(expl[0] == "float4")
-                                _customArgs[argNameKey].links_array_value.push(	jsonIn.target_layoutNodeArgumentData[argNameKey][0],
-                                                                                jsonIn.target_layoutNodeArgumentData[argNameKey][1],
-                                                                                jsonIn.target_layoutNodeArgumentData[argNameKey][2],
-                                                                                jsonIn.target_layoutNodeArgumentData[argNameKey][3]);
-                        }
-                    }
-                }
-            }*/
         }
 
 		if(this.splitLinksIndices.length > 0 && this.arrayLinkIndices.length == this.splitLinksIndices[this.splitLinksIndices.length-1]) {
 			this.startIndexId_link = 0;
 		}
 		
-		for(var n=0; n < lineVertexCount; n++)
+		for(var n=0; n < lineVertexCount*2; n++)
 			this.arrayLinkIndices.push(	this.startIndexId_link++);
 
 		if(this.startIndexId_link == 0) {
@@ -872,10 +853,7 @@ Graph = function(sce) {
 	 */
 	this.updateLinks = function() {
 		console.log(Object.keys(_links).length+" links");
-		
 
-		
-		
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
 		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
@@ -1687,7 +1665,7 @@ Graph = function(sce) {
 		// links
 		comp_renderer_links.addVFP({"name": "LINKS_RGB",
 									"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
-									"drawMode": 2,
+									"drawMode": 1,
 									"geometryLength": 4,
 									"onPreTick": (function() {
 										comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);

@@ -68,10 +68,12 @@
 								"codeObject":
 									// nodeColor
 									'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
-									'if(isLink == 1.0 && segments == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
-									'if(isLink == 1.0 && segments == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 1.0);'+ // this is isTarget for arrows
-									'if(isArrow == 1.0 && segments == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
-									'if(isArrow == 1.0 && segments == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
+									//'if(isLink == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+
+									'float degr = (currentLineVertex/vertexCount)/2.0;'+
+									'if(isLink == 1.0) nodeVertexColor = vec4(0.5+degr, 0.5+degr, 0.5+degr, 1.0);'+ // this is isTarget for arrows
+									'if(isArrow == 1.0 && currentLineVertex == segmentsCount) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+									'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
 									
 								});
 
@@ -80,7 +82,7 @@
 
 
 			// NODES AND LINKS CREATION
-			var numNodes = 100;
+			/*var numNodes = 100;
 			var numLinks = 100; 
 			for(var n=0; n < numNodes; n++) {
 				var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
@@ -106,13 +108,13 @@
 								"target": "#"+B+":"+B,
 								"directed": true});
 			}
-			graph.updateLinks();
+			graph.updateLinks();*/
 
 			// OTHER DISPOSITION OF NODES AND LINKS
-			/*graph.addNode({
+			graph.addNode({
 					"name": "#0",
 					"data": "#0",
-					"position": [-2.0, 0.0, 0.0, 1.0],
+					"position": [-20.0, 0.0, 0.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [1.0, 0.0, 0.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -121,7 +123,7 @@
 			graph.addNode({
 					"name": "#1",
 					"data": "#1",
-					"position": [2.0, 0.0, 0.0, 1.0],
+					"position": [20.0, 0.0, 0.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 1.0, 0.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -130,7 +132,7 @@
 			graph.addNode({
 					"name": "#2",
 					"data": "#2",
-					"position": [0.0, 0.0, -2.0, 1.0],
+					"position": [0.0, 0.0, -20.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 0.0, 1.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -139,7 +141,7 @@
 			graph.addNode({
 					"name": "#3",
 					"data": "#3",
-					"position": [0.0, 0.0, 2.0, 1.0],
+					"position": [0.0, 0.0, 20.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [1.0, 1.0, 1.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -148,7 +150,7 @@
 			graph.addNode({
 					"name": "#4",
 					"data": "#4",
-					"position": [-2.0, 0.0, 3.0, 1.0],
+					"position": [-20.0, 0.0, 30.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [1.0, 0.0, 1.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -157,7 +159,7 @@
 			graph.addNode({
 					"name": "#5",
 					"data": "#5",
-					"position": [2.0, 0.0, 3.0, 1.0],
+					"position": [20.0, 0.0, 30.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 1.0, 0.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -166,7 +168,7 @@
 			graph.addNode({
 					"name": "#6",
 					"data": "#6",
-					"position": [-2.0, 0.0, 4.0, 1.0],
+					"position": [-20.0, 0.0, 40.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [1.0, 0.0, 1.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -175,7 +177,7 @@
 			graph.addNode({
 					"name": "#7",
 					"data": "#7",
-					"position": [2.0, 0.0, 4.0, 1.0],
+					"position": [20.0, 0.0, 40.0, 1.0],
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 1.0, 0.0, 1.0]},
 					"onmouseup": (function(nodeData) {
@@ -186,6 +188,12 @@
 			graph.addLink({	"origin": "#0",
 							"target": "#1",
 							"directed": true});
+            graph.addLink({	"origin": "#0",
+                            "target": "#1",
+                            "directed": true});
+            graph.addLink({	"origin": "#0",
+                            "target": "#1",
+                            "directed": true});
 			graph.addLink({	"origin": "#2",
 							"target": "#3",
 							"directed": true});
@@ -195,7 +203,7 @@
 			graph.addLink({	"origin": "#6",
 							"target": "#7",
 							"directed": true});
-			graph.updateLinks();*/
+			graph.updateLinks();
 
 			//*********
 			// RENDER STAGE

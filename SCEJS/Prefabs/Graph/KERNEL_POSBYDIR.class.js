@@ -40,7 +40,7 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 							'if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0))'+
 								'currentPos += currentDir;\n'+
 
-							'out_float4 = vec4(currentPos.x, 0.0, currentPos.z, 1.0);\n'+
+							'out_float4 = vec4(currentPos.x, currentPos.y, currentPos.z, 1.0);\n'+
 			'}']];
 
        	return str_vfp;
