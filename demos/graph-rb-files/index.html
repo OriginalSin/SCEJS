@@ -102,10 +102,12 @@
 									"codeObject":
 										// nodeColor
 										'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
-										'if(isLink == 1.0 && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
-										'if(isLink == 1.0 && isTarget == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 1.0);'+
-										'if(isArrow == 1.0 && isTarget == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+
-										'if(isArrow == 1.0 && isTarget == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);'
+										//'if(isLink == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+
+                                        'float degr = (currentLineVertex/(segmentsCount/2.0));'+
+                                        'if(isLink == 1.0) nodeVertexColor = vec4(0.5+degr, 0.5+degr, 0.5+degr, 1.0);'+ // this is isTarget for arrows
+										'if(isArrow == 1.0 && currentLineVertex == segmentsCount) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+										'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
 										
 									});
 
@@ -310,7 +312,7 @@
 			document.getElementById("BTNID_ADDLINK").addEventListener("click", (function() {
 				graph.addLink({	"origin": document.getElementById("INPUTID_ADDLINK_ORIGIN").value,
 								"target": document.getElementById("INPUTID_ADDLINK_TARGET").value,
-								"directed": false});
+								"directed": true});
 				graph.updateLinks();
 			}).bind(this));
 			

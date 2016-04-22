@@ -22,8 +22,8 @@ ComponentProjection = function() { Component.call(this);
 	var _near = 0.1;
     var _far = 10000;
 
-	var _nearOrtho = -10000;
-	var _farOrtho = 10000;
+	var _nearOrtho = -100000;
+	var _farOrtho = 100000;
 	
 	
 	/**

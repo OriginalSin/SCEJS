@@ -34,6 +34,7 @@ Graph = function(sce) {
 	var _enabledForceLayout = false;
 	var _buffAdjMatrix;
 	var _adjMatrixTime = 0;
+	var lineVertexCount = 3;
 
 
 	
@@ -47,8 +48,8 @@ Graph = function(sce) {
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
-	var mesh_arrows = new Mesh().loadTriangle({"scale": 2.0,
-												"side": 0.6});
+	var mesh_arrows = new Mesh().loadTriangle({"scale": 3.5,
+												"side": 0.3});
 	var mesh_nodesText = new Mesh().loadQuad(4.0, 4.0);
 
 	// nodes image
@@ -730,50 +731,54 @@ Graph = function(sce) {
 	* @param {Bool} [jsonIn.directed=false] -
 	 */
 	this.addLink = function(jsonIn) {
-		if(_links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target) == false) {
-			console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
-			
-			var directed = (jsonIn != undefined && jsonIn.directed != undefined) ? jsonIn.directed : false;
+        console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
 
-			var json = {
-					"origin_nodeName": jsonIn.origin,
-					"target_nodeName": jsonIn.target,
-					"origin_nodeId": _nodesByName[jsonIn.origin].nodeId,
-					"target_nodeId": _nodesByName[jsonIn.target].nodeId,
-					"origin_itemStart": _nodesByName[jsonIn.origin].itemStart,
-					"target_itemStart": _nodesByName[jsonIn.target].itemStart,
-					"origin_layoutNodeArgumentData": _nodesByName[jsonIn.origin].layoutNodeArgumentData,
-					"target_layoutNodeArgumentData": _nodesByName[jsonIn.target].layoutNodeArgumentData,
-					"directed": directed
-					};
+        var directed = (jsonIn != undefined && jsonIn.directed != undefined) ? jsonIn.directed : false;
 
-			var blId = addLinkNow(json);
-			if(directed == true) addArrowNow(json);
+        var json = {
+                "origin_nodeName": jsonIn.origin,
+                "target_nodeName": jsonIn.target,
+                "origin_nodeId": _nodesByName[jsonIn.origin].nodeId,
+                "target_nodeId": _nodesByName[jsonIn.target].nodeId,
+                "origin_itemStart": _nodesByName[jsonIn.origin].itemStart,
+                "target_itemStart": _nodesByName[jsonIn.target].itemStart,
+                "origin_layoutNodeArgumentData": _nodesByName[jsonIn.origin].layoutNodeArgumentData,
+                "target_layoutNodeArgumentData": _nodesByName[jsonIn.target].layoutNodeArgumentData,
+                "directed": directed
+                };
 
-			// ADD LINK TO ARRAY LINKS
-			_links[jsonIn.origin+"->"+jsonIn.target] = json;
-			//console.log("link "+jsonIn.origin+"->"+jsonIn.target);
-			
-			
-			//
-			for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-				var id = n*4;
-				if(this.arrayNodeData[id] == _nodesByName[jsonIn.origin].nodeId) {
-					this.arrayNodeData[id+1] = _nodesByName[jsonIn.target].nodeId;
-					this.arrayNodeData[id+2] = this.arrayNodeData[id+2];
-					this.arrayNodeData[id+3] = this.arrayNodeData[id+3]+1.0;
-				}
-				if(this.arrayNodeData[id] == _nodesByName[jsonIn.target].nodeId) {
-					this.arrayNodeData[id+1] = _nodesByName[jsonIn.origin].nodeId;
-					this.arrayNodeData[id+2] = this.arrayNodeData[id+2]+1.0;
-					this.arrayNodeData[id+3] = this.arrayNodeData[id+3]+1.0;
-				}
-			}
-			
-		} else {
-			console.log("link "+jsonIn.origin+"->"+jsonIn.target+" already exists");
-			return false;
-		}
+
+        var repeatId = 0;
+        while(true) {
+            var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
+            if(exists == true) {
+                repeatId++;
+            } else
+                break;
+        }
+        var blId = addLinkNow(json, repeatId);
+        if(directed == true)
+            addArrowNow(json, repeatId);
+
+        // ADD LINK TO ARRAY LINKS
+        _links[jsonIn.origin+"->"+jsonIn.target+"_"+repeatId] = json;
+        //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
+
+
+        //
+        for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+            var id = n*4;
+            if(this.arrayNodeData[id] == _nodesByName[jsonIn.origin].nodeId) {
+                this.arrayNodeData[id+1] = _nodesByName[jsonIn.target].nodeId;
+                this.arrayNodeData[id+2] = this.arrayNodeData[id+2];
+                this.arrayNodeData[id+3] = this.arrayNodeData[id+3]+1.0;
+            }
+            if(this.arrayNodeData[id] == _nodesByName[jsonIn.target].nodeId) {
+                this.arrayNodeData[id+1] = _nodesByName[jsonIn.origin].nodeId;
+                this.arrayNodeData[id+2] = this.arrayNodeData[id+2]+1.0;
+                this.arrayNodeData[id+3] = this.arrayNodeData[id+3]+1.0;
+            }
+        }
 	};
 	/**
 	* Create new link for the graph
@@ -790,56 +795,42 @@ Graph = function(sce) {
 	* @returns {Int}
 	* @private
 	 */
-	var addLinkNow = (function(jsonIn) {
-		// (origin)
-		this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, 0.0);
-		this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
-		this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
-		this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
-		if(jsonIn.origin_layoutNodeArgumentData != undefined) {
-			for(var argNameKey in _customArgs) {
-				var expl = _customArgs[argNameKey].arg.split("*");
-				if(expl.length > 0) { // argument is type buffer
-					if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
-						if(expl[0] == "float")
-							_customArgs[argNameKey].links_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
-						else if(expl[0] == "float4")
-							_customArgs[argNameKey].links_array_value.push(	jsonIn.origin_layoutNodeArgumentData[argNameKey][0],
-																			jsonIn.origin_layoutNodeArgumentData[argNameKey][1],
-																			jsonIn.origin_layoutNodeArgumentData[argNameKey][2],
-																			jsonIn.origin_layoutNodeArgumentData[argNameKey][3]);
-					}
-				}
-			}
-		}
+	var addLinkNow = (function(jsonIn, repeatId) {
+		for(var n=0; n < lineVertexCount*2; n++) {
+            this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), repeatId);
 
-		// (target)
-		this.arrayLinkData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, 0.0);
-		this.arrayLinkNodeName.push(jsonIn.target_nodeName);
-		this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
-		this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
-		if(jsonIn.target_layoutNodeArgumentData != undefined) {
-			for(var argNameKey in _customArgs) {
-				var expl = _customArgs[argNameKey].arg.split("*");
-				if(expl.length > 0) { // argument is type buffer
-					if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.target_layoutNodeArgumentData[argNameKey] != undefined) {
-						if(expl[0] == "float")
-							_customArgs[argNameKey].links_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey]);
-						else if(expl[0] == "float4")
-							_customArgs[argNameKey].links_array_value.push(	jsonIn.target_layoutNodeArgumentData[argNameKey][0],
-																			jsonIn.target_layoutNodeArgumentData[argNameKey][1],
-																			jsonIn.target_layoutNodeArgumentData[argNameKey][2],
-																			jsonIn.target_layoutNodeArgumentData[argNameKey][3]);
-					}
-				}
-			}
-		}
+            if(Math.ceil(n/2) != (lineVertexCount-1)) {
+                this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
+            } else {
+                this.arrayLinkNodeName.push(jsonIn.target_nodeName);
+            }
+            this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
+            this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
 
+            if(jsonIn.origin_layoutNodeArgumentData != undefined) {
+                for(var argNameKey in _customArgs) {
+                    var expl = _customArgs[argNameKey].arg.split("*");
+                    if(expl.length > 0) { // argument is type buffer
+                        if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
+                            if(expl[0] == "float")
+                                _customArgs[argNameKey].links_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
+                            else if(expl[0] == "float4")
+                                _customArgs[argNameKey].links_array_value.push(	jsonIn.origin_layoutNodeArgumentData[argNameKey][0],
+                                                                                jsonIn.origin_layoutNodeArgumentData[argNameKey][1],
+                                                                                jsonIn.origin_layoutNodeArgumentData[argNameKey][2],
+                                                                                jsonIn.origin_layoutNodeArgumentData[argNameKey][3]);
+                        }
+                    }
+                }
+            }
+        }
 
 		if(this.splitLinksIndices.length > 0 && this.arrayLinkIndices.length == this.splitLinksIndices[this.splitLinksIndices.length-1]) {
 			this.startIndexId_link = 0;
 		}
-		this.arrayLinkIndices.push(this.startIndexId_link, this.startIndexId_link+1);
+		
+		for(var n=0; n < lineVertexCount*2; n++)
+			this.arrayLinkIndices.push(	this.startIndexId_link++);
 
 		if(this.startIndexId_link == 0) {
 			if(this.splitLinks.length == 0) {
@@ -851,8 +842,6 @@ Graph = function(sce) {
 				this.splitLinksIndices.push(this.splitLinksIndices[0]*(this.splitLinksIndices.length+1));
 			}
 		}
-		this.startIndexId_link += 2;
-
 
 		this.currentLinkId += 2; // augment link id
 
@@ -864,10 +853,7 @@ Graph = function(sce) {
 	 */
 	this.updateLinks = function() {
 		console.log(Object.keys(_links).length+" links");
-		
 
-		
-		
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
 		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
@@ -1248,16 +1234,18 @@ Graph = function(sce) {
 		for(var n = startValues; n < startValues+tLinesPointers; n++) {
 			str += lines[n];
 		}
-		console.log(str);
+		//console.log(str);
 		var pointers = str.replace(/(\s|\t)+/gi, ' ').trim().split(" ");
+        console.log(pointers);
+
 		
 		str = "";
 		for(var n = startValues+tLinesPointers; n < startValues+tLinesPointers+tLinesRowIndices; n++) {
 			str += lines[n];
 		}
-		console.log(str);		
+        //console.log(str);
 		var rowIndices = str.replace(/(\s|\t)+/gi, ' ').trim().split(" ");
-		
+        console.log(rowIndices);
 		
 		
 		
@@ -1312,7 +1300,7 @@ Graph = function(sce) {
 	* @returns {Int}
 	* @private
 	 */
-	var addArrowNow = (function(jsonIn) {
+	var addArrowNow = (function(jsonIn, repeatId) {
 		if(jsonIn != undefined && jsonIn.node != undefined)
 			mesh_arrows = jsonIn.node;
 
@@ -1329,7 +1317,7 @@ Graph = function(sce) {
 				this.arrayArrowVertexNormal.push(mesh_arrows.normalArray[idxVertex], mesh_arrows.normalArray[idxVertex+1], mesh_arrows.normalArray[idxVertex+2], 1.0);
 				this.arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
 				if(o == 0) {
-					this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, 0.0);
+					this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, repeatId);
 					this.arrayArrowNodeName.push(jsonIn.origin_nodeName);
 					if(jsonIn.origin_layoutNodeArgumentData != undefined) {
 						for(var argNameKey in _customArgs) {
@@ -1348,7 +1336,7 @@ Graph = function(sce) {
 						}
 					}
 				} else {
-					this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, 0.0);
+					this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, repeatId);
 					this.arrayArrowNodeName.push(jsonIn.target_nodeName);
 					if(jsonIn.target_layoutNodeArgumentData != undefined) {
 						for(var argNameKey in _customArgs) {

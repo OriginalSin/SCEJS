@@ -102,9 +102,24 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
 	   				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+
 
-					'float isTarget = data[x].z;'+
+                    'vec3 dir = vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
+                    'float dist = length(dir);'+
+                    'float vertexCount = 3.0;'+
+                    'float segmentsCount = vertexCount-1.0;'+
+                    'float lineIncrements = dist/segmentsCount;'+
+                    'vec3 dirN = normalize(dir);'+
+
+                    'float OFFSET = 1000.0;'+
+
+                    'float currentLineVertex = data[x].z;'+ // this is isTarget for arrows
+                    'float repeatId = data[x].w;'+
+
+                    'vec3 cr = cross(dirN, vec3(0.0, 1.0, 0.0));'+
+                    'float currentLineVertexSQRT = abs( currentLineVertex-(segmentsCount/2.0) )/(segmentsCount/2.0);'+
+                    'currentLineVertexSQRT = sqrt(1.0-currentLineVertexSQRT);'+
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
+                    'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+
 
        				'mat4 nodepos = nodeWMatrix;'+
 
@@ -121,31 +136,47 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
 	   				'}'+
 	   				'if(isLink == 1.0) {'+
-	   					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+ 
+                        // displacing from center to first point
+                        'nodePosition += vec4(dirN*(lineIncrements*currentLineVertex), 1.0);'+
+
+                        // displacing from first point to cross direction (repeatId)
+                        'float repeatIsCalculated = (repeatId+1.0);'+
+                        'float loc = (ceil(fract(repeatId/2.0)) == 0.0) ? 1.0*floor(repeatIsCalculated/2.0) : -1.0*floor(repeatIsCalculated/2.0);'+
+                        'if(currentLineVertex != 0.0 && currentLineVertex != segmentsCount) '+
+                            'nodePosition += vec4(cr*(currentLineVertexSQRT*loc*4.0), 1.0);'+
 		       		'}'+
        				'if(isArrow == 1.0) {'+
-       					'mat4 pp = lookAt(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
-       					'pp = transpose(pp);'+
-       					'nodepos[0][0] = pp[0][0];'+
-       					'nodepos[0][1] = pp[1][0];'+
-       					'nodepos[0][2] = pp[2][0];'+
+                        // displacing from center to first point
+                        'float currentLineVertexU = segmentsCount-1.0;'+
+                        'vec4 nodePositionTMP = XYZW_opposite+vec4((dirN*-1.0)*(lineIncrements*currentLineVertexU), 1.0);'+
 
-       					'nodepos[1][0] = pp[0][1];'+
-       					'nodepos[1][1] = pp[1][1];'+
-       					'nodepos[1][2] = pp[2][1];'+
+                        // displacing from first point to cross direction (repeatId)
+                        //'float add = ((OFFSET-dist)*0.001*repeatId);'+
+                        'float repeatIsCalculated = (repeatId+1.0);'+
+                        'float loc = (ceil(fract(repeatId/2.0)) == 0.0) ? 1.0*floor(repeatIsCalculated/2.0) : -1.0*floor(repeatIsCalculated/2.0);'+
+                        'nodePositionTMP -= vec4(cr*(currentLineVertexSQRT*loc*4.0), 1.0);'+
 
-       					'nodepos[2][0] = pp[0][2];'+
-       					'nodepos[2][1] = pp[1][2];'+
-       					'nodepos[2][2] = pp[2][2];'+
 
-       					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), 3.1416/2.0);'+
-       					'mat4 mmB = rotationMatrix(vec3(0.0,0.0,1.0), -3.1416/4.0);'+
-       					'nodepos = nodepos*(mm*mmB);'+
 
-       					'vec3 dir = normalize(vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z));'+
-       					'nodePosition = nodePosition+(vec4(dir,1.0)*2.0);'+
-       					
-       					'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+  
+                        'mat4 pp = lookAt(vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
+                        'pp = transpose(pp);'+
+                        'nodepos[0][0] = pp[0][0];'+
+                        'nodepos[0][1] = pp[1][0];'+
+                        'nodepos[0][2] = pp[2][0];'+
+
+                        'nodepos[1][0] = pp[0][1];'+
+                        'nodepos[1][1] = pp[1][1];'+
+                        'nodepos[1][2] = pp[2][1];'+
+
+                        'nodepos[2][0] = pp[0][2];'+
+                        'nodepos[2][1] = pp[1][2];'+
+                        'nodepos[2][2] = pp[2][2];'+
+
+
+
+                        // displace from center to node border
+                        'dir = vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
+                        'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
        				'}'+
        				'if(isNodeText == 1.0) {'+
        					'float letId = letterId[x];\n'+
@@ -165,35 +196,35 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'vWNMatrix = nodeposG * nodeVertexNormal[x];\n'+
        				
        				'vUseCrosshair = 0.0;'+
-       				'vIstarget = (isTarget == 1.0) ? 1.0 : 0.0;'+
+       				'vIstarget = (currentLineVertex == 1.0) ? 1.0 : 0.0;'+
        				
        				customCode+
        				'vVertexColor = nodeVertexColor;'+     
        				
-       				'float acum = 1.0;'+
+       				/*'float acum = 1.0;'+
        				'float dist = 0.01;'+
        				'float wh = widthAdjMatrix-1.0;'+
 					'float ts = 1.0/wh;'+
 					'float xN = data[x].x*ts;'+
 					'for(int n=0; n < 1000000; n++) {'+
 						'if(n == int(wh)) break;'+
-						
-						'float yN = (float(n)*ts);'+  
-						
-						'float idb = yN*wh;'+    
+
+						'float yN = (float(n)*ts);'+
+
+						'float idb = yN*wh;'+
 						'vec2 xx_oppo = get_global_id(idb);'+
 						'vec3 currentPosB = texture2D(posXYZW, xx_oppo).xyz;\n'+
-						
+
 						'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));'+
 						'if(it.x > 0.5) {'+
 							'float distN = distance(currentPosB, nodePosition.xyz)*0.001;'+ // near=0.0 ; far=1.0
-							
+
 							'if(distN > 0.0) {'+
 								'acum += 1.0;'+
 								'dist += (1.0-distN);'+
 							'}'+
 						'}'+
-					'}'+
+					'}'+*/
 					'vDist = 1.0;\n'+ // dist/acum
        				   				
        				

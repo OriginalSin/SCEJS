@@ -27,15 +27,15 @@ Mesh = function() {
 	* Load a triangle
 	* @param {Object} jsonIn
 	* @param {Float} [scale=1.0]
-	* @param {Float} [jsonIn.side=0.0]
+	* @param {Float} [jsonIn.side=1.0]
 	*/
 	this.loadTriangle = function(jsonIn) {
 		var sca = (jsonIn != undefined && jsonIn.scale != undefined) ? jsonIn.scale : 1.0;
-		var side = (jsonIn != undefined && jsonIn.side != undefined) ? jsonIn.side : 0.0 ;
+		var side = (jsonIn != undefined && jsonIn.side != undefined) ? jsonIn.side : 1.0 ;
 		
-		_obj.vertexArray = [side*sca, 1.0*sca, 0.0, 1.0,
-							1.0*sca, side*sca, 0.0, 1.0,
-							0.0, 0.0, 0.0, 1.0];	
+		_obj.vertexArray = [0.0, 0.0, 0.0, 1.0,
+							(side/2)*sca, 0.0, -1.0*sca, 1.0,
+                            -(side/2)*sca, 0.0, -1.0*sca, 1.0];
 		_obj.normalArray = [0.0, 0.0, 1.0, 1.0,
 		                    0.0, 0.0, 1.0, 1.0,
 		                    0.0, 0.0, 1.0, 1.0];	
