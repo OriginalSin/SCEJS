@@ -526,23 +526,7 @@ Utils.prototype.getElementPosition = function(element) {
 };
 /** @private */
 Utils.prototype.getWebGLContextFromCanvas = function(canvas, ctxOpt) {
-	var gl;
-	try {
-		if(ctxOpt == undefined) gl = canvas.getContext("webgl");
-		else gl = canvas.getContext("webgl", ctxOpt);
-	} catch(e) {
-		gl = null;
-    }
-	if(gl == null) {
-		try {
-			if(ctxOpt == undefined) gl = canvas.getContext("experimental-webgl");
-			else gl = canvas.getContext("experimental-webgl", ctxOpt);
-		} catch(e) {
-			gl = null;
-		}
-	}
-	if(gl == null) gl = false;
-	return gl;
+	return new WebCLGLUtils().getWebGLContextFromCanvas(canvas, ctxOpt);
 };
 /** @private */
 Utils.prototype.fullScreen = function() {
