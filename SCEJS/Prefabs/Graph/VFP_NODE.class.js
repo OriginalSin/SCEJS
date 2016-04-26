@@ -66,7 +66,26 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        			'oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,'+
        			'oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,'+
        			'0.0,                                0.0,                                0.0,                                1.0);'+
-       		'}'],
+       		'}'+
+
+            new Utils().degToRadGLSLFunctionString()+
+            new Utils().radToDegGLSLFunctionString()+
+            new Utils().cartesianToSphericalGLSLFunctionString()+
+            new Utils().sphericalToCartesianGLSLFunctionString()+
+            new Utils().getVectorGLSLFunctionString()+
+
+            'vec3 getVV(vec3 crB, float acum) {'+
+                'vec3 ob = cartesianToSpherical(crB);'+
+                'float angleLat = ob.y;'+
+                'float angleLng = ob.z;'+
+
+                'float desvLat = 0.0;'+ // (vecNoise.x*180.0)-90.0
+                'float desvLng = 10.0;'+ // (vecNoise.x*180.0)-90.0
+                    //'angleLat += (degrees*desvLat);'+
+                'angleLng += (acum*desvLng);'+
+
+                'return sphericalToCartesian(vec3(1.0, angleLat, angleLng));'+
+            '}'],
 
        		// vertex source
        		['void main(float4* data,'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
@@ -104,9 +123,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
                     'vec3 dir = vec3(XYZW_opposite.x, XYZW_opposite.y, XYZW_opposite.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
                     'float dist = length(dir);'+
-                    'float vertexCount = 3.0;'+
-                    'float segmentsCount = vertexCount-1.0;'+
-                    'float lineIncrements = dist/segmentsCount;'+
+                    'float vertexCount = 4.0;'+
+                    'float lineIncrements = dist/vertexCount;'+
                     'vec3 dirN = normalize(dir);'+
 
                     'float OFFSET = 1000.0;'+
@@ -115,7 +133,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                     'float repeatId = data[x].w;'+
 
                     'vec3 cr = cross(dirN, vec3(0.0, 1.0, 0.0));'+
-                    'float currentLineVertexSQRT = abs( currentLineVertex-(segmentsCount/2.0) )/(segmentsCount/2.0);'+
+                    'float currentLineVertexSQRT = abs( currentLineVertex-(vertexCount/2.0) )/(vertexCount/2.0);'+
                     'currentLineVertexSQRT = sqrt(1.0-currentLineVertexSQRT);'+
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
@@ -136,47 +154,123 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
 	   				'}'+
 	   				'if(isLink == 1.0) {'+
-                        // displacing from center to first point
-                        'nodePosition += vec4(dirN*(lineIncrements*currentLineVertex), 1.0);'+
+	   				    'if(xx != xx_opposite) {'+
+                            // displacing from center to first point
+                            'nodePosition += vec4(dirN*(lineIncrements*currentLineVertex), 1.0);'+
 
-                        // displacing from first point to cross direction (repeatId)
-                        'float repeatIsCalculated = (repeatId+1.0);'+
-                        'float loc = (ceil(fract(repeatId/2.0)) == 0.0) ? 1.0*floor(repeatIsCalculated/2.0) : -1.0*floor(repeatIsCalculated/2.0);'+
-                        'if(currentLineVertex != 0.0 && currentLineVertex != segmentsCount) '+
-                            'nodePosition += vec4(cr*(currentLineVertexSQRT*loc*4.0), 1.0);'+
+                            // displacing from first point to cross direction (repeatId)
+                            'float repeatIsCalculated = (repeatId+1.0);'+
+                            'float oddEven = (ceil(fract(repeatId/2.0)) == 0.0) ? 1.0*floor(repeatIsCalculated/2.0) : -1.0*floor(repeatIsCalculated/2.0);'+
+                            'if(currentLineVertex != 0.0 && currentLineVertex != vertexCount) '+
+                                'nodePosition += vec4(cr*currentLineVertexSQRT*oddEven*4.0, 1.0);'+
+                        '} else {'+
+                            'vec3 dirNN = vec3(0.0, 0.0, 1.0);'+
+                            'float currentLineVertexMM = abs( currentLineVertex-(vertexCount/2.0) );'+
+                            'currentLineVertexMM = (vertexCount/2.0)-currentLineVertexMM;'+
+
+                            // displacing from center to first point
+                            'vec3 ddd = getVV(vec3(1.0, 0.0, 0.0), repeatId);'+
+                            'nodePosition += vec4(ddd*(3.0*currentLineVertexMM), 1.0);'+
+
+                            // displacing from first point to cross direction (repeatId)
+                            'if(currentLineVertex != 0.0 && currentLineVertex != vertexCount) {'+
+                                'float sig = (currentLineVertex > (vertexCount/2.0)) ? 1.0 : -1.0;'+
+
+                                'vec3 crB = cross(vec3(0.0, 1.0, 0.0), ddd);'+
+
+                                'float hhSCount = (vertexCount/2.0)/2.0;'+
+                                'float currentLineVertexMMB = hhSCount-(abs(currentLineVertexMM-hhSCount));'+
+                                'nodePosition += vec4((crB*sig)*currentLineVertexMMB*5.0, 1.0);'+
+                            '}'+
+                        '}'+
 		       		'}'+
        				'if(isArrow == 1.0) {'+
-                        // displacing from center to first point
-                        'float currentLineVertexU = segmentsCount-1.0;'+
-                        'vec4 nodePositionTMP = XYZW_opposite+vec4((dirN*-1.0)*(lineIncrements*currentLineVertexU), 1.0);'+
+                        'if(xx != xx_opposite) {'+
+                            // displacing from center to first point
+                            'float currentLineVertexU = vertexCount-1.0;'+
+                            'vec4 nodePositionTMP = XYZW_opposite+vec4((dirN*-1.0)*(lineIncrements*currentLineVertexU), 1.0);'+
 
-                        // displacing from first point to cross direction (repeatId)
-                        //'float add = ((OFFSET-dist)*0.001*repeatId);'+
-                        'float repeatIsCalculated = (repeatId+1.0);'+
-                        'float loc = (ceil(fract(repeatId/2.0)) == 0.0) ? 1.0*floor(repeatIsCalculated/2.0) : -1.0*floor(repeatIsCalculated/2.0);'+
-                        'nodePositionTMP -= vec4(cr*(currentLineVertexSQRT*loc*4.0), 1.0);'+
-
-
-
-                        'mat4 pp = lookAt(vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
-                        'pp = transpose(pp);'+
-                        'nodepos[0][0] = pp[0][0];'+
-                        'nodepos[0][1] = pp[1][0];'+
-                        'nodepos[0][2] = pp[2][0];'+
-
-                        'nodepos[1][0] = pp[0][1];'+
-                        'nodepos[1][1] = pp[1][1];'+
-                        'nodepos[1][2] = pp[2][1];'+
-
-                        'nodepos[2][0] = pp[0][2];'+
-                        'nodepos[2][1] = pp[1][2];'+
-                        'nodepos[2][2] = pp[2][2];'+
+                            // displacing from first point to cross direction (repeatId)
+                            //'float add = ((OFFSET-dist)*0.001*repeatId);'+
+                            'float repeatIsCalculated = (repeatId+1.0);'+
+                            'float oddEven = (ceil(fract(repeatId/2.0)) == 0.0) ? 1.0*floor(repeatIsCalculated/2.0) : -1.0*floor(repeatIsCalculated/2.0);'+
+                            'nodePositionTMP -= vec4(cr*(currentLineVertexSQRT*oddEven*4.0), 1.0);'+
 
 
 
-                        // displace from center to node border
-                        'dir = vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
-                        'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
+                            'mat4 pp = lookAt(vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
+                            'pp = transpose(pp);'+
+                            'nodepos[0][0] = pp[0][0];'+
+                            'nodepos[0][1] = pp[1][0];'+
+                            'nodepos[0][2] = pp[2][0];'+
+
+                            'nodepos[1][0] = pp[0][1];'+
+                            'nodepos[1][1] = pp[1][1];'+
+                            'nodepos[1][2] = pp[2][1];'+
+
+                            'nodepos[2][0] = pp[0][2];'+
+                            'nodepos[2][1] = pp[1][2];'+
+                            'nodepos[2][2] = pp[2][2];'+
+
+
+
+                            // displace from center to node border
+                            'dir = vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
+                            'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
+                        '} else {'+
+                            'float currentLineVertexU = vertexCount-1.0;'+
+                            'vec3 dirNN = vec3(0.0, 0.0, 1.0);'+
+                            'float currentLineVertexMM = abs( currentLineVertexU-(vertexCount/2.0) );'+
+                            'currentLineVertexMM = (vertexCount/2.0)-currentLineVertexMM;'+
+
+                            // displacing from center to first point
+                            'vec3 ddd = getVV(vec3(1.0, 0.0, 0.0), repeatId);'+
+                            'vec4 nodePositionTMP = XYZW_opposite+vec4(ddd*(3.0*currentLineVertexMM), 1.0);'+
+
+
+
+
+                            // displacing from first point to cross direction (repeatId)
+                            //'float add = ((OFFSET-dist)*0.001*repeatId);'+
+                            //'float repeatIsCalculated = (repeatId+1.0);'+
+                            //'float oddEven = (ceil(fract(repeatId/2.0)) == 0.0) ? 1.0*floor(repeatIsCalculated/2.0) : -1.0*floor(repeatIsCalculated/2.0);'+
+
+                            'if(currentLineVertex != 0.0 && currentLineVertex != vertexCount) {'+
+                                'float sig = (currentLineVertex > (vertexCount/2.0)) ? 1.0 : -1.0;'+
+
+                                'vec3 crB = cross(vec3(0.0, 1.0, 0.0), ddd);'+
+
+                                'float hhSCount = (vertexCount/2.0)/2.0;'+
+                                'float currentLineVertexMMB = hhSCount-(abs(currentLineVertexMM-hhSCount));'+
+
+                                'nodePositionTMP += vec4((crB*sig)*currentLineVertexMMB*5.0, 1.0);'+
+                                //'nodePositionTMP -= vec4((crB*sig)*(currentLineVertexSQRT*(repeatId+1.0)*4.0), 1.0);'+
+                            '}'+
+
+
+
+
+
+                            'mat4 pp = lookAt(vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z), vec3(nodePosition.x, nodePosition.y, nodePosition.z), vec3(0.0, 1.0, 0.0));'+
+                            'pp = transpose(pp);'+
+                            'nodepos[0][0] = pp[0][0];'+
+                            'nodepos[0][1] = pp[1][0];'+
+                            'nodepos[0][2] = pp[2][0];'+
+
+                            'nodepos[1][0] = pp[0][1];'+
+                            'nodepos[1][1] = pp[1][1];'+
+                            'nodepos[1][2] = pp[2][1];'+
+
+                            'nodepos[2][0] = pp[0][2];'+
+                            'nodepos[2][1] = pp[1][2];'+
+                            'nodepos[2][2] = pp[2][2];'+
+
+
+
+                                // displace from center to node border
+                            'dir = vec3(nodePositionTMP.x, nodePositionTMP.y, nodePositionTMP.z)-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
+                            'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
+                        '}'+
        				'}'+
        				'if(isNodeText == 1.0) {'+
        					'float letId = letterId[x];\n'+
