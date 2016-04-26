@@ -299,7 +299,7 @@ WebCLGLWork = function(webCLGL, offset) {
      */
     this.enqueueVertexFragmentProgram = function(argument, vertexFragmentProgramName, drawMode, geometryLength) {
         var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argument];
-        if(buff.length > 0) this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[vertexFragmentProgramName], buff, drawMode, geometryLength);
+        if(buff != undefined && buff.length > 0) this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[vertexFragmentProgramName], buff, drawMode, geometryLength);
     };
 };
 
