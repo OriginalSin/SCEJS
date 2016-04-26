@@ -34,7 +34,7 @@ Graph = function(sce) {
 	var _enabledForceLayout = false;
 	var _buffAdjMatrix;
 	var _adjMatrixTime = 0;
-	var lineVertexCount = 3;
+	var lineVertexCount = 4;
 
 
 	
@@ -48,7 +48,7 @@ Graph = function(sce) {
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
-	var mesh_arrows = new Mesh().loadTriangle({"scale": 3.5,
+	var mesh_arrows = new Mesh().loadTriangle({"scale": 1.75,
 												"side": 0.3});
 	var mesh_nodesText = new Mesh().loadQuad(4.0, 4.0);
 
@@ -77,6 +77,7 @@ Graph = function(sce) {
 	var nodesImgCrosshairLoaded = false;
 
 
+    var _enableFont = false;
 	var FONT_IMG_COLUMNS = 7.0;
 	var getLetterId = function(letter) {
 		var obj = {	"A":  0, "B":  1, "C":  2, "D":  3, "E":  4, "F":  5, "G":  6,
@@ -461,16 +462,23 @@ Graph = function(sce) {
 	}).bind(this);
 
 	/**
-	 * setFontsImage
-	 * @param {String} url
-	 */
-	this.setFontsImage = function(url) {
-		var image = new Image();
-		image.onload = (function() {
-			comp_renderer_nodesText.setArg("fontsImg", (function(){return image;}).bind(this));
-		}).bind(this);
-		image.src = url;
-	};
+     * setFontsImage
+     * @param {String} url
+     */
+    this.setFontsImage = function(url) {
+        var image = new Image();
+        image.onload = (function() {
+            comp_renderer_nodesText.setArg("fontsImg", (function(){return image;}).bind(this));
+        }).bind(this);
+        image.src = url;
+    };
+
+    /**
+     * enableFonts
+     */
+    this.enableFonts = function() {
+        _enableFont = true;
+    };
 
 	/**
 	 * setNodeMesh
@@ -537,11 +545,13 @@ Graph = function(sce) {
 											"onmousedown": node.onmousedown,
 											"onmouseup": node.onmouseup};
 
-			/*addNodeTextNow({"name": jsonIn.name,
-							"text": jsonIn.name,
-							"itemStart": node.itemStart,
-							"nodeId": node.nodeId,
-							"layoutNodeArgumentData": jsonIn.layoutNodeArgumentData});*/
+            if(_enableFont == true) {
+                addNodeTextNow({"name": jsonIn.name,
+                                "text": jsonIn.name,
+                                "itemStart": node.itemStart,
+                                "nodeId": node.nodeId,
+                                "layoutNodeArgumentData": jsonIn.layoutNodeArgumentData});
+            }
 
 			console.log("%cnode "+(Object.keys(_nodesByName).length)+" ("+jsonIn.name+")", "color:green");
 			
@@ -695,7 +705,8 @@ Graph = function(sce) {
 			}
 		}
 
-		//updateNodesText();
+		if(_enableFont == true)
+		    updateNodesText();
 	};
 
 	/**
@@ -748,7 +759,7 @@ Graph = function(sce) {
                 };
 
 
-        var repeatId = 0;
+        var repeatId = (jsonIn.origin == jsonIn.target) ? 1 : 0;
         while(true) {
             var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
             if(exists == true) {
@@ -1684,16 +1695,18 @@ Graph = function(sce) {
 										}).bind(this)});
 
 		// nodestext
-		/*comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
-										"vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
-										"drawMode": 4,
-										"geometryLength": 4,
-										"enableBlend": true,
-										"blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-										"blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
-										"onPreTick": (function() {	
-											comp_renderer_nodesText.setVfpArgDestination("NODESTEXT_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-										}).bind(this)});*/
+        if(_enableFont == true) {
+            comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
+                                            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
+                                            "drawMode": 4,
+                                            "geometryLength": 4,
+                                            "enableBlend": true,
+                                            "blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
+                                            "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
+                                            "onPreTick": (function() {
+                                                comp_renderer_nodesText.setVfpArgDestination("NODESTEXT_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+                                            }).bind(this)});
+        }
 	};
 
 	/**

@@ -113,20 +113,26 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));'+
 
 						'if(dist > 0.0) {'+
-							'if(it.x > 0.5) {'+ // connection exists
-                                'if(enableForceLayoutRepulsion == 0.0) {'+
-                                    'atraction += dirToBN*(dist*0.5);\n'+
+                            'if(enableForceLayoutRepulsion == 0.0) {'+
+                                'if(it.x > 0.5) {'+ // connection exists
+                                    'atraction += dirToBN*dist*0.5;\n'+
                                     'atraction += dirToBN*-10.0;\n'+
-                                '} else {'+
-                                    'atraction += dirToBN*(dist*0.5);\n'+
-                                '}'+
 
-								'acumAtraction += 1.0;'+
-							'} else {'+ // connection not exists
-								'if(enableForceLayoutRepulsion == 1.0) {'+
-									'repulsion += dirToBN*-1000.0;\n'+
-								'}'+
-							'}'+
+                                    'acumAtraction += 1.0;'+
+                                '} else {'+
+
+                                '}'+
+                            '} else {'+
+                                'if(it.x > 0.5) {'+ // connection exists
+                                    'atraction += dirToBN*dist*0.5;\n'+
+                                    'atraction += dirToBN*-1.0;\n'+
+
+                                    'acumAtraction += 1.0;'+
+                                '} else {'+
+                                    'repulsion += dirToBN*-(1000.0);\n'+
+                                '}'+
+                            '}'+
+
 
 							// SPHERICAL COLLISION
 							'if(enableForceLayoutCollision == 1.0 && dist < (radius*1.0)) {'+
@@ -146,10 +152,18 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						//'}'+
 					'}'+ // end for
 
-                    'currentDir += atraction/acumAtraction;'+
 
-                    'if(enableForceLayoutRepulsion == 1.0)'+
-                    'currentDir += repulsion/((widthAdjMatrix*numberOfColumns)-acumAtraction);'+
+
+                    'if(enableForceLayoutRepulsion == 1.0) {'+
+                        'vec3 cA = atraction/acumAtraction;'+
+                        'currentDir += cA;'+
+
+                        'vec3 cR = repulsion/(widthAdjMatrix);'+
+                        'currentDir += cR*sqrt( max(0.0, 1.0-length(cA)) );'+
+                    '} else {'+
+                        'vec3 cA = atraction/acumAtraction;'+
+                        'currentDir += cA;'+
+                    '}'+
 
 				'}'+ // END if(nodeId >= initA && nodeId < (initA+widthAdjMatrix))
 
@@ -157,8 +171,9 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 
 			"if(enableForceLayout == 1.0) {"+
-				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) "+
-					'acumAtraction = 1.0;'+
+				"if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
+                    'currentDir /= numberOfColumns;'+
+                '}'+
 			"} else {"+
 				'currentDir = currentDir;'+ // air resistence
 			"}"+
@@ -166,7 +181,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			
 			((customCode != undefined) ? customCode : '')+
 	
-			'out_float4 = vec4(currentDir, acumAtraction);'+
+			'out_float4 = vec4(currentDir, 1.0);'+
 		'}']];
        	
        	return str_vfp;
