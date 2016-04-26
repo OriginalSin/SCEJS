@@ -67,7 +67,8 @@
 
 				var mesh_point = new Mesh().loadPoint();
 				//graph.setNodeMesh(mesh_point);
-				
+
+
 				graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
 				
 				// APPLY THIS LAYOUT
@@ -116,7 +117,7 @@
 				// destination
 				graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
 				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
-
+                graph.enableHover();
 
 
 				// NODES AND LINKS CREATION
