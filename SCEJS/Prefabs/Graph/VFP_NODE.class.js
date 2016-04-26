@@ -10,6 +10,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'varying float vDist;\n'+
        		'uniform sampler2D adjacencyMatrix;\n'+
        		'varying float vIsSelected;\n'+
+            'varying float vIsHover;\n'+
        		'varying float vUseCrosshair;\n'+
        		'varying float vIstarget;\n'+
        		
@@ -105,6 +106,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        			'float isArrow,'+
        			'float isNodeText,'+
 				'float idToDrag,'+
+                'float idToHover,'+
        			'float nodeImgColumns,'+
        			'float fontImgColumns,'+
        			customArgs+') {'+
@@ -138,6 +140,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
                     'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+
+                    'vIsHover = (idToHover == data[x].x || idToHover == data[x].y) ? 1.0 : 0.0;'+
 
        				'mat4 nodepos = nodeWMatrix;'+
 
@@ -151,8 +154,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   						'vVertexUV = get2Dfrom1D(nodeImgId, nodeImgColumns)+vec2(nodeVertexTexture.x/nodeImgColumns,nodeVertexTexture.y/nodeImgColumns);'+
 	   					'}'+
 	   					
-	   					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
-	   				'}'+
+	   					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+
+                        'vIsHover = (idToHover == data[x].x) ? 1.0 : 0.0;'+
+                    '}'+
 	   				'if(isLink == 1.0) {'+
 	   				    'if(xx != xx_opposite) {'+
                             // displacing from center to first point
@@ -280,8 +284,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        					'vVertexUV = get2Dfrom1D(letId, fontImgColumns)+vec2(nodeVertexTexture.x/fontImgColumns,nodeVertexTexture.y/fontImgColumns);'+
        					'nodeVertexPosition = vec4(nodeVertexPosition.x*0.1, nodeVertexPosition.y*0.1, nodeVertexPosition.z*0.1, 1.0);'+
        					
-       					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+ 
-       				'}'+
+       					'vIsSelected = (idToDrag == data[x].x) ? 1.0 : 0.0;'+
+                        'vIsHover = (idToHover == data[x].x) ? 1.0 : 0.0;'+
+                    '}'+
        				'nodepos[3][0] = nodePosition.x;'+
        				'nodepos[3][1] = nodePosition.y;'+
        				'nodepos[3][2] = nodePosition.z;'+
@@ -332,6 +337,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		 'varying vec4 vWNMatrix;\n'+
        		'varying float vDist;\n'+
        		'varying float vIsSelected;\n'+
+            'varying float vIsHover;\n'+
        		'varying float vUseCrosshair;\n'+
        		'varying float vIstarget;\n'],
 
@@ -348,6 +354,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		 	'vec4 color = vVertexColor;\n'+
        		 	'vec4 colorOrange = vec4(255.0/255.0, 131.0/255.0, 0.0/255.0, 1.0);'+
        		 	'vec4 colorOrangeDark = vec4(255.0/255.0, 80.0/255.0, 0.0/255.0, 1.0);'+
+                'vec4 colorPurple = vec4(132.0/255.0, 0.0/255.0, 255.0/255.0, 1.0);'+
        		 	
        			'if(isNode == 1.0) {'+
 	       			'if(vUseTex == 1.0) {'+
@@ -357,6 +364,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	       				'} else if(vIsSelected == 1.0) {'+
 		       				'color = colorOrangeDark;'+
 	       					'tex = texture2D(nodesImgCrosshair, vVertexUV.xy);'+	       					
+	       				'} else if(vIsHover == 1.0) {'+
+		       				'color = colorPurple;'+
+	       					'tex = texture2D(nodesImg, vVertexUV.xy);'+
 	       				'} else {'+
 	       					'tex = texture2D(nodesImg, vVertexUV.xy);'+
 	       				'}'+
@@ -366,13 +376,18 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	       		'} else if(isLink == 1.0) {'+
 	       			'if(vIsSelected == 1.0) {'+
 	       				'color = colorOrange;'+
+	       			'} else if(vIsHover == 1.0) {'+
+	       				'color = colorPurple;'+
 	       			'}'+
 	       			'gl_FragColor = vec4(color.rgb, vDist);\n'+
 	       		'} else if(isArrow == 1.0) {'+
 	       			'if(vIstarget == 1.0) {'+
 		       			'if(vIsSelected == 1.0) {'+
 		       				'color = colorOrange;'+
-			   			'}'+		   				
+			   			'}'+
+			   			'if(vIsHover == 1.0) {'+
+		       				'color = colorPurple;'+
+			   			'}'+
 		   			'} else {'+
 		   				'color = vec4(1.0, 0.0, 0.0, 0.0);'+
 		   			'}'+
