@@ -312,6 +312,8 @@ Graph = function(sce) {
             }
         } else {
             if(comp_controller_trans_target.isLeftBtnActive() == true) {
+                enableHover(-1);
+
                 if(selectedId == -1)
                     disableDrag();
                 else
@@ -1763,7 +1765,7 @@ Graph = function(sce) {
         var unpackValue = _utils.unpack([arrayPick[0]/255, arrayPick[1]/255, arrayPick[2]/255, arrayPick[3]/255]); // value from 0.0 to 1.0
         selectedId = Math.round(unpackValue*1000000.0)-1.0;
         console.log("selectedId: "+selectedId);
-        if(selectedId != -1) {
+        if(selectedId != -1 && selectedId < this.currentNodeId) {
             var node = _nodesById[selectedId];
             if(node != undefined && node.onmousedown != undefined) node.onmousedown(node);
 

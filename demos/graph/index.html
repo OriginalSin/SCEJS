@@ -20,11 +20,13 @@
 
 	<body>
 		<div id="SCEJS"></div>
+		<br />
+        <div id="SCEJSB"></div>
 
 		<script>
 			var sce = new SCE();
 			sce.initialize({"target": document.getElementById("SCEJS"),
-							"dimensions": {"width": 512, "height": 512}});
+							"dimensions": {"width": 256, "height": 256}});
 
 
 			var project = new Project();
@@ -38,7 +40,7 @@
 			var simpleCamera = new SimpleCamera(sce);
 			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
 			simpleCamera.setVelocity(1.0);
-			sce.setDimensions(1024, 750);	
+			sce.setDimensions(256, 256);
 			
 			// GRID
 			var grid = new Grid(sce);

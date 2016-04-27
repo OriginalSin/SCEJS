@@ -53,6 +53,22 @@ SystemEvents = function(sce, target) {
 		return {"x": mousePosX, "y": mousePosY};
 	};
 
+    /**
+     * updateDivPosition
+     * @param {Event} evt
+     */
+    var updateDivPosition = (function(evt) {
+        divPositionX = _utils.getElementPosition(_sce.getCanvas()).x;
+        divPositionY = _utils.getElementPosition(_sce.getCanvas()).y;
+
+        mousePosX = (evt.clientX - divPositionX);
+        mousePosY = (evt.clientY - divPositionY);
+        mousePosX_orig = mousePosX;
+        mousePosY_orig = mousePosY;
+        mouseOldPosX = mousePosX;
+        mouseOldPosY = mousePosY;
+    }).bind(this);
+
 	/**
 	 * @param {Int} COMPONENT_TYPES
 	 * @param {Int} EVENT_TYPES
@@ -66,15 +82,7 @@ SystemEvents = function(sce, target) {
 			var dir = null;
 
 			if(eventType == Constants.EVENT_TYPES.MOUSE_DOWN) {
-				divPositionX = _utils.getElementPosition(_sce.getCanvas()).x;
-				divPositionY = _utils.getElementPosition(_sce.getCanvas()).y;
-				
-				mousePosX = (evt.clientX - divPositionX);
-				mousePosY = (evt.clientY - divPositionY);
-				mousePosX_orig = mousePosX;
-				mousePosY_orig = mousePosY;
-				mouseOldPosX = mousePosX;
-				mouseOldPosY = mousePosY;
+				updateDivPosition(evt);
 			}
 			if(eventType == Constants.EVENT_TYPES.MOUSE_MOVE) {
 				mouseOldPosX = mousePosX;
@@ -85,6 +93,8 @@ SystemEvents = function(sce, target) {
 				dir = $V3([mousePosX-mousePosX_orig, 0.0, mousePosY-mousePosY_orig]);
 			}
 			if(eventType == Constants.EVENT_TYPES.MOUSE_WHEEL) {
+                updateDivPosition(evt);
+
 				var currFov = comp_projection.getFov();
 				var weightX = ((mousePosX-(_sce.getCanvas().width/2.0)) /_sce.getCanvas().width)*currFov*0.2;
 				var weightY = ((mousePosY-(_sce.getCanvas().height/2.0)) /_sce.getCanvas().height)*currFov*0.2;				
