@@ -143,6 +143,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                     'vIsHover = (idToHover == data[x].x || idToHover == data[x].y) ? 1.0 : 0.0;'+
 
        				'mat4 nodepos = nodeWMatrix;'+
+       				'float repeatDistribution = 2.0;'+
 
        				'if(isNode == 1.0) {'+
 	   					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
@@ -173,8 +174,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                             'currentLineVertexMM = (vertexCount/2.0)-currentLineVertexMM;'+
 
                             // displacing from center to first point
-                            'vec3 ddd = getVV(vec3(1.0, 0.0, 0.0), repeatId);'+
-                            'nodePosition += vec4(ddd*(3.0*currentLineVertexMM), 1.0);'+
+                            'vec3 ddd = getVV(vec3(1.0, 0.0, 0.0), repeatId*repeatDistribution);'+
+                            'nodePosition += vec4(ddd*(5.0*currentLineVertexMM), 1.0);'+
 
                             // displacing from first point to cross direction (repeatId)
                             'if(currentLineVertex != 0.0 && currentLineVertex != vertexCount) {'+
@@ -184,7 +185,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
                                 'float hhSCount = (vertexCount/2.0)/2.0;'+
                                 'float currentLineVertexMMB = hhSCount-(abs(currentLineVertexMM-hhSCount));'+
-                                'nodePosition += vec4((crB*sig)*currentLineVertexMMB*5.0, 1.0);'+
+                                'nodePosition += vec4((crB*sig)*currentLineVertexMMB*1.0, 1.0);'+
                             '}'+
                         '}'+
 		       		'}'+
@@ -228,8 +229,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                             'currentLineVertexMM = (vertexCount/2.0)-currentLineVertexMM;'+
 
                             // displacing from center to first point
-                            'vec3 ddd = getVV(vec3(1.0, 0.0, 0.0), repeatId);'+
-                            'vec4 nodePositionTMP = XYZW_opposite+vec4(ddd*(3.0*currentLineVertexMM), 1.0);'+
+                            'vec3 ddd = getVV(vec3(1.0, 0.0, 0.0), repeatId*repeatDistribution);'+
+                            'vec4 nodePositionTMP = XYZW_opposite+vec4(ddd*(5.0*currentLineVertexMM), 1.0);'+
 
 
 
@@ -247,7 +248,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                                 'float hhSCount = (vertexCount/2.0)/2.0;'+
                                 'float currentLineVertexMMB = hhSCount-(abs(currentLineVertexMM-hhSCount));'+
 
-                                'nodePositionTMP += vec4((crB*sig)*currentLineVertexMMB*5.0, 1.0);'+
+                                'nodePositionTMP += vec4((crB*sig)*currentLineVertexMMB*1.0, 1.0);'+
                                 //'nodePositionTMP -= vec4((crB*sig)*(currentLineVertexSQRT*(repeatId+1.0)*4.0), 1.0);'+
                             '}'+
 

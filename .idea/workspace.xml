@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5878b405-5807-4b26-a1cc-af147a53dfb7" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js" afterPath="$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/SCE.class.js" afterPath="$PROJECT_DIR$/SCEJS/SCE.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/SystemEvents.class.js" afterPath="$PROJECT_DIR$/SCEJS/SystemEvents.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SCEJS/UI/UI.class.js" afterPath="$PROJECT_DIR$/SCEJS/UI/UI.class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/demos/graph-custom-layout/index.html" afterPath="$PROJECT_DIR$/demos/graph-custom-layout/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/demos/graph/index.html" afterPath="$PROJECT_DIR$/demos/graph/index.html" />
     </list>
     <ignored path="SCEJS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -35,8 +28,8 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/demos/graph/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-25.0">
-              <caret line="190" column="43" selection-start-line="190" selection-start-column="43" selection-end-line="190" selection-end-column="43" />
+            <state vertical-scroll-proportion="-25.181818">
+              <caret line="188" column="8" selection-start-line="188" selection-start-column="8" selection-end-line="188" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -84,10 +77,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Graph.class.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Graph.class.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.977169">
+            <state vertical-scroll-proportion="0.0">
               <caret line="1767" column="62" selection-start-line="1767" selection-start-column="62" selection-end-line="1767" selection-end-column="62" />
               <folding />
             </state>
@@ -114,11 +107,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="VFP_NODE.class.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="VFP_NODE.class.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="386" column="32" selection-start-line="386" selection-start-column="32" selection-end-line="386" selection-end-column="32" />
+            <state vertical-scroll-proportion="0.8173516">
+              <caret line="232" column="77" selection-start-line="232" selection-start-column="77" selection-end-line="232" selection-end-column="77" />
               <folding />
             </state>
           </provider>
@@ -149,7 +142,6 @@
         <option value="$PROJECT_DIR$/SCEJS/WebCLGLWork.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/Prefabs/GI/GI.class.js" />
         <option value="$PROJECT_DIR$/demos/graph-custom-layout/index.html" />
-        <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/Utils.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/SCE.class.js" />
         <option value="$PROJECT_DIR$/SCEJS/UI/UI.class.js" />
@@ -157,6 +149,7 @@
         <option value="$PROJECT_DIR$/demos/graph/index.html" />
         <option value="$PROJECT_DIR$/demos/graph-multi-instancing/index.html" />
         <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js" />
+        <option value="$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js" />
       </list>
     </option>
   </component>
@@ -903,12 +896,12 @@
       <workItem from="1461691238730" duration="12000" />
       <workItem from="1461714378786" duration="416000" />
       <workItem from="1461744397398" duration="8892000" />
-      <workItem from="1461757643237" duration="2343000" />
+      <workItem from="1461757643237" duration="4656000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="130218000" />
+    <option name="totallyTimeSpent" value="132531000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -921,7 +914,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32936078" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -934,7 +927,7 @@
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20255864" sideWeight="0.495671" order="1" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20255864" sideWeight="0.504329" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14552239" sideWeight="0.504329" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
@@ -1262,14 +1255,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/demos/graph/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-25.0">
-          <caret line="190" column="43" selection-start-line="190" selection-start-column="43" selection-end-line="190" selection-end-column="43" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/SCEJS/SystemEvents.class.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.83789957">
@@ -1282,14 +1267,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.37214613">
           <caret line="46" column="84" selection-start-line="46" selection-start-column="84" selection-end-line="46" selection-end-column="84" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="386" column="32" selection-start-line="386" selection-start-column="32" selection-end-line="386" selection-end-column="32" />
           <folding />
         </state>
       </provider>
@@ -1362,8 +1339,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/Graph.class.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.977169">
+        <state vertical-scroll-proportion="0.0">
           <caret line="1767" column="62" selection-start-line="1767" selection-start-column="62" selection-end-line="1767" selection-end-column="62" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demos/graph/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-25.181818">
+          <caret line="188" column="8" selection-start-line="188" selection-start-column="8" selection-end-line="188" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SCEJS/Prefabs/Graph/VFP_NODE.class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.8173516">
+          <caret line="232" column="77" selection-start-line="232" selection-start-column="77" selection-end-line="232" selection-end-column="77" />
           <folding />
         </state>
       </provider>
