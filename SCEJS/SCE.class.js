@@ -126,6 +126,7 @@ SCE = function() {
 	* @param {HTMLDivElement} jsonIn.target
 	* @param {Object} [jsonIn.dimensions={width: Int, height: Int}],
 	* @param {Bool} [enableUI=true]
+    * @param {WebGLRenderingContext} [gl=undefined]
 	*/
 	this.initialize = function(jsonIn) {
 		target = (jsonIn != undefined && jsonIn.target != undefined) ? jsonIn.target : undefined;
@@ -136,8 +137,10 @@ SCE = function() {
 			canvas = document.createElement("canvas");
 			target.appendChild(canvas);
 			this.setDimensions(dimensions.width, dimensions.height);
-			
-			if(!(gl = new Utils().getWebGLContextFromCanvas(canvas))) {
+
+			if(jsonIn != undefined && jsonIn.gl != undefined) {
+			    gl = jsonIn.gl;
+            } else if(!(gl = new Utils().getWebGLContextFromCanvas(canvas))) {
 				alert("No WebGLRenderingContext");
 				return false; 
 			}
@@ -153,7 +156,7 @@ SCE = function() {
 		project.setWebGLContext(gl);
 		
 		if(_enableUI == true) 
-			_UI = new UI(project).render(target);
+			_UI = new UI(project).render(target, canvas);
 		
 		_events = new SystemEvents(this, canvas);
 		_events.initialize();

@@ -384,8 +384,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	       			'if(vIstarget == 1.0) {'+
 		       			'if(vIsSelected == 1.0) {'+
 		       				'color = colorOrange;'+
-			   			'}'+
-			   			'if(vIsHover == 1.0) {'+
+			   			'} else if(vIsHover == 1.0) {'+
 		       				'color = colorPurple;'+
 			   			'}'+
 		   			'} else {'+
