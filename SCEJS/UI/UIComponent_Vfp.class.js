@@ -13,7 +13,7 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 		var vfp = comp.getVFPs()[vfpKey];
 
 		// vertex programs
-		str = "<div id='"+targetElement.id+"_"+vfpKey+"_vps' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
+		var str = "<div id='"+targetElement.id+"_"+vfpKey+"_vps' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
 			"<div style='height:250px;'>"+
 				"<div>VFP NAME: "+vfpKey+"</div>"+
 				"<div>SE ARG destination: "+vfp.name+"</div>"+

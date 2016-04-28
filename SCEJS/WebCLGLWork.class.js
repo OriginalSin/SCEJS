@@ -4,6 +4,8 @@
 * @constructor
 */
 WebCLGLWork = function(webCLGL, offset) {
+    "use strict";
+
 	this.webCLGL = webCLGL;
 	this.offset = (offset != undefined) ? offset : 100.0;
 
@@ -184,11 +186,11 @@ WebCLGLWork = function(webCLGL, offset) {
             }
             var spl = (splits != undefined) ? splits : [length];
 
-            buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
+            var buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
             this.webCLGL.enqueueWriteBuffer(buff, value);
             this.buffers[argument] = buff;
             if(this.updatedFromKernel.hasOwnProperty(argument) == true) {
-                buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
+                var buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                 this.webCLGL.enqueueWriteBuffer(buffTMP, value);
                 this.buffers_TEMP[argument] = buffTMP;
             }

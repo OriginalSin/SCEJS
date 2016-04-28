@@ -3,65 +3,12 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [
        	    // kernel head
-       		['vec3 sphericalColl(vec3 currentDir, vec3 currentDirB, vec3 dirToBN) {'+
-				'vec3 currentDirN = normalize(currentDir);'+
-				'float pPoint = abs(dot(currentDirN, dirToBN));'+
-				'vec3 reflectV = reflect(currentDirN*-1.0, dirToBN);'+					
-				
-				'vec3 currentDirBN = normalize(currentDirB);'+
-				'float pPointB = abs(dot(currentDirBN, dirToBN));'+
-				
-				'vec3 repulsionForce = (reflectV*-1.0)* (((1.0-pPoint)*length(currentDir))+((pPointB)*length(currentDirB)));\n'+
-				
-				'return (repulsionForce.x > 0.0 && repulsionForce.y > 0.0 && repulsionForce.z > 0.0) ? repulsionForce : dirToBN*-0.1;'+
-			"}"+
+       		[ForceLayout_FunctionsString+
+       		adjMatrix_GLSLFunctionString(   AdjMatrix_ForceLayout_initVars,
+                                            AdjMatrix_ForceLayout_relationFound,
+                                            AdjMatrix_ForceLayout_summation,
+                                            AdjMatrix_ForceLayout_returnInstruction)],
 
-            'struct CalculationResponse {'+
-                'vec3 atraction;'+
-                'float acumAtraction;'+
-                'vec3 repulsion;'+
-                'float collisionExists;'+
-            '};'+
-
-            'CalculationResponse calculate(int connectionExists, vec2 xx_oppo, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion) {'+
-                'float radius = 4.0;\n'+
-                'float collisionExists = 0.0;\n'+
-
-                'vec3 currentPosB = posXYZW[xx_oppo].xyz;\n'+
-                'vec3 currentDirB = dir[xx_oppo].xyz;\n'+
-
-                'vec3 dirToB = (currentPosB-currentPos);\n'+
-                'vec3 dirToBN = normalize(dirToB);\n'+
-                'float dist = distance(currentPosB, currentPos);\n'+ // near=0.0 ; far=1.0
-
-                // SPHERICAL COLLISION
-                'if(enableForceLayoutCollision == 1.0 && dist < radius) {'+
-                    'collisionExists = 1.0;'+
-                    'atraction = sphericalColl(currentDir, currentDirB, dirToBN);'+
-                '} else {'+ // end spherical collision
-                    'if(connectionExists == 1) {'+
-                        'atraction += dirToBN*dist*0.5;\n'+
-                        'atraction += dirToBN*-10.0;\n'+
-
-                        'acumAtraction += 1.0;\n'+
-                    '} else {'+
-                        'if(enableForceLayoutRepulsion == 1.0) \n'+
-                            'repulsion += dirToBN*-(1000.0);\n'+
-                    '}'+
-                '}'+
-                'return CalculationResponse(atraction, acumAtraction, repulsion, collisionExists);'+
-            '}'+
-
-            calculateAdjMatrixForce_str(calculateAdjMatrixForce_calForceLayout1,
-                                        calculateAdjMatrixForce_calForceLayout2,
-                                        calculateAdjMatrixForce_calForceLayout3,
-                                        calculateAdjMatrixForce_calForceLayout4)],
-
-
-
-
-
-       		
        		// kernel source
        		['void main(float4* data'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
 			       		',float* adjacencyMatrix'+

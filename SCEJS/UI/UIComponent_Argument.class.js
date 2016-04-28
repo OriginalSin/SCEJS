@@ -9,7 +9,7 @@ UIComponent_Argument = function(targetElement, selectedNode, comp, args) {
 
 
 	// ARGS
-	str = "<div id='"+targetElement.id+"_args' style='display:table-cell;vertical-align:top;'>"+
+	var str = "<div id='"+targetElement.id+"_args' style='display:table-cell;vertical-align:top;'>"+
 		"<div style='height:250px;'>"+
 			"<div>ARGUMENTS</div>"+
 		"</div>";
