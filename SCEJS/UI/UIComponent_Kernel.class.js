@@ -13,7 +13,7 @@ UIComponent_Kernel = function(targetElement, selectedNode, comp, args) {
 		var kernel = comp.getKernels()[kernelKey];
 
 		// fragment programs
-		str = "<div id='"+targetElement.id+"_"+kernelKey+"_kernels' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
+		var str = "<div id='"+targetElement.id+"_"+kernelKey+"_kernels' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
 			"<div style='height:250px;'>"+
 				"<div>KERNEL NAME: "+kernelKey+"</div>"+
 				"<div>ARG DESTINATION: "+kernel.name+"</div>"+ 
