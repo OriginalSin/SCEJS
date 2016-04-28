@@ -60,12 +60,22 @@ WebCLGLKernel.prototype.setKernelSource = function(source, header) {
 	}
 	//console.log(this.in_values);
 
+    // parse header
+    this.head = this.head.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
+    //this.head = this.head.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
+    //console.log('minified source: '+this.source);
+
+    this.head = this.parse(this.head);
+
+
+    // parse source
 	//console.log('original source: '+source);
 	this.source = source.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
 	this.source = this.source.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
 	//console.log('minified source: '+this.source);
 
 	this.source = this.parse(this.source);
+
 	this.compile();
 };
 /**
