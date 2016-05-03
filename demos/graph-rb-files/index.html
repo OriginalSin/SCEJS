@@ -10,12 +10,6 @@
 		<script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
 		<script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
 
-
-        <script src="../../SCEJS/Prefabs/Graph/graphUtil.js"></script>
-		<script src="../../SCEJS/Prefabs/Graph/KERNEL_DIR.class.js"></script>
-		<script src="../../SCEJS/Prefabs/Graph/KERNEL_POSBYDIR.class.js"></script>
-		<script src="../../SCEJS/Prefabs/Graph/VFP_NODEPICKDRAG.class.js"></script>
-		<script src="../../SCEJS/Prefabs/Graph/VFP_NODE.class.js"></script>
 		<script src="../../SCEJS/Prefabs/Graph/Graph.class.js"></script>
 	</head>
 
@@ -48,7 +42,7 @@
 			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
 			simpleCamera.setFov(500);
 			simpleCamera.setVelocity(1.0);
-			sce.setDimensions(1024, 750);	
+			sce.setDimensions(1024, 700);
 			
 			// GRID
 			var grid = new Grid(sce);
@@ -58,21 +52,43 @@
 			// GRAPH
 			var OFFSET = 1000.0;
 			var offs = OFFSET/10;
-			
-			var graph;
-			var loadGraph = function(rbUrl) {
-				if(graph != undefined) graph.clear();
-				
-				graph = new Graph(sce);
-				graph.setOffset(OFFSET);
 
-				var mesh_point = new Mesh().loadPoint();
-				//graph.setNodeMesh(mesh_point);
+            var arrPP = [];
+            var aL = function(rbUrl) {
+                // APPLY THIS LAYOUT
+                var lines_argumentsPoles = (function(arrPP) {
+                    var str = '';
+                    for(var n = 0, f = arrPP.length; n < f; n++) {
+                        str += 'float pole'+n+'X,'+
+                                'float pole'+n+'Y,'+
+                                'float pole'+n+'Z,'+
+                                'float pole'+n+'Polarity,'+
+                                'float pole'+n+'Orbit,'+
+                                'float pole'+n+'Force,';
+                    }
+                    return str;
+                }).bind(this);
+                var lines_poles = (function(arrPP) {
+                    var str = 'float offset;vec3 polePos;vec3 vecN; float toDir; vec3 cc;float distanceToPole;\n';
+                    for(var n = 0, f = arrPP.length; n < f; n++) {
+                        str += 'polePos = vec3(pole'+n+'X,pole'+n+'Y,pole'+n+'Z);\n'+
+                                'toDir = -1.0;\n'+
+                                'if(sign(particlePolarity[x]) == 0.0 && sign(pole'+n+'Polarity) == 1.0) toDir = 1.0;\n'+
+                                'if(sign(particlePolarity[x]) == 1.0 && sign(pole'+n+'Polarity) == 0.0) toDir = 1.0;\n'+
+                                'offset = '+OFFSET.toFixed(20)+';'+
 
+                                'distanceToPole = 1.0-sqrt(length(vec3(polePos-currentPos)/offset));'+
 
-				graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
-				
-				// APPLY THIS LAYOUT
+                                'vecN = ((vec3(polePos-currentPos)-(-1.0))/(1.0-(-1.0)) - 0.5 ) *2.0 * pole'+n+'Force * toDir;'+
+                                'cc = vecN*distanceToPole ;\n'+
+
+                                'currentDir = clamp(currentDir+(cc*0.01),-1.0,1.0);\n'+
+
+                                    //'if(pole'+n+'Orbit == 1.0) cc =
+                                '';
+                    }
+                    return str;
+                }).bind(this);
 				graph.applyLayout({	// DIRECTION
 									// [x], [xx_opposite]
 									// vec3 currentDir, vec3 currentDir_opposite, vec3 currentPos, vec3 currentPos_opposite
@@ -81,9 +97,13 @@
 									"argsDirection":
 											// dir
 											"float4* ndirect,float enableNDirect,"+
+											// pp
+                                            "float* particlePolarity,"+lines_argumentsPoles(arrPP)+
 											// destination
 											"float4* dest,float destinationForce,float enableDestination",
 									"codeDirection":
+                                        // pp
+                                        lines_poles(arrPP)+
 										// destination
 										'if(enableDestination == 1.0) {\n'+
 											'vec3 destinationPos = dest[x].xyz;\n'+
@@ -110,14 +130,40 @@
                                         'if(isLink == 1.0) nodeVertexColor = vec4(0.5+degr, 0.5+degr, 0.5+degr, 1.0);'+ // this is isTarget for arrows
 										'if(isArrow == 1.0 && currentLineVertex == vertexCount) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
 										'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
-										
+
 									});
 
 
-				// SET LAYOUT GLOBAL ARGUMENTS DATA
+                // SET LAYOUT GLOBAL ARGUMENTS DATA
+                // pp
+                for(var n = 0, f = arrPP.length; n < f; n++) {
+                    graph.setLayoutArgumentData({"argName": 'pole'+n+'X', "value": arrPP[n].x});
+                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Y', "value": arrPP[n].y});
+                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Z', "value": arrPP[n].z});
+                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Polarity', "value": arrPP[n].polarity});
+                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Orbit', "value": arrPP[n].orbit});
+                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Force', "value": arrPP[n].force});
+                }
 				// destination
 				graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
 				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
+            };
+
+			var graph;
+			var loadGraph = function(rbUrl) {
+				if(graph != undefined) graph.clear();
+				
+				graph = new Graph(sce);
+				graph.setOffset(OFFSET);
+
+				var mesh_point = new Mesh().loadPoint();
+				//graph.setNodeMesh(mesh_point);
+
+
+				graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
+
+                //graph.enableFonts(true);
+                aL();
                 graph.enableHover();
 
 
@@ -125,7 +171,18 @@
 				graph.updateNodes();
 				graph.updateLinks();
 				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
-					
+
+
+                    // TMP
+                    graph.addLink({	"origin": "1", "target": "1","directed": true});
+                    graph.addLink({	"origin": "1", "target": "1","directed": true});
+                    graph.addLink({	"origin": "1", "target": "1","directed": true});
+                    graph.addLink({	"origin": "1", "target": "1","directed": true});
+                    graph.addLink({	"origin": "1", "target": "1","directed": true});
+                    graph.addLink({	"origin": "1", "target": "1","directed": true});
+                    graph.enableForceLayout();
+                    //graph.enableForceLayoutRepulsion();
+                    graph.updateLinks();
 				}).bind(this));
 			};			
 			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
@@ -186,6 +243,8 @@
 		<input type="text" id="INPUTID_ADDNODE_ID" /><button id="BTNID_ADDNODE">AddNode</button><br />
 		<input type="text" id="INPUTID_ADDLINK_ORIGIN" /><input type="text" id="INPUTID_ADDLINK_TARGET" /><button id="BTNID_ADDLINK">AddLink</button><br />
 		<br />
+        <button id="BTNID_PP">addPP</button>
+        <br />
 		<button id="BTNID_IMG">node per pixel color</button><br />
 		<img id="IMGID_lena" src="../_RESOURCES/lena_128x128.jpg" /><br />
 		
@@ -290,6 +349,7 @@
 				var node = graph.addNode({
 					"name": document.getElementById("INPUTID_ADDNODE_ID").value,
 					"data": "",
+                    "label": document.getElementById("INPUTID_ADDNODE_ID").value,
 					"position": pos,
 					"color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
 					"layoutNodeArgumentData": {
@@ -309,6 +369,7 @@
 
 					}).bind(this)});
 				graph.updateNodes();
+                graph.updateLinks();
 			}).bind(this));
 			
 			document.getElementById("BTNID_ADDLINK").addEventListener("click", (function() {
@@ -317,7 +378,14 @@
 								"directed": true});
 				graph.updateLinks();
 			}).bind(this));
-			
+
+            document.getElementById("BTNID_PP").addEventListener("click", (function() {
+                arrPP.push({"x": 0.0, "y": 0.0, "z": 0.0,
+                            "polarity": 1.0,
+                            "orbit": 0.0,
+                            "force": 0.5});
+                aL();
+            }).bind(this));
 			
 			document.getElementById("BTNID_IMG").addEventListener("click", (function() {
 				graph.setLayoutNodeArgumentArrayData({	"argName": "nodeColor",

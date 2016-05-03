@@ -38,28 +38,11 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			
 			
 			
-			'float nodeId = data[x].x;'+ 
-			'vec3 currentDir = dir[x].xyz;\n'+
-			'vec3 currentPos = posXYZW[x].xyz;\n'+
+			'float nodeId = data[x].x;'+
+            'float numOfConnections = data[x].y;\n'+
 
-			//'float acumAtraction = dir[x].w;\n'+
-
-
-
-			// if isLink == 1
-			//'float linkId = data[x].x;'+
-			'float isTarget = data[x].z;'+ 
-			
-			
-			
-			'float nodeId_opposite = data[xx_opposite].x;'+
-			'vec3 currentDir_opposite = dir[xx_opposite].xyz;\n'+ 			
-			'vec3 currentPos_opposite = posXYZW[xx_opposite].xyz;\n'+ 
-			
-			// if isLink == 1
-			'float linkId_opposite = data[xx_opposite].y;'+
-			'float targets = 1.0/(1.0+data[x].w);'+
-
+			'vec3 currentDir = dir[xx].xyz;\n'+
+			'vec3 currentPos = posXYZW[xx].xyz;\n'+
 
             'if(currentAdjMatrix == 0.0) {'+
                 'currentDir = vec3(0.0, 0.0, 0.0);'+
@@ -67,9 +50,9 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 			// FORCE LAYOUT
 			"if(enableForceLayout == 1.0 && performFL == 0.0) {"+
-                'vec4 forC = calculateAdjMatrixForce(nodeId, currentPos, currentDir);'+
+                'vec4 forC = idAdjMatrix(nodeId, currentPos, currentDir, numOfConnections);'+
                 'currentDir = (forC.w == 1.0) ? forC.xyz : (currentDir+forC.xyz);'+
-			"}"+ // END if(enableForceLayout == 1.0 && performFL == 0.0) {
+			"}"+
 
 
 			"if(enableForceLayout == 1.0) {"+
