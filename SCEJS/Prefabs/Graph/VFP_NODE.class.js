@@ -8,6 +8,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'varying float vUseTex;\n'+
        		'varying vec4 vWNMatrix;\n'+
        		'varying float vDist;\n'+
+            'varying float vVisibility;\n'+
        		//'uniform sampler2D adjacencyMatrix;\n'+
        		'varying float vIsSelected;\n'+
             'varying float vIsHover;\n'+
@@ -98,7 +99,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
             'vec3 getFirstDispl(float nodeId, vec4 nodePosition, float repeatId) {'+
                 'float repeatDistribution = -0.1;'+
                 // first check output edges of own node and return the node (textCoord for get posXYZW) with max available angle to the right
-                'vec4 adjMatrix = idAdjMatrix(nodeId, nodePosition.xyz, vec3(0.0,0.0,0.0), 0.0);'+
+                'vec4 adjMatrix = idAdjMatrix(nodeId, nodePosition.xyz, vec3(0.0,0.0,0.0), 0.0, 0.0, 0.0, 0.0);'+
                 'vec3 initialVec = normalize(texture2D(posXYZW, adjMatrix.xy).xyz-nodePosition.xyz)*vec3(1.0, -1.0, 1.0);'+
                 'float totalAngleRelations = adjMatrix.z;'+
                 // then first sum half of available angle received
@@ -109,6 +110,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
        		// vertex source
        		['void main(float4* data,'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
+                'float4*kernel dataB,'+
        		 	'float* letterId,'+
        		 	'float* nodeImgId,'+
        		 	'float*kernel adjacencyMatrix,'+
@@ -117,6 +119,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                 'float currentAdjMatrix,'+
                 'float numberOfColumns,'+
                 'float nodesCount,'+
+
+                'float currentTimestamp,'+
 
        			'float4*kernel posXYZW,'+
        			'float4* nodeVertexPos,'+
@@ -139,7 +143,10 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 					'vec2 xx = get_global_id(data[x].x);'+
 					'vec2 xx_opposite = get_global_id(data[x].y);'+
 
-                    'float nodeId = data[xx].x;'+
+					'float bornDate = data[x].z;'+
+                    'float dieDate = data[x].w;'+
+
+                    'float nodeId = data[xx].x;'+ // TODO xx to x
 
                     'vec4 nodePosition = posXYZW[xx];\n'+
 					'vec3 XYZW_opposite = posXYZW[xx_opposite].xyz;\n'+
@@ -164,6 +171,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                     'currentLineVertexSQRT = sqrt(1.0-currentLineVertexSQRT);'+
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
+                    'vVisibility = 1.0;'+
                     'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+
                     'vIsHover = (idToHover == data[x].x || idToHover == data[x].y) ? 1.0 : 0.0;'+
                     'vDist = max(0.3, 1.0-(distance(nodePosition.xyz, XYZW_opposite)*0.01));\n'+ // dist/acum
@@ -280,7 +288,10 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				
        				customCode+
        				'vVertexColor = nodeVertexColor;'+
-       				
+
+                    'if(currentTimestamp < bornDate)'+
+                        'vVisibility = 0.0;'+
+
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPosition;\n'+
        		'}'],
 
@@ -290,6 +301,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		'varying float vUseTex;\n'+
        		 'varying vec4 vWNMatrix;\n'+
        		'varying float vDist;\n'+
+            'varying float vVisibility;\n'+
        		'varying float vIsSelected;\n'+
             'varying float vIsHover;\n'+
        		'varying float vUseCrosshair;\n'+
@@ -325,7 +337,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	       					'tex = texture2D(nodesImg, vVertexUV.xy);'+
 	       				'}'+
 	       				'color = vec4(tex.rgb*color.rgb, tex.a);\n'+
-					'}'+							
+					'}'+
 					'gl_FragColor = color;'+
 	       		'} else if(isLink == 1.0) {'+
 	       			'if(vIsSelected == 1.0) {'+
@@ -348,6 +360,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	       		'} else if(isNodeText == 1.0) {'+
        				'gl_FragColor = texture2D(fontsImg, vVertexUV.xy);\n'+
        			'}'+
+
+                 'if(vVisibility == 0.0)'+
+                     'gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);'+
        		 '}']];
 
        	return str_vfp;

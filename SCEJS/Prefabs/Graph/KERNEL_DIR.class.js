@@ -11,10 +11,14 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
        		// kernel source
        		['void main(float4* data'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
+                        ',float4* dataB'+
 			       		',float* adjacencyMatrix'+
 						',float widthAdjMatrix'+
 						',float currentAdjMatrix'+
 						',float numberOfColumns'+
+
+                        ',float currentTimestamp'+
+
 						',float enableForceLayout'+
 						',float performFL'+
 						',float enableForceLayoutCollision'+
@@ -41,6 +45,9 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 			'float nodeId = data[x].x;'+
             'float numOfConnections = data[x].y;\n'+
 
+            'float bornDate = data[x].z;'+
+            'float dieDate = data[x].w;'+
+
 			'vec3 currentDir = dir[xx].xyz;\n'+
 			'vec3 currentPos = posXYZW[xx].xyz;\n'+
 
@@ -50,7 +57,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 
 			// FORCE LAYOUT
 			"if(enableForceLayout == 1.0 && performFL == 0.0) {"+
-                'vec4 forC = idAdjMatrix(nodeId, currentPos, currentDir, numOfConnections);'+
+                'vec4 forC = idAdjMatrix(nodeId, currentPos, currentDir, numOfConnections, currentTimestamp, bornDate, dieDate);'+
                 'currentDir = (forC.w == 1.0) ? forC.xyz : (currentDir+forC.xyz);'+
 			"}"+
 

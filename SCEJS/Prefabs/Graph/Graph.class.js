@@ -40,7 +40,12 @@ Graph = function(sce) {
 	var _adjMatrixTime = 0;
 	var lineVertexCount = 4;
 
-
+    var _enableAnimation = true;
+    var _animationFrames = 500;
+    var _initTimestamp;
+    var _endTimestamp;
+    var _timeFrameIncrement;
+    var _currentFrame = 0;
 	
 	var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
 
@@ -148,6 +153,7 @@ Graph = function(sce) {
 	this.splitNodesIndices = [];
 
 	this.arrayNodeData = [];
+    this.arrayNodeDataB = [];
 	this.arrayNodePosXYZW = [];
 	this.arrayNodeVertexPos = [];
 	this.arrayNodeVertexNormal = [];
@@ -254,6 +260,62 @@ Graph = function(sce) {
 
 	this.currentNodeTextId = 0;
 	this.nodeTextArrayItemStart = 0;
+
+    /**
+     * setTimelineDatetimeRange
+     * @param {Object} jsonIn
+     * @param {Datetime} jsonIn.initDatetime
+     * @param {Datetime} jsonIn.endDatetime
+     */
+    this.setTimelineDatetimeRange = function(jsonIn) {
+        /**
+         * datetimeToTimestamp
+         * @example
+         * ar ts = datetimeToTimestamp("24-Nov-2009 17:57:35")
+         * */
+        var datetimeToTimestamp = function(dt) {
+            return Date.parse(dt)/1000;
+        };
+
+        _initTimestamp = datetimeToTimestamp(jsonIn.initDatetime);
+        _endTimestamp = datetimeToTimestamp(jsonIn.endDatetime);
+
+        _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * setTimelineDatetimeRange
+     * @param {Int} len - frames length
+     */
+    this.setTimelineFramesLength = function(len) {
+        _animationFrames = len;
+
+        _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * getTimeFrameIncrement
+     * @returns {Float}
+     */
+    this.getTimeFrameIncrement = function() {
+        return _timeFrameIncrement;
+    };
+
+    /**
+     * getInitTimestamp
+     * @returns {Int}
+     */
+    this.getInitTimestamp = function() {
+        return _initTimestamp;
+    };
+
+    /**
+     * getEndTimestamp
+     * @returns {Int}
+     */
+    this.getEndTimestamp = function() {
+        return _endTimestamp;
+    };
 
     /**
      * setOffset
@@ -785,6 +847,19 @@ Graph = function(sce) {
             "geometryLength": 4,
             "kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
             "onPreTick": (function() {
+                if(_enableAnimation == true) {
+                    var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
+                    comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+                    comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+                    comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+
+                    _currentFrame++;
+                    if(_currentFrame == _animationFrames)
+                        _currentFrame = 0;
+
+                    console.log(currentTimestamp+"  "+_currentFrame);
+                }
+
                 if(this.currentNodeId > 0 && _enabledForceLayout == true) {
                     comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
                     comp_renderer_links.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
@@ -1313,6 +1388,8 @@ Graph = function(sce) {
 	* @param {String} [jsonIn.data=""] - Custom data associated to this node
 	* @param {Array<Float4>} [jsonIn.position=new Array(Math.Random(), Math.Random(), Math.Random(), 1.0)] - Position of node
 	* @param {String} [jsonIn.color=undefined] - URL of image
+    * @param {Float} [jsonIn.bornDate=undefined] -
+    * @param {Float} [jsonIn.dieDate=undefined] -
 	* @param {LayoutNodeData} [jsonIn.layoutNodeArgumentData=undefined] - Data for the custom layout
 	* @param {Graph~addNode~onmousedown} [jsonIn.onmousedown=undefined] - Event when mousedown
 	* @param {Graph~addNode~onmouseup} [jsonIn.onmouseup=undefined] - Event when mouseup
@@ -1448,7 +1525,10 @@ Graph = function(sce) {
             for(var n=0; n < mesh_nodes.vertexArray.length/4; n++) {
                 var idxVertex = n*4;
 
-                this.arrayNodeData.push(this.currentNodeId, 0.0, 0.0, 0.0);
+                var bornDate = (jsonIn.bornDate != undefined) ? jsonIn.bornDate : -1.0;
+                var dieDate = (jsonIn.dieDate != undefined) ? jsonIn.dieDate : -1.0;
+                this.arrayNodeData.push(this.currentNodeId, 0.0, bornDate, dieDate);
+                this.arrayNodeDataB.push(bornDate, dieDate, 0.0, 0.0);
                 this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
                 this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
                 this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
@@ -1649,6 +1729,7 @@ Graph = function(sce) {
 		console.log((this.currentNodeId)+" nodes");
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
 
 		if(comp_renderer_nodes.getTempBuffers()["posXYZW"] != undefined) {
 			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
@@ -1937,13 +2018,13 @@ Graph = function(sce) {
                 var id = n*4;
                 if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
                     this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    this.arrayNodeData[id+2] = 0;
-                    this.arrayNodeData[id+3] = 0;
+                    //this.arrayNodeData[id+2] = 0;
+                    //this.arrayNodeData[id+3] = 0;
                 }
                 if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
                     this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    this.arrayNodeData[id+2] = 0;
-                    this.arrayNodeData[id+3] = 0;
+                    //this.arrayNodeData[id+2] = 0;
+                    //this.arrayNodeData[id+3] = 0;
                 }
             }
         } else {

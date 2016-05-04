@@ -69,7 +69,13 @@ var AdjMatrix_ForceLayout_relationFound = ''+
     'collisionExists = 1.0;'+
     'force = calcResponse.atraction;'+
     'break;'+
-'}';
+'}'+
+
+'if(currentTimestamp < bornDate) {'+
+    'force = vec3(0.0, 0.0, 0.0);'+
+    'break;'+
+'}'+
+'vec4 dataBB = texture2D(dataB, vec2(xN, yN));\n';
 
 var AdjMatrix_ForceLayout_summation = ''+
 'if(collisionExists == 0.0) {'+
@@ -168,7 +174,7 @@ var AdjMatrix_Autolink_returnInstruction = 'return vec4(totalIDrelation, totalAn
 
 var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, returnInstruction) {
     var str = ''+
-    'vec4 idAdjMatrix(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections) {\n'+
+    'vec4 idAdjMatrix(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections, float currentTimestamp, float bornDate, float dieDate) {\n'+
         initVars+
 
         'float ts = 1.0/(widthAdjMatrix-1.0);\n'+
@@ -195,6 +201,7 @@ var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, 
             '}'+
 
             summation+
+
         '}'+
 
         returnInstruction+
