@@ -245,7 +245,13 @@ Graph = function(sce) {
 	var _adjMatrixTime = 0;
 	var lineVertexCount = 4;
 
-
+    var _enableAnimation = false;
+    var _loop = false;
+    var _animationFrames = 500;
+    var _initTimestamp;
+    var _endTimestamp;
+    var _timeFrameIncrement;
+    var _currentFrame = 0;
 	
 	var _customArgs = {}; // {ARG: {"arg": String, "value": Array&lt;Float>}}
 
@@ -353,6 +359,7 @@ Graph = function(sce) {
 	this.splitNodesIndices = [];
 
 	this.arrayNodeData = [];
+    this.arrayNodeDataB = [];
 	this.arrayNodePosXYZW = [];
 	this.arrayNodeVertexPos = [];
 	this.arrayNodeVertexNormal = [];
@@ -459,6 +466,87 @@ Graph = function(sce) {
 
 	this.currentNodeTextId = 0;
 	this.nodeTextArrayItemStart = 0;
+
+    /**
+     * setTimelineDatetimeRange
+     * @param {Object} jsonIn
+     * @param {Datetime} jsonIn.initDatetime
+     * @param {Datetime} jsonIn.endDatetime
+     */
+    this.setTimelineDatetimeRange = function(jsonIn) {
+        /**
+         * datetimeToTimestamp
+         * @example
+         * ar ts = datetimeToTimestamp("24-Nov-2009 17:57:35")
+         * */
+        var datetimeToTimestamp = function(dt) {
+            return Date.parse(dt)/1000;
+        };
+
+        _initTimestamp = datetimeToTimestamp(jsonIn.initDatetime);
+        _endTimestamp = datetimeToTimestamp(jsonIn.endDatetime);
+
+        _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * setTimelineDatetimeRange
+     * @param {Int} len - frames length
+     */
+    this.setTimelineFramesLength = function(len) {
+        _animationFrames = len;
+
+        _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * getTimeFrameIncrement
+     * @returns {Float}
+     */
+    this.getTimeFrameIncrement = function() {
+        return _timeFrameIncrement;
+    };
+
+    /**
+     * getInitTimestamp
+     * @returns {Int}
+     */
+    this.getInitTimestamp = function() {
+        return _initTimestamp;
+    };
+
+    /**
+     * getEndTimestamp
+     * @returns {Int}
+     */
+    this.getEndTimestamp = function() {
+        return _endTimestamp;
+    };
+
+    /**
+     * play
+     * @param {Bool} [loop=false]
+     */
+    this.playTimeline = function(loop) {
+        _enableAnimation = true;
+        if(loop != undefined)
+            _loop = loop;
+    };
+
+    /**
+     * pause
+     */
+    this.pauseTimeline = function() {
+        _enableAnimation = false;
+    };
+
+    /**
+     * setFrame
+     * @param {Int} - frame
+     */
+    this.setFrame = function(frame) {
+        _currentFrame = frame;
+    };
 
     /**
      * setOffset
@@ -990,6 +1078,22 @@ Graph = function(sce) {
             "geometryLength": 4,
             "kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
             "onPreTick": (function() {
+                if(_enableAnimation == true) {
+                    var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
+                    comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+                    comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+                    comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+
+                    _currentFrame++;
+                    if(_currentFrame == _animationFrames) {
+                        _currentFrame = 0;
+                        if(_loop == false) {
+                            this.pauseTimeline();
+                        }
+                    }
+                    console.log(currentTimestamp+"  "+_currentFrame);
+                }
+
                 if(this.currentNodeId > 0 &amp;&amp; _enabledForceLayout == true) {
                     comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
                     comp_renderer_links.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
@@ -1084,6 +1188,9 @@ Graph = function(sce) {
             "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
             "drawMode": 1,
             "geometryLength": 4,
+            "enableBlend": true,
+            "blendSrc": Constants.BLENDING_MODES.ONE,
+            "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
             "onPreTick": (function() {
                 comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
             }).bind(this)});
@@ -1518,6 +1625,8 @@ Graph = function(sce) {
 	* @param {String} [jsonIn.data=""] - Custom data associated to this node
 	* @param {Array&lt;Float4>} [jsonIn.position=new Array(Math.Random(), Math.Random(), Math.Random(), 1.0)] - Position of node
 	* @param {String} [jsonIn.color=undefined] - URL of image
+    * @param {Float} [jsonIn.bornDate=undefined] -
+    * @param {Float} [jsonIn.dieDate=undefined] -
 	* @param {LayoutNodeData} [jsonIn.layoutNodeArgumentData=undefined] - Data for the custom layout
 	* @param {Graph~addNode~onmousedown} [jsonIn.onmousedown=undefined] - Event when mousedown
 	* @param {Graph~addNode~onmouseup} [jsonIn.onmouseup=undefined] - Event when mouseup
@@ -1653,7 +1762,10 @@ Graph = function(sce) {
             for(var n=0; n &lt; mesh_nodes.vertexArray.length/4; n++) {
                 var idxVertex = n*4;
 
-                this.arrayNodeData.push(this.currentNodeId, 0.0, 0.0, 0.0);
+                var bornDate = (jsonIn.bornDate != undefined) ? jsonIn.bornDate : -1.0;
+                var dieDate = (jsonIn.dieDate != undefined) ? jsonIn.dieDate : -1.0;
+                this.arrayNodeData.push(this.currentNodeId, 0.0, bornDate, dieDate);
+                this.arrayNodeDataB.push(bornDate, dieDate, 0.0, 0.0);
                 this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
                 this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
                 this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
@@ -1731,23 +1843,15 @@ Graph = function(sce) {
 
             for(var i = 0; i &lt; nodesTextPlanes; i++) {
                 var letterId;
-                if(jsonIn.label[i] == undefined)
-                    break;
-
-                if(jsonIn.label[i] != undefined) {
+                if(jsonIn.label != undefined &amp;&amp; jsonIn.label[i] != undefined)
                     letterId = getLetterId(jsonIn.label[i]);
-
-                    if(letterId == undefined)
-                        letterId = getLetterId(" ");
-                } else {
+                if(letterId == undefined)
                     letterId = getLetterId(" ");
-                }
-
 
                 for(var n=0; n &lt; mesh_nodesText.vertexArray.length/4; n++) {
                     var idxVertex = n*4;
 
-                    this.arrayNodeTextData.push(jsonIn.nodeId, this.currentNodeTextId, 0.0, 0.0);
+                    this.arrayNodeTextData.push(jsonIn.nodeId, 0.0, 0.0, 0.0);
                     this.arrayNodeTextPosXYZW.push(0.0, 0.0, 0.0, 1.0);
                     this.arrayNodeTextVertexPos.push(mesh_nodesText.vertexArray[idxVertex]+(i*0.5), mesh_nodesText.vertexArray[idxVertex+1], mesh_nodesText.vertexArray[idxVertex+2], 1.0);
                     this.arrayNodeTextVertexNormal.push(mesh_nodesText.normalArray[idxVertex], mesh_nodesText.normalArray[idxVertex+1], mesh_nodesText.normalArray[idxVertex+2], 1.0);
@@ -1862,6 +1966,7 @@ Graph = function(sce) {
 		console.log((this.currentNodeId)+" nodes");
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
 
 		if(comp_renderer_nodes.getTempBuffers()["posXYZW"] != undefined) {
 			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
@@ -2105,52 +2210,82 @@ Graph = function(sce) {
                 this.currentArrowId++; // augment arrow id
             }
         }).bind(this);
+        var pass = true;
 
+        if(_nodesByName[jsonIn.origin] == undefined)
+            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target+". Node "+jsonIn.origin+" not exists", "color:red"), pass=false;
 
-        console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
+        if(_nodesByName[jsonIn.target] == undefined)
+            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target+". Node "+jsonIn.target+" not exists", "color:red"), pass=false;
 
-        jsonIn.origin_nodeName = jsonIn.origin.toString();
-        jsonIn.target_nodeName = jsonIn.target.toString();
-        jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
-        jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
-        jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
-        jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
-        jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
-        jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
+        if(pass == true) {
+            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
 
-        var repeatId = 1;
-        while(true) {
-            var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
-            if(exists == true) {
-                repeatId++;
-            } else
-                break;
-        }
-        jsonIn.repeatId = repeatId;
+            jsonIn.origin_nodeName = jsonIn.origin.toString();
+            jsonIn.target_nodeName = jsonIn.target.toString();
+            jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
+            jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
+            jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
+            jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
+            jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
+            jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
 
-        var link = addLinkNow(jsonIn);
-
-        if(link.directed != undefined &amp;&amp; link.directed == true)
-            addArrowNow(link);
-
-        // ADD LINK TO ARRAY LINKS
-        _links[link.origin+"->"+link.target+"_"+repeatId] = link;
-        //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
-
-
-        // UPDATE arrayNodeData
-        for(var n=0; n &lt; (this.arrayNodeData.length/4); n++) {
-            var id = n*4;
-            if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
-                this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                this.arrayNodeData[id+2] = 0;
-                this.arrayNodeData[id+3] = 0;
+            var repeatId = 1;
+            while(true) {
+                var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
+                if(exists == true) {
+                    repeatId++;
+                } else
+                    break;
             }
-            if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
-                this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                this.arrayNodeData[id+2] = 0;
-                this.arrayNodeData[id+3] = 0;
+            jsonIn.repeatId = repeatId;
+
+            var link = addLinkNow(jsonIn);
+
+            if(link.directed != undefined &amp;&amp; link.directed == true)
+                addArrowNow(link);
+
+            // ADD LINK TO ARRAY LINKS
+            _links[link.origin+"->"+link.target+"_"+repeatId] = link;
+            //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
+
+
+            // UPDATE arrayNodeData
+            for(var n=0; n &lt; (this.arrayNodeData.length/4); n++) {
+                var id = n*4;
+                if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
+                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                    var bornDate = this.arrayNodeData[id+2];
+                    var dieDate = this.arrayNodeData[id+3];
+
+                    for(var nB=0; nB &lt; (this.arrayNodeData.length/4); nB++) {
+                        var idB = nB*4;
+                        if(this.arrayNodeData[idB] == _nodesByName[link.target].nodeId) {
+                            //this.arrayNodeDataB[idB] = bornDate;
+                            //this.arrayNodeDataB[idB+1] = dieDate;
+                            this.arrayNodeDataB[idB+2] = bornDate;
+                            this.arrayNodeDataB[idB+3] = dieDate;
+                        }
+                    }
+                }
+                if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
+                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                    var bornDate = this.arrayNodeData[id+2];
+                    var dieDate = this.arrayNodeData[id+3];
+
+                    for(var nB=0; nB &lt; (this.arrayNodeData.length/4); nB++) {
+                        var idB = nB*4;
+                        if(this.arrayNodeData[idB] == _nodesByName[link.origin].nodeId) {
+                            //this.arrayNodeDataB[idB] = bornDate;
+                            //this.arrayNodeDataB[idB+1] = dieDate;
+                            this.arrayNodeDataB[idB+2] = bornDate;
+                            this.arrayNodeDataB[idB+3] = dieDate;
+                        }
+                    }
+                }
             }
+        } else {
+            console.log();
         }
 	};
 
@@ -2258,6 +2393,7 @@ Graph = function(sce) {
         /** @private */
         var updateArrows = (function() {
             comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
+            comp_renderer_arrows.setSharedBufferArg("dataB", comp_renderer_nodes);
             comp_renderer_arrows.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 
             comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
@@ -2287,7 +2423,10 @@ Graph = function(sce) {
 		console.log(Object.keys(_links).length+" links");
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
+
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
+        comp_renderer_links.setSharedBufferArg("dataB", comp_renderer_nodes);
 		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
 		comp_renderer_links.setIndices((function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
@@ -2339,7 +2478,7 @@ Graph = function(sce) {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Mon May 02 2016 17:59:39 GMT+0200 (CEST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Thu May 05 2016 17:25:56 GMT+0200 (CEST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
