@@ -40,12 +40,14 @@ var ForceLayout_FunctionsString = ''+
         'if(connectionExists == 1) {'+
             'float bornDateOpposite = dataB[xx_oppo].x;'+
             'float dieDateOpposite = dataB[xx_oppo].y;'+
-            'if(currentTimestamp > bornDateOpposite && currentTimestamp < dieDateOpposite) {'+
-                'atraction += dirToBN*dist*0.5;\n'+
-                'atraction += dirToBN*-10.0;\n'+
 
-                'acumAtraction += 1.0;\n'+
-            '}'+
+            'if(dieDateOpposite != -1.0) '+
+                'if(currentTimestamp > bornDateOpposite && currentTimestamp < dieDateOpposite) {'+
+                    'atraction += dirToBN*dist*0.5;\n'+
+                    'atraction += dirToBN*-10.0;\n'+
+
+                    'acumAtraction += 1.0;\n'+
+                '}'+
         '} else {'+
             'if(enableForceLayoutRepulsion == 1.0) \n'+
                 'repulsion += dirToBN*-(1000.0);\n'+
@@ -75,10 +77,11 @@ var AdjMatrix_ForceLayout_relationFound = ''+
     'break;'+
 '}'+
 
-'if(currentTimestamp < bornDate || currentTimestamp > dieDate) {'+
-    'force = vec3(0.0, 0.0, 0.0);'+
-    'break;'+
-'}';
+'if(dieDate != -1.0) '+
+    'if(currentTimestamp < bornDate || currentTimestamp > dieDate) {'+
+        'force = vec3(0.0, 0.0, 0.0);'+
+        'break;'+
+    '}';
 
 var AdjMatrix_ForceLayout_summation = ''+
 'if(collisionExists == 0.0) {'+

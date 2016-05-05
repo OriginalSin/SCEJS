@@ -192,6 +192,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   						'vVertexUV = get2Dfrom1D(nodeImgId, nodeImgColumns)+vec2(nodeVertexTexture.x/nodeImgColumns,nodeVertexTexture.y/nodeImgColumns);'+
 	   					'}'+
 
+                        'if(dieDate != -1.0) '+
                         'if(currentTimestamp < bornDate || currentTimestamp > dieDate)'+
                             'vVisibility = 0.0;'+
                     '}'+
@@ -223,8 +224,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                             '}'+
                         '}'+
 
-                        'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite))'+
-                            'vVisibility = 0.0;'+
+                        'if(dieDate != -1.0) '+
+                            'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite))'+
+                                'vVisibility = 0.0;'+
 		       		'}'+
        				'if(isArrow == 1.0) {'+
        				    'vec3 nodePositionTMP;'+
@@ -277,8 +279,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                         'dir = nodePositionTMP-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
                         'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
 
-                        'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite))'+
-                            'vVisibility = 0.0;'+
+                        'if(dieDate != -1.0) '+
+                            'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite))'+
+                                'vVisibility = 0.0;'+
        				'}'+
        				'if(isNodeText == 1.0) {'+
        					'float letId = letterId[x];\n'+
