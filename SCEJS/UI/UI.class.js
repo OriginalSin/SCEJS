@@ -58,10 +58,10 @@ UI = function(project) {
 		
 		// controllers
 		DGE("TopMenu_"+target.id).addEventListener("mouseover", (function() {
-			_project.getActiveStage().pause();
+			//_project.getActiveStage().pause();
 		}).bind(this));	
 		DGE("TopMenu_"+target.id).addEventListener("mouseout", (function() {
-			_project.getActiveStage().render();
+			//_project.getActiveStage().render();
 		}).bind(this));
 		
 		

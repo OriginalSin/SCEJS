@@ -38,10 +38,14 @@ var ForceLayout_FunctionsString = ''+
         'atraction = sphericalColl(currentDir, currentDirB, dirToBN);'+
     '} else {'+
         'if(connectionExists == 1) {'+
-            'atraction += dirToBN*dist*0.5;\n'+
-            'atraction += dirToBN*-10.0;\n'+
+            'float bornDateOpposite = dataB[xx_oppo].x;'+
+            'float dieDateOpposite = dataB[xx_oppo].y;'+
+            'if(currentTimestamp > bornDateOpposite) {'+
+                'atraction += dirToBN*dist*0.5;\n'+
+                'atraction += dirToBN*-10.0;\n'+
 
-            'acumAtraction += 1.0;\n'+
+                'acumAtraction += 1.0;\n'+
+            '}'+
         '} else {'+
             'if(enableForceLayoutRepulsion == 1.0) \n'+
                 'repulsion += dirToBN*-(1000.0);\n'+
@@ -68,6 +72,11 @@ var AdjMatrix_ForceLayout_relationFound = ''+
 'if(calcResponse.collisionExists == 1.0) {'+
     'collisionExists = 1.0;'+
     'force = calcResponse.atraction;'+
+    'break;'+
+'}'+
+
+'if(currentTimestamp < bornDate) {'+
+    'force = vec3(0.0, 0.0, 0.0);'+
     'break;'+
 '}';
 
@@ -168,7 +177,7 @@ var AdjMatrix_Autolink_returnInstruction = 'return vec4(totalIDrelation, totalAn
 
 var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, returnInstruction) {
     var str = ''+
-    'vec4 idAdjMatrix(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections) {\n'+
+    'vec4 idAdjMatrix(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections, float currentTimestamp, float bornDate, float dieDate) {\n'+
         initVars+
 
         'float ts = 1.0/(widthAdjMatrix-1.0);\n'+
@@ -195,6 +204,7 @@ var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, 
             '}'+
 
             summation+
+
         '}'+
 
         returnInstruction+

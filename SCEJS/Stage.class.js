@@ -11,6 +11,7 @@ Stage = function() {
 	var paused = false;
 	var backgroundColor = [0.0, 0.0, 0.0, 1.0];
 	var gl = null;
+	var _ontick;
 	
 	/**
 	 * setActiveCamera
@@ -77,8 +78,10 @@ Stage = function() {
 	
 	/**
 	* render
+    * @param {Callback} ontick
 	*/
-	this.render = function() {
+	this.render = function(ontick) {
+    	_ontick = ontick;
 		paused = false;
 		this.setBackgroundColor(backgroundColor);
 		tick();
@@ -131,6 +134,9 @@ Stage = function() {
 	 */
 	var tick = (function() {
 		if(activeCamera != null) {
+            if(_ontick != undefined)
+                _ontick();
+
 			var resolution = activeCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution();
 			gl.viewport(0, 0, resolution.width, resolution.height);
 			 
