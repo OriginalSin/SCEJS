@@ -38,10 +38,14 @@ var ForceLayout_FunctionsString = ''+
         'atraction = sphericalColl(currentDir, currentDirB, dirToBN);'+
     '} else {'+
         'if(connectionExists == 1) {'+
-            'atraction += dirToBN*dist*0.5;\n'+
-            'atraction += dirToBN*-10.0;\n'+
+            'float bornDateOpposite = dataB[xx_oppo].x;'+
+            'float dieDateOpposite = dataB[xx_oppo].y;'+
+            'if(currentTimestamp > bornDateOpposite) {'+
+                'atraction += dirToBN*dist*0.5;\n'+
+                'atraction += dirToBN*-10.0;\n'+
 
-            'acumAtraction += 1.0;\n'+
+                'acumAtraction += 1.0;\n'+
+            '}'+
         '} else {'+
             'if(enableForceLayoutRepulsion == 1.0) \n'+
                 'repulsion += dirToBN*-(1000.0);\n'+
@@ -74,8 +78,7 @@ var AdjMatrix_ForceLayout_relationFound = ''+
 'if(currentTimestamp < bornDate) {'+
     'force = vec3(0.0, 0.0, 0.0);'+
     'break;'+
-'}'+
-'vec4 dataBB = texture2D(dataB, vec2(xN, yN));\n';
+'}';
 
 var AdjMatrix_ForceLayout_summation = ''+
 'if(collisionExists == 0.0) {'+

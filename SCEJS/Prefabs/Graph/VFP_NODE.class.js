@@ -143,10 +143,13 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 					'vec2 xx = get_global_id(data[x].x);'+
 					'vec2 xx_opposite = get_global_id(data[x].y);'+
 
-					'float bornDate = data[x].z;'+
-                    'float dieDate = data[x].w;'+
+					'float bornDate = dataB[xx].x;'+
+                    'float dieDate = dataB[xx].y;'+
 
-                    'float nodeId = data[xx].x;'+ // TODO xx to x
+                    'float bornDateOpposite = dataB[xx_opposite].x;'+
+                    'float dieDateOpposite = dataB[xx_opposite].y;'+
+
+                    'float nodeId = data[x].x;'+
 
                     'vec4 nodePosition = posXYZW[xx];\n'+
 					'vec3 XYZW_opposite = posXYZW[xx_opposite].xyz;\n'+
@@ -188,6 +191,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	   						'vUseTex = 1.0;'+
 	   						'vVertexUV = get2Dfrom1D(nodeImgId, nodeImgColumns)+vec2(nodeVertexTexture.x/nodeImgColumns,nodeVertexTexture.y/nodeImgColumns);'+
 	   					'}'+
+
+                        'if(currentTimestamp < bornDate)'+
+                            'vVisibility = 0.0;'+
                     '}'+
 	   				'if(isLink == 1.0) {'+
 	   				    'if(xx != xx_opposite) {'+
@@ -216,6 +222,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                                 'nodePosition += vec4((crB*sig)*currentLineVertexMMB*1.0, 1.0);'+
                             '}'+
                         '}'+
+
+                        'if(currentTimestamp < bornDate || currentTimestamp < bornDateOpposite)'+
+                            'vVisibility = 0.0;'+
 		       		'}'+
        				'if(isArrow == 1.0) {'+
        				    'vec3 nodePositionTMP;'+
@@ -267,6 +276,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                         // displace from center to node border
                         'dir = nodePositionTMP-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
                         'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
+
+                        'if(currentTimestamp < bornDate || currentTimestamp < bornDateOpposite)'+
+                            'vVisibility = 0.0;'+
        				'}'+
        				'if(isNodeText == 1.0) {'+
        					'float letId = letterId[x];\n'+
@@ -289,8 +301,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				customCode+
        				'vVertexColor = nodeVertexColor;'+
 
-                    'if(currentTimestamp < bornDate)'+
-                        'vVisibility = 0.0;'+
+
 
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPosition;\n'+
        		'}'],

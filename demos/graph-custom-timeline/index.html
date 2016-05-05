@@ -241,6 +241,9 @@
 		<button id="BTNID_SPHERICAL">spherical destination</button><br />
 		<button id="BTNID_HEM">hemispherical destination</button><br />
 		<button id="BTNID_DESTINATION_OFF">Destination Off</button><br />
+        <br />
+        <button id="BTNID_playTimeline">play</button><br />
+        <button id="BTNID_pauseTimeline">pause</button><br />
 		<br />
 		<button id="BTNID_DIR">random direction</button><br />
 		<button id="BTNID_DIRECTION_OFF">Direction Off</button><br />
@@ -298,6 +301,15 @@
 			document.getElementById("BTNID_DESTINATION_OFF").addEventListener("click", (function() {
 				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
 			}).bind(this));
+
+
+            document.getElementById("BTNID_playTimeline").addEventListener("click", (function() {
+                graph.playTimeline();
+            }).bind(this));
+
+            document.getElementById("BTNID_pauseTimeline").addEventListener("click", (function() {
+                graph.pauseTimeline();
+            }).bind(this));
 
 
 			document.getElementById("BTNID_DIR").addEventListener("click", (function() {

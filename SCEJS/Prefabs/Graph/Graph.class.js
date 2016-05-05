@@ -40,7 +40,8 @@ Graph = function(sce) {
 	var _adjMatrixTime = 0;
 	var lineVertexCount = 4;
 
-    var _enableAnimation = true;
+    var _enableAnimation = false;
+    var _loop = false;
     var _animationFrames = 500;
     var _initTimestamp;
     var _endTimestamp;
@@ -315,6 +316,31 @@ Graph = function(sce) {
      */
     this.getEndTimestamp = function() {
         return _endTimestamp;
+    };
+
+    /**
+     * play
+     * @param {Bool} [loop=false]
+     */
+    this.playTimeline = function(loop) {
+        _enableAnimation = true;
+        if(loop != undefined)
+            _loop = loop;
+    };
+
+    /**
+     * pause
+     */
+    this.pauseTimeline = function() {
+        _enableAnimation = false;
+    };
+
+    /**
+     * setFrame
+     * @param {Int} - frame
+     */
+    this.setFrame = function(frame) {
+        _currentFrame = frame;
     };
 
     /**
@@ -854,9 +880,12 @@ Graph = function(sce) {
                     comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
 
                     _currentFrame++;
-                    if(_currentFrame == _animationFrames)
+                    if(_currentFrame == _animationFrames) {
                         _currentFrame = 0;
-
+                        if(_loop == false) {
+                            this.pauseTimeline();
+                        }
+                    }
                     console.log(currentTimestamp+"  "+_currentFrame);
                 }
 
@@ -954,6 +983,9 @@ Graph = function(sce) {
             "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
             "drawMode": 1,
             "geometryLength": 4,
+            "enableBlend": true,
+            "blendSrc": Constants.BLENDING_MODES.ONE,
+            "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
             "onPreTick": (function() {
                 comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
             }).bind(this)});
@@ -2018,13 +2050,33 @@ Graph = function(sce) {
                 var id = n*4;
                 if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
                     this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    //this.arrayNodeData[id+2] = 0;
-                    //this.arrayNodeData[id+3] = 0;
+                    var bornDate = this.arrayNodeData[id+2];
+                    var dieDate = this.arrayNodeData[id+3];
+
+                    for(var nB=0; nB < (this.arrayNodeData.length/4); nB++) {
+                        var idB = nB*4;
+                        if(this.arrayNodeData[idB] == _nodesByName[link.target].nodeId) {
+                            //this.arrayNodeDataB[idB] = bornDate;
+                            //this.arrayNodeDataB[idB+1] = dieDate;
+                            this.arrayNodeDataB[idB+2] = bornDate;
+                            this.arrayNodeDataB[idB+3] = dieDate;
+                        }
+                    }
                 }
                 if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
                     this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    //this.arrayNodeData[id+2] = 0;
-                    //this.arrayNodeData[id+3] = 0;
+                    var bornDate = this.arrayNodeData[id+2];
+                    var dieDate = this.arrayNodeData[id+3];
+
+                    for(var nB=0; nB < (this.arrayNodeData.length/4); nB++) {
+                        var idB = nB*4;
+                        if(this.arrayNodeData[idB] == _nodesByName[link.origin].nodeId) {
+                            //this.arrayNodeDataB[idB] = bornDate;
+                            //this.arrayNodeDataB[idB+1] = dieDate;
+                            this.arrayNodeDataB[idB+2] = bornDate;
+                            this.arrayNodeDataB[idB+3] = dieDate;
+                        }
+                    }
                 }
             }
         } else {
@@ -2136,6 +2188,7 @@ Graph = function(sce) {
         /** @private */
         var updateArrows = (function() {
             comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
+            comp_renderer_arrows.setSharedBufferArg("dataB", comp_renderer_nodes);
             comp_renderer_arrows.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 
             comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
@@ -2165,7 +2218,10 @@ Graph = function(sce) {
 		console.log(Object.keys(_links).length+" links");
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
+
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
+        comp_renderer_links.setSharedBufferArg("dataB", comp_renderer_nodes);
 		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
 		comp_renderer_links.setIndices((function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
