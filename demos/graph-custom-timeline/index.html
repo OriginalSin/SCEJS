@@ -53,7 +53,7 @@
 
             graph.setTimelineDatetimeRange({"initDatetime": "24-Nov-2000 17:57:35",
                                             "endDatetime": "24-Nov-2015 17:57:35"});
-            var animationFrames = 500;
+            var animationFrames = 5000;
             graph.setTimelineFramesLength(animationFrames);
 
 			// APPLY THIS LAYOUT
@@ -149,8 +149,8 @@
 
 
 			// NODES AND LINKS CREATION
-			var numNodes = 200;
-			var numLinks = 100;
+			var numNodes = 1000;
+			var numLinks = 1000;
 			for(var n=0; n < numNodes; n++) {
 				var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 

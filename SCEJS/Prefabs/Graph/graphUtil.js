@@ -40,7 +40,7 @@ var ForceLayout_FunctionsString = ''+
         'if(connectionExists == 1) {'+
             'float bornDateOpposite = dataB[xx_oppo].x;'+
             'float dieDateOpposite = dataB[xx_oppo].y;'+
-            'if(currentTimestamp > bornDateOpposite) {'+
+            'if(currentTimestamp > bornDateOpposite && currentTimestamp < dieDateOpposite) {'+
                 'atraction += dirToBN*dist*0.5;\n'+
                 'atraction += dirToBN*-10.0;\n'+
 
@@ -75,7 +75,7 @@ var AdjMatrix_ForceLayout_relationFound = ''+
     'break;'+
 '}'+
 
-'if(currentTimestamp < bornDate) {'+
+'if(currentTimestamp < bornDate || currentTimestamp > dieDate) {'+
     'force = vec3(0.0, 0.0, 0.0);'+
     'break;'+
 '}';
