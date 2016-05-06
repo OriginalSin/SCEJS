@@ -153,8 +153,8 @@ Graph = function(sce) {
 	this.splitNodes = [];
 	this.splitNodesIndices = [];
 
-	this.arrayNodeData = [];
-    this.arrayNodeDataB = [];
+	this.arrayNodeData = []; // nodeId, acums, bornDate, dieDate
+    this.arrayNodeDataB = []; // bornDate, dieDate, 0.0, 0.0 shared with LINKS & ARROWS
 	this.arrayNodePosXYZW = [];
 	this.arrayNodeVertexPos = [];
 	this.arrayNodeVertexNormal = [];
@@ -188,7 +188,7 @@ Graph = function(sce) {
 	this.splitLinks = [];
 	this.splitLinksIndices = [];
 
-	this.arrayLinkData = [];
+	this.arrayLinkData = []; // nodeId origin, nodeId target, currentLineVertex, repeatId
 	this.arrayLinkNodeName = [];
 	this.arrayLinkPosXYZW = [];
 	this.arrayLinkVertexPos = [];
@@ -265,8 +265,8 @@ Graph = function(sce) {
     /**
      * setTimelineDatetimeRange
      * @param {Object} jsonIn
-     * @param {Datetime} jsonIn.initDatetime
-     * @param {Datetime} jsonIn.endDatetime
+     * @param {String} jsonIn.initDatetime - date of born in Datetime format
+     * @param {String} jsonIn.endDatetime - date of die in Datetime format
      */
     this.setTimelineDatetimeRange = function(jsonIn) {
         /**
@@ -337,7 +337,7 @@ Graph = function(sce) {
 
     /**
      * setFrame
-     * @param {Int} - frame
+     * @param {Int} frame
      */
     this.setFrame = function(frame) {
         _currentFrame = frame;
@@ -396,7 +396,7 @@ Graph = function(sce) {
 
 	/**
 	 * getSelectedId
-	 * @returns {Bool}
+	 * @returns {Float}
 	 */
 	this.getSelectedId = function() {
 		return selectedId;
@@ -504,16 +504,17 @@ Graph = function(sce) {
      * loadRBFromFile
      * @param {String} fileurl
      * @param {Callback} [onload=undefined]
+     * @param {Bool} [generateBornAndDieDates=false]
      */
-    this.loadRBFromFile = function(fileurl, onload) {
+    this.loadRBFromFile = function(fileurl, onload, generateBornAndDieDates) {
         var req = new XHR();
         req.open("GET", fileurl, true);
-        req.addEventListener("load", (function(onload, evt) {
+        req.addEventListener("load", (function(onload, gbd, evt) {
             console.log("RB file Loaded");
-            this.loadRBFromStr(evt.target.responseText);
+            this.loadRBFromStr({"data": evt.target.responseText, "generateBornAndDieDates": gbd});
 
             if(onload != undefined) onload();
-        }).bind(this, onload));
+        }).bind(this, onload, generateBornAndDieDates));
 
         req.addEventListener("error", (function(evt) {
             console.log(evt);
@@ -524,10 +525,29 @@ Graph = function(sce) {
 
     /**
      * loadRBFromStr
-     * @param {String} str
+     * @param {Object} jsonIn
+     * @param {String} jsonIn.data
+     * @param {Bool} [jsonIn.generateBornAndDieDates=undefined]
      */
-    this.loadRBFromStr = function(str) {
-        var _sourceText = str;
+    this.loadRBFromStr = function(jsonIn) {
+        var generateRandomBornAndDie = (function(animationFrames) {
+            var timeFrameIncrement = this.getTimeFrameIncrement();
+
+            var bornDate = this.getInitTimestamp()+(parseInt(Math.random()*Math.max(0, animationFrames-20))*timeFrameIncrement);
+            var dieDate;
+            while(true) {
+                dieDate = this.getInitTimestamp()+(parseInt(Math.random()*animationFrames)*timeFrameIncrement);
+                if(dieDate > bornDate)
+                    break;
+            }
+            //console.log(bornDate);
+            //console.log(dieDate);
+
+            return {bornDate: bornDate, dieDate: dieDate};
+        }).bind(this);
+
+
+        var _sourceText = jsonIn.data;
         var lines = _sourceText.split("\r\n");
         if(lines.length == 1) lines = _sourceText.split("\n");
 
@@ -566,12 +586,16 @@ Graph = function(sce) {
         for(var n = 0; n < rowCount; n++) {
             var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
+            var bd = generateRandomBornAndDie(_animationFrames);
+
             var node = this.addNode({
                 "name": n.toString(),
                 "data": n.toString(),
                 "label": n.toString(),
                 "position": pos,
                 "color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+                "bornDate": bd.bornDate,
+                "dieDate": bd.dieDate,
                 "layoutNodeArgumentData": {
                     // dir
                     "ndirect": [0.0, 0.0, 0.0, 1.0],
@@ -2050,33 +2074,9 @@ Graph = function(sce) {
                 var id = n*4;
                 if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
                     this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    var bornDate = this.arrayNodeData[id+2];
-                    var dieDate = this.arrayNodeData[id+3];
-
-                    for(var nB=0; nB < (this.arrayNodeData.length/4); nB++) {
-                        var idB = nB*4;
-                        if(this.arrayNodeData[idB] == _nodesByName[link.target].nodeId) {
-                            //this.arrayNodeDataB[idB] = bornDate;
-                            //this.arrayNodeDataB[idB+1] = dieDate;
-                            this.arrayNodeDataB[idB+2] = bornDate;
-                            this.arrayNodeDataB[idB+3] = dieDate;
-                        }
-                    }
                 }
                 if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
                     this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    var bornDate = this.arrayNodeData[id+2];
-                    var dieDate = this.arrayNodeData[id+3];
-
-                    for(var nB=0; nB < (this.arrayNodeData.length/4); nB++) {
-                        var idB = nB*4;
-                        if(this.arrayNodeData[idB] == _nodesByName[link.origin].nodeId) {
-                            //this.arrayNodeDataB[idB] = bornDate;
-                            //this.arrayNodeDataB[idB+1] = dieDate;
-                            this.arrayNodeDataB[idB+2] = bornDate;
-                            this.arrayNodeDataB[idB+3] = dieDate;
-                        }
-                    }
                 }
             }
         } else {

@@ -19,14 +19,19 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
 	   		'}'],
 
        		// vertex source
-       		['void main(float4* data,'+ // data = 0: nodeId, 1: linkId, 2: oppositeId, 3: isTarget
+       		['void main(float4* data,'+
+                'float4*kernel dataB,'+
        			'float4*kernel posXYZW,'+
        			'float4* nodeVertexPos,'+
+                'float currentTimestamp,'+
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+
        			'mat4 nodeWMatrix) {'+
        				'vec2 x = get_global_id();'+
 					'vec2 xx = get_global_id(data[x].x);'+
+
+                    'float bornDate = dataB[xx].x;'+
+                    'float dieDate = dataB[xx].y;'+
 
 					//'vec4 nodePosition = texture2D(posXYZW, xx);\n'+
        				'vec4 nodePosition = posXYZW[xx];\n'+
@@ -39,9 +44,16 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
        				'nodepos[3][1] = nodePosition.y;'+
        				'nodepos[3][2] = nodePosition.z;'+
 
-       				'vColor = pack((data[x].x+1.0)/1000000.0);'+
+                    'vColor = vec4(1.0, 1.0, 1.0, 1.0);'+
+                    'if(dieDate != -1.0) '+
+                        'if(currentTimestamp > bornDate && currentTimestamp < dieDate) '+
+       				        'vColor = pack((data[x].x+1.0)/1000000.0);'+
+
+                    'if(vColor.x == 1.0 && vColor.y == 1.0 && vColor.z == 1.0 && vColor.w == 1.0) '+
+                        'nodepos[3][0] = 10000.0;'+
+
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPos[x];\n'+
-							'gl_PointSize = 10.0;\n'+
+					'gl_PointSize = 10.0;\n'+
        		'}'],
 
        		// fragment head
