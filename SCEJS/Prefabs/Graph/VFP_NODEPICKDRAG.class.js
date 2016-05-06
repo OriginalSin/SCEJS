@@ -45,15 +45,20 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
        				'nodepos[3][2] = nodePosition.z;'+
 
                     'vColor = vec4(1.0, 1.0, 1.0, 1.0);'+
+                    'int mak = 0;'+
                     'if(dieDate != -1.0) {'+
                         'if(currentTimestamp > bornDate && currentTimestamp < dieDate) '+
-       				        'vColor = pack((data[x].x+1.0)/1000000.0);'+
+                            'mak = 1;'+
+                    '} else '+
+                        'mak = 1;'+
 
-                        'if(vColor.x == 1.0 && vColor.y == 1.0 && vColor.z == 1.0 && vColor.w == 1.0) '+
-                            'nodepos[3][0] = 10000.0;'+
-                    '} else {'+
+                    'if(mak == 1) {'+
                         'vColor = pack((data[x].x+1.0)/1000000.0);'+
                     '}'+
+
+                    'if(vColor.x == 1.0 && vColor.y == 1.0 && vColor.z == 1.0 && vColor.w == 1.0) '+
+                        'nodepos[3][0] = 10000.0;'+
+
 
        				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPos[x];\n'+
 					'gl_PointSize = 10.0;\n'+
