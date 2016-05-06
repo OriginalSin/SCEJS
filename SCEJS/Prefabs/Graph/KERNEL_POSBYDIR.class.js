@@ -7,7 +7,7 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
        		[],
 
        		// kernel source
-       		['void main(float4* data,'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
+       		['void main(float4* data,'+
        		 			'float4* posXYZW,'+
 						'float4* dir,'+
 						'float enableDrag,'+

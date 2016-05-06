@@ -10,7 +10,7 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
                                             AdjMatrix_ForceLayout_returnInstruction)],
 
        		// kernel source
-       		['void main(float4* data'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
+       		['void main(float4* data'+
                         ',float4* dataB'+
 			       		',float* adjacencyMatrix'+
 						',float widthAdjMatrix'+

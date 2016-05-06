@@ -155,25 +155,31 @@
 				var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
 				// calculate born/die timestamps
-                var timeFrameIncrement = graph.getTimeFrameIncrement();
+                var generateRandomBornAndDie = (function(animationFrames) {
+                    var timeFrameIncrement = graph.getTimeFrameIncrement();
 
-                var bornDate = graph.getInitTimestamp()+(parseInt(Math.random()*animationFrames)*timeFrameIncrement);
-                var dieDate;
-                while(true) {
-                    dieDate = graph.getInitTimestamp()+(parseInt(Math.random()*animationFrames)*timeFrameIncrement);
-                    if(dieDate > bornDate)
-                        break;
-                }
-                console.log(bornDate);
-                console.log(dieDate);
+                    var bornDate = graph.getInitTimestamp()+(parseInt(Math.random()*Math.max(0, animationFrames-20))*timeFrameIncrement);
+                    var dieDate;
+                    while(true) {
+                        dieDate = graph.getInitTimestamp()+(parseInt(Math.random()*animationFrames)*timeFrameIncrement);
+                        if(dieDate > bornDate)
+                            break;
+                    }
+                    //console.log(bornDate);
+                    //console.log(dieDate);
+
+                    return {bornDate: bornDate, dieDate: dieDate};
+                }).bind(this);
+
+                var bd = generateRandomBornAndDie(animationFrames);
 
 				var node = graph.addNode({
 					"name": "#"+n.toString()+":"+n.toString(),
 					"data": "#"+n.toString()+":"+n.toString(),
 					"position": pos,
 					"color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
-                    "bornDate": bornDate,
-                    "dieDate": dieDate,
+                    "bornDate": bd.bornDate,
+                    "dieDate": bd.dieDate,
 					"layoutNodeArgumentData": {
 												// dir
 												"ndirect": [0.0, 0.0, 0.0, 1.0],

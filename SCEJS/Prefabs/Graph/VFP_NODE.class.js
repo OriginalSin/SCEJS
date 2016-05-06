@@ -109,8 +109,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
             '}'],
 
        		// vertex source
-       		['void main(float4* data,'+ // data = 0: nodeId, 1: oppositeId, 2: linksTargetCount, 3: linksCount
-                'float4*kernel dataB,'+
+       		['void main(float4* data,'+ // // NODES= nodeId, acums, bornDate, dieDate // LINKS & ARROWS= nodeId origin, nodeId target, currentLineVertex, repeatId
+                'float4*kernel dataB,'+ // bornDate, dieDate, 0.0, 0.0 (shared with LINKS & ARROWS)
        		 	'float* letterId,'+
        		 	'float* nodeImgId,'+
        		 	'float*kernel adjacencyMatrix,'+
