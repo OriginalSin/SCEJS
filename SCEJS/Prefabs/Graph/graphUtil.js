@@ -83,17 +83,12 @@ var AdjMatrix_ForceLayout_relationFound = ''+
     'break;'+
 '}'+
 
-'int mak = 0;'+
 'if(dieDate != -1.0) {'+
-    'if(currentTimestamp < bornDate || currentTimestamp > dieDate) '+
-        'mak = 1;'+
-'} else '+
-    'mak = 1;'+
-
-'if(mak == 1) {'+
-    'force = vec3(0.0, 0.0, 0.0);'+
-    'break;'+
-'}';
+    'if(currentTimestamp < bornDate || currentTimestamp > dieDate) {'+
+        'force = vec3(0.0, 0.0, 0.0);'+
+        'break;'+
+    '}'+
+'} ';
 
 var AdjMatrix_ForceLayout_summation = ''+
 'if(collisionExists == 0.0) {'+
