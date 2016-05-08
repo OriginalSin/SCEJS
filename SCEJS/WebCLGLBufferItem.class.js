@@ -32,28 +32,6 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
 
     this.mode = (mode != undefined) ? mode : "FRAGMENT"; // "FRAGMENT", "VERTEX", "VERTEX_INDEX", "VERTEX_FROM_KERNEL", "VERTEX_AND_FRAGMENT"
 
-    // readPixel arrays
-    //this.outArray4Uint8ArrayX = new Uint8Array((this.W*this.H)*4);
-    //	this.outArray4Uint8ArrayY = new Uint8Array((this.W*this.H)*4);
-    //	this.outArray4Uint8ArrayZ = new Uint8Array((this.W*this.H)*4);
-    //	this.outArray4Uint8ArrayW = new Uint8Array((this.W*this.H)*4);
-        /*this.outArray4x4Uint8Array = new Uint8Array((this.W*this.H)*4*4);*/
-
-    //	this.Packet4Uint8Array_Float = []; // [this.outArray4Uint8ArrayX]
-    //	this.Float = []; // [unpack(this.outArray4Uint8ArrayX)]
-    //	this.Packet4Uint8Array_Float4 = []; // [this.outArray4Uint8ArrayX, ..Y, ..Z, ..W]
-    //	this.Float4 = []; // [unpack(this.outArray4Uint8ArrayX), unpack(..Y), unpack(..Z), unpack(..W)]
-
-
-    // Create FrameBuffer & RenderBuffer
-    /*this.rBuffer = _gl.createRenderbuffer();
-     _gl.bindRenderbuffer(_gl.RENDERBUFFER, this.rBuffer);
-     _gl.renderbufferStorage(_gl.RENDERBUFFER, _gl.DEPTH_COMPONENT16, this.W, this.H);
-     _gl.bindRenderbuffer(_gl.RENDERBUFFER, null);
-
-     this.fBuffer = _gl.createFramebuffer();
-     _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBuffer);
-     _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, this.rBuffer);*/
 
     this.initialize = function() {
         if(this.mode == "FRAGMENT" || this.mode == "VERTEX_FROM_KERNEL" || this.mode == "VERTEX_AND_FRAGMENT") {

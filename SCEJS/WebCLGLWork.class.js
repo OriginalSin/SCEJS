@@ -98,9 +98,9 @@ WebCLGLWork = function(webCLGL, offset) {
         usedInFragment = false;
 
         for(var key in this.kernels) {
-            for(var nb=0; nb < this.kernels[key].in_values.length; nb++) {
-                var inValues = this.kernels[key].in_values[nb];
-                if(inValues.name == argument) {
+            for(var keyB in this.kernels[key].in_values) {
+                var inValues = this.kernels[key].in_values[keyB];
+                if(keyB == argument) {
                     if(inValues.type == "buffer_float4") {
                         type = "FLOAT4";
                         isBuffer = true;
@@ -118,9 +118,9 @@ WebCLGLWork = function(webCLGL, offset) {
 
 
         for(var key in this.vertexFragmentPrograms) {
-            for(var nb=0; nb < this.vertexFragmentPrograms[key].in_vertex_values.length; nb++) {
-                var inValues = this.vertexFragmentPrograms[key].in_vertex_values[nb];
-                if(inValues.name == argument) {
+            for(var keyB in this.vertexFragmentPrograms[key].in_vertex_values) {
+                var inValues = this.vertexFragmentPrograms[key].in_vertex_values[keyB];
+                if(keyB == argument) {
                     if(inValues.type == "buffer_float4_fromKernel" || inValues.type == "buffer_float4") {
                         type = "FLOAT4";
                         isBuffer = true;
@@ -135,9 +135,9 @@ WebCLGLWork = function(webCLGL, offset) {
                 }
             }
 
-            for(var nb=0; nb < this.vertexFragmentPrograms[key].in_fragment_values.length; nb++) {
-                var inValues = this.vertexFragmentPrograms[key].in_fragment_values[nb];
-                if(inValues.name == argument) {
+            for(var keyB in this.vertexFragmentPrograms[key].in_fragment_values) {
+                var inValues = this.vertexFragmentPrograms[key].in_fragment_values[keyB];
+                if(keyB == argument) {
                     if(inValues.type == "buffer_float4") {
                         type = "FLOAT4";
                         isBuffer = true;
@@ -249,22 +249,22 @@ WebCLGLWork = function(webCLGL, offset) {
     this.getAllArgs = function() {
         var args = {};
         for(var key in this.kernels) {
-            for(var nb=0; nb < this.kernels[key].in_values.length; nb++) {
-                var inValues = this.kernels[key].in_values[nb];
-                args[inValues.name] = inValues;
+            for(var keyB in this.kernels[key].in_values) {
+                var inValues = this.kernels[key].in_values[keyB];
+                args[keyB] = inValues;
             }
         }
 
 
         for(var key in this.vertexFragmentPrograms) {
-            for(var nb=0; nb < this.vertexFragmentPrograms[key].in_vertex_values.length; nb++) {
-                var inValues = this.vertexFragmentPrograms[key].in_vertex_values[nb];
-                args[inValues.name] = inValues;
+            for(var keyB in this.vertexFragmentPrograms[key].in_vertex_values) {
+                var inValues = this.vertexFragmentPrograms[key].in_vertex_values[keyB];
+                args[keyB] = inValues;
             }
 
-            for(var nb=0; nb < this.vertexFragmentPrograms[key].in_fragment_values.length; nb++) {
-                var inValues = this.vertexFragmentPrograms[key].in_fragment_values[nb];
-                args[inValues.name] = inValues;
+            for(var keyB in this.vertexFragmentPrograms[key].in_fragment_values) {
+                var inValues = this.vertexFragmentPrograms[key].in_fragment_values[keyB];
+                args[keyB] = inValues;
             }
         }
 

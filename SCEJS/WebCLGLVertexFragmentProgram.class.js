@@ -12,54 +12,69 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
 	var _utils = new WebCLGLUtils();
 
+	this.in_vertex_values = {};
+	this.in_fragment_values = {};
+
+	var _vertexP_ready = false;
+    var _fragmentP_ready = false;
+
     var _vertexHead;
-	var _vertexSource;
-	var _fragmentHead;
-	var _fragmentSource;
+    var _vertexSource;
+    var _fragmentHead;
+    var _fragmentSource;
 
-	this.in_vertex_values = [];
-	this.in_fragment_values = [];
+    var _enableDebug = true;
 
-	this.vertexAttributes = []; // {location,value}
-	this.vertexUniforms = []; // {location,value}
-	this.fragmentSamplers = []; // {location,value}
-	this.fragmentUniforms = []; // {location,value}
-
+    /**
+     * checkArgNameInitialization
+     * @param {Object} inValues
+     * @param {String} argName
+     * @private
+     */
+    var checkArgNameInitialization = (function(inValues, argName) {
+        if(inValues.hasOwnProperty(argName) == false) {
+            // vertex 'buffer_float4_fromKernel'(4 packet pointer4), 'buffer_float_fromKernel'(1 packet pointer4), 'buffer_float4'(1 pointer4), 'buffer_float'(1 pointer1)
+            // fragment 'buffer_float4'(RGBA channels), 'buffer_float'(Red channel)
+            var inValue = { "type": null, //
+                            "typeF": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
+                            "value": null, // Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer
+                            "location": null};
+            inValues[argName] = inValue;
+        }
+    }).bind(this);
 
     /** @private **/
     var compileVertexFragmentSource = (function() {
         var lines_vertex_attrs = (function() {
             var str = '';
-            for(var n = 0, f = this.in_vertex_values.length; n < f; n++) {
-                if(this.in_vertex_values[n].type == 'buffer_float4_fromKernel' || this.in_vertex_values[n].type == 'buffer_float_fromKernel') {
-                    str += 'uniform sampler2D '+this.in_vertex_values[n].name+';\n';
-                } else if(this.in_vertex_values[n].type == 'buffer_float4') {
-                    str += 'attribute vec4 '+this.in_vertex_values[n].name+';\n';
-                } else if(this.in_vertex_values[n].type == 'buffer_float') {
-                    str += 'attribute float '+this.in_vertex_values[n].name+';\n';
-                } else if(this.in_vertex_values[n].type == 'float') {
-                    str += 'uniform float '+this.in_vertex_values[n].name+';\n';
-                } else if(this.in_vertex_values[n].type == 'float4') {
-                    str += 'uniform vec4 '+this.in_vertex_values[n].name+';\n';
-                } else if(this.in_vertex_values[n].type == 'mat4') {
-                    str += 'uniform mat4 '+this.in_vertex_values[n].name+';\n';
-                }
+            for(var key in this.in_vertex_values) {
+                if(this.in_vertex_values[key].type == 'buffer_float4_fromKernel' || this.in_vertex_values[key].type == 'buffer_float_fromKernel')
+                    str += 'uniform sampler2D '+key+';\n';
+                else if(this.in_vertex_values[key].type == 'buffer_float4')
+                    str += 'attribute vec4 '+key+';\n';
+                else if(this.in_vertex_values[key].type == 'buffer_float')
+                    str += 'attribute float '+key+';\n';
+                else if(this.in_vertex_values[key].type == 'float')
+                    str += 'uniform float '+key+';\n';
+                else if(this.in_vertex_values[key].type == 'float4')
+                    str += 'uniform vec4 '+key+';\n';
+                else if(this.in_vertex_values[key].type == 'mat4')
+                    str += 'uniform mat4 '+key+';\n';
             }
             return str;
         }).bind(this);
 
         var lines_fragment_attrs = (function() {
             var str = '';
-            for(var n = 0, f = this.in_fragment_values.length; n < f; n++) {
-                if(this.in_fragment_values[n].type == 'buffer_float4' || this.in_fragment_values[n].type == 'buffer_float') {
-                    str += 'uniform sampler2D '+this.in_fragment_values[n].name+';\n';
-                } else if(this.in_fragment_values[n].type == 'float') {
-                    str += 'uniform float '+this.in_fragment_values[n].name+';\n';
-                } else if(this.in_fragment_values[n].type == 'float4') {
-                    str += 'uniform vec4 '+this.in_fragment_values[n].name+';\n';
-                } else if(this.in_fragment_values[n].type == 'mat4') {
-                    str += 'uniform mat4 '+this.in_fragment_values[n].name+';\n';
-                }
+            for(var key in this.in_fragment_values) {
+                if(this.in_fragment_values[key].type == 'buffer_float4' || this.in_fragment_values[key].type == 'buffer_float')
+                    str += 'uniform sampler2D '+key+';\n';
+                else if(this.in_fragment_values[key].type == 'float')
+                    str += 'uniform float '+key+';\n';
+                else if(this.in_fragment_values[key].type == 'float4')
+                    str += 'uniform vec4 '+key+';\n';
+                else if(this.in_fragment_values[key].type == 'mat4')
+                    str += 'uniform mat4 '+key+';\n';
             }
             return str;
         }).bind(this);
@@ -114,61 +129,40 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         //console.log(sourceFragment);
 
         this.vertexFragmentProgram = _gl.createProgram();
-        _utils.createShader(_gl, "WEBCLGL VERTEX FRAGMENT PROGRAM", sourceVertex, sourceFragment, this.vertexFragmentProgram);
+        var result = _utils.createShader(_gl, "WEBCLGL VERTEX FRAGMENT PROGRAM", sourceVertex, sourceFragment, this.vertexFragmentProgram);
+        if(result == true && _enableDebug == true)
+            console.log("WEBCLGL VERTEX FRAGMENT PROGRAM\n "+sourceVertex+"\n "+sourceFragment);
 
-
-        this.vertexAttributes = []; // {location,value}
-        this.vertexUniforms = []; // {location,value}
-        this.fragmentSamplers = []; // {location,value}
-        this.fragmentUniforms = []; // {location,value}
 
         this.uOffset = _gl.getUniformLocation(this.vertexFragmentProgram, "uOffset");
         this.uBufferWidth = _gl.getUniformLocation(this.vertexFragmentProgram, "uBufferWidth");
         this.uGeometryLength = _gl.getUniformLocation(this.vertexFragmentProgram, "uGeometryLength");
 
-        // vertexAttributes & vertexUniforms
-        for(var n = 0, f = this.in_vertex_values.length; n < f; n++) {
-            if(this.in_vertex_values[n].type == 'buffer_float_fromKernel' || this.in_vertex_values[n].type == 'buffer_float4_fromKernel') {
-                this.vertexAttributes.push({	location: [_gl.getUniformLocation(this.vertexFragmentProgram, this.in_vertex_values[n].name)],
-                    value: this.in_vertex_values[n].value,
-                    type: this.in_vertex_values[n].type,
-                    name: this.in_vertex_values[n].name});
+        for(var key in this.in_vertex_values) {
+            var typeF;
+            if(this.in_vertex_values[key].type == 'buffer_float_fromKernel' || this.in_vertex_values[key].type == 'buffer_float4_fromKernel')
+                typeF = "SAMPLER";
+             else if(this.in_vertex_values[key].type == 'buffer_float4' || this.in_vertex_values[key].type == 'buffer_float')
+                typeF = "ATTRIBUTE";
+             else if(this.in_vertex_values[key].type == 'float' || this.in_vertex_values[key].type == 'float4' || this.in_vertex_values[key].type == 'mat4')
+                typeF = "UNIFORM";
 
-                this.in_vertex_values[n].idPointer = this.vertexAttributes.length-1;
-            } else if(this.in_vertex_values[n].type == 'buffer_float4' || this.in_vertex_values[n].type == 'buffer_float') {
-                this.vertexAttributes.push({	location: [_gl.getAttribLocation(this.vertexFragmentProgram, this.in_vertex_values[n].name)],
-                    value: this.in_vertex_values[n].value,
-                    type: this.in_vertex_values[n].type,
-                    name: this.in_vertex_values[n].name});
-
-                this.in_vertex_values[n].idPointer = this.vertexAttributes.length-1;
-            } else if(this.in_vertex_values[n].type == 'float' || this.in_vertex_values[n].type == 'float4' || this.in_vertex_values[n].type == 'mat4') {
-                this.vertexUniforms.push({	location: [_gl.getUniformLocation(this.vertexFragmentProgram, this.in_vertex_values[n].name)],
-                    value: this.in_vertex_values[n].value,
-                    type: this.in_vertex_values[n].type,
-                    name: this.in_vertex_values[n].name});
-
-                this.in_vertex_values[n].idPointer = this.vertexUniforms.length-1;
-            }
+            checkArgNameInitialization(this.in_vertex_values, key);
+            var loc = (typeF == "ATTRIBUTE") ? gl.getAttribLocation(this.vertexFragmentProgram, key) : gl.getUniformLocation(this.vertexFragmentProgram, key);
+            this.in_vertex_values[key].location = [loc];
+            this.in_vertex_values[key].typeF = typeF;
         }
 
-        // fragmentSamplers & fragmentUniforms
-        for(var n = 0, f = this.in_fragment_values.length; n < f; n++) {
-            if(this.in_fragment_values[n].type == 'buffer_float4' || this.in_fragment_values[n].type == 'buffer_float') {
-                this.fragmentSamplers.push({	location: [_gl.getUniformLocation(this.vertexFragmentProgram, this.in_fragment_values[n].name)],
-                    value: this.in_fragment_values[n].value,
-                    type: this.in_fragment_values[n].type,
-                    name: this.in_fragment_values[n].name});
+        for(var key in this.in_fragment_values) {
+            var typeF;
+            if(this.in_fragment_values[key].type == 'buffer_float4' || this.in_fragment_values[key].type == 'buffer_float')
+                typeF = "SAMPLER";
+            else if(this.in_fragment_values[key].type == 'float' || this.in_fragment_values[key].type == 'float4' || this.in_fragment_values[key].type == 'mat4')
+                typeF = "UNIFORM";
 
-                this.in_fragment_values[n].idPointer = this.fragmentSamplers.length-1;
-            } else if(this.in_fragment_values[n].type == 'float' || this.in_fragment_values[n].type == 'float4' || this.in_fragment_values[n].type == 'mat4') {
-                this.fragmentUniforms.push({	location: [_gl.getUniformLocation(this.vertexFragmentProgram, this.in_fragment_values[n].name)],
-                    value: this.in_fragment_values[n].value,
-                    type: this.in_fragment_values[n].type,
-                    name: this.in_fragment_values[n].name});
-
-                this.in_fragment_values[n].idPointer = this.fragmentUniforms.length-1;
-            }
+            checkArgNameInitialization(this.in_fragment_values, key);
+            this.in_fragment_values[key].location = [_gl.getUniformLocation(this.vertexFragmentProgram, key)];
+            this.in_fragment_values[key].typeF = typeF;
         }
 
 
@@ -185,9 +179,9 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         /** @private **/
         var parseVertexSource = (function(source) {
             //console.log(source);
-            for(var n = 0, f = this.in_vertex_values.length; n < f; n++) { // for each in_vertex_values (in argument)
-                var regexp = new RegExp(this.in_vertex_values[n].name+'\\[\\w*\\]',"gm");
-                var varMatches = source.match(regexp);// "Search current "in_vertex_values.name[xxx]" in source and store in array varMatches
+            for(var key in this.in_vertex_values) { // for each in_vertex_values (in argument)
+                var regexp = new RegExp(key+'\\[\\w*\\]',"gm");
+                var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
                 //console.log(varMatches);
                 if(varMatches != null) {
                     for(var nB = 0, fB = varMatches.length; nB < fB; nB++) { // for each varMatches ("A[x]", "A[x]")
@@ -198,13 +192,13 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                             var vari = varMatches[nB].split('[')[1].split(']')[0];
                             var regexp = new RegExp(name+'\\['+vari.trim()+'\\]',"gm");
 
-                            if(this.in_vertex_values[n].type == 'buffer_float4_fromKernel')
+                            if(this.in_vertex_values[key].type == 'buffer_float4_fromKernel')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+')');
-                            if(this.in_vertex_values[n].type == 'buffer_float_fromKernel')
+                            if(this.in_vertex_values[key].type == 'buffer_float_fromKernel')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+').x');
-                            if(this.in_vertex_values[n].type == 'buffer_float4')
+                            if(this.in_vertex_values[key].type == 'buffer_float4')
                                 source = source.replace(regexp, name);
-                            if(this.in_vertex_values[n].type == 'buffer_float')
+                            if(this.in_vertex_values[key].type == 'buffer_float')
                                 source = source.replace(regexp, name);
                         }
                     }
@@ -216,55 +210,41 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         }).bind(this);
 
 
-        _vertexHead =(vertexHeader!=undefined)?vertexHeader:'';
-        this.in_vertex_values = [];//{value,type,name,idPointer}
-        // value: argument value
-        // type: 'buffer_float4_fromKernel'(4 packet pointer4), 'buffer_float_fromKernel'(1 packet pointer4), 'buffer_float4'(1 pointer4), 'buffer_float'(1 pointer1)
-        // name: argument name
-        // idPointer to: this.vertexAttributes or this.vertexUniforms (according to type)
-
         var argumentsSource = vertexSource.split(')')[0].split('(')[1].split(','); // "float* A", "float* B", "float C", "float4* D"
         //console.log(argumentsSource);
         for(var n = 0, f = argumentsSource.length; n < f; n++) {
             if(argumentsSource[n].match(/\*kernel/gm) != null) {
-                if(argumentsSource[n].match(/float4/gm) != null) {
-                    this.in_vertex_values[n] = {	value:undefined,
-                        type:'buffer_float4_fromKernel',
-                        name:argumentsSource[n].split('*kernel')[1].trim()};
-                } else if(argumentsSource[n].match(/float/gm) != null) {
-                    this.in_vertex_values[n] = {	value:undefined,
-                        type:'buffer_float_fromKernel',
-                        name:argumentsSource[n].split('*kernel')[1].trim()};
-                }
+                var argName = argumentsSource[n].split('*kernel')[1].trim();
+                checkArgNameInitialization(this.in_vertex_values, argName);
+
+                if(argumentsSource[n].match(/float4/gm) != null)
+                    this.in_vertex_values[argName].type = 'buffer_float4_fromKernel';
+                else if(argumentsSource[n].match(/float/gm) != null)
+                    this.in_vertex_values[argName].type = 'buffer_float_fromKernel';
             } else if(argumentsSource[n].match(/\*/gm) != null) {
-                if(argumentsSource[n].match(/float4/gm) != null) {
-                    this.in_vertex_values[n] = {	value:undefined,
-                        type:'buffer_float4',
-                        name:argumentsSource[n].split('*')[1].trim()};
-                } else if(argumentsSource[n].match(/float/gm) != null) {
-                    this.in_vertex_values[n] = {	value:undefined,
-                        type:'buffer_float',
-                        name:argumentsSource[n].split('*')[1].trim()};
-                }
-            } else {
-                if(argumentsSource[n].match(/float4/gm) != null) {
-                    this.in_vertex_values[n] = {	value:undefined,
-                        type:'float4',
-                        name:argumentsSource[n].split(' ')[1].trim()};
-                } else if(argumentsSource[n].match(/float/gm) != null) {
-                    this.in_vertex_values[n] = {	value:undefined,
-                        type:'float',
-                        name:argumentsSource[n].split(' ')[1].trim()};
-                } else if(argumentsSource[n].match(/mat4/gm) != null) {
-                    this.in_vertex_values[n] = {	value:undefined,
-                        type:'mat4',
-                        name:argumentsSource[n].split(' ')[1].trim()};
-                }
+                var argName = argumentsSource[n].split('*')[1].trim();
+                checkArgNameInitialization(this.in_vertex_values, argName);
+
+                if(argumentsSource[n].match(/float4/gm) != null)
+                    this.in_vertex_values[argName].type = 'buffer_float4';
+                else if(argumentsSource[n].match(/float/gm) != null)
+                    this.in_vertex_values[argName].type = 'buffer_float';
+            } else if(argumentsSource[n] != "") {
+                var argName = argumentsSource[n].split(' ')[1].trim();
+                checkArgNameInitialization(this.in_vertex_values, argName);
+
+                if(argumentsSource[n].match(/float4/gm) != null)
+                    this.in_vertex_values[argName].type = 'float4';
+                else if(argumentsSource[n].match(/float/gm) != null)
+                    this.in_vertex_values[argName].type = 'float';
+                else if(argumentsSource[n].match(/mat4/gm) != null)
+                    this.in_vertex_values[argName].type = 'mat4';
             }
         }
         //console.log(this.in_vertex_values);
 
         // parse header
+        _vertexHead =(vertexHeader!=undefined)?vertexHeader:'';
         _vertexHead = _vertexHead.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _vertexHead = parseVertexSource(_vertexHead);
 
@@ -275,7 +255,8 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         //console.log('minified source: '+_vertexSource);
         _vertexSource = parseVertexSource(_vertexSource);
 
-        if(_fragmentSource != undefined)
+        _vertexP_ready = true;
+        if(_fragmentP_ready == true)
             compileVertexFragmentSource();
     };
     if(vertexSource != undefined)
@@ -293,9 +274,9 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         /** @private **/
         var parseFragmentSource = (function(source) {
             //console.log(source);
-            for(var n = 0, f = this.in_fragment_values.length; n < f; n++) { // for each in_fragment_values (in argument)
-                var regexp = new RegExp(this.in_fragment_values[n].name+'\\[\\w*\\]',"gm");
-                var varMatches = source.match(regexp);// "Search current "in_fragment_values.name[xxx]" in source and store in array varMatches
+            for(var key in this.in_fragment_values) { // for each in_fragment_values (in argument)
+                var regexp = new RegExp(key+'\\[\\w*\\]',"gm");
+                var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
                 //console.log(varMatches);
                 if(varMatches != null) {
                     for(var nB = 0, fB = varMatches.length; nB < fB; nB++) { // for each varMatches ("A[x]", "A[x]")
@@ -306,9 +287,9 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                             var vari = varMatches[nB].split('[')[1].split(']')[0];
                             var regexp = new RegExp(name+'\\['+vari.trim()+'\\]',"gm");
 
-                            if(this.in_fragment_values[n].type == 'buffer_float4')
+                            if(this.in_fragment_values[key].type == 'buffer_float4')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+')');
-                            if(this.in_fragment_values[n].type == 'buffer_float')
+                            if(this.in_fragment_values[key].type == 'buffer_float')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+').x');
                         }
                     }
@@ -320,45 +301,33 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         }).bind(this);
 
 
-        _fragmentHead =(fragmentHeader!=undefined)?fragmentHeader:'';
-        this.in_fragment_values = [];//{value,type,name,idPointer}
-        // value: argument value
-        // type: 'buffer_float4'(RGBA channels), 'buffer_float'(Red channel)
-        // name: argument name
-        // idPointer to: this.fragmentSamplers or this.fragmentUniforms (according to type)
-
         var argumentsSource = fragmentSource.split(')')[0].split('(')[1].split(','); // "float* A", "float* B", "float C", "float4* D"
         //console.log(argumentsSource);
         for(var n = 0, f = argumentsSource.length; n < f; n++) {
             if(argumentsSource[n].match(/\*/gm) != null) {
-                if(argumentsSource[n].match(/float4/gm) != null) {
-                    this.in_fragment_values[n] = {	value:undefined,
-                        type:'buffer_float4',
-                        name:argumentsSource[n].split('*')[1].trim()};
-                } else if(argumentsSource[n].match(/float/gm) != null) {
-                    this.in_fragment_values[n] = {	value:undefined,
-                        type:'buffer_float',
-                        name:argumentsSource[n].split('*')[1].trim()};
-                }
-            } else {
-                if(argumentsSource[n].match(/float4/gm) != null) {
-                    this.in_fragment_values[n] = {	value:undefined,
-                        type:'float4',
-                        name:argumentsSource[n].split(' ')[1].trim()};
-                } else if(argumentsSource[n].match(/float/gm) != null) {
-                    this.in_fragment_values[n] = {	value:undefined,
-                        type:'float',
-                        name:argumentsSource[n].split(' ')[1].trim()};
-                } else if(argumentsSource[n].match(/mat4/gm) != null) {
-                    this.in_fragment_values[n] = {	value:undefined,
-                        type:'mat4',
-                        name:argumentsSource[n].split(' ')[1].trim()};
-                }
+                var argName = argumentsSource[n].split('*')[1].trim();
+                checkArgNameInitialization(this.in_fragment_values, argName);
+
+                if(argumentsSource[n].match(/float4/gm) != null)
+                    this.in_fragment_values[argName].type = 'buffer_float4';
+                else if(argumentsSource[n].match(/float/gm) != null)
+                    this.in_fragment_values[argName].type = 'buffer_float';
+            } else if(argumentsSource[n] != "") {
+                var argName = argumentsSource[n].split(' ')[1].trim();
+                checkArgNameInitialization(this.in_fragment_values, argName);
+
+                if(argumentsSource[n].match(/float4/gm) != null)
+                    this.in_fragment_values[argName].type = 'float4';
+                else if(argumentsSource[n].match(/float/gm) != null)
+                    this.in_fragment_values[argName].type = 'float';
+                else if(argumentsSource[n].match(/mat4/gm) != null)
+                    this.in_fragment_values[argName].type = 'mat4';
             }
         }
         //console.log(this.in_fragment_values);
 
         // parse header
+        _fragmentHead =(fragmentHeader!=undefined)?fragmentHeader:'';
         _fragmentHead = _fragmentHead.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _fragmentHead = parseFragmentSource(_fragmentHead);
 
@@ -369,7 +338,8 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         //console.log('minified source: '+_fragmentSource);
         _fragmentSource = parseFragmentSource(_fragmentSource);
 
-        if(_vertexSource != undefined)
+        _fragmentP_ready = true;
+        if(_vertexP_ready == true)
             compileVertexFragmentSource();
     };
     if(fragmentSource != undefined)
@@ -398,34 +368,10 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      * @param {Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer} data
      */
     this.setVertexArg = function(argument, data) {
-        if(data == undefined) alert("Error: setVertexArg("+argument+", undefined)");
+        if(data == undefined) alert("Error in setVertexArg("+argument+", data) (data is undefined)");
 
-        var numArg;
-        if(typeof argument != "string") {
-            numArg = argument;
-        } else {
-            for(var n=0, fn = this.in_vertex_values.length; n < fn; n++) {
-                if(this.in_vertex_values[n].name == argument) {
-                    numArg = n;
-                    break;
-                }
-            }
-        }
-
-        if(this.in_vertex_values[numArg] == undefined) {
-            console.log("argument "+argument+" not exist in this vertex program");
-            return;
-        }
-        this.in_vertex_values[numArg].value = data;
-
-        if(	this.in_vertex_values[numArg].type == 'buffer_float4_fromKernel' ||
-            this.in_vertex_values[numArg].type == 'buffer_float_fromKernel' ||
-            this.in_vertex_values[numArg].type == 'buffer_float4' ||
-            this.in_vertex_values[numArg].type == 'buffer_float') {
-            this.vertexAttributes[this.in_vertex_values[numArg].idPointer].value = this.in_vertex_values[numArg].value;
-        } else if(this.in_vertex_values[numArg].type == 'float' || this.in_vertex_values[numArg].type == 'float4' || this.in_vertex_values[numArg].type == 'mat4') {
-            this.vertexUniforms[this.in_vertex_values[numArg].idPointer].value = this.in_vertex_values[numArg].value;
-        }
+		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_vertex_values)[argument];
+        this.in_vertex_values[arg].value = data;
     };
 
     /**
@@ -434,31 +380,10 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      * @param {Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer} data
      */
     this.setFragmentArg = function(argument, data) {
-        if(data == undefined) alert("Error: setFragmentArg("+argument+", undefined)");
+        if(data == undefined) alert("Error in setFragmentArg("+argument+", data) (data is undefined)");
 
-        var numArg;
-        if(typeof argument != "string") {
-            numArg = argument;
-        } else {
-            for(var n=0, fn = this.in_fragment_values.length; n < fn; n++) {
-                if(this.in_fragment_values[n].name == argument) {
-                    numArg = n;
-                    break;
-                }
-            }
-        }
-
-        if(this.in_fragment_values[numArg] == undefined) {
-            console.log("argument "+argument+" not exist in this fragment program");
-            return;
-        }
-        this.in_fragment_values[numArg].value = data;
-
-        if(this.in_fragment_values[numArg].type == 'buffer_float4' || this.in_fragment_values[numArg].type == 'buffer_float') {
-            this.fragmentSamplers[this.in_fragment_values[numArg].idPointer].value = this.in_fragment_values[numArg].value;
-        } else if(this.in_fragment_values[numArg].type == 'float' || this.in_fragment_values[numArg].type == 'float4' || this.in_fragment_values[numArg].type == 'mat4') {
-            this.fragmentUniforms[this.in_fragment_values[numArg].idPointer].value = this.in_fragment_values[numArg].value;
-        }
+		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_fragment_values)[argument];
+        this.in_fragment_values[arg].value = data;
     };
 };
 
