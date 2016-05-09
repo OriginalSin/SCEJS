@@ -12,10 +12,10 @@ function VFP_RGB(textureUnitCount) { VFP.call(this);
 			 'varying float vVTU;\n'],
 			
 			// vertex source
-			['void main(float4* vertexPos,'+
-						'float4* vertexNormal,'+
-						'float4* vertexTexture,'+
-						'float* vertexTextureUnit,'+
+			['void main(float4*attr vertexPos,'+
+						'float4*attr vertexNormal,'+
+						'float4*attr vertexTexture,'+
+						'float*attr vertexTextureUnit,'+
 						'mat4 PMatrix,'+
 						'mat4 cameraWMatrix,'+
 						'mat4 nodeWMatrix) {'+

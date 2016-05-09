@@ -272,11 +272,11 @@ var WebCLGL = function(webglcontext) {
     var bindAttributeValue = (function(inValue, itemNum) {
         if(inValue.value != undefined && inValue.value != null) {
             var item = (inValue.value.items[itemNum] != undefined) ? inValue.value.items[itemNum] : inValue.value.items[0];
-            if(inValue.type == 'buffer_float4') {
+            if(inValue.type == 'float4_fromAttr') {
                 _gl.enableVertexAttribArray(inValue.location[0]);
                 _gl.bindBuffer(_gl.ARRAY_BUFFER, item.vertexData0);
                 _gl.vertexAttribPointer(inValue.location[0], 4, _gl.FLOAT, false, 0, 0);
-            } else if(inValue.type == 'buffer_float') {
+            } else if(inValue.type == 'float_fromAttr') {
                 _gl.enableVertexAttribArray(inValue.location[0]);
                 _gl.bindBuffer(_gl.ARRAY_BUFFER, item.vertexData0);
                 _gl.vertexAttribPointer(inValue.location[0], 1, _gl.FLOAT, false, 0, 0);

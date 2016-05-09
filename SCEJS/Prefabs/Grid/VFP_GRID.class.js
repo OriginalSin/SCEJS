@@ -6,8 +6,8 @@ function VFP_GRID() { VFP.call(this);
 			['varying vec4 vVC;\n'],
 			
 			// vertex source
-			['void main(float4* vertexPos,'+
-						'float4* vertexColor,'+
+			['void main(float4*attr vertexPos,'+
+						'float4*attr vertexColor,'+
 						'mat4 PMatrix,'+
 						'mat4 cameraWMatrix,'+
 						'mat4 nodeWMatrix) {'+

@@ -109,11 +109,11 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
             '}'],
 
        		// vertex source
-       		['void main(float4* data,'+ // // NODES= nodeId, acums, bornDate, dieDate // LINKS & ARROWS= nodeId origin, nodeId target, currentLineVertex, repeatId
-                'float4*kernel dataB,'+ // bornDate, dieDate, 0.0, 0.0 (NODES share TO LINKS & ARROWS)
-       		 	'float* letterId,'+
-       		 	'float* nodeImgId,'+
-       		 	'float*kernel adjacencyMatrix,'+
+       		['void main(float4*attr data,'+ // // NODES= nodeId, acums, bornDate, dieDate // LINKS & ARROWS= nodeId origin, nodeId target, currentLineVertex, repeatId
+                'float4* dataB,'+ // bornDate, dieDate, 0.0, 0.0 (NODES share TO LINKS & ARROWS)
+       		 	'float*attr letterId,'+
+       		 	'float*attr nodeImgId,'+
+       		 	'float* adjacencyMatrix,'+
 				'float widthAdjMatrix,'+
 
                 'float currentAdjMatrix,'+
@@ -122,10 +122,10 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
                 'float currentTimestamp,'+
 
-       			'float4*kernel posXYZW,'+
-       			'float4* nodeVertexPos,'+
-       			'float4* nodeVertexNormal,'+
-       			'float4* nodeVertexTexture,'+
+       			'float4* posXYZW,'+
+       			'float4*attr nodeVertexPos,'+
+       			'float4*attr nodeVertexNormal,'+
+       			'float4*attr nodeVertexTexture,'+
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+
        			'mat4 nodeWMatrix,'+

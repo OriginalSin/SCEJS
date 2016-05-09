@@ -100,10 +100,10 @@ WebCLGLWork = function(webCLGL, offset) {
             for(var keyB in this.kernels[key].in_values) {
                 var inValues = this.kernels[key].in_values[keyB];
                 if(keyB == argument) {
-                    if(inValues.type == "buffer_float4") {
+                    if(inValues.type == "float4_fromSampler") {
                         type = "FLOAT4";
                         isBuffer = true;
-                    } else if(inValues.type == "buffer_float") {
+                    } else if(inValues.type == "float_fromSampler") {
                         type = "FLOAT";
                         isBuffer = true;
                     }
@@ -120,10 +120,10 @@ WebCLGLWork = function(webCLGL, offset) {
             for(var keyB in this.vertexFragmentPrograms[key].in_vertex_values) {
                 var inValues = this.vertexFragmentPrograms[key].in_vertex_values[keyB];
                 if(keyB == argument) {
-                    if(inValues.type == "buffer_float4_fromKernel" || inValues.type == "buffer_float4") {
+                    if(inValues.type == "float4_fromSampler" || inValues.type == "float4_fromAttr") {
                         type = "FLOAT4";
                         isBuffer = true;
-                    } else if(inValues.type == "buffer_float_fromKernel" || inValues.type == "buffer_float") {
+                    } else if(inValues.type == "float_fromSampler" || inValues.type == "float_fromAttr") {
                         type = "FLOAT";
                         isBuffer = true;
                     }
@@ -137,10 +137,10 @@ WebCLGLWork = function(webCLGL, offset) {
             for(var keyB in this.vertexFragmentPrograms[key].in_fragment_values) {
                 var inValues = this.vertexFragmentPrograms[key].in_fragment_values[keyB];
                 if(keyB == argument) {
-                    if(inValues.type == "buffer_float4") {
+                    if(inValues.type == "float4_fromSampler") {
                         type = "FLOAT4";
                         isBuffer = true;
-                    } else if(inValues.type == "buffer_float") {
+                    } else if(inValues.type == "float_fromSampler") {
                         type = "FLOAT";
                         isBuffer = true;
                     }

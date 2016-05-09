@@ -19,10 +19,10 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
 	   		'}'],
 
        		// vertex source
-       		['void main(float4* data,'+
-                'float4*kernel dataB,'+
-       			'float4*kernel posXYZW,'+
-       			'float4* nodeVertexPos,'+
+       		['void main(float4*attr data,'+
+                'float4* dataB,'+
+       			'float4* posXYZW,'+
+       			'float4*attr nodeVertexPos,'+
                 'float currentTimestamp,'+
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+

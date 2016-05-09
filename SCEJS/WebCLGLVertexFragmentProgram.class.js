@@ -33,8 +33,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      */
     var checkArgNameInitialization = (function(inValues, argName) {
         if(inValues.hasOwnProperty(argName) == false) {
-            // vertex 'buffer_float4_fromKernel'(4 packet pointer4), 'buffer_float_fromKernel'(1 packet pointer4), 'buffer_float4'(1 pointer4), 'buffer_float'(1 pointer1)
-            // fragment 'buffer_float4'(RGBA channels), 'buffer_float'(Red channel)
             var inValue = { "type": null, //
                             "expectedMode": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
                             "value": null, // Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer
@@ -48,11 +46,11 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var lines_vertex_attrs = (function() {
             var str = '';
             for(var key in this.in_vertex_values) {
-                if(this.in_vertex_values[key].type == 'buffer_float4_fromKernel' || this.in_vertex_values[key].type == 'buffer_float_fromKernel')
+                if(this.in_vertex_values[key].type == 'float4_fromSampler' || this.in_vertex_values[key].type == 'float_fromSampler')
                     str += 'uniform sampler2D '+key+';\n';
-                else if(this.in_vertex_values[key].type == 'buffer_float4')
+                else if(this.in_vertex_values[key].type == 'float4_fromAttr')
                     str += 'attribute vec4 '+key+';\n';
-                else if(this.in_vertex_values[key].type == 'buffer_float')
+                else if(this.in_vertex_values[key].type == 'float_fromAttr')
                     str += 'attribute float '+key+';\n';
                 else if(this.in_vertex_values[key].type == 'float')
                     str += 'uniform float '+key+';\n';
@@ -67,7 +65,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var lines_fragment_attrs = (function() {
             var str = '';
             for(var key in this.in_fragment_values) {
-                if(this.in_fragment_values[key].type == 'buffer_float4' || this.in_fragment_values[key].type == 'buffer_float')
+                if(this.in_fragment_values[key].type == 'float4_fromSampler' || this.in_fragment_values[key].type == 'float_fromSampler')
                     str += 'uniform sampler2D '+key+';\n';
                 else if(this.in_fragment_values[key].type == 'float')
                     str += 'uniform float '+key+';\n';
@@ -140,9 +138,9 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
         for(var key in this.in_vertex_values) {
             var expectedMode;
-            if(this.in_vertex_values[key].type == 'buffer_float_fromKernel' || this.in_vertex_values[key].type == 'buffer_float4_fromKernel')
+            if(this.in_vertex_values[key].type == 'float_fromSampler' || this.in_vertex_values[key].type == 'float4_fromSampler')
                 expectedMode = "SAMPLER";
-             else if(this.in_vertex_values[key].type == 'buffer_float4' || this.in_vertex_values[key].type == 'buffer_float')
+             else if(this.in_vertex_values[key].type == 'float4_fromAttr' || this.in_vertex_values[key].type == 'float_fromAttr')
                 expectedMode = "ATTRIBUTE";
              else if(this.in_vertex_values[key].type == 'float' || this.in_vertex_values[key].type == 'float4' || this.in_vertex_values[key].type == 'mat4')
                 expectedMode = "UNIFORM";
@@ -155,7 +153,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
         for(var key in this.in_fragment_values) {
             var expectedMode;
-            if(this.in_fragment_values[key].type == 'buffer_float4' || this.in_fragment_values[key].type == 'buffer_float')
+            if(this.in_fragment_values[key].type == 'float4_fromSampler' || this.in_fragment_values[key].type == 'float_fromSampler')
                 expectedMode = "SAMPLER";
             else if(this.in_fragment_values[key].type == 'float' || this.in_fragment_values[key].type == 'float4' || this.in_fragment_values[key].type == 'mat4')
                 expectedMode = "UNIFORM";
@@ -192,13 +190,13 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                             var vari = varMatches[nB].split('[')[1].split(']')[0];
                             var regexp = new RegExp(name+'\\['+vari.trim()+'\\]',"gm");
 
-                            if(this.in_vertex_values[key].type == 'buffer_float4_fromKernel')
+                            if(this.in_vertex_values[key].type == 'float4_fromSampler')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+')');
-                            if(this.in_vertex_values[key].type == 'buffer_float_fromKernel')
+                            if(this.in_vertex_values[key].type == 'float_fromSampler')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+').x');
-                            if(this.in_vertex_values[key].type == 'buffer_float4')
+                            if(this.in_vertex_values[key].type == 'float4_fromAttr')
                                 source = source.replace(regexp, name);
-                            if(this.in_vertex_values[key].type == 'buffer_float')
+                            if(this.in_vertex_values[key].type == 'float_fromAttr')
                                 source = source.replace(regexp, name);
                         }
                     }
@@ -213,22 +211,22 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var argumentsSource = vertexSource.split(')')[0].split('(')[1].split(','); // "float* A", "float* B", "float C", "float4* D"
         //console.log(argumentsSource);
         for(var n = 0, f = argumentsSource.length; n < f; n++) {
-            if(argumentsSource[n].match(/\*kernel/gm) != null) {
-                var argName = argumentsSource[n].split('*kernel')[1].trim();
+            if(argumentsSource[n].match(/\*attr/gm) != null) {
+                var argName = argumentsSource[n].split('*attr')[1].trim();
                 checkArgNameInitialization(this.in_vertex_values, argName);
 
                 if(argumentsSource[n].match(/float4/gm) != null)
-                    this.in_vertex_values[argName].type = 'buffer_float4_fromKernel';
+                    this.in_vertex_values[argName].type = 'float4_fromAttr';
                 else if(argumentsSource[n].match(/float/gm) != null)
-                    this.in_vertex_values[argName].type = 'buffer_float_fromKernel';
+                    this.in_vertex_values[argName].type = 'float_fromAttr';
             } else if(argumentsSource[n].match(/\*/gm) != null) {
                 var argName = argumentsSource[n].split('*')[1].trim();
                 checkArgNameInitialization(this.in_vertex_values, argName);
 
                 if(argumentsSource[n].match(/float4/gm) != null)
-                    this.in_vertex_values[argName].type = 'buffer_float4';
+                    this.in_vertex_values[argName].type = 'float4_fromSampler';
                 else if(argumentsSource[n].match(/float/gm) != null)
-                    this.in_vertex_values[argName].type = 'buffer_float';
+                    this.in_vertex_values[argName].type = 'float_fromSampler';
             } else if(argumentsSource[n] != "") {
                 var argName = argumentsSource[n].split(' ')[1].trim();
                 checkArgNameInitialization(this.in_vertex_values, argName);
@@ -287,9 +285,9 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                             var vari = varMatches[nB].split('[')[1].split(']')[0];
                             var regexp = new RegExp(name+'\\['+vari.trim()+'\\]',"gm");
 
-                            if(this.in_fragment_values[key].type == 'buffer_float4')
+                            if(this.in_fragment_values[key].type == 'float4_fromSampler')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+')');
-                            if(this.in_fragment_values[key].type == 'buffer_float')
+                            if(this.in_fragment_values[key].type == 'float_fromSampler')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+').x');
                         }
                     }
@@ -309,9 +307,9 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                 checkArgNameInitialization(this.in_fragment_values, argName);
 
                 if(argumentsSource[n].match(/float4/gm) != null)
-                    this.in_fragment_values[argName].type = 'buffer_float4';
+                    this.in_fragment_values[argName].type = 'float4_fromSampler';
                 else if(argumentsSource[n].match(/float/gm) != null)
-                    this.in_fragment_values[argName].type = 'buffer_float';
+                    this.in_fragment_values[argName].type = 'float_fromSampler';
             } else if(argumentsSource[n] != "") {
                 var argName = argumentsSource[n].split(' ')[1].trim();
                 checkArgNameInitialization(this.in_fragment_values, argName);

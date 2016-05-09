@@ -146,11 +146,11 @@
 								// float isNode, float isLink, float isArrow, float isNodeText, float isTarget
 								"argsObject":
 									// nodeColor
-									"float4* nodeColor,"+
+									"float4*attr nodeColor,"+
 									// selfShadows
 									"float4 sunPos,float selfShadows,float4 ambientColor,"+
 									// lock
-									"float* nodeLock",
+									"float*attr nodeLock",
 								"codeObject":
 									// nodeColor
 									'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+

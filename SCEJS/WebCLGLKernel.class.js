@@ -20,7 +20,6 @@ WebCLGLKernel = function(gl, source, header) {
      */
     var checkArgNameInitialization = (function(inValues, argName) {
         if(inValues.hasOwnProperty(argName) == false) {
-            // kernel 'buffer_float4'(RGBA channels), 'buffer_float'(Red channel)
             var inValue = { "type": null, //
                             "expectedMode": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
                             "value": null, // Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer
@@ -54,9 +53,9 @@ WebCLGLKernel = function(gl, source, header) {
                             var vari = varMatches[nB].split('[')[1].split(']')[0];
                             var regexp = new RegExp(name+'\\['+vari.trim()+'\\]',"gm");
 
-                            if(this.in_values[key].type == 'buffer_float4')
+                            if(this.in_values[key].type == 'float4_fromSampler')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+')');
-                            if(this.in_values[key].type == 'buffer_float')
+                            if(this.in_values[key].type == 'float_fromSampler')
                                 source = source.replace(regexp, 'texture2D('+name+','+vari+').x');
                         }
                     }
@@ -74,7 +73,7 @@ WebCLGLKernel = function(gl, source, header) {
             var lines_attrs = (function() {
                 var str = '';
                 for(var key in this.in_values) {
-                    if(this.in_values[key].type == 'buffer_float4' || this.in_values[key].type == 'buffer_float')
+                    if(this.in_values[key].type == 'float4_fromSampler' || this.in_values[key].type == 'float_fromSampler')
                         str += 'uniform sampler2D '+key+';\n';
                     else if(this.in_values[key].type == 'float')
                         str += 'uniform float '+key+';\n';
@@ -149,7 +148,7 @@ WebCLGLKernel = function(gl, source, header) {
 
             for(var key in this.in_values) {
                 var expectedMode;
-                if(this.in_values[key].type == 'buffer_float4' || this.in_values[key].type == 'buffer_float')
+                if(this.in_values[key].type == 'float4_fromSampler' || this.in_values[key].type == 'float_fromSampler')
                     expectedMode = "SAMPLER";
                 else if(this.in_values[key].type == 'float' || this.in_values[key].type == 'float4' || this.in_values[key].type == 'mat4')
                     expectedMode = "UNIFORM";
@@ -171,9 +170,9 @@ WebCLGLKernel = function(gl, source, header) {
                 checkArgNameInitialization(this.in_values, argName);
 
                 if(argumentsSource[n].match(/float4/gm) != null)
-                    this.in_values[argName].type = 'buffer_float4';
+                    this.in_values[argName].type = 'float4_fromSampler';
                 else if(argumentsSource[n].match(/float/gm) != null)
-                    this.in_values[argName].type = 'buffer_float';
+                    this.in_values[argName].type = 'float_fromSampler';
             } else if(argumentsSource[n] != "") {
                 var argName = argumentsSource[n].split(' ')[1].trim();
                 checkArgNameInitialization(this.in_values, argName);
