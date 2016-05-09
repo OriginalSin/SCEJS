@@ -49,7 +49,7 @@ var WebCLGL = function(webglcontext) {
 	var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
 	this.precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
     var _currentTextureUnit;
-
+    var _bufferWidth = 0;
 
 	// QUAD
 	var mesh = this.utils.loadQuad(undefined,1.0,1.0);
@@ -265,11 +265,12 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * bindAttributeValue
+     * @pram {WebCLGLVertexFragmentProgram}
      * @param {Object} inValue
      * @param {Int} itemNum
      * @private
      */
-    var bindAttributeValue = (function(inValue, itemNum) {
+    var bindAttributeValue = (function(webCLGLProgram, inValue, itemNum) {
         if(inValue.value != undefined && inValue.value != null) {
             var item = (inValue.value.items[itemNum] != undefined) ? inValue.value.items[itemNum] : inValue.value.items[0];
             if(inValue.type == 'float4_fromAttr') {
@@ -303,11 +304,13 @@ var WebCLGL = function(webglcontext) {
             _gl.bindTexture(_gl.TEXTURE_2D, item.textureData);
             _gl.uniform1i(inValue.location[0], _currentTextureUnit);
 
-            _gl.uniform1f(webCLGLProgram.uBufferWidth, item.W);
-        } else {
+            if(_bufferWidth == 0) {
+                _bufferWidth = item.W;
+                _gl.uniform1f(webCLGLProgram.uBufferWidth, _bufferWidth);
+            }
+        } else
             _gl.bindTexture(_gl.TEXTURE_2D, null);
-            //_gl.uniform1i(inValue.location[0], _currentTextureUnit);
-        }
+
         _currentTextureUnit++;
     }).bind(this);
 
@@ -337,7 +340,7 @@ var WebCLGL = function(webglcontext) {
     var bindValue = (function(webCLGLProgram, inValue, itemNum) {
         switch(inValue.expectedMode) {
             case "ATTRIBUTE":
-                bindAttributeValue(inValue, itemNum);
+                bindAttributeValue(webCLGLProgram, inValue, itemNum);
                 break;
             case "SAMPLER":
                 bindSamplerValue(webCLGLProgram, inValue, itemNum);
@@ -352,9 +355,10 @@ var WebCLGL = function(webglcontext) {
      * Perform calculation and save the result on a WebCLGLBuffer
      * @param {WebCLGLKernel} webCLGLKernel
      * @param {WebCLGLBuffer} [webCLGLBuffer=undefined]
-     * @param {Int} [geometryLength=1] - Length of geometry (1 for points, 3 for triangles...)
      */
-    this.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffers, geometryLength) {
+    this.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffers) {
+        _bufferWidth = 0;
+
         if(webCLGLBuffers != undefined) {
             for(var i=0; i < webCLGLBuffers.items.length; i++) {
                 var webCLGLBuffer = webCLGLBuffers.items[i];
@@ -368,13 +372,13 @@ var WebCLGL = function(webglcontext) {
                     _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
                     _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
 
-                    enqueueNDRangeKernelNow(webCLGLKernel, i, geometryLength);
+                    enqueueNDRangeKernelNow(webCLGLKernel, i);
                 }
             }
         } else {
             _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
 
-            enqueueNDRangeKernelNow(webCLGLKernel, 0, geometryLength);
+            enqueueNDRangeKernelNow(webCLGLKernel, 0);
         }
     };
 
@@ -382,13 +386,9 @@ var WebCLGL = function(webglcontext) {
      * @private
      * @param {WebCLGLKernel} webCLGLKernel
      * @param {Int} item
-     * @param {Int} [geometryLength=1] - Length of geometry (1 for points, 3 for triangles...)
      */
-    var enqueueNDRangeKernelNow = (function(webCLGLKernel, i, geometryLength) {
+    var enqueueNDRangeKernelNow = (function(webCLGLKernel, i) {
         _gl.useProgram(webCLGLKernel.kernel);
-
-        var _geometryLength = (geometryLength != undefined) ? geometryLength : 1;
-        _gl.uniform1f(webCLGLKernel.uGeometryLength, _geometryLength);
 
         _currentTextureUnit = 0;
         for(var key in webCLGLKernel.in_values)
@@ -411,11 +411,11 @@ var WebCLGL = function(webglcontext) {
      * @param {WebCLGLVertexFragmentProgram} webCLGLVertexFragmentProgram
      * @param {WebCLGLBuffer} buffer Buffer to draw type (type indices or vertex)
      * @param {Int} [drawMode=4] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
-     * @param {Int} [geometryLength=1] - Length of geometry (1 for points, 3 for triangles...)
      */
-    this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, buffer, drawMode, geometryLength) {
+    this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, buffer, drawMode) {
+        _bufferWidth = 0;
+
         var Dmode = (drawMode != undefined) ? drawMode : 4;
-        var _geometryLength = (geometryLength != undefined) ? geometryLength : 1;
 
         _gl.useProgram(webCLGLVertexFragmentProgram.vertexFragmentProgram);
 
@@ -425,7 +425,6 @@ var WebCLGL = function(webglcontext) {
                 var bufferItem = vertexVal0.value.items[i];
 
                 _gl.uniform1f(webCLGLVertexFragmentProgram.uOffset, bufferItem.offset);
-                _gl.uniform1f(webCLGLVertexFragmentProgram.uGeometryLength, _geometryLength);
 
                 _currentTextureUnit = 0;
                 for(var key in webCLGLVertexFragmentProgram.in_vertex_values)

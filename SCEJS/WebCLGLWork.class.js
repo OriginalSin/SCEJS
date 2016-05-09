@@ -280,10 +280,9 @@ WebCLGLWork = function(webCLGL, offset) {
      * Process kernels
      * @param {String} kernelName
      * @param {WebCLGLBuffer} [webCLGLBuffer=undefined]
-     * @param {Int} [geometryLength=1] - Length of geometry (1 for points, 3 for triangles...)
      */
-    this.enqueueNDRangeKernel = function(kernelName, argumentToUpdate, geometryLength) {
-        this.webCLGL.enqueueNDRangeKernel(this.kernels[kernelName], argumentToUpdate, geometryLength);
+    this.enqueueNDRangeKernel = function(kernelName, argumentToUpdate) {
+        this.webCLGL.enqueueNDRangeKernel(this.kernels[kernelName], argumentToUpdate);
     };
 
     /**
@@ -291,11 +290,10 @@ WebCLGLWork = function(webCLGL, offset) {
      * @param {String} [argument=undefined] Argument for vertices count or undefined if indices exist
      * @param {String} Name (vertexFragmentProgramName) of vertexFragmentProgram to execute
      * @param {Int} drawMode
-     * @param {Int} [geometryLength=1] - Length of geometry (1 for points, 3 for triangles...)
      */
-    this.enqueueVertexFragmentProgram = function(argument, vertexFragmentProgramName, drawMode, geometryLength) {
+    this.enqueueVertexFragmentProgram = function(argument, vertexFragmentProgramName, drawMode) {
         var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argument];
-        if(buff != undefined && buff.length > 0) this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[vertexFragmentProgramName], buff, drawMode, geometryLength);
+        if(buff != undefined && buff.length > 0) this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[vertexFragmentProgramName], buff, drawMode);
     };
 };
 

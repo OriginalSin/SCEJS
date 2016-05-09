@@ -22,12 +22,12 @@ var ForceLayout_FunctionsString = ''+
     'float collisionExists;'+
 '};'+
 
-'CalculationResponse calculate(int connectionExists, vec2 xx_oppo, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion) {'+
+'CalculationResponse calculate(int connectionExists, vec2 xGeom_oppo, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion) {'+
     'float radius = 4.0;\n'+
     'float collisionExists = 0.0;\n'+
 
-    'vec3 currentPosB = posXYZW[xx_oppo].xyz;\n'+
-    'vec3 currentDirB = dir[xx_oppo].xyz;\n'+
+    'vec3 currentPosB = posXYZW[xGeom_oppo].xyz;\n'+
+    'vec3 currentDirB = dir[xGeom_oppo].xyz;\n'+
 
     'vec3 dirToB = (currentPosB-currentPos);\n'+
     'vec3 dirToBN = normalize(dirToB);\n'+
@@ -38,8 +38,8 @@ var ForceLayout_FunctionsString = ''+
         'atraction = sphericalColl(currentDir, currentDirB, dirToBN);'+
     '} else {'+
         'if(connectionExists == 1) {'+
-            'float bornDateOpposite = dataB[xx_oppo].x;'+
-            'float dieDateOpposite = dataB[xx_oppo].y;'+
+            'float bornDateOpposite = dataB[xGeom_oppo].x;'+
+            'float dieDateOpposite = dataB[xGeom_oppo].y;'+
 
             'int mak = 0;'+
             'if(dieDateOpposite != -1.0) {'+
@@ -70,25 +70,29 @@ var AdjMatrix_ForceLayout_initVars = ''+
 'float collisionExists = 0.0;\n'+
 'vec3 force = vec3(0.0, 0.0, 0.0);\n';
 
-var AdjMatrix_ForceLayout_relationFound = ''+
-'int connectionExists = (it.x > 0.5) ? 1 : 0;'+
-'vec2 xx_oppo = get_global_id(idb);\n'+
-'CalculationResponse calcResponse = calculate(connectionExists, xx_oppo, currentPos, currentDir, atraction, acumAtraction, repulsion);'+
-'atraction = calcResponse.atraction;'+
-'acumAtraction = calcResponse.acumAtraction;'+
-'repulsion = calcResponse.repulsion;'+
-'if(calcResponse.collisionExists == 1.0) {'+
-    'collisionExists = 1.0;'+
-    'force = calcResponse.atraction;'+
-    'break;'+
-'}'+
-
-'if(dieDate != -1.0) {'+
-    'if(currentTimestamp < bornDate || currentTimestamp > dieDate) {'+
-        'force = vec3(0.0, 0.0, 0.0);'+
+var AdjMatrix_ForceLayout_relationFound = function(geometryLength) {
+    var str = ''+
+    'int connectionExists = (it > 0.5) ? 1 : 0;'+
+    'vec2 xGeom_oppo = get_global_id(idb, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
+    'CalculationResponse calcResponse = calculate(connectionExists, xGeom_oppo, currentPos, currentDir, atraction, acumAtraction, repulsion);'+
+    'atraction = calcResponse.atraction;'+
+    'acumAtraction = calcResponse.acumAtraction;'+
+    'repulsion = calcResponse.repulsion;'+
+    'if(calcResponse.collisionExists == 1.0) {'+
+        'collisionExists = 1.0;'+
+        'force = calcResponse.atraction;'+
         'break;'+
     '}'+
-'} ';
+
+    'if(dieDate != -1.0) {'+
+        'if(currentTimestamp < bornDate || currentTimestamp > dieDate) {'+
+            'force = vec3(0.0, 0.0, 0.0);'+
+            'break;'+
+        '}'+
+    '} ';
+
+    return str;
+};
 
 var AdjMatrix_ForceLayout_summation = ''+
 'if(collisionExists == 0.0) {'+
@@ -136,46 +140,49 @@ var AdjMatrix_Autolink_initVars = ''+
 'vec2 totalIDrelation = vec2(0.0, 0.0);'+
 'float totalAngleRelations = 0.0;';
 
-var AdjMatrix_Autolink_relationFound = ''+
-'if(it.x > 0.5) {'+
-    'vec2 xx_oppo = get_global_id(idb);\n'+
-    'vec3 currentPosB = texture2D(posXYZW, xx_oppo).xyz;\n'+
-    'vec3 dirToBN = normalize(currentPosB-currentPos);\n'+
+var AdjMatrix_Autolink_relationFound = function(geometryLength) {
+    var str = ''+
+    'if(it > 0.5) {'+
+        'vec2 xGeom_oppo = get_global_id(idb, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
+        'vec3 currentPosB = posXYZW[xGeom_oppo].xyz;\n'+
+        'vec3 dirToBN = normalize(currentPosB-currentPos);\n'+
 
-    'vec2 IDrelation = vec2(0.0, 0.0);'+
-    'float angleRelations = 360.0;'+
+        'vec2 IDrelation = vec2(0.0, 0.0);'+
+        'float angleRelations = 360.0;'+
 
 
 
 
-    'for(int nB=0; nB < 4096; nB++) {\n'+
-        'float idbB = float(nB)+initB;\n'+
-        'if(idbB >= nodesCount) break;\n'+
-        'if(idbB != idb && idbB != nodeId) {'+
-            'float xNB = (nodeId-initA)*ts;\n'+
-            'float yNB = float(nB)*ts;\n'+
-            'vec4 itB = texture2D(adjacencyMatrix, vec2(xNB, yNB));\n'+
+        'for(int nB=0; nB < 4096; nB++) {\n'+
+            'float idbB = float(nB)+initB;\n'+
+            'if(idbB >= nodesCount) break;\n'+
+            'if(idbB != idb && idbB != nodeId) {'+
+                'vec2 xAdjMatB = get_global_id(vec2(nodeId-initA, float(nB)), widthAdjMatrix);'+
+                'float itB = adjacencyMatrix[xAdjMatB];\n'+
 
-            'if(itB.x > 0.5) {'+
-                'vec2 xx_oppoB = get_global_id(idbB);\n'+
-                'vec3 currentPosBB = texture2D(posXYZW, xx_oppoB).xyz;\n'+
-                'vec3 dirToBBN = normalize(currentPosBB-currentPos);\n'+
+                'if(itB > 0.5) {'+
+                    'vec2 xGeom_oppoB = get_global_id(idbB, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
+                    'vec3 currentPosBB = posXYZW[xGeom_oppoB].xyz;\n'+
+                    'vec3 dirToBBN = normalize(currentPosBB-currentPos);\n'+
 
-                'float angle = GetAngle(dirToBN,dirToBBN);'+
+                    'float angle = GetAngle(dirToBN,dirToBBN);'+
 
-                'if(angle > 0.0 && angle < angleRelations) {'+
-                    'IDrelation = xx_oppoB;'+
-                    'angleRelations = angle;'+
+                    'if(angle > 0.0 && angle < angleRelations) {'+
+                        'IDrelation = xGeom_oppoB;'+
+                        'angleRelations = angle;'+
+                    '}'+
                 '}'+
             '}'+
         '}'+
-    '}'+
 
-    'if(angleRelations < 360.0 && angleRelations > totalAngleRelations) {'+
-         'totalIDrelation = IDrelation;'+
-         'totalAngleRelations = angleRelations;'+
-    '}'+
-'}';
+        'if(angleRelations < 360.0 && angleRelations > totalAngleRelations) {'+
+             'totalIDrelation = IDrelation;'+
+             'totalAngleRelations = angleRelations;'+
+        '}'+
+    '}';
+
+    return str;
+};
 
 var AdjMatrix_Autolink_summation = '';
 
@@ -190,8 +197,6 @@ var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, 
     'vec4 idAdjMatrix(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections, float currentTimestamp, float bornDate, float dieDate) {\n'+
         initVars+
 
-        'float ts = 1.0/(widthAdjMatrix-1.0);\n'+
-
         'float num = currentAdjMatrix/numberOfColumns;\n'+
         'float rowAdjMat = floor(num);\n'+
         'float colAdjMat = float(int( fract(num)*numberOfColumns ));\n'+
@@ -204,9 +209,8 @@ var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, 
                 'float idb = float(n)+initB;\n'+
                 'if(idb >= nodesCount) break;\n'+
                 'if(idb != nodeId) {'+
-                    'float xN = (nodeId-initA)*ts;\n'+
-                    'float yN = float(n)*ts;\n'+
-                    'vec4 it = texture2D(adjacencyMatrix, vec2(xN, yN));\n'+
+                    'vec2 xAdjMat = get_global_id(vec2(nodeId-initA, float(n)), widthAdjMatrix);'+
+                    'float it = adjacencyMatrix[xAdjMat];\n'+
 
                     relationFound+
 

@@ -11,10 +11,8 @@ function VFP_GRID() { VFP.call(this);
 						'mat4 PMatrix,'+
 						'mat4 cameraWMatrix,'+
 						'mat4 nodeWMatrix) {'+
-							'vec2 x = get_global_id();'+
-					
-							'vec4 vp = vertexPos[x];\n'+
-							'vec4 vc = vertexColor[x];\n'+
+							'vec4 vp = vertexPos[];\n'+
+							'vec4 vc = vertexColor[];\n'+
 							
 							'vVC = vc;'+
 											
@@ -26,8 +24,6 @@ function VFP_GRID() { VFP.call(this);
 			 
 			[// fragment source
 			 'void main() {'+
-				 	'vec2 x = get_global_id();'+
-				 	
 					'gl_FragColor = vVC;\n'+
 			 '}']];
 		

@@ -1,11 +1,11 @@
 /** @private **/
-function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
+function KERNEL_DIR(customArgs, customCode, geometryLength) { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [
        	    // kernel head
        		[ForceLayout_FunctionsString+
        		adjMatrix_GLSLFunctionString(   AdjMatrix_ForceLayout_initVars,
-                                            AdjMatrix_ForceLayout_relationFound,
+                                            AdjMatrix_ForceLayout_relationFound(geometryLength),
                                             AdjMatrix_ForceLayout_summation,
                                             AdjMatrix_ForceLayout_returnInstruction)],
 
@@ -35,21 +35,18 @@ function KERNEL_DIR(customArgs, customCode) { VFP.call(this);
 						',float initialPosZ'+
 						((customArgs != undefined) ? ','+customArgs : '')+
 						') {\n'+
-			'vec2 x = get_global_id();\n'+	 
-			
-			'vec2 xx = get_global_id(data[x].x);'+
-			'vec2 xx_opposite = get_global_id(data[x].y);'+
-			
-			
-			
-			'float nodeId = data[x].x;'+
+			'vec2 x = get_global_id();\n'+
+
+            'float nodeId = data[x].x;'+
             'float numOfConnections = data[x].y;\n'+
+			'vec2 xGeometry = get_global_id(nodeId, uBufferWidth, '+geometryLength.toFixed(1)+');'+
+			
 
             'float bornDate = data[x].z;'+
             'float dieDate = data[x].w;'+
 
-			'vec3 currentDir = dir[xx].xyz;\n'+
-			'vec3 currentPos = posXYZW[xx].xyz;\n'+
+			'vec3 currentDir = dir[xGeometry].xyz;\n'+
+			'vec3 currentPos = posXYZW[xGeometry].xyz;\n'+
 
             'if(currentAdjMatrix == 0.0) {'+
                 'currentDir = vec3(0.0, 0.0, 0.0);'+

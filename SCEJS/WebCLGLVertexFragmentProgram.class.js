@@ -81,22 +81,26 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var sourceVertex = 	_precision+
             'uniform float uOffset;\n'+
             'uniform float uBufferWidth;'+
-            'uniform float uGeometryLength;'+
 
             lines_vertex_attrs()+
 
             _utils.unpackGLSLFunctionString()+
 
-            'vec2 get_global_id() {\n'+
-                'return vec2(0.0, 0.0);\n'+
-            '}\n'+
-
-            'vec2 get_global_id(float id) {\n'+
-                'float num = (id*uGeometryLength)/uBufferWidth;'+
-                'float column = fract(num)*uBufferWidth;'+
+            'vec2 get_global_id(float id, float bufferWidth, float geometryLength) {\n'+
+                'float num = (id*geometryLength)/bufferWidth;'+
+                'float column = fract(num)*bufferWidth;'+
                 'float row = floor(num);'+
 
-                'float ts = 1.0/(uBufferWidth-1.0);'+
+                'float ts = 1.0/(bufferWidth-1.0);'+
+
+                'return vec2(column*ts, row*ts);'+
+            '}\n'+
+
+            'vec2 get_global_id(vec2 id, float bufferWidth) {\n'+
+                'float column = id.x;'+
+                'float row = id.y;'+
+
+                'float ts = 1.0/(bufferWidth-1.0);'+
 
                 'return vec2(column*ts, row*ts);'+
             '}\n'+
@@ -112,10 +116,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var sourceFragment = _precision+
 
             lines_fragment_attrs()+
-
-            'vec2 get_global_id() {\n'+
-                'return vec2(0.0, 0.0);\n'+
-            '}\n'+
 
             _fragmentHead+
 
@@ -134,7 +134,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
         this.uOffset = _gl.getUniformLocation(this.vertexFragmentProgram, "uOffset");
         this.uBufferWidth = _gl.getUniformLocation(this.vertexFragmentProgram, "uBufferWidth");
-        this.uGeometryLength = _gl.getUniformLocation(this.vertexFragmentProgram, "uGeometryLength");
 
         for(var key in this.in_vertex_values) {
             var expectedMode;
@@ -178,7 +177,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var parseVertexSource = (function(source) {
             //console.log(source);
             for(var key in this.in_vertex_values) { // for each in_vertex_values (in argument)
-                var regexp = new RegExp(key+'\\[\\w*\\]',"gm");
+                var regexp = new RegExp(key+"\\[(\\w|\\.)*\\]","gm");
                 var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
                 //console.log(varMatches);
                 if(varMatches != null) {
@@ -273,7 +272,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var parseFragmentSource = (function(source) {
             //console.log(source);
             for(var key in this.in_fragment_values) { // for each in_fragment_values (in argument)
-                var regexp = new RegExp(key+'\\[\\w*\\]',"gm");
+                var regexp = new RegExp(key+"\\[(\\w|\\.)*\\]","gm");
                 var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
                 //console.log(varMatches);
                 if(varMatches != null) {

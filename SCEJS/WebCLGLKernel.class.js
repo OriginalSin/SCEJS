@@ -101,18 +101,26 @@ WebCLGLKernel = function(gl, source, header) {
 
                 'varying vec2 global_id;\n'+
                 'uniform float uBufferWidth;'+
-                'uniform float uGeometryLength;'+
 
                 'vec2 get_global_id() {\n'+
                     'return global_id;\n'+
                 '}\n'+
 
-                'vec2 get_global_id(float id) {\n'+
-                    'float num = (id*uGeometryLength)/uBufferWidth;'+
-                    'float column = fract(num)*uBufferWidth;'+
+                'vec2 get_global_id(float id, float bufferWidth, float geometryLength) {\n'+
+                    'float num = (id*geometryLength)/bufferWidth;'+
+                    'float column = fract(num)*bufferWidth;'+
                     'float row = floor(num);'+
 
-                    'float ts = 1.0/(uBufferWidth-1.0);'+
+                    'float ts = 1.0/(bufferWidth-1.0);'+
+
+                    'return vec2(column*ts, row*ts);'+
+                '}\n'+
+
+                'vec2 get_global_id(vec2 id, float bufferWidth) {\n'+
+                    'float column = id.x;'+
+                    'float row = id.y;'+
+
+                    'float ts = 1.0/(bufferWidth-1.0);'+
 
                     'return vec2(column*ts, row*ts);'+
                 '}\n'+
@@ -144,7 +152,6 @@ WebCLGLKernel = function(gl, source, header) {
             this.attr_TextureCoord = _gl.getAttribLocation(this.kernel, "aTextureCoord");
 
             this.uBufferWidth = _gl.getUniformLocation(this.kernel, "uBufferWidth");
-            this.uGeometryLength = _gl.getUniformLocation(this.kernel, "uGeometryLength");
 
             for(var key in this.in_values) {
                 var expectedMode;

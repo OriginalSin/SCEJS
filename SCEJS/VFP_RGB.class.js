@@ -19,12 +19,10 @@ function VFP_RGB(textureUnitCount) { VFP.call(this);
 						'mat4 PMatrix,'+
 						'mat4 cameraWMatrix,'+
 						'mat4 nodeWMatrix) {'+
-							'vec2 x = get_global_id();'+
-					
-							'vec4 vp = vertexPos[x];\n'+
-							'vec4 vn = vertexNormal[x];\n'+
-							'vec4 vt = vertexTexture[x];\n'+
-							'float vtu = vertexTextureUnit[x];\n'+
+							'vec4 vp = vertexPos[];\n'+
+							'vec4 vn = vertexNormal[];\n'+
+							'vec4 vt = vertexTexture[];\n'+
+							'float vtu = vertexTextureUnit[];\n'+
 							
 							'vVN = vn;'+
 							'vVT = vt;'+
@@ -41,7 +39,6 @@ function VFP_RGB(textureUnitCount) { VFP.call(this);
 			[// fragment source
 			 'void main('+lineArgument_samplers()+
 			 			'float nodesSize) {'+
-						 	'vec2 x = get_global_id();'+
 						 	'vec4 textureColor = texture2D(texAlbedo, vVT.xy);\n'+
 						 	// diffuse
 							'gl_FragColor = textureColor;\n'+

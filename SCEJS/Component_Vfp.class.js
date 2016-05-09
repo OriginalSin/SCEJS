@@ -12,7 +12,6 @@ Component_Vfp = function() {
 	 * @param {VFP} jsonIn.vfp
 	 * @param {String} jsonIn.name
 	 * @param {Int} [jsonIn.drawMode=4]
-	 * @param {Int} [jsonIn.geometryLength=1]
 	 * @param {Callback} [jsonIn.onPreTick=undefined]
 	 * @param {Callback} [jsonIn.onPostTick=undefined]
 	 * @param {Bool} [enableDepthTest=true]
@@ -32,7 +31,6 @@ Component_Vfp = function() {
 									"vfp": vfProgram,
 									"name": jsonIn.name,
 									"drawMode": jsonIn.drawMode,
-									"geometryLength": jsonIn.geometryLength,
 									"onPreTick": jsonIn.onPreTick,
 									"onPostTick": jsonIn.onPostTick,
 									"enableDepthTest": ((jsonIn.enableDepthTest != undefined) ? jsonIn.enableDepthTest : true),
@@ -168,7 +166,7 @@ Component_Vfp = function() {
 					if(this.vfps[key].onPreTick != undefined)
 						this.vfps[key].onPreTick();
 					
-					this.clglWork.enqueueVertexFragmentProgram(undefined, key, this.vfps[key].drawMode, this.vfps[key].geometryLength);
+					this.clglWork.enqueueVertexFragmentProgram(undefined, key, this.vfps[key].drawMode);
 
 					if(this.vfps[key].onPostTick != undefined)
 						this.vfps[key].onPostTick();

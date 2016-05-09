@@ -1,5 +1,5 @@
 /** @private **/
-function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
+function KERNEL_POSBYDIR(customArgs, customCode, geometryLength) { VFP.call(this);
 	this.getSrc = function() {
 
 		var str_vfp = [
@@ -21,8 +21,7 @@ function KERNEL_POSBYDIR(customArgs, customCode) { VFP.call(this);
 						') {\n'+
 							'vec2 x = get_global_id();\n'+	 
 							
-							'vec2 xx = get_global_id(data[x].x);'+
-							'vec2 xx_opposite = get_global_id(data[x].y);'+
+							//'vec2 xx = get_global_id(data[x].x, uBufferWidth, '+geometryLength.toFixed(1)+');'+
 						
 						
 							'vec3 currentPos = posXYZW[x].xyz;\n'+

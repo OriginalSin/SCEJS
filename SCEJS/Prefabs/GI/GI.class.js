@@ -42,7 +42,6 @@ GI = function(sce) {
 		comp_renderer_node.addVFP({"name": "GI",
 			"vfp": new VFP_GI(resolution),
 			"drawMode": 4,
-			//"geometryLength": 4,
 			//"enableDepthTest": false,
 			"enableBlend": true, 
 			"onPreTick": (function() {

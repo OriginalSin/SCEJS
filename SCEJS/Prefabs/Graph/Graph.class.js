@@ -56,6 +56,7 @@ Graph = function(sce) {
 	var _initialPosDrag;
 	
 	// meshes
+	var _geometryLength = 4;
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
@@ -894,8 +895,7 @@ Graph = function(sce) {
 
         // nodes
         comp_renderer_nodes.addKernel({	"name": "dir",
-            "geometryLength": 4,
-            "kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection),
+            "kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection, _geometryLength),
             "onPreTick": (function() {
                 if(_enableAnimation == true) {
                     var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
@@ -951,16 +951,14 @@ Graph = function(sce) {
                 }
             }).bind(this)});
         comp_renderer_nodes.addKernel({	"name": "posXYZW",
-            "geometryLength": 4,
-            "kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition),
+            "kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition, _geometryLength),
             "onPostTick": (function() {
                 comp_renderer_nodes.getWebCLGL().copy(comp_renderer_nodes.getTempBuffers()["dir"], comp_renderer_nodes.getBuffers()["dir"]);
                 comp_renderer_nodes.getWebCLGL().copy(comp_renderer_nodes.getTempBuffers()["posXYZW"], comp_renderer_nodes.getBuffers()["posXYZW"]);
             }).bind(this)});
         comp_renderer_nodes.addVFP({"name": "NODES_RGB",
-            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
+            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
             "drawMode": 4,
-            "geometryLength": 4,
             "enableDepthTest": false,
             "enableBlend": true,
             "blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
@@ -970,9 +968,8 @@ Graph = function(sce) {
                 //_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
             }).bind(this)});
         comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",
-            "vfp": new VFP_NODEPICKDRAG(),
+            "vfp": new VFP_NODEPICKDRAG(_geometryLength),
             "drawMode": 4,
-            "geometryLength": 4,
             "enableDepthTest": false,
             "enableBlend": true,
             "onPreTick": (function() {
@@ -1004,9 +1001,8 @@ Graph = function(sce) {
 
         // links
         comp_renderer_links.addVFP({"name": "LINKS_RGB",
-            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
+            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
             "drawMode": 1,
-            "geometryLength": 4,
             "enableBlend": true,
             "blendSrc": Constants.BLENDING_MODES.ONE,
             "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
@@ -1016,9 +1012,8 @@ Graph = function(sce) {
 
         // arrows
         comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
-            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
+            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
             "drawMode": 4,
-            "geometryLength": 4,
             "enableBlend": true,
             "blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
             "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
@@ -1029,9 +1024,8 @@ Graph = function(sce) {
         // nodestext
         if(_enableFont == true) {
             comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
-                "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject),
+                "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
                 "drawMode": 4,
-                "geometryLength": 4,
                 "enableBlend": true,
                 "blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
                 "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,

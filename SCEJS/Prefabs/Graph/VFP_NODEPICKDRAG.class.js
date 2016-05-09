@@ -1,5 +1,5 @@
 /** @private **/
-function VFP_NODEPICKDRAG() { VFP.call(this);
+function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [
        	    // vertex head
@@ -27,14 +27,14 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+
        			'mat4 nodeWMatrix) {'+
-       				'vec2 x = get_global_id();'+
-					'vec2 xx = get_global_id(data[x].x);'+
+       				//'vec2 x = get_global_id();'+ // no needed
+					'vec2 xGeometry = get_global_id(data[].x, uBufferWidth, '+geometryLength.toFixed(1)+');'+
 
-                    'float bornDate = dataB[xx].x;'+
-                    'float dieDate = dataB[xx].y;'+
+                    'vec4 nodePosition = posXYZW[xGeometry];\n'+
+                    'float bornDate = dataB[xGeometry].x;'+
+                    'float dieDate = dataB[xGeometry].y;'+
 
-					//'vec4 nodePosition = texture2D(posXYZW, xx);\n'+
-       				'vec4 nodePosition = posXYZW[xx];\n'+
+
        				'mat4 nodepos = nodeWMatrix;'+
 
    					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
@@ -53,14 +53,14 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
                         'mak = 1;'+
 
                     'if(mak == 1) {'+
-                        'vColor = pack((data[x].x+1.0)/1000000.0);'+
+                        'vColor = pack((data[].x+1.0)/1000000.0);'+
                     '}'+
 
                     'if(vColor.x == 1.0 && vColor.y == 1.0 && vColor.z == 1.0 && vColor.w == 1.0) '+
                         'nodepos[3][0] = 10000.0;'+
 
 
-       				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPos[x];\n'+
+       				'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPos[];\n'+
 					'gl_PointSize = 10.0;\n'+
        		'}'],
 
@@ -69,7 +69,7 @@ function VFP_NODEPICKDRAG() { VFP.call(this);
 
        		[// fragment source
        		 'void main() {'+
-       		 	//'vec2 x = get_global_id();'+
+       		 	//'vec2 x = get_global_id();'+ // no needed
 
        			'gl_FragColor = vColor;\n'+
        		 '}']];

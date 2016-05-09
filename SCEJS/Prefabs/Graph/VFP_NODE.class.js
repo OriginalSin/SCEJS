@@ -1,5 +1,5 @@
 /** @private **/
-function VFP_NODE(customArgs, customCode) { VFP.call(this);
+function VFP_NODE(customArgs, customCode, geometryLength) { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [
        	    // vertex head
@@ -72,7 +72,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
             Autolink_FunctionsString+
             adjMatrix_GLSLFunctionString(   AdjMatrix_Autolink_initVars,
-                                            AdjMatrix_Autolink_relationFound,
+                                            AdjMatrix_Autolink_relationFound(geometryLength),
                                             AdjMatrix_Autolink_summation,
                                             AdjMatrix_Autolink_returnInstruction)+
 
@@ -100,7 +100,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                 'float repeatDistribution = -0.1;'+
                 // first check output edges of own node and return the node (textCoord for get posXYZW) with max available angle to the right
                 'vec4 adjMatrix = idAdjMatrix(nodeId, nodePosition.xyz, vec3(0.0,0.0,0.0), 0.0, 0.0, 0.0, 0.0);'+
-                'vec3 initialVec = normalize(texture2D(posXYZW, adjMatrix.xy).xyz-nodePosition.xyz)*vec3(1.0, -1.0, 1.0);'+
+                'vec3 initialVec = normalize(posXYZW[adjMatrix.xy].xyz-nodePosition.xyz)*vec3(1.0, -1.0, 1.0);'+
                 'float totalAngleRelations = adjMatrix.z;'+
                 // then first sum half of available angle received
                 'initialVec = getVV(initialVec, (totalAngleRelations/2.0)*repeatDistribution);'+
@@ -109,8 +109,9 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
             '}'],
 
        		// vertex source
-       		['void main(float4*attr data,'+ // // NODES= nodeId, acums, bornDate, dieDate // LINKS & ARROWS= nodeId origin, nodeId target, currentLineVertex, repeatId
+       		['void main('+ // // NODES= nodeId, acums, bornDate, dieDate // LINKS & ARROWS= nodeId origin, nodeId target, currentLineVertex, repeatId
                 'float4* dataB,'+ // bornDate, dieDate, 0.0, 0.0 (NODES share TO LINKS & ARROWS)
+                'float4*attr data,'+
        		 	'float*attr letterId,'+
        		 	'float*attr nodeImgId,'+
        		 	'float* adjacencyMatrix,'+
@@ -138,24 +139,27 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        			'float nodeImgColumns,'+
        			'float fontImgColumns,'+
        			customArgs+') {'+
-       				//'vec2 x = get_global_id();'+
-       				
-					'vec2 xx = get_global_id(data[x].x);'+
-					'vec2 xx_opposite = get_global_id(data[x].y);'+
+       				//'vec2 x = get_global_id();'+ // no needed
 
-					'float bornDate = dataB[xx].x;'+
-                    'float dieDate = dataB[xx].y;'+
+                    'float nodeId = data[].x;'+
+                    'float nodeIdOpposite = data[].y;'+
 
-                    'float bornDateOpposite = dataB[xx_opposite].x;'+
-                    'float dieDateOpposite = dataB[xx_opposite].y;'+
+					'vec2 xGeometry = get_global_id(nodeId, uBufferWidth, '+geometryLength.toFixed(1)+');'+
+					'vec2 xGeometry_opposite = get_global_id(nodeIdOpposite, uBufferWidth, '+geometryLength.toFixed(1)+');'+
 
-                    'float nodeId = data[x].x;'+
+                    'vec4 nodePosition = posXYZW[xGeometry];\n'+
+					'float bornDate = dataB[xGeometry].x;'+
+                    'float dieDate = dataB[xGeometry].y;'+
 
-                    'vec4 nodePosition = posXYZW[xx];\n'+
-					'vec3 XYZW_opposite = posXYZW[xx_opposite].xyz;\n'+
+                    'vec3 XYZW_opposite = posXYZW[xGeometry_opposite].xyz;\n'+
+                    'float bornDateOpposite = dataB[xGeometry_opposite].x;'+
+                    'float dieDateOpposite = dataB[xGeometry_opposite].y;'+
 
-	   				'vec4 nodeVertexPosition = nodeVertexPos[x];\n'+ 
-	   				'vec4 nodeVertexTex = nodeVertexTexture[x];\n'+
+
+
+
+	   				'vec4 nodeVertexPosition = nodeVertexPos[];\n'+
+	   				'vec4 nodeVertexTex = nodeVertexTexture[];\n'+
 	   				'vec4 nodeVertexColor = vec4(1.0, 1.0, 1.0, 1.0);\n'+
 
                     'vec3 dir = XYZW_opposite-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
@@ -166,8 +170,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
                     'float OFFSET = 1000.0;'+
 
-                    'float currentLineVertex = data[x].z;'+ // this is isTarget for arrows
-                    'float repeatId = data[x].w;'+
+                    'float currentLineVertex = data[].z;'+ // this is isTarget for arrows
+                    'float repeatId = data[].w;'+
 
                     'vec3 cr = cross(dirN, vec3(0.0, 1.0, 0.0));'+
                     'float currentLineVertexSQRT = abs( currentLineVertex-(vertexCount/2.0) )/(vertexCount/2.0);'+
@@ -175,8 +179,8 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 
        				'vVertexUV = vec2(-1.0, -1.0);'+
                     'vVisibility = 1.0;'+
-                    'vIsSelected = (idToDrag == data[x].x || idToDrag == data[x].y) ? 1.0 : 0.0;'+
-                    'vIsHover = (idToHover == data[x].x || idToHover == data[x].y) ? 1.0 : 0.0;'+
+                    'vIsSelected = (idToDrag == data[].x || idToDrag == data[].y) ? 1.0 : 0.0;'+
+                    'vIsHover = (idToHover == data[].x || idToHover == data[].y) ? 1.0 : 0.0;'+
                     'vDist = max(0.3, 1.0-(distance(nodePosition.xyz, XYZW_opposite)*0.01));\n'+ // dist/acum
 
        				'mat4 nodepos = nodeWMatrix;'+
@@ -185,7 +189,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'if(isNode == 1.0) {'+
 	   					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
 	   					'nodepos = nodepos*mm;'+
-	   					'float nodeImgId = nodeImgId[x];'+
+	   					'float nodeImgId = nodeImgId[];'+
 
 	   					'if(nodeImgId != -1.0) {'+
 	   						'vUseTex = 1.0;'+
@@ -197,7 +201,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                             'vVisibility = 0.0;'+
                     '}'+
 	   				'if(isLink == 1.0) {'+
-	   				    'if(xx != xx_opposite) {'+
+	   				    'if(xGeometry != xGeometry_opposite) {'+
                             // displacing from center to first point
                             'nodePosition += vec4(dirN*(lineIncrements*currentLineVertex), 1.0);'+
 
@@ -230,7 +234,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 		       		'}'+
        				'if(isArrow == 1.0) {'+
        				    'vec3 nodePositionTMP;'+
-                        'if(xx != xx_opposite) {'+
+                        'if(xGeometry != xGeometry_opposite) {'+
                             // displacing from center to first point
                             'float currentLineVertexU = vertexCount-1.0;'+
                             'nodePositionTMP = XYZW_opposite+((dirN*-1.0)*(lineIncrements*currentLineVertexU));'+
@@ -284,7 +288,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
                                 'vVisibility = 0.0;'+
        				'}'+
        				'if(isNodeText == 1.0) {'+
-       					'float letId = letterId[x];\n'+
+       					'float letId = letterId[];\n'+
        					'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
        					'nodepos = nodepos*mm;'+
 
@@ -296,7 +300,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        				'nodepos[3][2] = nodePosition.z;'+
 
        				'mat4 nodeposG = nodeWMatrix;'+
-       				'vWNMatrix = nodeposG * nodeVertexNormal[x];\n'+
+       				'vWNMatrix = nodeposG * nodeVertexNormal[];\n'+
        				
        				'vUseCrosshair = 0.0;'+
        				'vIstarget = (currentLineVertex == 1.0) ? 1.0 : 0.0;'+
@@ -329,7 +333,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
        		 			'float isLink,'+
        		 			'float isArrow,'+
        		 			'float isNodeText) {'+
-       		 	'vec2 x = get_global_id();'+
+       		 	//'vec2 x = get_global_id();'+ // no needed
        		 	
        		 	'vec4 color = vVertexColor;\n'+
        		 	'vec4 colorOrange = vec4(255.0/255.0, 131.0/255.0, 0.0/255.0, 1.0);'+
@@ -340,15 +344,15 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 	       			'if(vUseTex == 1.0) {'+
 	       				'vec4 tex;'+
 	       				'if(vUseCrosshair == 1.0) {'+
-	       					'tex = texture2D(nodesImgCrosshair, vVertexUV.xy);'+
+	       					'tex = nodesImgCrosshair[vVertexUV.xy];'+
 	       				'} else if(vIsSelected == 1.0) {'+
 		       				'color = colorOrangeDark;'+
-	       					'tex = texture2D(nodesImgCrosshair, vVertexUV.xy);'+	       					
+	       					'tex = nodesImgCrosshair[vVertexUV.xy];'+
 	       				'} else if(vIsHover == 1.0) {'+
 		       				'color = colorPurple;'+
-	       					'tex = texture2D(nodesImg, vVertexUV.xy);'+
+	       					'tex = nodesImg[vVertexUV.xy];'+
 	       				'} else {'+
-	       					'tex = texture2D(nodesImg, vVertexUV.xy);'+
+	       					'tex = nodesImg[vVertexUV.xy];'+
 	       				'}'+
 	       				'color = vec4(tex.rgb*color.rgb, tex.a);\n'+
 					'}'+
@@ -372,7 +376,7 @@ function VFP_NODE(customArgs, customCode) { VFP.call(this);
 		   			'}'+
 	       			'gl_FragColor = color;\n'+
 	       		'} else if(isNodeText == 1.0) {'+
-       				'gl_FragColor = texture2D(fontsImg, vVertexUV.xy);\n'+
+       				'gl_FragColor = fontsImg[vVertexUV.xy];\n'+
        			'}'+
 
                  'if(vVisibility == 0.0)'+
