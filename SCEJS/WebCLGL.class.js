@@ -254,10 +254,11 @@ var WebCLGL = function(webglcontext) {
      * @param {Bool} [flip=false]
      */
     this.enqueueWriteBuffer = function(buffer, arr, flip) {
-        if(buffer.mode == "FRAGMENT" || buffer.mode == "VERTEX_FROM_KERNEL" || buffer.mode == "VERTEX_AND_FRAGMENT") {
+        if(buffer.mode == "SAMPLER") {
             buffer.writeWebGLTextureBuffer(arr, flip);
+            buffer.writeWebGLBuffer(arr, flip);
         }
-        if(buffer.mode == "VERTEX" || buffer.mode == "VERTEX_INDEX" || buffer.mode == "VERTEX_FROM_KERNEL" || buffer.mode == "VERTEX_AND_FRAGMENT") {
+        if(buffer.mode == "ATTRIBUTE" || buffer.mode == "VERTEX_INDEX") {
             buffer.writeWebGLBuffer(arr, flip);
         }
     };
@@ -334,7 +335,7 @@ var WebCLGL = function(webglcontext) {
      * @private
      */
     var bindValue = (function(webCLGLProgram, inValue, itemNum) {
-        switch(inValue.typeF) {
+        switch(inValue.expectedMode) {
             case "ATTRIBUTE":
                 bindAttributeValue(inValue, itemNum);
                 break;

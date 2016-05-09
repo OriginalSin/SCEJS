@@ -36,7 +36,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
             // vertex 'buffer_float4_fromKernel'(4 packet pointer4), 'buffer_float_fromKernel'(1 packet pointer4), 'buffer_float4'(1 pointer4), 'buffer_float'(1 pointer1)
             // fragment 'buffer_float4'(RGBA channels), 'buffer_float'(Red channel)
             var inValue = { "type": null, //
-                            "typeF": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
+                            "expectedMode": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
                             "value": null, // Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer
                             "location": null};
             inValues[argName] = inValue;
@@ -139,30 +139,30 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         this.uGeometryLength = _gl.getUniformLocation(this.vertexFragmentProgram, "uGeometryLength");
 
         for(var key in this.in_vertex_values) {
-            var typeF;
+            var expectedMode;
             if(this.in_vertex_values[key].type == 'buffer_float_fromKernel' || this.in_vertex_values[key].type == 'buffer_float4_fromKernel')
-                typeF = "SAMPLER";
+                expectedMode = "SAMPLER";
              else if(this.in_vertex_values[key].type == 'buffer_float4' || this.in_vertex_values[key].type == 'buffer_float')
-                typeF = "ATTRIBUTE";
+                expectedMode = "ATTRIBUTE";
              else if(this.in_vertex_values[key].type == 'float' || this.in_vertex_values[key].type == 'float4' || this.in_vertex_values[key].type == 'mat4')
-                typeF = "UNIFORM";
+                expectedMode = "UNIFORM";
 
             checkArgNameInitialization(this.in_vertex_values, key);
-            var loc = (typeF == "ATTRIBUTE") ? gl.getAttribLocation(this.vertexFragmentProgram, key) : gl.getUniformLocation(this.vertexFragmentProgram, key);
+            var loc = (expectedMode == "ATTRIBUTE") ? gl.getAttribLocation(this.vertexFragmentProgram, key) : gl.getUniformLocation(this.vertexFragmentProgram, key);
             this.in_vertex_values[key].location = [loc];
-            this.in_vertex_values[key].typeF = typeF;
+            this.in_vertex_values[key].expectedMode = expectedMode;
         }
 
         for(var key in this.in_fragment_values) {
-            var typeF;
+            var expectedMode;
             if(this.in_fragment_values[key].type == 'buffer_float4' || this.in_fragment_values[key].type == 'buffer_float')
-                typeF = "SAMPLER";
+                expectedMode = "SAMPLER";
             else if(this.in_fragment_values[key].type == 'float' || this.in_fragment_values[key].type == 'float4' || this.in_fragment_values[key].type == 'mat4')
-                typeF = "UNIFORM";
+                expectedMode = "UNIFORM";
 
             checkArgNameInitialization(this.in_fragment_values, key);
             this.in_fragment_values[key].location = [_gl.getUniformLocation(this.vertexFragmentProgram, key)];
-            this.in_fragment_values[key].typeF = typeF;
+            this.in_fragment_values[key].expectedMode = expectedMode;
         }
 
 

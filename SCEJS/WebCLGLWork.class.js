@@ -24,7 +24,6 @@ WebCLGLWork = function(webCLGL, offset) {
 	var isBuffer;
 	var usedInVertex;
 	var usedInFragment;
-	var mode; // "FRAGMENT", "VERTEX", "VERTEX_INDEX", "VERTEX_FROM_KERNEL", "VERTEX_AND_FRAGMENT"
 
 
 
@@ -166,16 +165,11 @@ WebCLGLWork = function(webCLGL, offset) {
         this.checkArg(argument);
 
         if(isBuffer == true) {
-            if(this.updatedFromKernel.hasOwnProperty(argument) && usedInVertex == true) {
-                mode = "VERTEX_FROM_KERNEL";
-            } else if(usedInVertex == true) {
-                if(kernelPr.length > 0 || usedInFragment == true) {
-                    mode = "VERTEX_AND_FRAGMENT";
-                } else {
-                    mode = "VERTEX";
+            var mode = "SAMPLER"; // "ATTRIBUTE", "SAMPLER", "UNIFORM"
+            if(usedInVertex == true) {
+                if(kernelPr.length == 0 && usedInFragment == false) {
+                    mode = "ATTRIBUTE";
                 }
-            } else {
-                mode = "FRAGMENT";
             }
 
             var length;

@@ -22,7 +22,7 @@ WebCLGLKernel = function(gl, source, header) {
         if(inValues.hasOwnProperty(argName) == false) {
             // kernel 'buffer_float4'(RGBA channels), 'buffer_float'(Red channel)
             var inValue = { "type": null, //
-                            "typeF": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
+                            "expectedMode": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
                             "value": null, // Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer
                             "location": null};
             inValues[argName] = inValue;
@@ -148,15 +148,15 @@ WebCLGLKernel = function(gl, source, header) {
             this.uGeometryLength = _gl.getUniformLocation(this.kernel, "uGeometryLength");
 
             for(var key in this.in_values) {
-                var typeF;
+                var expectedMode;
                 if(this.in_values[key].type == 'buffer_float4' || this.in_values[key].type == 'buffer_float')
-                    typeF = "SAMPLER";
+                    expectedMode = "SAMPLER";
                 else if(this.in_values[key].type == 'float' || this.in_values[key].type == 'float4' || this.in_values[key].type == 'mat4')
-                    typeF = "UNIFORM";
+                    expectedMode = "UNIFORM";
 
                 checkArgNameInitialization(this.in_values, key);
-                this.in_values[key].location = [_gl.getUniformLocation(this.kernel, key)],
-                    this.in_values[key].typeF = typeF;
+                this.in_values[key].location = [_gl.getUniformLocation(this.kernel, key)];
+                this.in_values[key].expectedMode = expectedMode;
             }
 
             return true;

@@ -30,20 +30,16 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
 
     var inData; // enqueueWriteBuffer user data
 
-    this.mode = (mode != undefined) ? mode : "FRAGMENT"; // "FRAGMENT", "VERTEX", "VERTEX_INDEX", "VERTEX_FROM_KERNEL", "VERTEX_AND_FRAGMENT"
+    this.mode = (mode != undefined) ? mode : "SAMPLER"; // "FRAGMENT", "VERTEX", "VERTEX_INDEX", "VERTEX_FROM_KERNEL", "VERTEX_AND_FRAGMENT"
 
 
     this.initialize = function() {
-        if(this.mode == "FRAGMENT" || this.mode == "VERTEX_FROM_KERNEL" || this.mode == "VERTEX_AND_FRAGMENT") {
+        if(this.mode == "SAMPLER") {
             // Create WebGLTexture buffer
             this.textureData = createWebGLTextureBuffer();
-
-            if(this.mode == "VERTEX_FROM_KERNEL") {
-                //          this.createWebGLRenderBuffer();
-//            this.createWebGLFrameBuffer();
-            }
+            this.vertexData0 = createWebGLBuffer();
         }
-        if(this.mode == "VERTEX" || this.mode == "VERTEX_INDEX" || this.mode == "VERTEX_FROM_KERNEL" || this.mode == "VERTEX_AND_FRAGMENT") {
+        if(this.mode == "ATTRIBUTE" || this.mode == "VERTEX_INDEX") {
             // Create WebGL buffer
             this.vertexData0 = createWebGLBuffer();
         }
@@ -175,10 +171,10 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
         _gl.deleteRenderbuffer(this.rBuffer);
         _gl.deleteFramebuffer(this.fBuffer);
 
-        if(this.mode == "FRAGMENT" || this.mode == "VERTEX_FROM_KERNEL" || this.mode == "VERTEX_AND_FRAGMENT")
+        if(this.mode == "SAMPLER")
             _gl.deleteTexture(this.textureData);
 
-        if(this.mode == "VERTEX" || this.mode == "VERTEX_INDEX" || this.mode == "VERTEX_FROM_KERNEL" || this.mode == "VERTEX_AND_FRAGMENT")
+        if(this.mode == "ATTRIBUTE" || this.mode == "VERTEX_INDEX")
             _gl.deleteBuffer(this.vertexData0);
     };
 };
