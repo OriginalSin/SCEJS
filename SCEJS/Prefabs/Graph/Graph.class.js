@@ -1793,7 +1793,6 @@ Graph = function(sce) {
 			}
 
 		}
-        comp_renderer_nodes.setUpdateFromKernel("posXYZW");
 		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this), this.splitNodes);
 
 		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this), this.splitNodes);
@@ -1808,7 +1807,6 @@ Graph = function(sce) {
 		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
 			this.arrayNodeDir.push(0, 0, 0, 1.0);
 		}
-        comp_renderer_nodes.setUpdateFromKernel("dir");
 		comp_renderer_nodes.setArg("dir", (function() {return this.arrayNodeDir;}).bind(this), this.splitNodes);
 
 		comp_renderer_nodes.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
@@ -2142,7 +2140,6 @@ Graph = function(sce) {
 
 
 
-            //comp_renderer_nodes.setUpdateFromKernel("adjacencyMatrix");
             comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
             _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 
@@ -2152,7 +2149,6 @@ Graph = function(sce) {
 
 
 
-            //comp_renderer_links.setUpdateFromKernel("adjacencyMatrix");
             //comp_renderer_links.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
             comp_renderer_links.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
 
@@ -2162,7 +2158,6 @@ Graph = function(sce) {
 
 
 
-            //comp_renderer_arrows.setUpdateFromKernel("adjacencyMatrix");
             //comp_renderer_arrows.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
             comp_renderer_arrows.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
 

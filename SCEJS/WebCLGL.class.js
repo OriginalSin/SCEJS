@@ -205,7 +205,7 @@ var WebCLGL = function(webglcontext) {
      * @param {String} [type="FLOAT"] type FLOAT4 OR FLOAT
      * @param {Int} [offset=0] If 0 the range is from 0.0 to 1.0 else if >0 then the range is from -offset.0 to offset.0
      * @param {Bool} [linear=false] linear texParameteri type for the WebGLTexture
-     * @param {String} [mode="FRAGMENT"] Mode for this buffer. "FRAGMENT", "VERTEX", "VERTEX_INDEX", "VERTEX_FROM_KERNEL", "VERTEX_AND_FRAGMENT"
+     * @param {String} [mode="SAMPLER"] Mode for this buffer. "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
      * @param {Array} [splits=[length]] Splits length for this buffer.
      * @returns {WebCLGLBuffer}
      */

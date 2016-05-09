@@ -14,7 +14,7 @@ WebCLGLWork = function(webCLGL, offset) {
 	this.buffers = {};
 	this.buffers_TEMP = {};
 
-    this.updatedFromKernel = {};
+    this.arrAllowKernelWriting = {};
 
 
 	var kernelPr;
@@ -28,17 +28,17 @@ WebCLGLWork = function(webCLGL, offset) {
 
 
     /**
-     * setUpdateFromKernel
+     * setAllowKernelWriting
      * @param {String} argument
      */
-    this.setUpdateFromKernel = function(argument) {
-        this.updatedFromKernel[argument] = true;
+    this.setAllowKernelWriting = function(argument) {
+        this.arrAllowKernelWriting[argument] = true;
     };
 
     /**
      * Add one WebCLGLKernel to the work
      * @param {WebCLGLKernel} kernel
-     * @param {String} name Name for identify this kernel
+     * @param {String} name - Used for to write and update ARG name with the result in out_float4/out_float  (ScreenEffect output always to 'null')
      */
     this.addKernel = function(kernel, name) {
         var exists = false;
@@ -52,6 +52,7 @@ WebCLGLWork = function(webCLGL, offset) {
         if(exists == false) {
             this.kernels[name] = kernel;
         }
+        this.arrAllowKernelWriting[name] = true;
     };
 
     /**
@@ -183,7 +184,7 @@ WebCLGLWork = function(webCLGL, offset) {
             var buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
             this.webCLGL.enqueueWriteBuffer(buff, value);
             this.buffers[argument] = buff;
-            if(this.updatedFromKernel.hasOwnProperty(argument) == true) {
+            if(this.arrAllowKernelWriting.hasOwnProperty(argument) == true) {
                 var buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                 this.webCLGL.enqueueWriteBuffer(buffTMP, value);
                 this.buffers_TEMP[argument] = buffTMP;

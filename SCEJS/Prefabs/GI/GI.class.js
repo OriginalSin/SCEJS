@@ -158,15 +158,15 @@ GI = function(sce) {
 		
 		var arr = new Float32Array(_sce.getDimensions().width*_sce.getDimensions().height*4);
 
-        comp_renderer_node.setUpdateFromKernel("sampler_screenColor");
+        comp_renderer_node.setAllowKernelWriting("sampler_screenColor");
 		comp_renderer_node.setArg("sampler_screenColor", (function(){return arr;}).bind(this));
-        comp_renderer_node.setUpdateFromKernel("sampler_screenPos");
+        comp_renderer_node.setAllowKernelWriting("sampler_screenPos");
 		comp_renderer_node.setArg("sampler_screenPos", (function(){return arr;}).bind(this));
-        comp_renderer_node.setUpdateFromKernel("sampler_screenNormal");
+        comp_renderer_node.setAllowKernelWriting("sampler_screenNormal");
 		comp_renderer_node.setArg("sampler_screenNormal", (function(){return arr;}).bind(this));
-        comp_renderer_node.setUpdateFromKernel("sampler_GIVoxel");
+        comp_renderer_node.setAllowKernelWriting("sampler_GIVoxel");
 		comp_renderer_node.setArg("sampler_GIVoxel", (function(){return arr;}).bind(this));
-		
+
 		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
 		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
 		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);

@@ -10,7 +10,7 @@ Component_Vfp = function() {
 	/**
 	 * @param {Object} jsonIn	 
 	 * @param {VFP} jsonIn.vfp
-	 * @param {String} jsonIn.name
+	 * @param {String} jsonIn.name - Used only for identify. not for output to buffer
 	 * @param {Int} [jsonIn.drawMode=4]
 	 * @param {Callback} [jsonIn.onPreTick=undefined]
 	 * @param {Callback} [jsonIn.onPostTick=undefined]

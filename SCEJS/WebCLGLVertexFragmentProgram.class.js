@@ -177,7 +177,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var parseVertexSource = (function(source) {
             //console.log(source);
             for(var key in this.in_vertex_values) { // for each in_vertex_values (in argument)
-                var regexp = new RegExp(key+"\\[(\\w|\\.)*\\]","gm");
+                var regexp = new RegExp(key+"\\[.*?\\]","gm");
                 var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
                 //console.log(varMatches);
                 if(varMatches != null) {
@@ -187,16 +187,15 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                         if(regexpNativeGLMatches == null) {
                             var name = varMatches[nB].split('[')[0];
                             var vari = varMatches[nB].split('[')[1].split(']')[0];
-                            var regexp = new RegExp(name+'\\['+vari.trim()+'\\]',"gm");
 
                             if(this.in_vertex_values[key].type == 'float4_fromSampler')
-                                source = source.replace(regexp, 'texture2D('+name+','+vari+')');
+                                source = source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+')');
                             if(this.in_vertex_values[key].type == 'float_fromSampler')
-                                source = source.replace(regexp, 'texture2D('+name+','+vari+').x');
+                                source = source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+').x');
                             if(this.in_vertex_values[key].type == 'float4_fromAttr')
-                                source = source.replace(regexp, name);
+                                source = source.replace(name+"["+vari+"]", name);
                             if(this.in_vertex_values[key].type == 'float_fromAttr')
-                                source = source.replace(regexp, name);
+                                source = source.replace(name+"["+vari+"]", name);
                         }
                     }
                 }
@@ -272,7 +271,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         var parseFragmentSource = (function(source) {
             //console.log(source);
             for(var key in this.in_fragment_values) { // for each in_fragment_values (in argument)
-                var regexp = new RegExp(key+"\\[(\\w|\\.)*\\]","gm");
+                var regexp = new RegExp(key+"\\[.*?\\]","gm");
                 var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
                 //console.log(varMatches);
                 if(varMatches != null) {
@@ -282,12 +281,11 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                         if(regexpNativeGLMatches == null) {
                             var name = varMatches[nB].split('[')[0];
                             var vari = varMatches[nB].split('[')[1].split(']')[0];
-                            var regexp = new RegExp(name+'\\['+vari.trim()+'\\]',"gm");
 
                             if(this.in_fragment_values[key].type == 'float4_fromSampler')
-                                source = source.replace(regexp, 'texture2D('+name+','+vari+')');
+                                source = source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+')');
                             if(this.in_fragment_values[key].type == 'float_fromSampler')
-                                source = source.replace(regexp, 'texture2D('+name+','+vari+').x');
+                                source = source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+').x');
                         }
                     }
                 }

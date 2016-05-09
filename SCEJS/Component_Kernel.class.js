@@ -11,7 +11,7 @@ Component_Kernel = function() {
 	 * addKernel
 	 * @param {Object} jsonIn
 	 * @param {KERNEL} jsonIn.kernel
-	 * @param {String} jsonIn.name - Used only for identify. not for output to buffer (ScreenEffect output always to 'null')
+	 * @param {String} jsonIn.name - Used for to write and update ARG name with the result in out_float4/out_float  (ScreenEffect output always to 'null')
 	 * @param {Int} [jsonIn.width]
 	 * @param {Int} [jsonIn.height]
 	 * @param {Callback} [jsonIn.onPreTick=undefined]

@@ -30,7 +30,7 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
 
     var inData; // enqueueWriteBuffer user data
 
-    this.mode = (mode != undefined) ? mode : "SAMPLER"; // "FRAGMENT", "VERTEX", "VERTEX_INDEX", "VERTEX_FROM_KERNEL", "VERTEX_AND_FRAGMENT"
+    this.mode = (mode != undefined) ? mode : "SAMPLER"; // "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
 
 
     this.initialize = function() {
@@ -158,7 +158,7 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
         if(this.mode == "VERTEX_INDEX") { // "VERTEX_INDEX" ELEMENT_ARRAY_BUFFER
             _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.vertexData0);
             _gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arr), _gl.DYNAMIC_DRAW);
-        } else { // "VERTEX" || "VERTEX_AND_FRAGMENT" ARRAY_BUFFER
+        } else { // "ATTRIBUTE" ARRAY_BUFFER
             _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexData0);
             _gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(arr), _gl.DYNAMIC_DRAW);
         }

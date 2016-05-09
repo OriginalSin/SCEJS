@@ -8,11 +8,11 @@ Component_Argument = function() {
     this.args = {};
 
     /**
-     * setUpdateFromKernel
+     * setAllowKernelWriting
      * @param {String} argument
      */
-    this.setUpdateFromKernel = function(argument) {
-        this.clglWork.setUpdateFromKernel(argument);
+    this.setAllowKernelWriting = function(argument) {
+        this.clglWork.setAllowKernelWriting(argument);
     };
 
     /**
@@ -108,13 +108,13 @@ Component_Argument = function() {
          this.getTempBuffers()[argName] = buffTMP;
          }*/
 
-        if(this.getTempBuffers()[argName].items[0].fBuffer == undefined) {
+        if(this.getTempBuffers().hasOwnProperty(argName) && this.getTempBuffers()[argName].items[0].fBuffer == undefined) {
             this.getTempBuffers()[argName].items[0].createWebGLRenderBuffer();
             this.getTempBuffers()[argName].items[0].createWebGLFrameBuffer();
-        }
 
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.getTempBuffers()[argName].items[0].fBuffer);
-        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.getTempBuffers()[argName].items[0].textureData, 0);
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.getTempBuffers()[argName].items[0].fBuffer);
+            this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.getTempBuffers()[argName].items[0].textureData, 0);
+        }
 
         if(clearColor != undefined)
             this.gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);

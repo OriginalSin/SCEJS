@@ -9,18 +9,16 @@ function VFP_GI(resolution) { VFP.call(this);
     		'const mat4 ScaleMatrix = mat4(0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0);'],
 
        		// vertex source
-       		['void main(float4* vertexPos,'+
-       			'float4* vertexNormal,'+
+       		['void main(float4*attr vertexPos,'+
+       			'float4*attr vertexNormal,'+
        			
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+
        			'mat4 nodeWMatrix'+ 		
        			') {'+
-       				'vec2 x = get_global_id();'+    				
-    				
-    				'vec3 vp = vec3(vertexPos[x].x, vertexPos[x].y, vertexPos[x].z);\n'+
+    				'vec3 vp = vec3(vertexPos[].x, vertexPos[].y, vertexPos[].z);\n'+
     				'vposition = nodeWMatrix * vec4(vp*vec3(1.0,1.0,1.0), 1.0);\n'+
-    				'vnormal = vec4(vertexNormal[x].xyz*vec3(1.0,1.0,1.0), 1.0);\n'+
+    				'vnormal = vec4(vertexNormal[].xyz*vec3(1.0,1.0,1.0), 1.0);\n'+
     				
     				'vec4 pos = PMatrix * cameraWMatrix * nodeWMatrix * vec4(vp, 1.0);'+
     				'vposScreen = ScaleMatrix * pos;\n'+
@@ -53,7 +51,7 @@ function VFP_GI(resolution) { VFP.call(this);
 				'float col = fract(num)*wh;\n'+
 				'float row = floor(num);\n'+
 				'vec2 texVec = vec2(col*texelSize, row*texelSize);\n'+
-				'vec4 texture = texture2D(sampler_voxelColor,vec2(texVec.x, texVec.y));\n'+
+				'vec4 texture = sampler_voxelColor[vec2(texVec.x, texVec.y)];\n'+
 				'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
 					'rgba = vec4(texture.rgb/255.0,distance(vec3(voxelToWorldX(voxel.x), voxelToWorldX(voxel.y), voxelToWorldX(voxel.z)),RayOrigin));\n'+
 				'}\n'+
@@ -68,9 +66,9 @@ function VFP_GI(resolution) { VFP.call(this);
 				'float col = fract(num)*wh;\n'+
 				'float row = floor(num);\n'+
 				'vec2 texVec = vec2(col*texelSize, row*texelSize);\n'+
-				'vec4 texture = texture2D(sampler_voxelPos,vec2(texVec.x, texVec.y));\n'+
+				'vec4 texture = sampler_voxelPos[vec2(texVec.x, texVec.y)];\n'+
 				'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
-					'vec4 texVoxelPosX = texture2D(sampler_voxelPos,  vec2(texVec.x,texVec.y))/255.0;\n'+
+					'vec4 texVoxelPosX = sampler_voxelPos[vec2(texVec.x,texVec.y)]/255.0;\n'+
 	
 					'rgba = vec4( (texVoxelPosX.xyz*uGridsize)-(uGridsize/2.0), 1.0);\n'+
 				'}\n'+
@@ -85,7 +83,7 @@ function VFP_GI(resolution) { VFP.call(this);
 				'float col = fract(num)*wh;\n'+
 				'float row = floor(num);\n'+
 				'vec2 texVec = vec2(col*texelSize, row*texelSize);\n'+
-				'vec4 texture = texture2D(sampler_voxelNormal,vec2(texVec.x, texVec.y));\n'+
+				'vec4 texture = sampler_voxelNormal[vec2(texVec.x, texVec.y)];\n'+
 				'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
 					'rgba = vec4(((texture.rgb/255.0)*2.0)-1.0,1.0);\n'+
 				'}\n'+
@@ -124,8 +122,6 @@ function VFP_GI(resolution) { VFP.call(this);
        		 			'float uResolution'+
        		 			
        		 			') {'+
-       		 	'vec2 x = get_global_id();'+
-
 
        		 	'vec3 pixelCoord = vposScreen.xyz / vposScreen.w;'+
 	 			
@@ -136,9 +132,9 @@ function VFP_GI(resolution) { VFP.call(this);
 	 			
 	 			'int typePass = int(uTypePass);'+
 	 			'if(typePass != 3) {'+
-		 			'vec4 texScreenColor = texture2D(sampler_screenColor,  vec2(pixelCoord.x,pixelCoord.y));\n'+
-		 			'vec4 texScreenPos = texture2D(sampler_screenPos,  vec2(pixelCoord.x,pixelCoord.y));\n'+
-		 			'vec4 texScreenNormal = texture2D(sampler_screenNormal,  vec2(pixelCoord.x,pixelCoord.y));\n'+
+		 			'vec4 texScreenColor = sampler_screenColor[vec2(pixelCoord.x,pixelCoord.y)];\n'+
+		 			'vec4 texScreenPos = sampler_screenPos[vec2(pixelCoord.x,pixelCoord.y)];\n'+
+		 			'vec4 texScreenNormal = sampler_screenNormal[vec2(pixelCoord.x,pixelCoord.y)];\n'+
 		 			
 		 			'if(texScreenNormal.a == 0.0) {'+ // IF texScreenNormal.a == 0.0 Prepare to start
 		 				'if(typePass == 0) color = vec4(1.0,1.0,1.0, 1.0);\n'+ // SAVE IN sampler_screenColor
@@ -184,10 +180,10 @@ function VFP_GI(resolution) { VFP.call(this);
 		 			//'color = vec4(vposition.xyz, 1.0);\n'+ // for view pos
 		 			//'color = vec4(vnormal.xyz, 1.0);\n'+  // for view dir
 	 			'} else {'+ // SAVE IN sampler_GIVoxel
-					'vec4 texScreenColor = texture2D(sampler_screenColor, vec2(pixelCoord.x,pixelCoord.y));\n'+
-					'vec4 texScreenPos = texture2D(sampler_screenPos,  vec2(pixelCoord.x,pixelCoord.y));\n'+
-					'vec4 texScreenNormal = texture2D(sampler_screenNormal, vec2(pixelCoord.x,pixelCoord.y));\n'+
-					'vec4 texScreenGIVoxel = texture2D(sampler_GIVoxel, vec2(pixelCoord.x,pixelCoord.y));\n'+
+					'vec4 texScreenColor = sampler_screenColor[vec2(pixelCoord.x,pixelCoord.y)];\n'+
+					'vec4 texScreenPos = sampler_screenPos[vec2(pixelCoord.x,pixelCoord.y)];\n'+
+					'vec4 texScreenNormal = sampler_screenNormal[vec2(pixelCoord.x,pixelCoord.y)];\n'+
+					'vec4 texScreenGIVoxel = sampler_GIVoxel[vec2(pixelCoord.x,pixelCoord.y)];\n'+
 					
 					'if(texScreenNormal.a == 0.0) {'+ //  alpha 1.0 (hit in light. make process)
 						//'float am = (texScreenPos.a)-(texScreenColor.a);'+
