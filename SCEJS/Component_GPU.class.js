@@ -53,6 +53,14 @@ Component_GPU = function() {
         return this.gpufG.getWork();
     };
 
+    /**
+     * getWebCLGL
+     * @returns {WebCLGL}
+     */
+    this.getWebCLGL = function() {
+        return this.gpufG.getWebCLGL();
+    };
+
 
     //██╗  ██╗███████╗██████╗ ███╗   ██╗███████╗██╗     ███████╗
     //██║ ██╔╝██╔════╝██╔══██╗████╗  ██║██╔════╝██║     ██╔════╝

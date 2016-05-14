@@ -448,53 +448,56 @@ var WebCLGL = function(webglcontext) {
         if(webCLGLBuffers != undefined) {
             if(webCLGLBuffers instanceof WebCLGLBuffer) {
                 for(var i=0; i < webCLGLBuffers.items.length; i++) {
-                    var webCLGLBuffer = webCLGLBuffers.items[i];
+                    var outputBuff_currItem = webCLGLBuffers.items[i];
 
-                    if(webCLGLBuffer.length > 0) {
-                        _gl.viewport(0, 0, webCLGLBuffer.W, webCLGLBuffer.H);
-                        if(webCLGLBuffer.fBuffer == undefined) {
-                            this.rBuffer = webCLGLBuffer.createWebGLFrameBuffer(this.rBuffer);
+                    if(outputBuff_currItem.length > 0) {
+                        _gl.viewport(0, 0, outputBuff_currItem.W, outputBuff_currItem.H);
+                        if(outputBuff_currItem.fBuffer == undefined) {
+                            this.rBuffer = outputBuff_currItem.createWebGLFrameBuffer(this.rBuffer);
                         }
-                        _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
+                        _gl.bindFramebuffer(_gl.FRAMEBUFFER, outputBuff_currItem.fBuffer);
 
                         if(_maxDrawBuffers != null) {
-                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
+                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL, _gl.TEXTURE_2D, outputBuff_currItem.textureData, 0);
                             _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL([
                                 _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL
                             ]);
                         } else {
-                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
+                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, outputBuff_currItem.textureData, 0);
                         }
 
                         enqueueNDRangeKernelNow(webCLGLKernel, i);
                     }
                 }
             } else { // Array of WebCLGLBuffers
-                for(var i=0; i < webCLGLBuffers[0].items.length; i++) {
-                    var webCLGLBuffer = webCLGLBuffers[0].items[i];
+                var firstOutputBuff = webCLGLBuffers[0];
+                if(firstOutputBuff != undefined) {
+                    for(var i=0; i < firstOutputBuff.items.length; i++) {
+                        var firstOutputBuff_currItem = firstOutputBuff.items[i];
 
-                    if(webCLGLBuffer.length > 0) {
-                        _gl.viewport(0, 0, webCLGLBuffer.W, webCLGLBuffer.H);
-                        if(webCLGLBuffer.fBuffer == undefined) {
-                            this.rBuffer = webCLGLBuffer.createWebGLFrameBuffer(this.rBuffer);
-                        }
-                        _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
-
-                        if(_maxDrawBuffers != null) {
-                            if(webCLGLBuffers.length > _maxDrawBuffers)
-                                console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
-
-                            var arrDBuff = [];
-                            for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
-                                _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, webCLGLBuffers[n].items[i].textureData, 0);
-                                arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
+                        if(firstOutputBuff_currItem.length > 0) {
+                            _gl.viewport(0, 0, firstOutputBuff_currItem.W, firstOutputBuff_currItem.H);
+                            if(firstOutputBuff_currItem.fBuffer == undefined) {
+                                this.rBuffer = firstOutputBuff_currItem.createWebGLFrameBuffer(this.rBuffer);
                             }
-                            _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
-                        } else {
-                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
-                        }
+                            _gl.bindFramebuffer(_gl.FRAMEBUFFER, firstOutputBuff_currItem.fBuffer);
 
-                        enqueueNDRangeKernelNow(webCLGLKernel, i);
+                            if(_maxDrawBuffers != null) {
+                                if(webCLGLBuffers.length > _maxDrawBuffers)
+                                    console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
+
+                                var arrDBuff = [];
+                                for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+                                    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, webCLGLBuffers[n].items[i].textureData, 0);
+                                    arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
+                                }
+                                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+                            } else {
+                                _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, webCLGLBuffers[n].items[i].textureData, 0);
+                            }
+
+                            enqueueNDRangeKernelNow(webCLGLKernel, i);
+                        }
                     }
                 }
             }
@@ -553,10 +556,9 @@ var WebCLGL = function(webglcontext) {
 
         _gl.useProgram(webCLGLVertexFragmentProgram.vertexFragmentProgram);
 
-        var vertexVal0 = webCLGLVertexFragmentProgram.in_vertex_values[Object.keys( webCLGLVertexFragmentProgram.in_vertex_values )[0]];
-        if(vertexVal0.value != undefined) {
-            for(var i=0; i < vertexVal0.value.items.length; i++) {
-                var bufferItem = vertexVal0.value.items[i];
+        if(buffer != undefined) {
+            for(var i=0; i < buffer.items.length; i++) {
+                var bufferItem = buffer.items[i];
 
                 _gl.uniform1f(webCLGLVertexFragmentProgram.uOffset, bufferItem.offset);
 

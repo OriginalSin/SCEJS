@@ -128,13 +128,15 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
 		comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
+        if(_enableFont == true)
+		    comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
 
 		if(selectedId == -1) {
 			comp_renderer_nodes.setArg("idToDrag", (function() {return -1;}).bind(this));
 			comp_renderer_links.setArg("idToDrag", (function() {return -1;}).bind(this));
 			comp_renderer_arrows.setArg("idToDrag", (function() {return -1;}).bind(this));
-			comp_renderer_nodesText.setArg("idToDrag", (function() {return -1;}).bind(this));
+            if(_enableFont == true)
+			    comp_renderer_nodesText.setArg("idToDrag", (function() {return -1;}).bind(this));
 		}
 
         if(_enableHover == true) {
@@ -419,7 +421,8 @@ Graph = function(sce) {
     this.setFontsImage = function(url) {
         var image = new Image();
         image.onload = (function() {
-            comp_renderer_nodesText.setArg("fontsImg", (function(){return image;}).bind(this));
+            if(_enableFont == true)
+                comp_renderer_nodesText.setArg("fontsImg", (function(){return image;}).bind(this));
         }).bind(this);
         image.src = url;
     };
@@ -901,21 +904,21 @@ Graph = function(sce) {
             _customArgs = createCustomArgsArrays(_customArgs, arrArgsObject);
 
         const varDef_VFPNode = {
-            "float4*attr data": (function(){return null;}).bind(this),
+            'float4* posXYZW': (function(){return null;}).bind(this),
             "float4* dataB": (function(){return null;}).bind(this),
+            "float4*attr data": (function(){return null;}).bind(this),
+            'float4*attr nodeVertexPos': (function(){return null;}).bind(this),
+            'float4*attr nodeVertexNormal': (function(){return null;}).bind(this),
+            'float4*attr nodeVertexTexture': (function(){return null;}).bind(this),
             'float*attr letterId': (function(){return null;}).bind(this),
             'float*attr nodeImgId': (function(){return null;}).bind(this),
+            'indices': (function(){return null;}).bind(this),
             "float* adjacencyMatrix": (function(){return null;}).bind(this),
             "float widthAdjMatrix": (function(){return null;}).bind(this),
             "float currentAdjMatrix": (function(){return null;}).bind(this),
             "float numberOfColumns": (function(){return null;}).bind(this),
-            'float nodesCount': (function(){return 30;}).bind(this),
+            'float nodesCount': (function(){return null;}).bind(this),
             "float currentTimestamp": (function(){return null;}).bind(this),
-            'float4* posXYZW': (function(){return null;}).bind(this),
-            'float4*attr nodeVertexPos': (function(){return null;}).bind(this),
-            'float4*attr nodeVertexNormal': (function(){return null;}).bind(this),
-            'float4*attr nodeVertexTexture': (function(){return null;}).bind(this),
-            'indices': (function(){return null;}).bind(this),
             'mat4 PMatrix': (function(){return null;}).bind(this),
             'mat4 cameraWMatrix': (function(){return null;}).bind(this),
             'mat4 nodeWMatrix': (function(){return null;}).bind(this),
@@ -938,12 +941,12 @@ Graph = function(sce) {
                 varDef_VFPNode[arrArgsObject[n]] = (function(){return null;}).bind(this);
 
         const varDef_NodesKernel = {
+            'float4* dir': (function(){return null;}).bind(this),
             "float enableForceLayout": (function(){return null;}).bind(this),
             'float performFL': (function(){return null;}).bind(this),
             'float enableForceLayoutCollision': (function(){return null;}).bind(this),
             'float enableForceLayoutRepulsion': (function(){return null;}).bind(this),
             'float nodesCount': (function(){return null;}).bind(this),
-            'float4* dir': (function(){return null;}).bind(this),
             'float enableDrag': (function(){return null;}).bind(this),
             'float initialPosX': (function(){return null;}).bind(this),
             'float initialPosY': (function(){return null;}).bind(this),
@@ -1172,7 +1175,8 @@ Graph = function(sce) {
         comp_renderer_nodes.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
         comp_renderer_links.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
         comp_renderer_arrows.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
-        comp_renderer_nodesText.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+        if(_enableFont == true)
+            comp_renderer_nodesText.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
     };
 
     /**
