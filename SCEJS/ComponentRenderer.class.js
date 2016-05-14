@@ -4,16 +4,15 @@
 */
 ComponentRenderer = function() {
 	Component.call(this);
-	Component_Work.call(this); 
-	Component_Kernel.call(this);
-	Component_Vfp.call(this);
-	Component_Argument.call(this);
-	Component_Indices.call(this);
+	Component_GPU.call(this);
 	"use strict";
 
 	this.type = Constants.COMPONENT_TYPES.RENDERER;
 	this.node = null;
-	
+
+
+    this.gl;
+
 	
 	/**
 	 * initialize
@@ -25,8 +24,6 @@ ComponentRenderer = function() {
 	this.initialize = function(nod, glCtx) {
 		node = nod;
 		this.gl = glCtx;
-
-		this.initWebCLGLWork(glCtx);
 	};
 
 	/**
@@ -37,8 +34,9 @@ ComponentRenderer = function() {
 	 */
 	this.tick = function(activeCamera) {
 		this.tickArguments();
-		this.tickKernels(false);
-		this.tickVfps(activeCamera);
+        this.processKernels(false);
+        this.processGraphic(activeCamera);
 	};
+
 };
 ComponentRenderer.prototype.constructor = ComponentRenderer;

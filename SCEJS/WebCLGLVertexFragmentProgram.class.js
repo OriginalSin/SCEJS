@@ -78,7 +78,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         }).bind(this);
 
 
-        var sourceVertex = 	_precision+
+        var sourceVertex = 	""+
             'uniform float uOffset;\n'+
             'uniform float uBufferWidth;'+
 
@@ -363,8 +363,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      * @param {Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer} data
      */
     this.setVertexArg = function(argument, data) {
-        if(data == undefined) alert("Error in setVertexArg("+argument+", data) (data is undefined)");
-
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_vertex_values)[argument];
         this.in_vertex_values[arg].value = data;
     };
@@ -375,8 +373,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      * @param {Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer} data
      */
     this.setFragmentArg = function(argument, data) {
-        if(data == undefined) alert("Error in setFragmentArg("+argument+", data) (data is undefined)");
-
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_fragment_values)[argument];
         this.in_fragment_values[arg].value = data;
     };

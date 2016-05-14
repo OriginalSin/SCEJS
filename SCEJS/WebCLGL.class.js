@@ -21,6 +21,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  */
+
+var webCLGLDirectory = document.querySelector('script[src$="WebCLGL.class.js"]').getAttribute('src');
+var page = webCLGLDirectory.split('/').pop();
+webCLGLDirectory = webCLGLDirectory.replace('/'+page,"");
+
+var includesF = ['/WebCLGLUtils.class.js',
+    '/WebCLGLBuffer.class.js',
+    '/WebCLGLBufferItem.class.js',
+    '/WebCLGLKernel.class.js',
+    '/WebCLGLVertexFragmentProgram.class.js',
+    '/WebCLGLWork.class.js',
+    '/WebCLGLFor.class.js'];
+for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+webCLGLDirectory+includesF[n]+'"></script>');
+
 /**
 * Class for parallelization of calculations using the WebGL context similarly to webcl. This library use floating point texture capabilities (OES_texture_float)
 * @class
@@ -31,6 +45,7 @@ var WebCLGL = function(webglcontext) {
     "use strict";
 
 	this.utils = new WebCLGLUtils();
+    var _webCLGLWorks = [];
 
 	// WEBGL CONTEXT
 	var _gl;
@@ -42,9 +57,19 @@ var WebCLGL = function(webglcontext) {
 		_gl = this.utils.getWebGLContextFromCanvas(this.e, {antialias: false});
 	} else _gl = webglcontext;
 
-	_gl.getExtension('OES_texture_float');
-	_gl.getExtension('OES_texture_float_linear');
-	_gl.getExtension('OES_element_index_uint');
+    // required extensions: OES_texture_float && OES_texture_float_linear
+    var _arrExt = {"OES_texture_float":null, "OES_texture_float_linear":null, "OES_element_index_uint":null, "WEBGL_draw_buffers":null};
+    for(var key in _arrExt) {
+        _arrExt[key] = _gl.getExtension(key);
+        if(_arrExt[key] == null)
+            console.error("extension "+key+" not available");
+    }
+    var _maxDrawBuffers = null;
+    if(_arrExt.hasOwnProperty("WEBGL_draw_buffers") && _arrExt["WEBGL_draw_buffers"] != null) {
+        _maxDrawBuffers = _gl.getParameter(_arrExt["WEBGL_draw_buffers"].MAX_DRAW_BUFFERS_WEBGL);
+        console.log("Max draw buffers: "+_maxDrawBuffers);
+    } else
+        console.log("Max draw buffers: 1");
 
 	var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
 	this.precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
@@ -144,6 +169,32 @@ var WebCLGL = function(webglcontext) {
 
 	this.sampler_copyTexture_toSave = _gl.getUniformLocation(this.shader_copyTexture, "sampler_toSave");
 
+    this.rBuffer;
+
+    /**
+     * getContext
+     * @returns {WebGLRenderingContext}
+     */
+    this.getContext = function() {
+        return _gl;
+    };
+
+    /**
+     * getRenderBuffer
+     * @returns {WebGLRenderBuffer}
+     */
+    this.getRenderBuffer = function() {
+        return this.rBuffer;
+    };
+
+    /**
+     * getMaxDrawBuffers
+     * @returns {Int}
+     */
+    this.getMaxDrawBuffers = function() {
+        return _maxDrawBuffers;
+    };
+
     /**
      * Copy one WebCLGLBuffer|WebGLTexture to another WebCLGLBuffer|WebGLTexture.
      * @param {WebCLGLBuffer|WebGLTexture} valueToRead The buffer to read.
@@ -170,8 +221,7 @@ var WebCLGL = function(webglcontext) {
         if(valueToRead instanceof WebCLGLBufferItem) {
             _gl.viewport(0, 0, valueToWrite.W, valueToWrite.H);
             if(valueToWrite.fBuffer == undefined) {
-                valueToWrite.createWebGLRenderBuffer();
-                valueToWrite.createWebGLFrameBuffer();
+                this.rBuffer = valueToWrite.createWebGLFrameBuffer(this.rBuffer);
             }
             _gl.bindFramebuffer(_gl.FRAMEBUFFER, valueToWrite.fBuffer);
             _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, valueToWrite.textureData, 0);
@@ -243,7 +293,16 @@ var WebCLGL = function(webglcontext) {
      */
     this.createWork = function(offset) {
         var webclglWork = new WebCLGLWork(this, offset);
+        _webCLGLWorks.push(webclglWork);
         return webclglWork;
+    };
+
+    /**
+     * getWorks
+     * @returns {Array<WebCLGLWork>}
+     */
+    this.getWorks = function() {
+        return _webCLGLWorks;
     };
 
     /**
@@ -261,6 +320,31 @@ var WebCLGL = function(webglcontext) {
         if(buffer.mode == "ATTRIBUTE" || buffer.mode == "VERTEX_INDEX") {
             buffer.writeWebGLBuffer(arr, flip);
         }
+    };
+
+    /**
+     * fillBuffer with color
+     * @param {WebCLGLBuffer} buffer
+     * @param {Array<Float>} clearColor
+     */
+    this.fillBuffer = function(buffer, clearColor) {
+        if(buffer.items[0].fBuffer == undefined)
+            buffer.items[0].createWebGLFrameBuffer(this.getRenderBuffer());
+
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, buffer.items[0].fBuffer);
+
+        if(_maxDrawBuffers != null) {
+            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL, _gl.TEXTURE_2D, buffer.items[0].textureData, 0);
+            _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL([
+                _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL
+            ]);
+        } else
+            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, buffer.items[0].textureData, 0);
+
+
+        if(clearColor != undefined)
+            _gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+        _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
     };
 
     /**
@@ -354,25 +438,64 @@ var WebCLGL = function(webglcontext) {
     /**
      * Perform calculation and save the result on a WebCLGLBuffer
      * @param {WebCLGLKernel} webCLGLKernel
-     * @param {WebCLGLBuffer} [webCLGLBuffer=undefined]
+     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [webCLGLBuffer=undefined]
      */
     this.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffers) {
         _bufferWidth = 0;
 
+        _gl.useProgram(webCLGLKernel.kernel);
+
         if(webCLGLBuffers != undefined) {
-            for(var i=0; i < webCLGLBuffers.items.length; i++) {
-                var webCLGLBuffer = webCLGLBuffers.items[i];
+            if(webCLGLBuffers instanceof WebCLGLBuffer) {
+                for(var i=0; i < webCLGLBuffers.items.length; i++) {
+                    var webCLGLBuffer = webCLGLBuffers.items[i];
 
-                if(webCLGLBuffer.length > 0) {
-                    _gl.viewport(0, 0, webCLGLBuffer.W, webCLGLBuffer.H);
-                    if(webCLGLBuffer.fBuffer == undefined) {
-                        webCLGLBuffer.createWebGLRenderBuffer();
-                        webCLGLBuffer.createWebGLFrameBuffer();
+                    if(webCLGLBuffer.length > 0) {
+                        _gl.viewport(0, 0, webCLGLBuffer.W, webCLGLBuffer.H);
+                        if(webCLGLBuffer.fBuffer == undefined) {
+                            this.rBuffer = webCLGLBuffer.createWebGLFrameBuffer(this.rBuffer);
+                        }
+                        _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
+
+                        if(_maxDrawBuffers != null) {
+                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
+                            _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL([
+                                _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL
+                            ]);
+                        } else {
+                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
+                        }
+
+                        enqueueNDRangeKernelNow(webCLGLKernel, i);
                     }
-                    _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
-                    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
+                }
+            } else { // Array of WebCLGLBuffers
+                for(var i=0; i < webCLGLBuffers[0].items.length; i++) {
+                    var webCLGLBuffer = webCLGLBuffers[0].items[i];
 
-                    enqueueNDRangeKernelNow(webCLGLKernel, i);
+                    if(webCLGLBuffer.length > 0) {
+                        _gl.viewport(0, 0, webCLGLBuffer.W, webCLGLBuffer.H);
+                        if(webCLGLBuffer.fBuffer == undefined) {
+                            this.rBuffer = webCLGLBuffer.createWebGLFrameBuffer(this.rBuffer);
+                        }
+                        _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffer.fBuffer);
+
+                        if(_maxDrawBuffers != null) {
+                            if(webCLGLBuffers.length > _maxDrawBuffers)
+                                console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
+
+                            var arrDBuff = [];
+                            for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+                                _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, webCLGLBuffers[n].items[i].textureData, 0);
+                                arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
+                            }
+                            _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+                        } else {
+                            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, webCLGLBuffer.textureData, 0);
+                        }
+
+                        enqueueNDRangeKernelNow(webCLGLKernel, i);
+                    }
                 }
             }
         } else {
@@ -388,8 +511,6 @@ var WebCLGL = function(webglcontext) {
      * @param {Int} item
      */
     var enqueueNDRangeKernelNow = (function(webCLGLKernel, i) {
-        _gl.useProgram(webCLGLKernel.kernel);
-
         _currentTextureUnit = 0;
         for(var key in webCLGLKernel.in_values)
             bindValue(webCLGLKernel, webCLGLKernel.in_values[key], i);
@@ -411,11 +532,24 @@ var WebCLGL = function(webglcontext) {
      * @param {WebCLGLVertexFragmentProgram} webCLGLVertexFragmentProgram
      * @param {WebCLGLBuffer} buffer Buffer to draw type (type indices or vertex)
      * @param {Int} [drawMode=4] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
+     * @param {WebCLGLBuffer} [buffDest=undefined]
      */
-    this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, buffer, drawMode) {
+    this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, buffer, drawMode, buffDest) {
         _bufferWidth = 0;
 
         var Dmode = (drawMode != undefined) ? drawMode : 4;
+
+        if(buffDest != undefined) {
+            _gl.bindFramebuffer(_gl.FRAMEBUFFER, buffDest.items[0].fBuffer);
+            if(_maxDrawBuffers != null) {
+                _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL, _gl.TEXTURE_2D, buffDest.items[0].textureData, 0);
+                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL([
+                    _arrExt["WEBGL_draw_buffers"].COLOR_ATTACHMENT0_WEBGL
+                ]);
+            } else {
+                _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, buffDest.items[0].textureData, 0);
+            }
+        }
 
         _gl.useProgram(webCLGLVertexFragmentProgram.vertexFragmentProgram);
 

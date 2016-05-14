@@ -10,7 +10,15 @@ WebCLGLKernel = function(gl, source, header) {
 	var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
 	var _precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
 
+    var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
+    var _maxDrawBuffers = null;
+    if(_glDrawBuff_ext != null)
+        _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
+
 	this.in_values = {};
+    this.output; //String or Array<String> of arg names with the items in same order that in the final return
+
+    var _enableDebug = false;
 
     /**
      * checkArgNameInitialization
@@ -32,7 +40,7 @@ WebCLGLKernel = function(gl, source, header) {
      * Update the kernel source
      * @type Void
      * @param {String} source
-     * @param {String} header Additional functions
+     * @param {String} [header=undefined] Additional functions
      */
     this.setKernelSource = function(source, header) {
         /**
@@ -84,7 +92,33 @@ WebCLGLKernel = function(gl, source, header) {
                 return str;
             }).bind(this);
 
-            var sourceVertex = 	_precision+
+            var lines_drawBuffersEnable = (function() {
+                return ((_maxDrawBuffers != null) ? '#extension GL_EXT_draw_buffers : require\n' : "");
+            }).bind(this);
+            var lines_drawBuffersInit = (function() {
+                var str = '';
+                if(_maxDrawBuffers != null) {
+                    for(var n= 1, fn=_maxDrawBuffers; n < fn; n++) {
+                        str += ''+
+                            'float out'+n+'_float = -999.99989;\n'+
+                            'vec4 out'+n+'_float4;\n';
+                    }
+                }
+                return str;
+            }).bind(this);
+            var lines_drawBuffersWrite = (function() {
+                var str = '';
+                if(_maxDrawBuffers != null) {
+                    for(var n= 1, fn=_maxDrawBuffers; n < fn; n++) {
+                        str += ''+
+                            'if(out'+n+'_float != -999.99989) gl_FragData['+n+'] = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
+                            ' else gl_FragData['+n+'] = out'+n+'_float4;\n';
+                    }
+                }
+                return str;
+            }).bind(this);
+
+            var sourceVertex = 	""+
                 'attribute vec3 aVertexPosition;\n'+
                 'attribute vec2 aTextureCoord;\n'+
 
@@ -94,7 +128,8 @@ WebCLGLKernel = function(gl, source, header) {
                     'gl_Position = vec4(aVertexPosition, 1.0);\n'+
                     'global_id = aTextureCoord;\n'+
                 '}\n';
-            var sourceFragment = _precision+
+            var sourceFragment = lines_drawBuffersEnable()+
+                _precision+
 
                 lines_attrs()+
 
@@ -129,22 +164,22 @@ WebCLGLKernel = function(gl, source, header) {
                 'void main(void) {\n'+
                     'float out_float = -999.99989;\n'+
                     'vec4 out_float4;\n'+
+                    lines_drawBuffersInit()+
 
-                    _source;
+                    _source+
 
-
-
-            var sourceFrag = sourceFragment+
-                'if(out_float != -999.99989) gl_FragColor = vec4(out_float,0.0,0.0,1.0);\n'+
-                'else gl_FragColor = out_float4;\n'+
+                    'if(out_float != -999.99989) gl_FragData[0] = vec4(out_float,0.0,0.0,1.0);\n'+
+                    'else gl_FragData[0] = out_float4;\n'+
+                    lines_drawBuffersWrite()+
                 '}\n';
 
 
             //this.kernelPrograms = [	new WebCLGLKernelProgram(_gl, sourceVertex, sourceFrag, this.in_values) ];
 
             this.kernel = _gl.createProgram();
-            new WebCLGLUtils().createShader(_gl, "WEBCLGL", sourceVertex, sourceFrag, this.kernel);
-            //console.log(sourceF);
+            var result = new WebCLGLUtils().createShader(_gl, "WEBCLGL", sourceVertex, sourceFragment, this.kernel);
+            if(result == true && _enableDebug == true)
+                console.log("WEBCLGL KERNEL\n "+sourceVertex+"\n "+sourceFragment);
 
 
             this.attr_VertexPos = _gl.getAttribLocation(this.kernel, "aVertexPosition");
@@ -219,8 +254,6 @@ WebCLGLKernel = function(gl, source, header) {
      * @param {Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer} data
      */
     this.setKernelArg = function(argument, data) {
-        if(data == undefined) alert("Error in setKernelArg("+argument+", data) (data is undefined)");
-		
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_values)[argument];
         this.in_values[arg].value = data;
     };

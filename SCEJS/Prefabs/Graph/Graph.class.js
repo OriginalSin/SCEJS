@@ -878,83 +878,170 @@ Graph = function(sce) {
             }
         }).bind(this);
 
-        var createArgs = (function(obj, arr) {
+        // Create custom user arrays args
+        var createCustomArgsArrays = (function(obj, arr) {
             for(var n=0, fn = arr.length; n < fn; n++) {
                 obj[arr[n].trim().split(" ")[1]] = {"arg": arr[n].trim(),
-                    "nodes_array_value": [],
-                    "links_array_value": [],
-                    "arrows_array_value": [],
-                    "nodestext_array_value": []};
+                                                    "nodes_array_value": [],
+                                                    "links_array_value": [],
+                                                    "arrows_array_value": [],
+                                                    "nodestext_array_value": []};
             }
             return obj;
         }).bind(this);
+
+        var arrArgsDirection = (jsonIn.argsDirection != undefined) ? jsonIn.argsDirection.split(",") : null;
+        var arrArgsObject = (jsonIn.argsObject != undefined) ? jsonIn.argsObject.split(",") : null;
+
         _customArgs = {};
-        if(jsonIn.argsDirection != undefined) _customArgs = createArgs(_customArgs, jsonIn.argsDirection.split(","));
-        if(jsonIn.argsPosition != undefined) _customArgs = createArgs(_customArgs, jsonIn.argsPosition.split(","));
-        if(jsonIn.argsObject != undefined) _customArgs = createArgs(_customArgs, jsonIn.argsObject.split(","));
+        if(arrArgsDirection != null)
+            _customArgs = createCustomArgsArrays(_customArgs, arrArgsDirection);
 
-        // nodes
-        comp_renderer_nodes.addKernel({	"name": "dir",
-            "kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection, _geometryLength),
-            "onPreTick": (function() {
-                if(_enableAnimation == true) {
-                    var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
-                    comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
-                    comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
-                    comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+        if(arrArgsObject != null)
+            _customArgs = createCustomArgsArrays(_customArgs, arrArgsObject);
 
-                    _currentFrame++;
-                    if(_currentFrame == _animationFrames) {
-                        _currentFrame = 0;
-                        if(_loop == false) {
-                            this.pauseTimeline();
-                        }
+        const varDef_VFPNode = {
+            "float4*attr data": (function(){return null;}).bind(this),
+            "float4* dataB": (function(){return null;}).bind(this),
+            'float*attr letterId': (function(){return null;}).bind(this),
+            'float*attr nodeImgId': (function(){return null;}).bind(this),
+            "float* adjacencyMatrix": (function(){return null;}).bind(this),
+            "float widthAdjMatrix": (function(){return null;}).bind(this),
+            "float currentAdjMatrix": (function(){return null;}).bind(this),
+            "float numberOfColumns": (function(){return null;}).bind(this),
+            'float nodesCount': (function(){return 30;}).bind(this),
+            "float currentTimestamp": (function(){return null;}).bind(this),
+            'float4* posXYZW': (function(){return null;}).bind(this),
+            'float4*attr nodeVertexPos': (function(){return null;}).bind(this),
+            'float4*attr nodeVertexNormal': (function(){return null;}).bind(this),
+            'float4*attr nodeVertexTexture': (function(){return null;}).bind(this),
+            'indices': (function(){return null;}).bind(this),
+            'mat4 PMatrix': (function(){return null;}).bind(this),
+            'mat4 cameraWMatrix': (function(){return null;}).bind(this),
+            'mat4 nodeWMatrix': (function(){return null;}).bind(this),
+            'float isNode': (function(){return null;}).bind(this),
+            'float isLink': (function(){return null;}).bind(this),
+            'float isArrow': (function(){return null;}).bind(this),
+            'float isNodeText': (function(){return null;}).bind(this),
+            'float idToDrag': (function(){return null;}).bind(this),
+            'float idToHover': (function(){return null;}).bind(this),
+            'float nodeImgColumns': (function(){return null;}).bind(this),
+            'float fontImgColumns': (function(){return null;}).bind(this),
+            'float4* fontsImg': (function(){return null;}).bind(this),
+            'float4* nodesImg': (function(){return null;}).bind(this),
+            'float4* nodesImgCrosshair': (function(){return null;}).bind(this)};
+        if(arrArgsDirection != null)
+            for(var n=0; n < arrArgsDirection.length; n++)
+                varDef_VFPNode[arrArgsDirection[n]] = (function(){return null;}).bind(this);
+        if(arrArgsObject != null)
+            for(var n=0; n < arrArgsObject.length; n++)
+                varDef_VFPNode[arrArgsObject[n]] = (function(){return null;}).bind(this);
+
+        const varDef_NodesKernel = {
+            "float enableForceLayout": (function(){return null;}).bind(this),
+            'float performFL': (function(){return null;}).bind(this),
+            'float enableForceLayoutCollision': (function(){return null;}).bind(this),
+            'float enableForceLayoutRepulsion': (function(){return null;}).bind(this),
+            'float nodesCount': (function(){return null;}).bind(this),
+            'float4* dir': (function(){return null;}).bind(this),
+            'float enableDrag': (function(){return null;}).bind(this),
+            'float initialPosX': (function(){return null;}).bind(this),
+            'float initialPosY': (function(){return null;}).bind(this),
+            'float initialPosZ': (function(){return null;}).bind(this),
+            'float MouseDragTranslationX': (function(){return null;}).bind(this),
+            'float MouseDragTranslationY': (function(){return null;}).bind(this),
+            'float MouseDragTranslationZ': (function(){return null;}).bind(this)};
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        //                          NODES
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // NODES= nodeId, acums, bornDate, dieDate // LINKS & ARROWS= nodeId origin, nodeId target, currentLineVertex, repeatId
+        // bornDate, dieDate, 0.0, 0.0 (NODES share TO LINKS & ARROWS)
+
+        var nodesVarDef = Object.create(varDef_VFPNode);
+        for (var key in varDef_NodesKernel)
+            nodesVarDef[key] = varDef_NodesKernel[key];
+
+        comp_renderer_nodes.setGPUFor(  comp_renderer_nodes.gl,
+                                        nodesVarDef,
+                                        {"type": "KERNEL",
+                                        "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength).getSrc()},
+                                        {"type": "GRAPHIC",
+                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+        comp_renderer_nodes.setGraphicEnableDepthTest(false);
+        comp_renderer_nodes.setGraphicEnableBlend(true);
+        comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
+        comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
+        comp_renderer_nodes.onPreProcessKernels((function() {
+            if(_enableAnimation == true) {
+                var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
+                comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+                comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+                comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+
+                _currentFrame++;
+                if(_currentFrame == _animationFrames) {
+                    _currentFrame = 0;
+                    if(_loop == false) {
+                        this.pauseTimeline();
                     }
-                    console.log(currentTimestamp+"  "+_currentFrame);
                 }
+                console.log(currentTimestamp+"  "+_currentFrame);
+            }
 
-                if(this.currentNodeId > 0 && _enabledForceLayout == true) {
-                    comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
-                    comp_renderer_links.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
-                    comp_renderer_arrows.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
+            if(this.currentNodeId > 0 && _enabledForceLayout == true) {
+                comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
+                comp_renderer_links.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
+                comp_renderer_arrows.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
 
-                    if(_numberOfAdjMatrix > 1) {
-                        comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-                        comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-                        comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+                if(_numberOfAdjMatrix > 1) {
+                    comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+                    comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+                    comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 
-                        if(_currentAdjMatrix == _numberOfAdjMatrix) {
-                            comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
-                        } else {
-                            comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
-
-                            var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
-                            var bn = arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix];
-                            _buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
-
-                            //comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-                        }
-
-                        _currentAdjMatrix++;
-                        if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
-                            if(_adjMatrixTime == 0) {
-                                _adjMatrixTime = 0;
-                                _currentAdjMatrix = 0;
-                            } else {
-                                _adjMatrixTime--;
-                                _currentAdjMatrix--;
-                            }
-                        }
+                    if(_currentAdjMatrix == _numberOfAdjMatrix) {
+                        comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
                     } else {
                         comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
+
+                        var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
+                        var bn = arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix];
+                        _buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
+
+                        //comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
                     }
+
+                    _currentAdjMatrix++;
+                    if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
+                        if(_adjMatrixTime == 0) {
+                            _adjMatrixTime = 0;
+                            _currentAdjMatrix = 0;
+                        } else {
+                            _adjMatrixTime--;
+                            _currentAdjMatrix--;
+                        }
+                    }
+                } else {
+                    comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
                 }
+            }
+        }).bind(this));
+        comp_renderer_nodes.onPreProcessGraphic((function() {
+            comp_renderer_nodes.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+            //_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
+        }).bind(this));
+
+
+        /*comp_renderer_nodes.addKernel({	"name": "dir",
+            "kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection, _geometryLength),
+            "onPreTick": (function() {
+
             }).bind(this)});
         comp_renderer_nodes.addKernel({	"name": "posXYZW",
             "kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition, _geometryLength),
             "onPostTick": (function() {
-                comp_renderer_nodes.getWebCLGL().copy(comp_renderer_nodes.getTempBuffers()["dir"], comp_renderer_nodes.getBuffers()["dir"]);
-                comp_renderer_nodes.getWebCLGL().copy(comp_renderer_nodes.getTempBuffers()["posXYZW"], comp_renderer_nodes.getBuffers()["posXYZW"]);
+
             }).bind(this)});
         comp_renderer_nodes.addVFP({"name": "NODES_RGB",
             "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
@@ -966,8 +1053,8 @@ Graph = function(sce) {
             "onPreTick": (function() {
                 comp_renderer_nodes.setVfpArgDestination("NODES_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
                 //_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
-            }).bind(this)});
-        comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",
+            }).bind(this)});*/
+        /*comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",
             "vfp": new VFP_NODEPICKDRAG(_geometryLength),
             "drawMode": 4,
             "enableDepthTest": false,
@@ -997,10 +1084,22 @@ Graph = function(sce) {
                     }
                 }
             }).bind(this)});
-        comp_renderer_nodes.disableVfp("NODES_PICKDRAG");
+        comp_renderer_nodes.disableVfp("NODES_PICKDRAG");*/
 
         // links
-        comp_renderer_links.addVFP({"name": "LINKS_RGB",
+        comp_renderer_links.setGPUFor(  comp_renderer_links.gl,
+                                        Object.create(varDef_VFPNode),
+                                        {"type": "GRAPHIC",
+                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+        comp_renderer_links.setGraphicEnableDepthTest(true);
+        comp_renderer_links.setGraphicEnableBlend(true);
+        comp_renderer_links.setGraphicBlendSrc(Constants.BLENDING_MODES.ONE);
+        comp_renderer_links.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
+        comp_renderer_links.setGraphicDrawMode(1);
+        comp_renderer_links.onPreProcessGraphic((function() {
+            comp_renderer_links.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+        }).bind(this));
+        /*comp_renderer_links.addVFP({"name": "LINKS_RGB",
             "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
             "drawMode": 1,
             "enableBlend": true,
@@ -1008,10 +1107,21 @@ Graph = function(sce) {
             "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
             "onPreTick": (function() {
                 comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-            }).bind(this)});
+            }).bind(this)});*/
 
         // arrows
-        comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
+        comp_renderer_arrows.setGPUFor( comp_renderer_arrows.gl,
+                                        Object.create(varDef_VFPNode),
+                                        {"type": "GRAPHIC",
+                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+        comp_renderer_arrows.setGraphicEnableDepthTest(true);
+        comp_renderer_arrows.setGraphicEnableBlend(true);
+        comp_renderer_arrows.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
+        comp_renderer_arrows.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
+        comp_renderer_arrows.onPreProcessGraphic((function() {
+            comp_renderer_arrows.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+        }).bind(this));
+        /*comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
             "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
             "drawMode": 4,
             "enableBlend": true,
@@ -1019,11 +1129,22 @@ Graph = function(sce) {
             "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
             "onPreTick": (function() {
                 comp_renderer_arrows.setVfpArgDestination("ARROWS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-            }).bind(this)});
+            }).bind(this)});*/
 
         // nodestext
         if(_enableFont == true) {
-            comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
+            comp_renderer_nodesText.setGPUFor(  comp_renderer_nodesText.gl,
+                                                Object.create(varDef_VFPNode),
+                                                {"type": "GRAPHIC",
+                                                "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+            comp_renderer_nodesText.setGraphicEnableDepthTest(true);
+            comp_renderer_nodesText.setGraphicEnableBlend(true);
+            comp_renderer_nodesText.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
+            comp_renderer_nodesText.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
+            comp_renderer_nodesText.onPreProcessGraphic((function() {
+                comp_renderer_nodesText.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+            }).bind(this));
+            /*comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
                 "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
                 "drawMode": 4,
                 "enableBlend": true,
@@ -1031,7 +1152,7 @@ Graph = function(sce) {
                 "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
                 "onPreTick": (function() {
                     comp_renderer_nodesText.setVfpArgDestination("NODESTEXT_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-                }).bind(this)});
+                }).bind(this)});*/
         }
     };
 
@@ -1756,7 +1877,7 @@ Graph = function(sce) {
 
             comp_renderer_nodesText.setArg("fontImgColumns", (function() {return FONT_IMG_COLUMNS;}).bind(this), this.splitNodesText);
             comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this), this.splitNodesText);
-            comp_renderer_nodesText.setIndices((function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
+            comp_renderer_nodesText.setArg("indices", (function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
 
             comp_renderer_nodesText.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
             comp_renderer_nodesText.setArgUpdatable("PMatrix", true);
@@ -1801,7 +1922,7 @@ Graph = function(sce) {
 
 		comp_renderer_nodes.setArg("nodeImgColumns", (function() {return NODE_IMG_COLUMNS;}).bind(this), this.splitNodes);
 		comp_renderer_nodes.setArg("nodeImgId", (function() {return this.arrayNodeImgId;}).bind(this), this.splitNodes);
-		comp_renderer_nodes.setIndices((function() {return this.arrayNodeIndices;}).bind(this), this.splitNodesIndices);
+		comp_renderer_nodes.setArg("indices", (function() {return this.arrayNodeIndices;}).bind(this), this.splitNodesIndices);
 
 		this.arrayNodeDir = [];
 		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
@@ -2183,7 +2304,7 @@ Graph = function(sce) {
             comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
             comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this), this.splitArrows);
             comp_renderer_arrows.setArg("nodeVertexTexture", (function() {return this.arrayArrowVertexTexture;}).bind(this), this.splitArrows);
-            comp_renderer_arrows.setIndices((function() {return this.arrayArrowIndices;}).bind(this), this.splitArrowIndices);
+            comp_renderer_arrows.setArg("indices", (function() {return this.arrayArrowIndices;}).bind(this), this.splitArrowIndices);
 
             comp_renderer_arrows.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
             comp_renderer_arrows.setArgUpdatable("PMatrix", true);
@@ -2213,7 +2334,7 @@ Graph = function(sce) {
         comp_renderer_links.setSharedBufferArg("dataB", comp_renderer_nodes);
 		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
-		comp_renderer_links.setIndices((function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
+		comp_renderer_links.setArg("indices", (function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
 
 		comp_renderer_links.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_links.setArgUpdatable("PMatrix", true);

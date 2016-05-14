@@ -3,17 +3,12 @@ function SE_RGB() { SE.call(this);
 	this.dependencies = ["RGB"];
 
 	this.getSrc = function() {
-		var str_se = [
-		    // fragment head
-			[''],
-			 
-			[// fragment source
-			 'void main(float4* RGB) {'+
-						 	'vec2 x = get_global_id();'+
-						 	
-						 	// diffuse
-						 	'out_float4 = RGB[x];\n'+
-			 '}']];
+		var str_se = ["n", undefined,
+                    // head
+                    '',
+                    // source
+                    'vec4 color = RGB[n];\n'+
+                    'return color;\n'];
 		
 		return str_se;
 	};

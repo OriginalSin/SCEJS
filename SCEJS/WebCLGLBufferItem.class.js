@@ -45,17 +45,23 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
         }
     };
 
+
     this.createWebGLRenderBuffer = function() {
-        this.rBuffer = _gl.createRenderbuffer();
-        _gl.bindRenderbuffer(_gl.RENDERBUFFER, this.rBuffer);
+        var rBuffer = _gl.createRenderbuffer();
+        _gl.bindRenderbuffer(_gl.RENDERBUFFER, rBuffer);
         _gl.renderbufferStorage(_gl.RENDERBUFFER, _gl.DEPTH_COMPONENT16, this.W, this.H);
         _gl.bindRenderbuffer(_gl.RENDERBUFFER, null);
+        return rBuffer;
     };
+    this.createWebGLFrameBuffer = function(rBuffer) {
+        if(rBuffer == undefined)
+            rBuffer = this.createWebGLRenderBuffer();
 
-    this.createWebGLFrameBuffer = function() {
         this.fBuffer = _gl.createFramebuffer();
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBuffer);
-        _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, this.rBuffer);
+        _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, rBuffer);
+
+        return rBuffer;
     };
 
     /**
