@@ -351,7 +351,6 @@ var gpufor = function() {
      * processGraphic
      * @param {String} [argument=undefined] Argument for vertices count or undefined if indices exist
      * @param {Int} [drawMode=0] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
-     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
      **/
     this.processGraphic = function(argument, drawMode) {
         var dmode = (drawMode != undefined) ? drawMode : 0;
