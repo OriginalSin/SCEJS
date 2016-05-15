@@ -59,8 +59,7 @@ Graph = function(sce) {
 	var circleSegments = 12;
 	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
-	var mesh_arrows = new Mesh().loadTriangle({"scale": 1.75,
-												"side": 0.3});
+	var mesh_arrows = new Mesh().loadTriangle({"scale": 1.75, "side": 0.3});
 	var mesh_nodesText = new Mesh().loadQuad(4.0, 4.0);
 
 	// nodes image
@@ -90,6 +89,77 @@ Graph = function(sce) {
 
     var _enableFont = false;
 	var FONT_IMG_COLUMNS = 7.0;
+
+
+    // nodes
+    this.splitNodes = [];
+    this.splitNodesIndices = [];
+
+    this.arrayNodeData = []; // nodeId, acums, bornDate, dieDate
+    this.arrayNodeDataB = []; // bornDate, dieDate, 0.0, 0.0 (SHARED with LINKS, ARROWS & NODESTEXT)
+    this.arrayNodePosXYZW = [];
+    this.arrayNodeVertexPos = [];
+    this.arrayNodeVertexNormal = [];
+    this.arrayNodeVertexTexture = [];
+    this.startIndexId = 0;
+    this.arrayNodeIndices = [];
+
+    this.arrayNodeImgId = [];
+
+    this.arrayNodeDir = [];
+
+    this.currentNodeId = 0;
+    this.nodeArrayItemStart = 0;
+
+    // links
+    this.splitLinks = [];
+    this.splitLinksIndices = [];
+
+    this.arrayLinkData = []; // nodeId origin, nodeId target, currentLineVertex, repeatId
+    this.arrayLinkNodeName = [];
+    this.arrayLinkPosXYZW = [];
+    this.arrayLinkVertexPos = [];
+    this.startIndexId_link = 0;
+    this.arrayLinkIndices = [];
+
+    this.currentLinkId = 0;
+
+    // arrows
+    this.splitArrows = [];
+    this.splitArrowsIndices = [];
+
+    this.arrayArrowData = [];
+    this.arrayArrowNodeName = [];
+    this.arrayArrowPosXYZW = [];
+    this.arrayArrowVertexPos = [];
+    this.arrayArrowVertexNormal = [];
+    this.arrayArrowVertexTexture = [];
+    this.startIndexId_arrow = 0;
+    this.arrayArrowIndices = [];
+
+    this.currentArrowId = 0;
+    this.arrowArrayItemStart = 0;
+
+    // nodesText
+    this.splitNodesText = [];
+    this.splitNodesTextIndices = [];
+
+    this.arrayNodeTextData = [];
+    this.arrayNodeTextNodeName = [];
+    this.arrayNodeTextPosXYZW = [];
+    this.arrayNodeTextVertexPos = [];
+    this.arrayNodeTextVertexNormal = [];
+    this.arrayNodeTextVertexTexture = [];
+    this.startIndexId_nodestext = 0;
+    this.arrayNodeTextIndices = [];
+
+    this.arrayNodeText_itemStart = [];
+    this.arrayNodeTextLetterId = [];
+
+    this.currentNodeTextId = 0;
+    this.nodeTextArrayItemStart = 0;
+
+
 
 
 	//**************************************************
@@ -151,118 +221,51 @@ Graph = function(sce) {
 	comp_mouseEvents.onmousewheel((function(evt) {
 	}).bind(this));
 
-	// arrays
-	this.splitNodes = [];
-	this.splitNodesIndices = [];
+    //**************************************************
+    //  LINKS
+    //**************************************************
+    var links = new Node();
+    links.setName("graph_links");
+    _project.getActiveStage().addNode(links);
 
-	this.arrayNodeData = []; // nodeId, acums, bornDate, dieDate
-    this.arrayNodeDataB = []; // bornDate, dieDate, 0.0, 0.0 shared with LINKS & ARROWS
-	this.arrayNodePosXYZW = [];
-	this.arrayNodeVertexPos = [];
-	this.arrayNodeVertexNormal = [];
-	this.arrayNodeVertexTexture = [];
-	this.startIndexId = 0;
-	this.arrayNodeIndices = [];
+    // ComponentTransform
+    var comp_transform = new ComponentTransform();
+    links.addComponent(comp_transform);
 
-	this.arrayNodeImgId = [];
+    // ComponentRenderer
+    var comp_renderer_links = new ComponentRenderer();
+    links.addComponent(comp_renderer_links);
 
-	this.arrayNodeDir = [];
+    //**************************************************
+    //  ARROWS
+    //**************************************************
+    var arrows = new Node();
+    arrows.setName("graph_arrows");
+    _project.getActiveStage().addNode(arrows);
 
-	this.currentNodeId = 0;
-	this.nodeArrayItemStart = 0;
+    // ComponentTransform
+    var comp_transform = new ComponentTransform();
+    arrows.addComponent(comp_transform);
 
-	//**************************************************
-	//  LINKS
-	//**************************************************
-	var links = new Node();
-	links.setName("graph_links");
-	_project.getActiveStage().addNode(links);
+    // ComponentRenderer
+    var comp_renderer_arrows = new ComponentRenderer();
+    arrows.addComponent(comp_renderer_arrows);
 
-	// ComponentTransform
-	var comp_transform = new ComponentTransform();
-	links.addComponent(comp_transform);
+    //**************************************************
+    //  NODESTEXT
+    //**************************************************
+    var nodesText = new Node();
+    nodesText.setName("graph_nodesText");
+    _project.getActiveStage().addNode(nodesText);
 
-	// ComponentRenderer
-	var comp_renderer_links = new ComponentRenderer();
-	links.addComponent(comp_renderer_links);
+    // ComponentTransform
+    var comp_transform = new ComponentTransform();
+    nodesText.addComponent(comp_transform);
 
-	// arrays
-	this.splitLinks = [];
-	this.splitLinksIndices = [];
+    // ComponentRenderer
+    var comp_renderer_nodesText = new ComponentRenderer();
+    nodesText.addComponent(comp_renderer_nodesText);
 
-	this.arrayLinkData = []; // nodeId origin, nodeId target, currentLineVertex, repeatId
-	this.arrayLinkNodeName = [];
-	this.arrayLinkPosXYZW = [];
-	this.arrayLinkVertexPos = [];
-	this.startIndexId_link = 0;
-	this.arrayLinkIndices = [];
-
-	this.currentLinkId = 0;
-
-	//**************************************************
-	//  ARROWS
-	//**************************************************
-	var arrows = new Node();
-	arrows.setName("graph_arrows");
-	_project.getActiveStage().addNode(arrows);
-
-	// ComponentTransform
-	var comp_transform = new ComponentTransform();
-	arrows.addComponent(comp_transform);
-
-	// ComponentRenderer
-	var comp_renderer_arrows = new ComponentRenderer();
-	arrows.addComponent(comp_renderer_arrows);
-
-	// arrays
-	this.splitArrows = [];
-	this.splitArrowsIndices = [];
-
-	this.arrayArrowData = [];
-	this.arrayArrowNodeName = [];
-	this.arrayArrowPosXYZW = [];
-	this.arrayArrowVertexPos = [];
-	this.arrayArrowVertexNormal = [];
-	this.arrayArrowVertexTexture = [];
-	this.startIndexId_arrow = 0;
-	this.arrayArrowIndices = [];
-
-	this.currentArrowId = 0;
-	this.arrowArrayItemStart = 0;
-
-	//**************************************************
-	//  NODESTEXT
-	//**************************************************
-	var nodesText = new Node();
-	nodesText.setName("graph_nodesText");
-	_project.getActiveStage().addNode(nodesText);
-
-	// ComponentTransform
-	var comp_transform = new ComponentTransform();
-	nodesText.addComponent(comp_transform);
-
-	// ComponentRenderer
-	var comp_renderer_nodesText = new ComponentRenderer();
-	nodesText.addComponent(comp_renderer_nodesText);
-
-	// arrays
-	this.splitNodesText = [];
-	this.splitNodesTextIndices = [];
-
-	this.arrayNodeTextData = [];
-	this.arrayNodeTextNodeName = [];
-	this.arrayNodeTextPosXYZW = [];
-	this.arrayNodeTextVertexPos = [];
-	this.arrayNodeTextVertexNormal = [];
-	this.arrayNodeTextVertexTexture = [];
-	this.startIndexId_nodestext = 0;
-	this.arrayNodeTextIndices = [];
-
-	this.arrayNodeText_itemStart = [];
-	this.arrayNodeTextLetterId = [];
-
-	this.currentNodeTextId = 0;
-	this.nodeTextArrayItemStart = 0;
 
     /**
      * setTimelineDatetimeRange
@@ -418,12 +421,13 @@ Graph = function(sce) {
      * @param {String} url
      */
     this.setFontsImage = function(url) {
-        var image = new Image();
-        image.onload = (function() {
-            if(_enableFont == true)
+        if(_enableFont == true) {
+            var image = new Image();
+            image.onload = (function() {
                 comp_renderer_nodesText.setArg("fontsImg", (function(){return image;}).bind(this));
-        }).bind(this);
-        image.src = url;
+            }).bind(this);
+            image.src = url;
+        }
     };
 
     /**
@@ -765,93 +769,18 @@ Graph = function(sce) {
          this.nodeTextArrayItemStart = 0;*/
     };
 
-    /**
-     * @callback Graph~adjacencyMatrixToImage~onload
-     * @param {HTMLImageElement} img
-     */
-    /**
-     * adjacencyMatrixToImage
-     * @param {Float32Array} adjMat
-     * @param {Graph~adjacencyMatrixToImage~onload} onload
-     */
-    this.adjacencyMatrixToImage = function(adjMat, width, onload) {
-        var toArrF = (function(arr) {
-            var arrO = new Uint8Array(arr.length*4);
-            for(var n=0; n < arr.length; n++) {
-                var idO = n*4;
-                arrO[idO] = arr[n]*255;
-                arrO[idO+1] = arr[n]*255;
-                arrO[idO+2] = arr[n]*255;
-                arrO[idO+3] = 255;
-            }
 
-            return arrO;
-        }).bind(this);
-
-        var toImage = (function(fn, arrO, w, h) {
-            var canvas = new Utils().getCanvasFromUint8Array(arrO, w, h);
-            new Utils().getImageFromCanvas(canvas, (function(fn, im) {
-                fn(im);
-            }).bind(this, fn));
-        }).bind(this, onload);
-
-        //var width = this.currentNodeId;
-
-        var arrF = toArrF(adjMat);
-        toImage(arrF, width, width);
-    };
-
-    /**
-     * enableForceLayout
-     */
-    this.enableForceLayout = function() {
-        comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
-        _enabledForceLayout = true;
-    };
-
-    /**
-     * disableForceLayout
-     */
-    this.disableForceLayout = function() {
-        comp_renderer_nodes.setArg("enableForceLayout", (function() {return 0.0;}).bind(this));
-        _enabledForceLayout = false;
-    };
-
-    /**
-     * enableForceLayoutCollision
-     */
-    this.enableForceLayoutCollision = function() {
-        comp_renderer_nodes.setArg("enableForceLayoutCollision", (function() {return 1.0;}).bind(this));
-    };
-
-    /**
-     * disableForceLayoutCollision
-     */
-    this.disableForceLayoutCollision = function() {
-        comp_renderer_nodes.setArg("enableForceLayoutCollision", (function() {return 0.0;}).bind(this));
-    };
-
-    /**
-     * enableForceLayoutRepulsion
-     */
-    this.enableForceLayoutRepulsion = function() {
-        comp_renderer_nodes.setArg("enableForceLayoutRepulsion", (function() {return 1.0;}).bind(this));
-    };
-
-    /**
-     * disableForceLayoutRepulsion
-     */
-    this.disableForceLayoutRepulsion = function() {
-        comp_renderer_nodes.setArg("enableForceLayoutRepulsion", (function() {return 0.0;}).bind(this));
-    };
-
+    // ██████╗ ██████╗ ██╗   ██╗███████╗ ██████╗ ██████╗
+    //██╔════╝ ██╔══██╗██║   ██║██╔════╝██╔═══██╗██╔══██╗
+    //██║  ███╗██████╔╝██║   ██║█████╗  ██║   ██║██████╔╝
+    //██║   ██║██╔═══╝ ██║   ██║██╔══╝  ██║   ██║██╔══██╗
+    //╚██████╔╝██║     ╚██████╔╝██║     ╚██████╔╝██║  ██║
+    // ╚═════╝ ╚═╝      ╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═╝
     /**
      * applyLayout
      * @param {Object} jsonIn
      * @param {String} jsonIn.argsDirection - example "float4* argA, float* argB, mat4 argC, float4 argD, float argE"
      * @param {String} jsonIn.codeDirection
-     * @param {String} jsonIn.argsPosition - example "float4* argA, float* argB, mat4 argC, float4 argD, float argE"
-     * @param {String} jsonIn.codePosition
      * @param {String} jsonIn.argsObject - example "float4* argA, float* argB, mat4 argC, float4 argD, float argE"
      * @param {String} jsonIn.codeObject
      */
@@ -1491,7 +1420,12 @@ Graph = function(sce) {
 
 
 
-
+    // █████╗ ██████╗ ██████╗     ███╗   ██╗ ██████╗ ██████╗ ███████╗
+    //██╔══██╗██╔══██╗██╔══██╗    ████╗  ██║██╔═══██╗██╔══██╗██╔════╝
+    //███████║██║  ██║██║  ██║    ██╔██╗ ██║██║   ██║██║  ██║█████╗
+    //██╔══██║██║  ██║██║  ██║    ██║╚██╗██║██║   ██║██║  ██║██╔══╝
+    //██║  ██║██████╔╝██████╔╝    ██║ ╚████║╚██████╔╝██████╔╝███████╗
+    //╚═╝  ╚═╝╚═════╝ ╚═════╝     ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝
 	/**
 	 * @typedef {Object} LayoutNodeData
 	 * @property {Float|Array<Float4>} LayoutNodeData.ARG_NAME
@@ -1523,291 +1457,13 @@ Graph = function(sce) {
 	* @returns {String} - Name of node
 	 */
 	this.addNode = function(jsonIn) {
-        /**
-         * @param {Object} jsonIn
-         * @param {Array<Float4>} [jsonIn.position=[Math.Random(), Math.Random(), Math.Random(), 1.0]] - Position of node
-         * @param {LayoutNodeData} [jsonIn.layoutNodeArgumentData=undefined]
-         * @returns {Object}
-         * @private
-         */
-        var addNodeNow = (function(jsonIn) {
-            /**
-             * setNodesImage
-             * @private
-             * @param {String} url
-             * @param {Int} locationIdx
-             */
-            var setNodesImage = (function(/*String*/ url, /*Int*/ locationIdx) {
-                var get2Dfrom1D = function(/*Int*/ idx, /*Int*/ columns) {
-                    var n = idx/columns;
-                    var row = parseFloat(Math.round(n));
-                    var col = new Utils().fract(n)*columns;
-
-                    return {"col": col,
-                        "row": row};
-                }
-
-                if(nodesImgMaskLoaded == false) {
-                    nodesImgMask = new Image();
-                    nodesImgMask.onload = (function() {
-                        nodesImgMaskLoaded = true;
-                        setNodesImage(url, locationIdx);
-                    }).bind(this, url, locationIdx);
-                    nodesImgMask.src = sceDirectory+"/Prefabs/Graph/nodesImgMask.png";
-                } else if(nodesImgCrosshairLoaded == false) {
-                    nodesImgCrosshair = new Image();
-                    nodesImgCrosshair.onload = (function() {
-                        nodesImgCrosshairLoaded = true;
-                        setNodesImage(url, locationIdx);
-                    }).bind(this, url, locationIdx);
-                    nodesImgCrosshair.src = sceDirectory+"/Prefabs/Graph/nodesImgCrosshair.png";
-                } else {
-                    if(_makingNodesImg == false) {
-                        _makingNodesImg = true;
-
-                        var image = new Image();
-                        image.onload = (function(nodesImgMask, nodesImgCrosshair) {
-                            // draw userImg on temporal canvas reducing the thumb size
-                            ctxNodeImgTMP.clearRect(0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-                            var quarter = NODE_IMG_SPRITE_WIDTH/4;
-                            ctxNodeImgTMP.drawImage(image, 0, 0, image.width, image.height, quarter, quarter, NODE_IMG_SPRITE_WIDTH/2, NODE_IMG_SPRITE_WIDTH/2);
-
-                            // apply mask to thumb image
-                            new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(img) {
-                                var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( img );
-
-
-                                var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
-                                for(var n=0; n < datMask.length/4; n++) {
-                                    var idx = n*4;
-                                    if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
-                                }
-                                new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
-                                    // draw thumb image on atlas & update the 'nodesImg' argument
-                                    var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
-                                    ctxNodeImg.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-
-                                    new Utils().getImageFromCanvas(canvasNodeImg, (function(imgAtlas) {
-                                        comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
-                                    }).bind(this));
-                                }).bind(this));
-
-
-                                var datCrosshair = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgCrosshair);
-                                for(var n=0; n < datCrosshair.length/4; n++) {
-                                    var idx = n*4;
-
-                                    newImgData[idx] = ((datCrosshair[idx]*datCrosshair[idx+3]) + (newImgData[idx]*(255-datCrosshair[idx+3])))/255;
-                                    newImgData[idx+1] =( (datCrosshair[idx+1]*datCrosshair[idx+3]) + (newImgData[idx+1]*(255-datCrosshair[idx+3])))/255;
-                                    newImgData[idx+2] = ((datCrosshair[idx+2]*datCrosshair[idx+3]) + (newImgData[idx+2]*(255-datCrosshair[idx+3])))/255;
-                                    newImgData[idx+3] = ((datCrosshair[idx+3]*datCrosshair[idx+3]) + (newImgData[idx+3]*(255-datCrosshair[idx+3])))/255;
-                                }
-                                new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
-                                    // draw thumb image on atlas & update the 'nodesImg' argument
-                                    var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
-                                    ctxNodeImgCrosshair.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-
-                                    new Utils().getImageFromCanvas(canvasNodeImgCrosshair, (function(imgAtlas) {
-                                        comp_renderer_nodes.setArg("nodesImgCrosshair", (function(){return imgAtlas;}).bind(this));
-
-                                        _makingNodesImg = false;
-                                        if(_stackNodesImg.length > 0) {
-                                            var urlT = _stackNodesImg[0].url;
-                                            var locIdx = _stackNodesImg[0].locationIdx;
-                                            _stackNodesImg.shift();
-                                            setNodesImage(urlT, locIdx);
-                                        }
-                                    }).bind(this));
-                                }).bind(this));
-
-                            }).bind(this));
-
-                        }).bind(this, nodesImgMask, nodesImgCrosshair);
-                        image.src = url;
-                    } else {
-                        _stackNodesImg.push({	"url": url,
-                            "locationIdx": locationIdx});
-                    }
-                }
-            }).bind(this);
-
-
-            var nAIS = this.nodeArrayItemStart;
-
-            var offs = OFFSET/10;
-            var pos = jsonIn.position != undefined ? jsonIn.position : [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
-
-            var color = jsonIn.color;
-
-            var nodeImgId = -1;
-            if(color != undefined && color.constructor===String) { // color is string URL
-                if(objNodeImages.hasOwnProperty(color) == false) {
-                    var locationIdx = Object.keys(objNodeImages).length;
-                    objNodeImages[color] = locationIdx;
-
-                    setNodesImage(color, locationIdx);
-                }
-                nodeImgId = objNodeImages[color];
-            }
-            for(var n=0; n < mesh_nodes.vertexArray.length/4; n++) {
-                var idxVertex = n*4;
-
-                var bornDate = (jsonIn.bornDate != undefined) ? jsonIn.bornDate : -1.0;
-                var dieDate = (jsonIn.dieDate != undefined) ? jsonIn.dieDate : -1.0;
-                this.arrayNodeData.push(this.currentNodeId, 0.0, bornDate, dieDate);
-                this.arrayNodeDataB.push(bornDate, dieDate, 0.0, 0.0);
-                this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
-                this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
-                this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
-                this.arrayNodeVertexTexture.push(mesh_nodes.textureArray[idxVertex], mesh_nodes.textureArray[idxVertex+1], mesh_nodes.textureArray[idxVertex+2], 1.0);
-
-                this.arrayNodeImgId.push(nodeImgId);
-
-                if(jsonIn.layoutNodeArgumentData != undefined) {
-                    for(var argNameKey in _customArgs) {
-                        var expl = _customArgs[argNameKey].arg.split("*");
-                        if(expl.length > 0) { // argument is type buffer
-                            if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.layoutNodeArgumentData[argNameKey] != undefined) {
-                                if(expl[0] == "float")
-                                    _customArgs[argNameKey].nodes_array_value.push(jsonIn.layoutNodeArgumentData[argNameKey]);
-                                else if(expl[0] == "float4")
-                                    _customArgs[argNameKey].nodes_array_value.push(	jsonIn.layoutNodeArgumentData[argNameKey][0],
-                                        jsonIn.layoutNodeArgumentData[argNameKey][1],
-                                        jsonIn.layoutNodeArgumentData[argNameKey][2],
-                                        jsonIn.layoutNodeArgumentData[argNameKey][3]);
-                            }
-                        }
-                    }
-                }
-
-                this.nodeArrayItemStart++;
-            }
-            if(this.splitNodesIndices.length > 0 && this.arrayNodeIndices.length == this.splitNodesIndices[this.splitNodesIndices.length-1]) {
-                this.startIndexId = 0;
-            }
-            var maxNodeIndexId = 0;
-            for(var n=0; n < mesh_nodes.indexArray.length; n++) {
-                var idxIndex = n;
-
-                this.arrayNodeIndices.push(this.startIndexId+mesh_nodes.indexArray[idxIndex]);
-                //console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
-
-                if(mesh_nodes.indexArray[idxIndex] > maxNodeIndexId) {
-                    maxNodeIndexId = mesh_nodes.indexArray[idxIndex];
-                }
-            }
-
-            if(this.startIndexId == 0) {
-                if(this.splitNodes.length == 0) {
-                    this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeIndices.length); // 1=1 circle(12segm (3 indices per segm))= 3*12 indices
-                    this.splitNodes.push((this.arrayNodeData.length/4)*this.splitNodesEvery);
-                    this.splitNodesIndices.push(this.arrayNodeIndices.length*this.splitNodesEvery);
-                } else {
-                    this.splitNodes.push(this.splitNodes[0]*(this.splitNodes.length+1));
-                    this.splitNodesIndices.push(this.splitNodesIndices[0]*(this.splitNodesIndices.length+1));
-                }
-            }
-            this.startIndexId += (maxNodeIndexId+1);
-
-
-            this.currentNodeId++; // augment node id
-
-            //return this.currentNodeId-1;
-            jsonIn.nodeId = this.currentNodeId-1;
-            jsonIn.itemStart = nAIS;// nodeArrayItemStart
-            return jsonIn;
-        }).bind(this);
-
-        /** @private */
-        var addNodeTextNow = (function(jsonIn) {
-            var getLetterId = function(letter) {
-                var obj = {	"A":  0, "B":  1, "C":  2, "D":  3, "E":  4, "F":  5, "G":  6,
-                    "H":  7, "I":  8, "J":  9, "K": 10, "L": 11, "M": 12, "N": 13,
-                    "Ñ": 14, "O": 15, "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20,
-                    "U": 21, "V": 22, "W": 23, "X": 24, "Y": 25, "Z": 26, " ": 27,
-                    "0": 28, "1": 29, "2": 30, "3": 31, "4": 32, "5": 33, "6": 34,
-                    "7": 35, "8": 36, "9": 37
-                };
-                return obj[letter];
-            };
-
-            for(var i = 0; i < nodesTextPlanes; i++) {
-                var letterId;
-                if(jsonIn.label != undefined && jsonIn.label[i] != undefined)
-                    letterId = getLetterId(jsonIn.label[i]);
-                if(letterId == undefined)
-                    letterId = getLetterId(" ");
-
-                for(var n=0; n < mesh_nodesText.vertexArray.length/4; n++) {
-                    var idxVertex = n*4;
-
-                    this.arrayNodeTextData.push(jsonIn.nodeId, 0.0, 0.0, 0.0);
-                    this.arrayNodeTextPosXYZW.push(0.0, 0.0, 0.0, 1.0);
-                    this.arrayNodeTextVertexPos.push(mesh_nodesText.vertexArray[idxVertex]+(i*0.5), mesh_nodesText.vertexArray[idxVertex+1], mesh_nodesText.vertexArray[idxVertex+2], 1.0);
-                    this.arrayNodeTextVertexNormal.push(mesh_nodesText.normalArray[idxVertex], mesh_nodesText.normalArray[idxVertex+1], mesh_nodesText.normalArray[idxVertex+2], 1.0);
-                    this.arrayNodeTextVertexTexture.push(mesh_nodesText.textureArray[idxVertex], mesh_nodesText.textureArray[idxVertex+1], mesh_nodesText.textureArray[idxVertex+2], 1.0);
-
-                    this.arrayNodeTextNodeName.push(jsonIn.name);
-
-                    this.arrayNodeText_itemStart.push(jsonIn.itemStart);
-
-                    this.arrayNodeTextLetterId.push(letterId);
-
-                    if(jsonIn.layoutNodeArgumentData != undefined) {
-                        for(var argNameKey in _customArgs) {
-                            var expl = _customArgs[argNameKey].arg.split("*");
-                            if(expl.length > 0) { // argument is type buffer
-                                if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.layoutNodeArgumentData[argNameKey] != undefined) {
-                                    if(expl[0] == "float")
-                                        _customArgs[argNameKey].nodestext_array_value.push(jsonIn.layoutNodeArgumentData[argNameKey]);
-                                    else if(expl[0] == "float4")
-                                        _customArgs[argNameKey].nodestext_array_value.push(	jsonIn.layoutNodeArgumentData[argNameKey][0],
-                                            jsonIn.layoutNodeArgumentData[argNameKey][1],
-                                            jsonIn.layoutNodeArgumentData[argNameKey][2],
-                                            jsonIn.layoutNodeArgumentData[argNameKey][3]);
-                                }
-                            }
-                        }
-                    }
-                }
-                if(this.splitNodesTextIndices.length > 0 && this.arrayNodeTextIndices.length == this.splitNodesTextIndices[this.splitNodesTextIndices.length-1]) {
-                    this.startIndexId_nodestext = 0;
-                }
-                var maxNodeIndexId = 0;
-                for(var n=0; n < mesh_nodesText.indexArray.length; n++) {
-                    var idxIndex = n;
-
-                    this.arrayNodeTextIndices.push(this.startIndexId_nodestext+mesh_nodesText.indexArray[idxIndex]);
-                    //console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
-
-                    if(mesh_nodesText.indexArray[idxIndex] > maxNodeIndexId) {
-                        maxNodeIndexId = mesh_nodesText.indexArray[idxIndex];
-                    }
-                }
-            }
-            if(this.startIndexId_nodestext == 0) {
-                if(this.splitNodesText.length == 0) {
-                    this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeTextIndices.length); // 1=12 planes (6 indices per plane) = 6*12 indices
-                    this.splitNodesText.push((this.arrayNodeTextData.length/4)*this.splitNodesTextEvery);
-                    this.splitNodesTextIndices.push(this.arrayNodeTextIndices.length*this.splitNodesTextEvery);
-                } else {
-                    this.splitNodesText.push(this.splitNodesText[0]*(this.splitNodesText.length+1));
-                    this.splitNodesTextIndices.push(this.splitNodesTextIndices[0]*(this.splitNodesTextIndices.length+1));
-                }
-            }
-            this.startIndexId_nodestext += (maxNodeIndexId+1);
-
-            this.currentNodeTextId++; // augment node id
-        }).bind(this);
-
-
 		if(_nodesByName.hasOwnProperty(jsonIn.name) == false) {
-			var node = addNodeNow(jsonIn);
+			var node = createNode(jsonIn);
 			_nodesByName[jsonIn.name] = node;
 			_nodesById[node.nodeId] = node;
 
             if(node.label != undefined && _enableFont == true)
-                addNodeTextNow(node);
+                createNodeText(node);
 
 			console.log("%cnode "+(Object.keys(_nodesByName).length)+" ("+jsonIn.name+")", "color:green");
 
@@ -1818,41 +1474,543 @@ Graph = function(sce) {
 		}
 	};
 
+    /**
+     * @param {Object} jsonIn
+     * @param {Array<Float4>} [jsonIn.position=[Math.Random(), Math.Random(), Math.Random(), 1.0]] - Position of node
+     * @param {LayoutNodeData} [jsonIn.layoutNodeArgumentData=undefined]
+     * @returns {Object}
+     * @private
+     */
+    var createNode = (function(jsonIn) {
+        var nAIS = this.nodeArrayItemStart;
+
+        var offs = OFFSET/10;
+        var pos = jsonIn.position != undefined ? jsonIn.position : [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
+
+        var color = jsonIn.color;
+
+        var nodeImgId = -1;
+        if(color != undefined && color.constructor===String) { // color is string URL
+            if(objNodeImages.hasOwnProperty(color) == false) {
+                var locationIdx = Object.keys(objNodeImages).length;
+                objNodeImages[color] = locationIdx;
+
+                setNodesImage(color, locationIdx);
+            }
+            nodeImgId = objNodeImages[color];
+        }
+        for(var n=0; n < mesh_nodes.vertexArray.length/4; n++) {
+            var idxVertex = n*4;
+
+            var bornDate = (jsonIn.bornDate != undefined) ? jsonIn.bornDate : -1.0;
+            var dieDate = (jsonIn.dieDate != undefined) ? jsonIn.dieDate : -1.0;
+            this.arrayNodeData.push(this.currentNodeId, 0.0, bornDate, dieDate);
+            this.arrayNodeDataB.push(bornDate, dieDate, 0.0, 0.0);
+            this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
+            this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
+            this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
+            this.arrayNodeVertexTexture.push(mesh_nodes.textureArray[idxVertex], mesh_nodes.textureArray[idxVertex+1], mesh_nodes.textureArray[idxVertex+2], 1.0);
+
+            this.arrayNodeImgId.push(nodeImgId);
+
+            if(jsonIn.layoutNodeArgumentData != undefined) {
+                for(var argNameKey in _customArgs) {
+                    var expl = _customArgs[argNameKey].arg.split("*");
+                    if(expl.length > 0) { // argument is type buffer
+                        if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.layoutNodeArgumentData[argNameKey] != undefined) {
+                            if(expl[0] == "float")
+                                _customArgs[argNameKey].nodes_array_value.push(jsonIn.layoutNodeArgumentData[argNameKey]);
+                            else if(expl[0] == "float4")
+                                _customArgs[argNameKey].nodes_array_value.push(	jsonIn.layoutNodeArgumentData[argNameKey][0],
+                                    jsonIn.layoutNodeArgumentData[argNameKey][1],
+                                    jsonIn.layoutNodeArgumentData[argNameKey][2],
+                                    jsonIn.layoutNodeArgumentData[argNameKey][3]);
+                        }
+                    }
+                }
+            }
+
+            this.nodeArrayItemStart++;
+        }
+        if(this.splitNodesIndices.length > 0 && this.arrayNodeIndices.length == this.splitNodesIndices[this.splitNodesIndices.length-1]) {
+            this.startIndexId = 0;
+        }
+        var maxNodeIndexId = 0;
+        for(var n=0; n < mesh_nodes.indexArray.length; n++) {
+            var idxIndex = n;
+
+            this.arrayNodeIndices.push(this.startIndexId+mesh_nodes.indexArray[idxIndex]);
+            //console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
+
+            if(mesh_nodes.indexArray[idxIndex] > maxNodeIndexId) {
+                maxNodeIndexId = mesh_nodes.indexArray[idxIndex];
+            }
+        }
+
+        if(this.startIndexId == 0) {
+            if(this.splitNodes.length == 0) {
+                this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeIndices.length); // 1=1 circle(12segm (3 indices per segm))= 3*12 indices
+                this.splitNodes.push((this.arrayNodeData.length/4)*this.splitNodesEvery);
+                this.splitNodesIndices.push(this.arrayNodeIndices.length*this.splitNodesEvery);
+            } else {
+                this.splitNodes.push(this.splitNodes[0]*(this.splitNodes.length+1));
+                this.splitNodesIndices.push(this.splitNodesIndices[0]*(this.splitNodesIndices.length+1));
+            }
+        }
+        this.startIndexId += (maxNodeIndexId+1);
+
+
+        this.currentNodeId++; // augment node id
+
+        jsonIn.nodeId = this.currentNodeId-1;
+        jsonIn.itemStart = nAIS;// nodeArrayItemStart
+        return jsonIn;
+    }).bind(this);
+
+    /** @private */
+    var createNodeText = (function(jsonIn) {
+        var getLetterId = function(letter) {
+            var obj = {	"A":  0, "B":  1, "C":  2, "D":  3, "E":  4, "F":  5, "G":  6,
+                "H":  7, "I":  8, "J":  9, "K": 10, "L": 11, "M": 12, "N": 13,
+                "Ñ": 14, "O": 15, "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20,
+                "U": 21, "V": 22, "W": 23, "X": 24, "Y": 25, "Z": 26, " ": 27,
+                "0": 28, "1": 29, "2": 30, "3": 31, "4": 32, "5": 33, "6": 34,
+                "7": 35, "8": 36, "9": 37
+            };
+            return obj[letter];
+        };
+
+        for(var i = 0; i < nodesTextPlanes; i++) {
+            var letterId;
+            if(jsonIn.label != undefined && jsonIn.label[i] != undefined)
+                letterId = getLetterId(jsonIn.label[i]);
+            if(letterId == undefined)
+                letterId = getLetterId(" ");
+
+            for(var n=0; n < mesh_nodesText.vertexArray.length/4; n++) {
+                var idxVertex = n*4;
+
+                this.arrayNodeTextData.push(jsonIn.nodeId, 0.0, 0.0, 0.0);
+                this.arrayNodeTextPosXYZW.push(0.0, 0.0, 0.0, 1.0);
+                this.arrayNodeTextVertexPos.push(mesh_nodesText.vertexArray[idxVertex]+(i*0.5), mesh_nodesText.vertexArray[idxVertex+1], mesh_nodesText.vertexArray[idxVertex+2], 1.0);
+                this.arrayNodeTextVertexNormal.push(mesh_nodesText.normalArray[idxVertex], mesh_nodesText.normalArray[idxVertex+1], mesh_nodesText.normalArray[idxVertex+2], 1.0);
+                this.arrayNodeTextVertexTexture.push(mesh_nodesText.textureArray[idxVertex], mesh_nodesText.textureArray[idxVertex+1], mesh_nodesText.textureArray[idxVertex+2], 1.0);
+
+                this.arrayNodeTextNodeName.push(jsonIn.name);
+
+                this.arrayNodeText_itemStart.push(jsonIn.itemStart);
+
+                this.arrayNodeTextLetterId.push(letterId);
+
+                if(jsonIn.layoutNodeArgumentData != undefined) {
+                    for(var argNameKey in _customArgs) {
+                        var expl = _customArgs[argNameKey].arg.split("*");
+                        if(expl.length > 0) { // argument is type buffer
+                            if(jsonIn.layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.layoutNodeArgumentData[argNameKey] != undefined) {
+                                if(expl[0] == "float")
+                                    _customArgs[argNameKey].nodestext_array_value.push(jsonIn.layoutNodeArgumentData[argNameKey]);
+                                else if(expl[0] == "float4")
+                                    _customArgs[argNameKey].nodestext_array_value.push(	jsonIn.layoutNodeArgumentData[argNameKey][0],
+                                        jsonIn.layoutNodeArgumentData[argNameKey][1],
+                                        jsonIn.layoutNodeArgumentData[argNameKey][2],
+                                        jsonIn.layoutNodeArgumentData[argNameKey][3]);
+                            }
+                        }
+                    }
+                }
+            }
+            if(this.splitNodesTextIndices.length > 0 && this.arrayNodeTextIndices.length == this.splitNodesTextIndices[this.splitNodesTextIndices.length-1]) {
+                this.startIndexId_nodestext = 0;
+            }
+            var maxNodeIndexId = 0;
+            for(var n=0; n < mesh_nodesText.indexArray.length; n++) {
+                var idxIndex = n;
+
+                this.arrayNodeTextIndices.push(this.startIndexId_nodestext+mesh_nodesText.indexArray[idxIndex]);
+                //console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
+
+                if(mesh_nodesText.indexArray[idxIndex] > maxNodeIndexId) {
+                    maxNodeIndexId = mesh_nodesText.indexArray[idxIndex];
+                }
+            }
+        }
+        if(this.startIndexId_nodestext == 0) {
+            if(this.splitNodesText.length == 0) {
+                this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeTextIndices.length); // 1=12 planes (6 indices per plane) = 6*12 indices
+                this.splitNodesText.push((this.arrayNodeTextData.length/4)*this.splitNodesTextEvery);
+                this.splitNodesTextIndices.push(this.arrayNodeTextIndices.length*this.splitNodesTextEvery);
+            } else {
+                this.splitNodesText.push(this.splitNodesText[0]*(this.splitNodesText.length+1));
+                this.splitNodesTextIndices.push(this.splitNodesTextIndices[0]*(this.splitNodesTextIndices.length+1));
+            }
+        }
+        this.startIndexId_nodestext += (maxNodeIndexId+1);
+
+        this.currentNodeTextId++; // augment node id
+    }).bind(this);
+
+    /**
+     * setNodesImage
+     * @private
+     * @param {String} url
+     * @param {Int} locationIdx
+     */
+    var setNodesImage = (function(url, locationIdx) {
+        var get2Dfrom1D = function(/*Int*/ idx, /*Int*/ columns) {
+            var n = idx/columns;
+            var row = parseFloat(Math.round(n));
+            var col = new Utils().fract(n)*columns;
+
+            return {"col": col,
+                "row": row};
+        }
+
+        if(nodesImgMaskLoaded == false) {
+            nodesImgMask = new Image();
+            nodesImgMask.onload = (function() {
+                nodesImgMaskLoaded = true;
+                setNodesImage(url, locationIdx);
+            }).bind(this, url, locationIdx);
+            nodesImgMask.src = sceDirectory+"/Prefabs/Graph/nodesImgMask.png";
+        } else if(nodesImgCrosshairLoaded == false) {
+            nodesImgCrosshair = new Image();
+            nodesImgCrosshair.onload = (function() {
+                nodesImgCrosshairLoaded = true;
+                setNodesImage(url, locationIdx);
+            }).bind(this, url, locationIdx);
+            nodesImgCrosshair.src = sceDirectory+"/Prefabs/Graph/nodesImgCrosshair.png";
+        } else {
+            if(_makingNodesImg == false) {
+                _makingNodesImg = true;
+
+                var image = new Image();
+                image.onload = (function(nodesImgMask, nodesImgCrosshair) {
+                    // draw userImg on temporal canvas reducing the thumb size
+                    ctxNodeImgTMP.clearRect(0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
+                    var quarter = NODE_IMG_SPRITE_WIDTH/4;
+                    ctxNodeImgTMP.drawImage(image, 0, 0, image.width, image.height, quarter, quarter, NODE_IMG_SPRITE_WIDTH/2, NODE_IMG_SPRITE_WIDTH/2);
+
+                    // apply mask to thumb image
+                    new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(img) {
+                        var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( img );
+
+
+                        var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
+                        for(var n=0; n < datMask.length/4; n++) {
+                            var idx = n*4;
+                            if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
+                        }
+                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
+                            // draw thumb image on atlas & update the 'nodesImg' argument
+                            var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
+                            ctxNodeImg.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
+
+                            new Utils().getImageFromCanvas(canvasNodeImg, (function(imgAtlas) {
+                                comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
+                            }).bind(this));
+                        }).bind(this));
+
+
+                        var datCrosshair = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgCrosshair);
+                        for(var n=0; n < datCrosshair.length/4; n++) {
+                            var idx = n*4;
+
+                            newImgData[idx] = ((datCrosshair[idx]*datCrosshair[idx+3]) + (newImgData[idx]*(255-datCrosshair[idx+3])))/255;
+                            newImgData[idx+1] =( (datCrosshair[idx+1]*datCrosshair[idx+3]) + (newImgData[idx+1]*(255-datCrosshair[idx+3])))/255;
+                            newImgData[idx+2] = ((datCrosshair[idx+2]*datCrosshair[idx+3]) + (newImgData[idx+2]*(255-datCrosshair[idx+3])))/255;
+                            newImgData[idx+3] = ((datCrosshair[idx+3]*datCrosshair[idx+3]) + (newImgData[idx+3]*(255-datCrosshair[idx+3])))/255;
+                        }
+                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
+                            // draw thumb image on atlas & update the 'nodesImg' argument
+                            var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
+                            ctxNodeImgCrosshair.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
+
+                            new Utils().getImageFromCanvas(canvasNodeImgCrosshair, (function(imgAtlas) {
+                                comp_renderer_nodes.setArg("nodesImgCrosshair", (function(){return imgAtlas;}).bind(this));
+
+                                _makingNodesImg = false;
+                                if(_stackNodesImg.length > 0) {
+                                    var urlT = _stackNodesImg[0].url;
+                                    var locIdx = _stackNodesImg[0].locationIdx;
+                                    _stackNodesImg.shift();
+                                    setNodesImage(urlT, locIdx);
+                                }
+                            }).bind(this));
+                        }).bind(this));
+
+                    }).bind(this));
+
+                }).bind(this, nodesImgMask, nodesImgCrosshair);
+                image.src = url;
+            } else {
+                _stackNodesImg.push({	"url": url,
+                    "locationIdx": locationIdx});
+            }
+        }
+    }).bind(this);
+
+    // █████╗ ██████╗ ██████╗     ██╗     ██╗███╗   ██╗██╗  ██╗
+    //██╔══██╗██╔══██╗██╔══██╗    ██║     ██║████╗  ██║██║ ██╔╝
+    //███████║██║  ██║██║  ██║    ██║     ██║██╔██╗ ██║█████╔╝
+    //██╔══██║██║  ██║██║  ██║    ██║     ██║██║╚██╗██║██╔═██╗
+    //██║  ██║██████╔╝██████╔╝    ███████╗██║██║ ╚████║██║  ██╗
+    //╚═╝  ╚═╝╚═════╝ ╚═════╝     ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝
+    /**
+     * Create new node for the graph
+     * @param {Object} jsonIn
+     * @param {String} jsonIn.origin - NodeName Origin for this link
+     * @param {String} jsonIn.target - NodeName Target for this link
+     * @param {Bool} [jsonIn.directed=false] -
+     */
+    this.addLink = function(jsonIn) {
+        var pass = true;
+
+        if(_nodesByName[jsonIn.origin] == undefined)
+            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target+". Node "+jsonIn.origin+" not exists", "color:red"), pass=false;
+
+        if(_nodesByName[jsonIn.target] == undefined)
+            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target+". Node "+jsonIn.target+" not exists", "color:red"), pass=false;
+
+        if(pass == true) {
+            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
+
+            jsonIn.origin_nodeName = jsonIn.origin.toString();
+            jsonIn.target_nodeName = jsonIn.target.toString();
+            jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
+            jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
+            jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
+            jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
+            jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
+            jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
+
+            var repeatId = 1;
+            while(true) {
+                var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
+                if(exists == true) {
+                    repeatId++;
+                } else
+                    break;
+            }
+            jsonIn.repeatId = repeatId;
+
+            var link = createLink(jsonIn);
+
+            if(link.directed != undefined && link.directed == true)
+                createArrow(link);
+
+            // ADD LINK TO ARRAY LINKS
+            _links[link.origin+"->"+link.target+"_"+repeatId] = link;
+            //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
+
+
+            // UPDATE arrayNodeData
+            for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+                var id = n*4;
+                if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
+                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                }
+                if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
+                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                }
+            }
+        } else {
+            console.log();
+        }
+    };
+
+    /**
+     * Create new link for the graph
+     * @param {Object} jsonIn
+     * @param {Int} jsonIn.origin_nodeName
+     * @param {Int} jsonIn.target_nodeName
+     * @param {Int} jsonIn.origin_nodeId
+     * @param {Int} jsonIn.target_nodeId
+     * @param {Int} jsonIn.origin_itemStart
+     * @param {Int} jsonIn.target_itemStart
+     * @param {Int} jsonIn.origin_layoutNodeArgumentData
+     * @param {Int} jsonIn.target_layoutNodeArgumentData
+     * @param {Bool} [jsonIn.directed=false]
+     * @returns {Object}
+     * @private
+     */
+    var createLink = (function(jsonIn) {
+        for(var n=0; n < lineVertexCount*2; n++) {
+            this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), jsonIn.repeatId);
+
+            if(Math.ceil(n/2) != (lineVertexCount-1)) {
+                this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
+            } else {
+                this.arrayLinkNodeName.push(jsonIn.target_nodeName);
+            }
+            this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
+            this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
+
+            if(jsonIn.origin_layoutNodeArgumentData != undefined) {
+                for(var argNameKey in _customArgs) {
+                    var expl = _customArgs[argNameKey].arg.split("*");
+                    if(expl.length > 0) { // argument is type buffer
+                        if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
+                            if(expl[0] == "float")
+                                _customArgs[argNameKey].links_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
+                            else if(expl[0] == "float4")
+                                _customArgs[argNameKey].links_array_value.push(	jsonIn.origin_layoutNodeArgumentData[argNameKey][0],
+                                    jsonIn.origin_layoutNodeArgumentData[argNameKey][1],
+                                    jsonIn.origin_layoutNodeArgumentData[argNameKey][2],
+                                    jsonIn.origin_layoutNodeArgumentData[argNameKey][3]);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(this.splitLinksIndices.length > 0 && this.arrayLinkIndices.length == this.splitLinksIndices[this.splitLinksIndices.length-1]) {
+            this.startIndexId_link = 0;
+        }
+
+        for(var n=0; n < lineVertexCount*2; n++)
+            this.arrayLinkIndices.push(	this.startIndexId_link++);
+
+        if(this.startIndexId_link == 0) {
+            if(this.splitLinks.length == 0) {
+                this.splitLinksEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayLinkIndices.length); // 1=1 link=2 indices
+                this.splitLinks.push((this.arrayLinkData.length/4)*this.splitLinksEvery);
+                this.splitLinksIndices.push(this.arrayLinkIndices.length*this.splitLinksEvery);
+            } else {
+                this.splitLinks.push(this.splitLinks[0]*(this.splitLinks.length+1));
+                this.splitLinksIndices.push(this.splitLinksIndices[0]*(this.splitLinksIndices.length+1));
+            }
+        }
+
+        this.currentLinkId += 2; // augment link id
+
+        jsonIn.linkId = this.currentLinkId-2;
+        return jsonIn;
+    }).bind(this);
+
+    /**
+     * Create new arrow for the graph
+     * @param {Object} jsonIn
+     * @param {Int} jsonIn.origin_nodeName
+     * @param {Int} jsonIn.target_nodeName
+     * @param {Int} jsonIn.origin_nodeId
+     * @param {Int} jsonIn.target_nodeId
+     * @param {Int} jsonIn.origin_itemStart
+     * @param {Int} jsonIn.target_itemStart
+     * @param {Int} jsonIn.origin_layoutNodeArgumentData
+     * @param {Int} jsonIn.target_layoutNodeArgumentData
+     * @param {Bool} [jsonIn.directed=false]
+     * @param {Mesh} [jsonIn.node] - Node with the mesh for the node
+     * @returns {Int}
+     * @private
+     */
+    var createArrow = (function(jsonIn) {
+        if(jsonIn != undefined && jsonIn.node != undefined)
+            mesh_arrows = jsonIn.node;
+
+        var oppositeId = 0;
+
+        for(var o=0; o < 2; o++) {
+            for(var n=0; n < mesh_arrows.vertexArray.length/4; n++) {
+                var idxVertex = n*4;
+                if(o == 0) oppositeId = this.arrowArrayItemStart;
+
+                this.arrayArrowPosXYZW.push(0.0, 0.0, 0.0, 1.0);
+                this.arrayArrowVertexPos.push(mesh_arrows.vertexArray[idxVertex], mesh_arrows.vertexArray[idxVertex+1], mesh_arrows.vertexArray[idxVertex+2], 1.0);
+                this.arrayArrowVertexNormal.push(mesh_arrows.normalArray[idxVertex], mesh_arrows.normalArray[idxVertex+1], mesh_arrows.normalArray[idxVertex+2], 1.0);
+                this.arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
+                if(o == 0) {
+                    this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, jsonIn.repeatId);
+                    this.arrayArrowNodeName.push(jsonIn.origin_nodeName);
+                    if(jsonIn.origin_layoutNodeArgumentData != undefined) {
+                        for(var argNameKey in _customArgs) {
+                            var expl = _customArgs[argNameKey].arg.split("*");
+                            if(expl.length > 0) { // argument is type buffer
+                                if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
+                                    if(expl[0] == "float")
+                                        _customArgs[argNameKey].arrows_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
+                                    else if(expl[0] == "float4")
+                                        _customArgs[argNameKey].arrows_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey][0],
+                                            jsonIn.origin_layoutNodeArgumentData[argNameKey][1],
+                                            jsonIn.origin_layoutNodeArgumentData[argNameKey][2],
+                                            jsonIn.origin_layoutNodeArgumentData[argNameKey][3]);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, jsonIn.repeatId);
+                    this.arrayArrowNodeName.push(jsonIn.target_nodeName);
+                    if(jsonIn.target_layoutNodeArgumentData != undefined) {
+                        for(var argNameKey in _customArgs) {
+                            var expl = _customArgs[argNameKey].arg.split("*");
+                            if(expl.length > 0) { // argument is type buffer
+                                if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.target_layoutNodeArgumentData[argNameKey] != undefined) {
+                                    if(expl[0] == "float")
+                                        _customArgs[argNameKey].arrows_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey]);
+                                    else if(expl[0] == "float4")
+                                        _customArgs[argNameKey].arrows_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey][0],
+                                            jsonIn.target_layoutNodeArgumentData[argNameKey][1],
+                                            jsonIn.target_layoutNodeArgumentData[argNameKey][2],
+                                            jsonIn.target_layoutNodeArgumentData[argNameKey][3]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                this.arrowArrayItemStart++;
+            }
+            if(this.splitArrowsIndices.length > 0 && this.arrayArrowIndices.length == this.splitArrowsIndices[this.splitArrowsIndices.length-1]) {
+                this.startIndexId_arrow = 0;
+            }
+            var maxArrowIndexId = 0;
+            for(var n=0; n < mesh_arrows.indexArray.length; n++) {
+                var idxIndex = n;
+
+                this.arrayArrowIndices.push(this.startIndexId_arrow+mesh_arrows.indexArray[idxIndex]);
+
+                if(mesh_arrows.indexArray[idxIndex] > maxArrowIndexId) {
+                    maxArrowIndexId = mesh_arrows.indexArray[idxIndex];
+                }
+            }
+
+            if(this.startIndexId_arrow == 0) {
+                if(this.splitArrows.length == 0) {
+                    this.splitArrowsEvery = parseInt(MAX_ITEMS_PER_ARRAY/(this.arrayArrowIndices.length*2.0)); // 2=2 triangle=6 indices
+                    this.splitArrows.push((this.arrayArrowData.length/4)*this.splitArrowsEvery);
+                    this.splitArrowsIndices.push(this.arrayArrowIndices.length*this.splitArrowsEvery);
+                } else {
+                    this.splitArrows.push(this.splitArrows[0]*(this.splitArrows.length+1));
+                    this.splitArrowsIndices.push(this.splitArrowsIndices[0]*(this.splitArrowsIndices.length+1));
+                }
+            }
+            this.startIndexId_arrow += (maxArrowIndexId+1);
+
+
+            this.currentArrowId++; // augment arrow id
+        }
+    }).bind(this);
+
+
+
+
+
+
+
+
+
+
+
+    //██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗    ███╗   ██╗ ██████╗ ██████╗ ███████╗███████╗
+    //██║   ██║██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝    ████╗  ██║██╔═══██╗██╔══██╗██╔════╝██╔════╝
+    //██║   ██║██████╔╝██║  ██║███████║   ██║   █████╗      ██╔██╗ ██║██║   ██║██║  ██║█████╗  ███████╗
+    //██║   ██║██╔═══╝ ██║  ██║██╔══██║   ██║   ██╔══╝      ██║╚██╗██║██║   ██║██║  ██║██╔══╝  ╚════██║
+    //╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗    ██║ ╚████║╚██████╔╝██████╔╝███████╗███████║
+    // ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝    ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝
 	/**
 	 * updateNodes
 	 */
 	this.updateNodes = function() {
-        /** @private */
-        var updateNodesText = (function() {
-            comp_renderer_nodesText.setArg("data", (function() {return this.arrayNodeTextData;}).bind(this), this.splitNodesText);
-            comp_renderer_nodesText.setSharedBufferArg("posXYZW", comp_renderer_nodes);
-
-            comp_renderer_nodesText.setArg("nodeVertexPos", (function() {return this.arrayNodeTextVertexPos;}).bind(this), this.splitNodesText);
-            comp_renderer_nodesText.setArg("nodeVertexNormal", (function() {return this.arrayNodeTextVertexNormal;}).bind(this), this.splitNodesText);
-            comp_renderer_nodesText.setArg("nodeVertexTexture", (function() {return this.arrayNodeTextVertexTexture;}).bind(this), this.splitNodesText);
-
-            comp_renderer_nodesText.setArg("fontImgColumns", (function() {return FONT_IMG_COLUMNS;}).bind(this), this.splitNodesText);
-            comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this), this.splitNodesText);
-            comp_renderer_nodesText.setArg("indices", (function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
-
-            comp_renderer_nodesText.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
-            comp_renderer_nodesText.setArgUpdatable("PMatrix", true);
-            comp_renderer_nodesText.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
-            comp_renderer_nodesText.setArgUpdatable("cameraWMatrix", true);
-            comp_renderer_nodesText.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
-            comp_renderer_nodesText.setArgUpdatable("nodeWMatrix", true);
-
-            comp_renderer_nodesText.setArg("isNodeText", (function() {return 1;}).bind(this));
-
-            for(var argNameKey in _customArgs) {
-                var expl = _customArgs[argNameKey].arg.split("*");
-                if(expl.length > 0) { // argument is type buffer
-                    comp_renderer_nodesText.setArg(argNameKey, (function() {return _customArgs[argNameKey].nodestext_array_value;}).bind(this), this.splitNodesText);
-                }
-            }
-        }).bind(this);
-
-
 		console.log((this.currentNodeId)+" nodes");
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
@@ -1906,381 +2064,46 @@ Graph = function(sce) {
 		    updateNodesText();
 	};
 
+    /** @private */
+    var updateNodesText = (function() {
+        comp_renderer_nodesText.setArg("data", (function() {return this.arrayNodeTextData;}).bind(this), this.splitNodesText);
+        comp_renderer_nodesText.setSharedBufferArg("posXYZW", comp_renderer_nodes);
 
+        comp_renderer_nodesText.setArg("nodeVertexPos", (function() {return this.arrayNodeTextVertexPos;}).bind(this), this.splitNodesText);
+        comp_renderer_nodesText.setArg("nodeVertexNormal", (function() {return this.arrayNodeTextVertexNormal;}).bind(this), this.splitNodesText);
+        comp_renderer_nodesText.setArg("nodeVertexTexture", (function() {return this.arrayNodeTextVertexTexture;}).bind(this), this.splitNodesText);
 
+        comp_renderer_nodesText.setArg("fontImgColumns", (function() {return FONT_IMG_COLUMNS;}).bind(this), this.splitNodesText);
+        comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this), this.splitNodesText);
+        comp_renderer_nodesText.setArg("indices", (function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
 
+        comp_renderer_nodesText.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
+        comp_renderer_nodesText.setArgUpdatable("PMatrix", true);
+        comp_renderer_nodesText.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
+        comp_renderer_nodesText.setArgUpdatable("cameraWMatrix", true);
+        comp_renderer_nodesText.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+        comp_renderer_nodesText.setArgUpdatable("nodeWMatrix", true);
 
+        comp_renderer_nodesText.setArg("isNodeText", (function() {return 1;}).bind(this));
 
-
-
-
-
-
-
-	/**
-	* Create new node for the graph
-	* @param {Object} jsonIn
-	* @param {String} jsonIn.origin - NodeName Origin for this link
-	* @param {String} jsonIn.target - NodeName Target for this link
-	* @param {Bool} [jsonIn.directed=false] -
-	 */
-	this.addLink = function(jsonIn) {
-        /**
-         * Create new link for the graph
-         * @param {Object} jsonIn
-         * @param {Int} jsonIn.origin_nodeName
-         * @param {Int} jsonIn.target_nodeName
-         * @param {Int} jsonIn.origin_nodeId
-         * @param {Int} jsonIn.target_nodeId
-         * @param {Int} jsonIn.origin_itemStart
-         * @param {Int} jsonIn.target_itemStart
-         * @param {Int} jsonIn.origin_layoutNodeArgumentData
-         * @param {Int} jsonIn.target_layoutNodeArgumentData
-         * @param {Bool} [jsonIn.directed=false]
-         * @returns {Object}
-         * @private
-         */
-        var addLinkNow = (function(jsonIn) {
-            for(var n=0; n < lineVertexCount*2; n++) {
-                this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), jsonIn.repeatId);
-
-                if(Math.ceil(n/2) != (lineVertexCount-1)) {
-                    this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
-                } else {
-                    this.arrayLinkNodeName.push(jsonIn.target_nodeName);
-                }
-                this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
-                this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
-
-                if(jsonIn.origin_layoutNodeArgumentData != undefined) {
-                    for(var argNameKey in _customArgs) {
-                        var expl = _customArgs[argNameKey].arg.split("*");
-                        if(expl.length > 0) { // argument is type buffer
-                            if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
-                                if(expl[0] == "float")
-                                    _customArgs[argNameKey].links_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
-                                else if(expl[0] == "float4")
-                                    _customArgs[argNameKey].links_array_value.push(	jsonIn.origin_layoutNodeArgumentData[argNameKey][0],
-                                        jsonIn.origin_layoutNodeArgumentData[argNameKey][1],
-                                        jsonIn.origin_layoutNodeArgumentData[argNameKey][2],
-                                        jsonIn.origin_layoutNodeArgumentData[argNameKey][3]);
-                            }
-                        }
-                    }
-                }
+        for(var argNameKey in _customArgs) {
+            var expl = _customArgs[argNameKey].arg.split("*");
+            if(expl.length > 0) { // argument is type buffer
+                comp_renderer_nodesText.setArg(argNameKey, (function() {return _customArgs[argNameKey].nodestext_array_value;}).bind(this), this.splitNodesText);
             }
-
-            if(this.splitLinksIndices.length > 0 && this.arrayLinkIndices.length == this.splitLinksIndices[this.splitLinksIndices.length-1]) {
-                this.startIndexId_link = 0;
-            }
-
-            for(var n=0; n < lineVertexCount*2; n++)
-                this.arrayLinkIndices.push(	this.startIndexId_link++);
-
-            if(this.startIndexId_link == 0) {
-                if(this.splitLinks.length == 0) {
-                    this.splitLinksEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayLinkIndices.length); // 1=1 link=2 indices
-                    this.splitLinks.push((this.arrayLinkData.length/4)*this.splitLinksEvery);
-                    this.splitLinksIndices.push(this.arrayLinkIndices.length*this.splitLinksEvery);
-                } else {
-                    this.splitLinks.push(this.splitLinks[0]*(this.splitLinks.length+1));
-                    this.splitLinksIndices.push(this.splitLinksIndices[0]*(this.splitLinksIndices.length+1));
-                }
-            }
-
-            this.currentLinkId += 2; // augment link id
-
-            jsonIn.linkId = this.currentLinkId-2;
-            return jsonIn;
-        }).bind(this);
-        /**
-         * Create new arrow for the graph
-         * @param {Object} jsonIn
-         * @param {Int} jsonIn.origin_nodeName
-         * @param {Int} jsonIn.target_nodeName
-         * @param {Int} jsonIn.origin_nodeId
-         * @param {Int} jsonIn.target_nodeId
-         * @param {Int} jsonIn.origin_itemStart
-         * @param {Int} jsonIn.target_itemStart
-         * @param {Int} jsonIn.origin_layoutNodeArgumentData
-         * @param {Int} jsonIn.target_layoutNodeArgumentData
-         * @param {Bool} [jsonIn.directed=false]
-         * @param {Mesh} [jsonIn.node] - Node with the mesh for the node
-         * @returns {Int}
-         * @private
-         */
-        var addArrowNow = (function(jsonIn) {
-            if(jsonIn != undefined && jsonIn.node != undefined)
-                mesh_arrows = jsonIn.node;
-
-            var oppositeId = 0;
-
-            for(var o=0; o < 2; o++) {
-                for(var n=0; n < mesh_arrows.vertexArray.length/4; n++) {
-                    var idxVertex = n*4;
-                    if(o == 0) oppositeId = this.arrowArrayItemStart;
-
-                    this.arrayArrowPosXYZW.push(0.0, 0.0, 0.0, 1.0);
-                    //this.arrayArrowPosXYZW_opposite.push(0.0, 0.0, 0.0, 1.0);
-                    this.arrayArrowVertexPos.push(mesh_arrows.vertexArray[idxVertex], mesh_arrows.vertexArray[idxVertex+1], mesh_arrows.vertexArray[idxVertex+2], 1.0);
-                    this.arrayArrowVertexNormal.push(mesh_arrows.normalArray[idxVertex], mesh_arrows.normalArray[idxVertex+1], mesh_arrows.normalArray[idxVertex+2], 1.0);
-                    this.arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
-                    if(o == 0) {
-                        this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, jsonIn.repeatId);
-                        this.arrayArrowNodeName.push(jsonIn.origin_nodeName);
-                        if(jsonIn.origin_layoutNodeArgumentData != undefined) {
-                            for(var argNameKey in _customArgs) {
-                                var expl = _customArgs[argNameKey].arg.split("*");
-                                if(expl.length > 0) { // argument is type buffer
-                                    if(jsonIn.origin_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.origin_layoutNodeArgumentData[argNameKey] != undefined) {
-                                        if(expl[0] == "float")
-                                            _customArgs[argNameKey].arrows_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey]);
-                                        else if(expl[0] == "float4")
-                                            _customArgs[argNameKey].arrows_array_value.push(jsonIn.origin_layoutNodeArgumentData[argNameKey][0],
-                                                jsonIn.origin_layoutNodeArgumentData[argNameKey][1],
-                                                jsonIn.origin_layoutNodeArgumentData[argNameKey][2],
-                                                jsonIn.origin_layoutNodeArgumentData[argNameKey][3]);
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, jsonIn.repeatId);
-                        this.arrayArrowNodeName.push(jsonIn.target_nodeName);
-                        if(jsonIn.target_layoutNodeArgumentData != undefined) {
-                            for(var argNameKey in _customArgs) {
-                                var expl = _customArgs[argNameKey].arg.split("*");
-                                if(expl.length > 0) { // argument is type buffer
-                                    if(jsonIn.target_layoutNodeArgumentData.hasOwnProperty(argNameKey) == true && jsonIn.target_layoutNodeArgumentData[argNameKey] != undefined) {
-                                        if(expl[0] == "float")
-                                            _customArgs[argNameKey].arrows_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey]);
-                                        else if(expl[0] == "float4")
-                                            _customArgs[argNameKey].arrows_array_value.push(jsonIn.target_layoutNodeArgumentData[argNameKey][0],
-                                                jsonIn.target_layoutNodeArgumentData[argNameKey][1],
-                                                jsonIn.target_layoutNodeArgumentData[argNameKey][2],
-                                                jsonIn.target_layoutNodeArgumentData[argNameKey][3]);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    this.arrowArrayItemStart++;
-                }
-                if(this.splitArrowsIndices.length > 0 && this.arrayArrowIndices.length == this.splitArrowsIndices[this.splitArrowsIndices.length-1]) {
-                    this.startIndexId_arrow = 0;
-                }
-                var maxArrowIndexId = 0;
-                for(var n=0; n < mesh_arrows.indexArray.length; n++) {
-                    var idxIndex = n;
-
-                    this.arrayArrowIndices.push(this.startIndexId_arrow+mesh_arrows.indexArray[idxIndex]);
-                    //console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
-
-                    if(mesh_arrows.indexArray[idxIndex] > maxArrowIndexId) {
-                        maxArrowIndexId = mesh_arrows.indexArray[idxIndex];
-                    }
-                }
-
-                if(this.startIndexId_arrow == 0) {
-                    if(this.splitArrows.length == 0) {
-                        this.splitArrowsEvery = parseInt(MAX_ITEMS_PER_ARRAY/(this.arrayArrowIndices.length*2.0)); // 2=2 triangle=6 indices
-                        this.splitArrows.push((this.arrayArrowData.length/4)*this.splitArrowsEvery);
-                        this.splitArrowsIndices.push(this.arrayArrowIndices.length*this.splitArrowsEvery);
-                    } else {
-                        this.splitArrows.push(this.splitArrows[0]*(this.splitArrows.length+1));
-                        this.splitArrowsIndices.push(this.splitArrowsIndices[0]*(this.splitArrowsIndices.length+1));
-                    }
-                }
-                this.startIndexId_arrow += (maxArrowIndexId+1);
-
-
-                this.currentArrowId++; // augment arrow id
-            }
-        }).bind(this);
-        var pass = true;
-
-        if(_nodesByName[jsonIn.origin] == undefined)
-            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target+". Node "+jsonIn.origin+" not exists", "color:red"), pass=false;
-
-        if(_nodesByName[jsonIn.target] == undefined)
-            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target+". Node "+jsonIn.target+" not exists", "color:red"), pass=false;
-
-        if(pass == true) {
-            console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
-
-            jsonIn.origin_nodeName = jsonIn.origin.toString();
-            jsonIn.target_nodeName = jsonIn.target.toString();
-            jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
-            jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
-            jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
-            jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
-            jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
-            jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
-
-            var repeatId = 1;
-            while(true) {
-                var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
-                if(exists == true) {
-                    repeatId++;
-                } else
-                    break;
-            }
-            jsonIn.repeatId = repeatId;
-
-            var link = addLinkNow(jsonIn);
-
-            if(link.directed != undefined && link.directed == true)
-                addArrowNow(link);
-
-            // ADD LINK TO ARRAY LINKS
-            _links[link.origin+"->"+link.target+"_"+repeatId] = link;
-            //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
-
-
-            // UPDATE arrayNodeData
-            for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-                var id = n*4;
-                if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
-                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                }
-                if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
-                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                }
-            }
-        } else {
-            console.log();
         }
-	};
+    }).bind(this);
 
-
+    //██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗    ██╗     ██╗███╗   ██╗██╗  ██╗███████╗
+    //██║   ██║██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝    ██║     ██║████╗  ██║██║ ██╔╝██╔════╝
+    //██║   ██║██████╔╝██║  ██║███████║   ██║   █████╗      ██║     ██║██╔██╗ ██║█████╔╝ ███████╗
+    //██║   ██║██╔═══╝ ██║  ██║██╔══██║   ██║   ██╔══╝      ██║     ██║██║╚██╗██║██╔═██╗ ╚════██║
+    //╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗    ███████╗██║██║ ╚████║██║  ██╗███████║
+    // ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝    ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
 	/**
 	 * updateLinks
 	 */
 	this.updateLinks = function() {
-        var updateAdjMat = (function() {
-            var setAdjMat = (function(id) {
-                var num = id/_ADJ_MATRIX_WIDTH_TOTAL;
-                var idX = new Utils().fract(num)*_ADJ_MATRIX_WIDTH_TOTAL;
-                var idY = Math.floor(num);
-
-
-                var x = idX/_ADJ_MATRIX_WIDTH;
-                var xx = Math.floor(x);
-
-                var y = idY/_ADJ_MATRIX_WIDTH;
-                var yy = Math.floor(y);
-
-
-                var currentItemArrayAdjMatrix = (yy*_numberOfColumns)+xx;
-
-                var iX = new Utils().fract(x)*_ADJ_MATRIX_WIDTH;
-                var iY = new Utils().fract(y)*_ADJ_MATRIX_WIDTH;
-
-                var currentItemAdjMatrix = (iY*_ADJ_MATRIX_WIDTH)+iX;
-
-
-                //arrAdjMatrix[currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
-
-                var idSTORE = currentItemArrayAdjMatrix/maxItemsInSTORE;
-                arrAdjMatrix_STORE[Math.floor(idSTORE)][currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
-            }).bind(this);
-
-            arrAdjMatrix_STORE = [];
-
-            _numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
-            _numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
-            _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
-
-            // creating adjMatrixArray
-            for(var n=0; n < _numberOfAdjMatrix; n++) {
-                var idSTORE = n/maxItemsInSTORE;
-                if(arrAdjMatrix_STORE[Math.floor(idSTORE)] == undefined)
-                    arrAdjMatrix_STORE[Math.floor(idSTORE)] = [];
-
-                arrAdjMatrix_STORE[Math.floor(idSTORE)][n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
-            }
-
-            // walk relations and adding in corresponding adjMatrixArray item
-            for(var key in _links) {
-                var origin = _links[key].origin_nodeId;
-                var target = _links[key].target_nodeId;
-
-                var id = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+target;
-                var idSymmetrical = (target*_ADJ_MATRIX_WIDTH_TOTAL)+origin;
-
-
-                // id
-                setAdjMat(id);
-                setAdjMat(idSymmetrical);
-            }
-
-
-
-            comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
-            _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
-
-            comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-            comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-            comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
-
-
-            //comp_renderer_links.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
-            comp_renderer_links.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
-
-            comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-            comp_renderer_links.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-            comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
-
-
-            //comp_renderer_arrows.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
-            comp_renderer_arrows.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
-
-            comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-            comp_renderer_arrows.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-            comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
-
-            /*for(var n=0; n < _numberOfAdjMatrix; n++) {
-             var idSTORE = n/maxItemsInSTORE;
-             this.adjacencyMatrixToImage(arrAdjMatrix_STORE[Math.floor(idSTORE)][n], _ADJ_MATRIX_WIDTH, (function(img) {
-             document.body.appendChild(img);
-             }).bind(this));
-             }*/
-        }).bind(this);
-
-        /** @private */
-        var updateArrows = (function() {
-            comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
-            comp_renderer_arrows.setSharedBufferArg("dataB", comp_renderer_nodes);
-            comp_renderer_arrows.setSharedBufferArg("posXYZW", comp_renderer_nodes);
-
-            comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
-            comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this), this.splitArrows);
-            comp_renderer_arrows.setArg("nodeVertexTexture", (function() {return this.arrayArrowVertexTexture;}).bind(this), this.splitArrows);
-            comp_renderer_arrows.setArg("indices", (function() {return this.arrayArrowIndices;}).bind(this), this.splitArrowIndices);
-
-            comp_renderer_arrows.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
-            comp_renderer_arrows.setArgUpdatable("PMatrix", true);
-            comp_renderer_arrows.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
-            comp_renderer_arrows.setArgUpdatable("cameraWMatrix", true);
-            comp_renderer_arrows.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
-            comp_renderer_arrows.setArgUpdatable("nodeWMatrix", true);
-
-            comp_renderer_arrows.setArg("isArrow", (function() {return 1.0;}).bind(this));
-            //comp_renderer_arrows.setArg("isLink", (function() {return 1.0;}).bind(this));
-
-            for(var argNameKey in _customArgs) {
-                var expl = _customArgs[argNameKey].arg.split("*");
-                if(expl.length > 0) { // argument is type buffer
-                    comp_renderer_arrows.setArg(argNameKey, (function() {return _customArgs[argNameKey].arrows_array_value;}).bind(this), this.splitArrows);
-                }
-            }
-        }).bind(this);
-
-
 		console.log(Object.keys(_links).length+" links");
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
@@ -2314,4 +2137,196 @@ Graph = function(sce) {
             updateAdjMat();
 	};
 
+    /** @private */
+    var updateArrows = (function() {
+        comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setSharedBufferArg("dataB", comp_renderer_nodes);
+        comp_renderer_arrows.setSharedBufferArg("posXYZW", comp_renderer_nodes);
+
+        comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setArg("nodeVertexTexture", (function() {return this.arrayArrowVertexTexture;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setArg("indices", (function() {return this.arrayArrowIndices;}).bind(this), this.splitArrowIndices);
+
+        comp_renderer_arrows.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
+        comp_renderer_arrows.setArgUpdatable("PMatrix", true);
+        comp_renderer_arrows.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
+        comp_renderer_arrows.setArgUpdatable("cameraWMatrix", true);
+        comp_renderer_arrows.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+        comp_renderer_arrows.setArgUpdatable("nodeWMatrix", true);
+
+        comp_renderer_arrows.setArg("isArrow", (function() {return 1.0;}).bind(this));
+
+        for(var argNameKey in _customArgs) {
+            var expl = _customArgs[argNameKey].arg.split("*");
+            if(expl.length > 0) { // argument is type buffer
+                comp_renderer_arrows.setArg(argNameKey, (function() {return _customArgs[argNameKey].arrows_array_value;}).bind(this), this.splitArrows);
+            }
+        }
+    }).bind(this);
+
+    /** @private */
+    var updateAdjMat = (function() {
+        var setAdjMat = (function(id) {
+            var num = id/_ADJ_MATRIX_WIDTH_TOTAL;
+            var idX = new Utils().fract(num)*_ADJ_MATRIX_WIDTH_TOTAL;
+            var idY = Math.floor(num);
+
+
+            var x = idX/_ADJ_MATRIX_WIDTH;
+            var xx = Math.floor(x);
+
+            var y = idY/_ADJ_MATRIX_WIDTH;
+            var yy = Math.floor(y);
+
+
+            var currentItemArrayAdjMatrix = (yy*_numberOfColumns)+xx;
+
+            var iX = new Utils().fract(x)*_ADJ_MATRIX_WIDTH;
+            var iY = new Utils().fract(y)*_ADJ_MATRIX_WIDTH;
+
+            var currentItemAdjMatrix = (iY*_ADJ_MATRIX_WIDTH)+iX;
+
+            var idSTORE = currentItemArrayAdjMatrix/maxItemsInSTORE;
+            arrAdjMatrix_STORE[Math.floor(idSTORE)][currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
+        }).bind(this);
+
+        arrAdjMatrix_STORE = [];
+
+        _numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
+        _numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
+        _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
+
+        // creating adjMatrixArray
+        for(var n=0; n < _numberOfAdjMatrix; n++) {
+            var idSTORE = n/maxItemsInSTORE;
+            if(arrAdjMatrix_STORE[Math.floor(idSTORE)] == undefined)
+                arrAdjMatrix_STORE[Math.floor(idSTORE)] = [];
+
+            arrAdjMatrix_STORE[Math.floor(idSTORE)][n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
+        }
+
+        // walk relations and adding in corresponding adjMatrixArray item
+        for(var key in _links) {
+            var origin = _links[key].origin_nodeId;
+            var target = _links[key].target_nodeId;
+
+            var id = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+target;
+            var idSymmetrical = (target*_ADJ_MATRIX_WIDTH_TOTAL)+origin;
+
+
+            // id
+            setAdjMat(id);
+            setAdjMat(idSymmetrical);
+        }
+
+
+
+        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
+        _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
+        comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+        comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
+
+
+        comp_renderer_links.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        comp_renderer_links.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+        comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
+
+
+        comp_renderer_arrows.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        comp_renderer_arrows.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+        comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
+
+        /*for(var n=0; n < _numberOfAdjMatrix; n++) {
+         var idSTORE = n/maxItemsInSTORE;
+         this.adjacencyMatrixToImage(arrAdjMatrix_STORE[Math.floor(idSTORE)][n], _ADJ_MATRIX_WIDTH, (function(img) {
+         document.body.appendChild(img);
+         }).bind(this));
+         }*/
+    }).bind(this);
+
+
+    /**
+     * @callback Graph~adjacencyMatrixToImage~onload
+     * @param {HTMLImageElement} img
+     */
+    /**
+     * adjacencyMatrixToImage
+     * @param {Float32Array} adjMat
+     * @param {Graph~adjacencyMatrixToImage~onload} onload
+     */
+    this.adjacencyMatrixToImage = function(adjMat, width, onload) {
+        var toArrF = (function(arr) {
+            var arrO = new Uint8Array(arr.length*4);
+            for(var n=0; n < arr.length; n++) {
+                var idO = n*4;
+                arrO[idO] = arr[n]*255;
+                arrO[idO+1] = arr[n]*255;
+                arrO[idO+2] = arr[n]*255;
+                arrO[idO+3] = 255;
+            }
+
+            return arrO;
+        }).bind(this);
+
+        var toImage = (function(fn, arrO, w, h) {
+            var canvas = new Utils().getCanvasFromUint8Array(arrO, w, h);
+            new Utils().getImageFromCanvas(canvas, (function(fn, im) {
+                fn(im);
+            }).bind(this, fn));
+        }).bind(this, onload);
+
+        var arrF = toArrF(adjMat);
+        toImage(arrF, width, width);
+    };
+
+    /**
+     * enableForceLayout
+     */
+    this.enableForceLayout = function() {
+        comp_renderer_nodes.setArg("enableForceLayout", (function() {return 1.0;}).bind(this));
+        _enabledForceLayout = true;
+    };
+
+    /**
+     * disableForceLayout
+     */
+    this.disableForceLayout = function() {
+        comp_renderer_nodes.setArg("enableForceLayout", (function() {return 0.0;}).bind(this));
+        _enabledForceLayout = false;
+    };
+
+    /**
+     * enableForceLayoutCollision
+     */
+    this.enableForceLayoutCollision = function() {
+        comp_renderer_nodes.setArg("enableForceLayoutCollision", (function() {return 1.0;}).bind(this));
+    };
+
+    /**
+     * disableForceLayoutCollision
+     */
+    this.disableForceLayoutCollision = function() {
+        comp_renderer_nodes.setArg("enableForceLayoutCollision", (function() {return 0.0;}).bind(this));
+    };
+
+    /**
+     * enableForceLayoutRepulsion
+     */
+    this.enableForceLayoutRepulsion = function() {
+        comp_renderer_nodes.setArg("enableForceLayoutRepulsion", (function() {return 1.0;}).bind(this));
+    };
+
+    /**
+     * disableForceLayoutRepulsion
+     */
+    this.disableForceLayoutRepulsion = function() {
+        comp_renderer_nodes.setArg("enableForceLayoutRepulsion", (function() {return 0.0;}).bind(this));
+    };
 };
