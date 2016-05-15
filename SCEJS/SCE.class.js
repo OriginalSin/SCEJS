@@ -31,12 +31,6 @@ sceDirectory = sceDirectory.replace('/'+page,"");
 
 var includesF = ['/StormMath.class.js',
                 '/Utils.class.js',
-				'/WebCLGLUtils.class.js',
-				'/WebCLGLBuffer.class.js',
-				'/WebCLGLBufferItem.class.js',
-				'/WebCLGLKernel.class.js',
-				'/WebCLGLVertexFragmentProgram.class.js',
-				'/WebCLGLWork.class.js', 
 				'/WebCLGL.class.js',
 				'/VFP.class.js',
 				'/VFP_RGB.class.js',

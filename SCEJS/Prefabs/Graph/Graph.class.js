@@ -46,14 +46,14 @@ Graph = function(sce) {
     var _endTimestamp;
     var _timeFrameIncrement;
     var _currentFrame = 0;
-	
+
 	var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
 
 	var readPixel = false;
 	var selectedId = -1;
     var _enableHover = false;
 	var _initialPosDrag;
-	
+
 	// meshes
 	var _geometryLength = 4;
 	var circleSegments = 12;
@@ -68,7 +68,7 @@ Graph = function(sce) {
 	canvasNodeImg.width = NODE_IMG_WIDTH;
 	canvasNodeImg.height = NODE_IMG_WIDTH;
 	var ctxNodeImg = canvasNodeImg.getContext('2d');
-	
+
 	var canvasNodeImgCrosshair = document.createElement('canvas');
 	canvasNodeImgCrosshair.width = NODE_IMG_WIDTH;
 	canvasNodeImgCrosshair.height = NODE_IMG_WIDTH;

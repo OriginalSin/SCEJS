@@ -23,7 +23,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
     var _fragmentHead;
     var _fragmentSource;
 
-    var _enableDebug = true;
+    var _enableDebug = false;
 
     /**
      * checkArgNameInitialization

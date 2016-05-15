@@ -294,8 +294,9 @@ var gpufor = function() {
      * @param {Callback} fn
      */
     this.onPreProcessKernel = function(kernelNum, fn) {
+        var fnc = (kernelNum instanceof Function) ? kernelNum : fn;
         var kernelName = (kernelNum instanceof Function) ? Object.keys(_clglWork.kernels)[0] : Object.keys(_clglWork.kernels)[kernelNum];
-        _clglWork.onPreProcessKernel(kernelName, fn);
+        _clglWork.onPreProcessKernel(kernelName, fnc);
     };
 
     /**
@@ -304,8 +305,16 @@ var gpufor = function() {
      * @param {Callback} fn
      */
     this.onPostProcessKernel = function(kernelNum, fn) {
+        var fnc = (kernelNum instanceof Function) ? kernelNum : fn;
         var kernelName = (kernelNum instanceof Function) ? Object.keys(_clglWork.kernels)[0] : Object.keys(_clglWork.kernels)[kernelNum];
-        _clglWork.onPostProcessKernel(kernelName, fn);
+        if(kernelNum instanceof Function) {
+            fnc = kernelNum;
+            kernelName = Object.keys(_clglWork.kernels)[0];
+        } else {
+            fnc = fn;
+            kernelName = Object.keys(_clglWork.kernels)[kernelNum];
+        }
+        _clglWork.onPostProcessKernel(kernelName, fnc);
     };
 
     /**
@@ -364,8 +373,9 @@ var gpufor = function() {
      * @param {Callback} fn
      */
     this.onPreProcessGraphic = function(graphicNum, fn) {
+        var fnc = (graphicNum instanceof Function) ? graphicNum : fn;
         var vfpName = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
-        _clglWork.onPreProcessVertexFragmentProgram(vfpName, fn);
+        _clglWork.onPreProcessVertexFragmentProgram(vfpName, fnc);
     };
 
     /**
@@ -374,8 +384,9 @@ var gpufor = function() {
      * @param {Callback} fn
      */
     this.onPostProcessGraphic = function(graphicNum, fn) {
+        var fnc = (graphicNum instanceof Function) ? graphicNum : fn;
         var vfpName = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
-        _clglWork.onPostProcessVertexFragmentProgram(vfpName, fn);
+        _clglWork.onPostProcessVertexFragmentProgram(vfpName, fnc);
     };
 
     /**
