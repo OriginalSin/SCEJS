@@ -101,22 +101,26 @@ Grid = function(sce) {
 		linesVertexLocArray.push(0.0, 0.0, 1.0, 1.0,
 								0.0, 0.0, 1.0, 1.0);
 		linesIndexArray.push(this.id, this.id+1);
-		
-		
-		comp_renderer.addVFP({	"name": "GRID",
-								"vfp": new VFP_GRID(),
-								"drawMode": 1, 
-								"onPreTick": (function() {
-									 comp_renderer.setVfpArgDestination("GRID", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-								}).bind(this)});			
-		comp_renderer.setArg("vertexPos", (function(){return linesVertexArray;}).bind(this));
-		comp_renderer.setArg("vertexColor", (function(){return linesVertexLocArray;}).bind(this));
-		comp_renderer.setIndices((function(){return linesIndexArray;}).bind(this));
-		comp_renderer.setArg("PMatrix", (function(){return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
-		comp_renderer.setArgUpdatable("PMatrix", true);
-		comp_renderer.setArg("cameraWMatrix", (function(){return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
-		comp_renderer.setArgUpdatable("cameraWMatrix", true);
-		comp_renderer.setArg("nodeWMatrix", (function(){return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
-		comp_renderer.setArgUpdatable("nodeWMatrix", true);
+
+
+
+        comp_renderer.setGPUFor( comp_renderer.gl,
+                                {   "float4*attr vertexPos": (function(){return linesVertexArray;}).bind(this),
+                                    "float4*attr vertexColor": (function(){return linesVertexLocArray;}).bind(this),
+                                    "indices": (function(){return linesIndexArray;}).bind(this),
+
+                                    "mat4 PMatrix": (function(){return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this),
+                                    "mat4 cameraWMatrix": (function(){return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this),
+                                    "mat4 nodeWMatrix": (function(){return node.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this)
+                                },
+
+                                // GRAPHIC PROGRAM
+                                {"type": "GRAPHIC",
+                                "config": new VFP_GRID().getSrc()});
+        comp_renderer.setGraphicDrawMode(1);
+        comp_renderer.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+        comp_renderer.setArgUpdatable("PMatrix", true);
+        comp_renderer.setArgUpdatable("cameraWMatrix", true);
+        comp_renderer.setArgUpdatable("nodeWMatrix", true);
 	};
 };

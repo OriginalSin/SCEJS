@@ -41,15 +41,20 @@ SimpleCamera = function(sce, jsonIn) {
 	// ComponentScreenEffects
 	var comp_screenEffects = new ComponentScreenEffects();
 	camera.addComponent(comp_screenEffects);
-	comp_screenEffects.addKernel({	"name": "RGB",
-									"kernel": new SE_RGB(),
-									"width": _sce.getCanvas().width,
-									"height": _sce.getCanvas().height,
-									"onPostTick": (function() {									
-										comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
-									}).bind(this)});
-	//_sce.setDimensions(_sce.getCanvas().width, _sce.getCanvas().height);
-	
+
+    comp_screenEffects.setGPUFor( comp_screenEffects.gl,
+                                {"float4* RGB": (function(){return new Float32Array(_sce.getCanvas().width*_sce.getCanvas().width*4);}).bind(this)},
+                                {"type": "KERNEL",
+                                "config": [ "n", undefined,
+                                            // head
+                                            '',
+                                            // source
+                                            'vec4 color = RGB[n];\n'+
+                                            'return color;\n']});
+    comp_screenEffects.onPostProcessKernels((function() {
+        comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+    }).bind(this));
+
 	// ComponentKeyboardEvents
 	var comp_keyboardEvents = new ComponentKeyboardEvents();
 	camera.addComponent(comp_keyboardEvents);

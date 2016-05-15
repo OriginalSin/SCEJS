@@ -58,7 +58,8 @@ WebCLGLUtils = function() {
         try {
             if(ctxOpt == undefined) gl = canvas.getContext("webgl2");
             else gl = canvas.getContext("webgl2", ctxOpt);
-            console.log("webgl2");
+
+            console.log((gl == null)?"no webgl2":"using webgl2");
         } catch(e) {
             gl = null;
         }
@@ -66,7 +67,8 @@ WebCLGLUtils = function() {
             try {
                 if(ctxOpt == undefined) gl = canvas.getContext("experimental-webgl2");
                 else gl = canvas.getContext("experimental-webgl2", ctxOpt);
-                console.log("experimental-webgl2");
+
+                console.log((gl == null)?"no experimental-webgl2":"using experimental-webgl2");
             } catch(e) {
                 gl = null;
             }
@@ -75,7 +77,8 @@ WebCLGLUtils = function() {
             try {
                 if(ctxOpt == undefined) gl = canvas.getContext("webgl");
                 else gl = canvas.getContext("webgl", ctxOpt);
-                console.log("webgl");
+
+                console.log((gl == null)?"no webgl":"using webgl");
             } catch(e) {
                 gl = null;
             }
@@ -84,7 +87,8 @@ WebCLGLUtils = function() {
             try {
                 if(ctxOpt == undefined) gl = canvas.getContext("experimental-webgl");
                 else gl = canvas.getContext("experimental-webgl", ctxOpt);
-                console.log("experimental-webgl");
+
+                console.log((gl == null)?"no experimental-webgl":"using experimental-webgl");
             } catch(e) {
                 gl = null;
             }

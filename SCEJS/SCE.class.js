@@ -31,18 +31,10 @@ sceDirectory = sceDirectory.replace('/'+page,"");
 
 var includesF = ['/StormMath.class.js',
                 '/Utils.class.js',
-				'/WebCLGLUtils.class.js',
-				'/WebCLGLBuffer.class.js',
-				'/WebCLGLBufferItem.class.js',
-				'/WebCLGLKernel.class.js',
-				'/WebCLGLKernelProgram.class.js',
-				'/WebCLGLVertexFragmentProgram.class.js',
-				'/WebCLGLWork.class.js', 
 				'/WebCLGL.class.js',
 				'/VFP.class.js',
 				'/VFP_RGB.class.js',
 				'/SE.class.js',
-				'/SE_RGB.class.js',
 				'/ArrayGenerator.class.js',
                 '/Mesh.class.js',
                 '/Constants.js',
@@ -50,12 +42,8 @@ var includesF = ['/StormMath.class.js',
                 
                 
                 '/Component.class.js',
-                
-                '/Component_Work.class.js',
-				'/Component_Kernel.class.js',
-				'/Component_Vfp.class.js',
-				'/Component_Argument.class.js',
-				'/Component_Indices.class.js',
+
+				'/Component_GPU.class.js',
 				'/ComponentRenderer.class.js',
 				'/ComponentScreenEffects.class.js',
 				
@@ -199,15 +187,9 @@ SCE = function() {
 		
 		if(project != null && project.getActiveStage() != null && project.getActiveStage().getActiveCamera() != null) {
 			project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).setResolution(dimensions.width, dimensions.width);
-			
-			var cse = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-			cse.addKernel({	"name": "RGB",
-							"kernel": new SE_RGB(),
-							"width": dimensions.width,
-							"height": dimensions.width,
-							"onPostTick": (function() {									
-								cse.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
-							}).bind(this)});
+
+            var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+            comp_screenEffects.setArg("RGB", (function() {return new Float32Array(dimensions.width*dimensions.width*4);}).bind(this));
 		}
 	};
 	

@@ -44,10 +44,10 @@ function VFP_VOXELIZATOR() { VFP.call(this);
  			 '}'],
 
        		// vertex source
-       		['void main(float4* vertexPos,'+
-       			'float4* vertexNormal,'+
-       			'float4* vertexTexture,'+
-       			'float* vertexTextureUnit,'+
+       		['void main(float4*attr vertexPos,'+
+       			'float4*attr vertexNormal,'+
+       			'float4*attr vertexTexture,'+
+       			'float*attr vertexTextureUnit,'+
        			
        			'mat4 PMatrix,'+
        			'mat4 cameraWMatrix,'+
@@ -58,7 +58,6 @@ function VFP_VOXELIZATOR() { VFP.call(this);
        			'float uResolution,'+
        			'float uCurrentHeight'+   		
        			') {'+
-       				'vec2 x = get_global_id();'+
        				
        				'float gridSize = uGridsize;'+
 					'int maxLevelCells = int(uResolution);'+
@@ -70,7 +69,7 @@ function VFP_VOXELIZATOR() { VFP.call(this);
 			       									'vec3(0.0, 1.0, 0.0)));'+
        									
        									
-					'vec3 vp = vertexPos[x].xyz;\n'+
+					'vec3 vp = vertexPos[].xyz;\n'+
 					'vp = vp*vec3(1.0, 1.0, 1.0);'+
 					
 					'vec4 vPosition = PMatrix*mCam*nodeWMatrix*vec4(vp,1.0);'+					  
@@ -90,9 +89,9 @@ function VFP_VOXELIZATOR() { VFP.call(this);
     				'gl_Position = PMatrix * mCam * nodeWMatrix * vec4(vp, 1.0);\n'+   
     				
     				
-    				'vVN = vertexNormal[x]*vec4(-1.0, -1.0, -1.0, 1.0);\n'+ 
-    				'vVT = vertexTexture[x];\n'+ 
-    				'vVTU = vertexTextureUnit[x];\n'+
+    				'vVN = vertexNormal[]*vec4(-1.0, -1.0, -1.0, 1.0);\n'+
+    				'vVT = vertexTexture[];\n'+
+    				'vVTU = vertexTextureUnit[];\n'+
        		'}'],
 
        		// fragment head
@@ -108,12 +107,11 @@ function VFP_VOXELIZATOR() { VFP.call(this);
        		 			'float uResolution,'+
        		 			'float uTypeFillMode,'+
        		 			'float uCurrentHeight) {'+
-       		 	'vec2 x = get_global_id();'+
 
        		 	'int fillMode = int(uTypeFillMode);'+
 	       		'if(fillMode == 0) {'+ // fill with albedo
 	       		 
-					'gl_FragColor = texture2D(texAlbedo, vVT.xy);\n'+
+					'gl_FragColor = texAlbedo[vVT.xy];\n'+
 					
 				'} else if(fillMode == 1) {'+ // fill with position
 				

@@ -103,7 +103,9 @@
 										// destination
 										"float4* dest,float destinationForce,float enableDestination,"+
 										// lifeDistance
-										"float4* initPos,float4* initDir,float lifeDistance",
+										"float4* initPos,float4* initDir,float lifeDistance,"+
+                                        // lock
+                                        "float* nodeLock",
 								"codeDirection":
 									// pp
 									lines_poles(arrPP)+
@@ -123,34 +125,24 @@
 									'if(lifeDistance > 0.0 && distance(vec3(initPos.x,initPos.y,initPos.z),newPos) > lifeDistance) {'+
 										'vec4 initDir = vec4(initDir[x]);'+
 										'currentDir = vec3(initDir.x,initDir.y,initDir.z);'+
-									'}',
-
-								// POSITION
-								// [x], vec3 currentPos, vec3 currentDir
-								"argsPosition":
-									// lifeDistance
-									"float4* initPos,float lifeDistance,"+
-									// lock
-									"float* nodeLock",
-								"codePosition":
-									// lifeDistance
-									'vec4 initPos = initPos[x];'+
-									'if(lifeDistance > 0.0 && distance(vec3(initPos.x,initPos.y,initPos.z), currentPos) > lifeDistance)'+
-										'currentPos = vec3(initPos.x,initPos.y,initPos.z);'+
-									// lock
-									'if(nodeLock[x] == 1.0)'+
-										'currentDir = vec3(0.0, 0.0, 0.0);\n',
+									'}'+
+									// lifeDistance pos
+                                    'if(lifeDistance > 0.0 && distance(vec3(initPos.x,initPos.y,initPos.z), currentPos) > lifeDistance)'+
+                                    'currentPos = vec3(initPos.x,initPos.y,initPos.z);'+
+                                        // lock
+                                    'if(nodeLock[x] == 1.0)'+
+                                    'currentDir = vec3(0.0, 0.0, 0.0);\n',
 
 								// OBJECT
 								// [x], vec4 nodeVertexColor, vec4 nodeVertexPosition, vec4 XYZW_opposite
 								// float isNode, float isLink, float isArrow, float isNodeText, float isTarget
 								"argsObject":
 									// nodeColor
-									"float4* nodeColor,"+
+									"float4*attr nodeColor,"+
 									// selfShadows
 									"float4 sunPos,float selfShadows,float4 ambientColor,"+
 									// lock
-									"float* nodeLock",
+									"float*attr nodeLock",
 								"codeObject":
 									// nodeColor
 									'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+

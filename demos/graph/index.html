@@ -35,7 +35,7 @@
 			var simpleCamera = new SimpleCamera(sce);
 			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
 			simpleCamera.setVelocity(1.0);
-			sce.setDimensions(256, 256);
+			sce.setDimensions(512, 512);
 			
 			// GRID
 			var grid = new Grid(sce);
@@ -61,7 +61,7 @@
 								// float isNode, float isLink, float isArrow, float isNodeText, float isTarget
 								"argsObject":
 									// nodeColor
-									"float4* nodeColor",
+									"float4*attr nodeColor",
 								"codeObject":
 									// nodeColor
 									'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
@@ -71,7 +71,7 @@
 									'if(isLink == 1.0) nodeVertexColor = vec4(0.5+degr, 0.5+degr, 0.5+degr, 1.0);'+ // this is isTarget for arrows
 									'if(isArrow == 1.0 && currentLineVertex == vertexCount) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
 									'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
-									
+
 								});
 
 
@@ -181,7 +181,7 @@
 
 					}).bind(this)});
 			graph.updateNodes();
-		
+
 			graph.addLink({	"origin": "#0",
 							"target": "#1",
 							"directed": true});

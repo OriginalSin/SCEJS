@@ -4,15 +4,16 @@
 */
 ComponentScreenEffects = function() { 
 	Component.call(this);
-	Component_Work.call(this);
-	Component_Kernel.call(this);
-	Component_Argument.call(this);
+    Component_GPU.call(this);
 	"use strict";
 	
 	this.type = Constants.COMPONENT_TYPES.SCREEN_EFFECTS;
 	this.node = null;
-	
-	
+
+
+    this.gl;
+
+
 	/**
 	 * initialize
 	 * @param {Node} nod
@@ -23,8 +24,6 @@ ComponentScreenEffects = function() {
 	this.initialize = function(nod, glCtx) {
 		node = nod;
 		this.gl = glCtx;
-
-		this.initWebCLGLWork(glCtx);
 	};	
 	
 	/**
@@ -34,7 +33,8 @@ ComponentScreenEffects = function() {
 	 */
 	this.tick = function() {
 		this.tickArguments();
-		this.tickKernels(true);
-	};	
+        this.processKernels(true);
+	};
+
 };
 ComponentScreenEffects.prototype.constructor = ComponentScreenEffects;
