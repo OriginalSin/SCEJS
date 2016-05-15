@@ -6,6 +6,7 @@
 var gpufor = function() {
     var _webCLGL;
     var _clglWork;
+    var _graphicArgDestination = null;
 
     /** @private  */
     var ini = (function() {
@@ -227,7 +228,7 @@ var gpufor = function() {
                 var vfprogram = _webCLGL.createVertexFragmentProgram();
                 vfprogram.setVertexSource(VFP_vertexS, VFP_vertexH);
                 vfprogram.setFragmentSource(VFP_fragmentS, VFP_fragmentH);
-                _clglWork.addVertexFragmentProgram(vfprogram, "vertexFragmentProgram1");
+                _clglWork.addVertexFragmentProgram(vfprogram, Object.keys(_clglWork.vertexFragmentPrograms).length.toString());
             }
         }
 
@@ -245,12 +246,12 @@ var gpufor = function() {
     if(arguments[0] instanceof HTMLCanvasElement) {
         var _gl = new WebCLGLUtils().getWebGLContextFromCanvas(arguments[0]);
         _webCLGL = new WebCLGL(_gl);
-        _clglWork = _webCLGL.createWork(1000);
+        _clglWork = _webCLGL.createWork(window.gpufor_precision|1000);
         iniG(arguments);
     } else if(arguments[0] instanceof WebGLRenderingContext) {
         var _gl = arguments[0];
         _webCLGL = new WebCLGL(_gl);
-        _clglWork = _webCLGL.createWork(1000);
+        _clglWork = _webCLGL.createWork(window.gpufor_precision|1000);
         iniG(arguments);
     } else {
         _webCLGL = new WebCLGL();
@@ -330,12 +331,56 @@ var gpufor = function() {
      * processGraphic
      * @param {String} [argument=undefined] Argument for vertices count or undefined if indices exist
      * @param {Int} [drawMode=0] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
-     * @param {WebCLGLBuffer} [buffDest=undefined]
+     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
      **/
-    this.processGraphic = function(argument, drawMode, buffDest) {
+    this.processGraphic = function(argument, drawMode) {
         var dmode = (drawMode != undefined) ? drawMode : 0;
 
-        _clglWork.enqueueVertexFragmentProgram(argument, "vertexFragmentProgram1", dmode, buffDest);
+        _clglWork.enqueueVertexFragmentProgram(argument, dmode, _graphicArgDestination);
+    };
+
+    /**
+     * onPreProcessGraphic
+     * @param {Int} graphicNum
+     * @param {Callback} fn
+     */
+    this.onPreProcessGraphic = function(graphicNum, fn) {
+        var num = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
+        _clglWork.onPreProcessVertexFragmentProgram(num, fn);
+    };
+
+    /**
+     * onPostProcessGraphic
+     * @param {Int} graphicNum
+     * @param {Callback} fn
+     */
+    this.onPostProcessGraphic = function(graphicNum, fn) {
+        var num = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
+        _clglWork.onPostProcessVertexFragmentProgram(graphicNum.toString(), fn);
+    };
+
+    /**
+     * setGraphicArgDestination
+     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
+     */
+    this.setGraphicArgDestination = function(buffDest) {
+        _graphicArgDestination = buffDest;
+    };
+
+    /**
+     * enableGraphic
+     * @param {Int} graphicNum
+     */
+    this.enableGraphic = function(graphicNum) {
+        _clglWork.enableVertexFragmentProgram(graphicNum.toString());
+    };
+
+    /**
+     * disableGraphic
+     * @param {Int} graphicNum
+     */
+    this.disableGraphic = function(graphicNum) {
+        _clglWork.disableVertexFragmentProgram(graphicNum.toString());
     };
 };
 

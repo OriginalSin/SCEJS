@@ -21,7 +21,6 @@ Component_GPU = function() {
     var _blendEquation = Constants.BLENDING_EQUATION_TYPES.FUNC_ADD;
     var _blendSrc = Constants.BLENDING_MODES.ONE;
     var _blendDst = Constants.BLENDING_MODES.ZERO;
-    var _graphicArgDestination = null;
 
     /**
      * setGPUFor
@@ -191,18 +190,20 @@ Component_GPU = function() {
 
     /**
      * onPreProcessGraphic
+     * @param {Int} graphicNum
      * @param {Callback} fn
      */
-    this.onPreProcessGraphic = function(fn) {
-        _onPreProcessGraphic = fn;
+    this.onPreProcessGraphic = function(graphicNum, fn) {
+        this.gpufG.onPreProcessGraphic(graphicNum, fn);
     };
 
     /**
      * onPostProcessGraphic
+     * @param {Int} graphicNum
      * @param {Callback} fn
      */
-    this.onPostProcessGraphic = function(fn) {
-        _onPostProcessGraphic = fn;
+    this.onPostProcessGraphic = function(graphicNum, fn) {
+        this.gpufG.onPostProcessGraphic(graphicNum, fn);
     };
 
     /**
@@ -232,23 +233,33 @@ Component_GPU = function() {
                 this.gl.blendFunc(this.gl[_blendSrc], this.gl[_blendDst]);
                 this.gl.blendEquation(this.gl[_blendEquation]);
 
-                if(_onPreProcessGraphic != undefined)
-                    _onPreProcessGraphic();
-
-                this.gpufG.processGraphic(undefined, _drawMode, _graphicArgDestination);
-
-                if(_onPostProcessGraphic != undefined)
-                    _onPostProcessGraphic();
+                this.gpufG.processGraphic(undefined, _drawMode);
             }
         } else console.log("ComponentScreenEffects not exists in camera");
     };
 
     /**
      * setGraphicArgDestination
-     * @param {WebCLGLBuffer} [buffDest=undefined]
+     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
      */
     this.setGraphicArgDestination = function(buffDest) {
-        _graphicArgDestination = buffDest;
+        this.gpufG.setGraphicArgDestination(buffDest);
+    };
+
+    /**
+     * enableVfp
+     * @param {Int} graphicNum
+     */
+    this.enableGraphic = function(graphicNum) {
+        this.gpufG.enableGraphic(graphicNum);
+    };
+
+    /**
+     * disableVfp
+     * @param {Int} graphicNum
+     */
+    this.disableGraphic = function(graphicNum) {
+        this.gpufG.disableGraphic(graphicNum);
     };
 
 

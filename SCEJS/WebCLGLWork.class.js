@@ -69,17 +69,42 @@ WebCLGLWork = function(webCLGL, offset) {
      * @param {String} name Name for identify this vertexFragmentProgram
      */
     this.addVertexFragmentProgram = function(vertexFragmentProgram, name) {
-        var exists = false;
-        for(var key in this.vertexFragmentPrograms) {
-            if(this.vertexFragmentPrograms[key] == vertexFragmentProgram) {
-                this.vertexFragmentPrograms[key] = vertexFragmentProgram;
-                exists = true;
-                break;
-            }
-        }
-        if(exists == false) {
-            this.vertexFragmentPrograms[name] = vertexFragmentProgram;
-        }
+        this.vertexFragmentPrograms[name] = vertexFragmentProgram;
+        this.vertexFragmentPrograms[name].enabled = true;
+    };
+
+    /**
+     * onPreProcessVertexFragmentProgram
+     * @param {String} vfpName
+     * @param {Callback} fn
+     */
+    this.onPreProcessVertexFragmentProgram = function(vfpName, fn) {
+        this.vertexFragmentPrograms[vfpName].onpre = fn;
+    };
+
+    /**
+     * onPostProcessVertexFragmentProgram
+     * @param {String} vfpName
+     * @param {Callback} fn
+     */
+    this.onPostProcessVertexFragmentProgram = function(vfpName, fn) {
+        this.vertexFragmentPrograms[vfpName].onpost = fn;
+    };
+
+    /**
+     * enableVertexFragmentProgram
+     * @param {String} vfpName
+     */
+    this.enableVertexFragmentProgram = function(vfpName) {
+        this.vertexFragmentPrograms[vfpName].enabled = true;
+    };
+
+    /**
+     * disableVertexFragmentProgram
+     * @param {String} vfpName
+     */
+    this.disableVertexFragmentProgram = function(vfpName) {
+        this.vertexFragmentPrograms[vfpName].enabled = false;
     };
 
     /**
@@ -350,13 +375,29 @@ WebCLGLWork = function(webCLGL, offset) {
     /**
      * Process VertexFragmentProgram
      * @param {String} [argument=undefined] Argument for vertices count or undefined if indices exist
-     * @param {String} Name (vertexFragmentProgramName) of vertexFragmentProgram to execute
      * @param {Int} drawMode 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
-     * @param {WebCLGLBuffer} [buffDest=undefined]
+     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
      */
-    this.enqueueVertexFragmentProgram = function(argument, vertexFragmentProgramName, drawMode, buffDest) {
-        var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argument];
-        if(buff != undefined && buff.length > 0) this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[vertexFragmentProgramName], buff, drawMode, buffDest);
+    this.enqueueVertexFragmentProgram = function(argument, drawMode, buffDest) {
+        var nn = 0;
+        for(var key in this.vertexFragmentPrograms) {
+            if(this.vertexFragmentPrograms[key].enabled == true) {
+                var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argument];
+
+                if(buff != undefined && buff.length > 0) {
+
+                    if(this.vertexFragmentPrograms[key].onpre != undefined)
+                        this.vertexFragmentPrograms[key].onpre();
+
+                    var dest = (buffDest instanceof Array) ? buffDest[nn] : buffDest;
+                    this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[key], buff, drawMode, dest);
+
+                    if(this.vertexFragmentPrograms[key].onpost != undefined)
+                        this.vertexFragmentPrograms[key].onpost();
+                }
+            }
+            nn++;
+        }
     };
 };
 

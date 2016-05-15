@@ -42,9 +42,7 @@ SimpleNode = function(sce) {
                                     },
                                 {"type": "GRAPHIC",
                                 "config": new VFP_RGB(1).getSrc()});
-        comp_renderer.onPreProcessGraphic((function() {
-            comp_renderer.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-        }).bind(this));
+        comp_renderer.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
         comp_renderer.setArgUpdatable("PMatrix", true);
         comp_renderer.setArgUpdatable("cameraWMatrix", true);
         comp_renderer.setArgUpdatable("nodeWMatrix", true);

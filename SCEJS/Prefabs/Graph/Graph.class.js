@@ -1,6 +1,5 @@
 var includesF = [   '/graphUtil.js',
                     '/KERNEL_DIR.class.js',
-                    '/KERNEL_POSBYDIR.class.js',
                     '/VFP_NODEPICKDRAG.class.js',
                     '/VFP_NODE.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+"/Prefabs/Graph"+includesF[n]+'"></script>');
@@ -116,7 +115,7 @@ Graph = function(sce) {
 		if(_enableHover == false) {
 		    readPixel = true;
 
-		    comp_renderer_nodes.enableVfp("NODES_PICKDRAG");
+		    comp_renderer_nodes.enableGraphic(1);
         }
 	}).bind(this));
 	comp_mouseEvents.onmouseup((function(evt) {
@@ -142,7 +141,7 @@ Graph = function(sce) {
         if(_enableHover == true) {
             readPixel = true;
 
-            comp_renderer_nodes.enableVfp("NODES_PICKDRAG");
+            comp_renderer_nodes.enableGraphic(1);
         }
 
 	}).bind(this));
@@ -411,7 +410,7 @@ Graph = function(sce) {
     this.enableHover = function() {
         _enableHover = true;
         readPixel = true;
-        comp_renderer_nodes.enableVfp("NODES_PICKDRAG");
+        comp_renderer_nodes.enableGraphic(1);
     };
 
     /**
@@ -971,11 +970,14 @@ Graph = function(sce) {
                                         {"type": "KERNEL",
                                         "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength).getSrc()},
                                         {"type": "GRAPHIC",
-                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()},
+                                        {"type": "GRAPHIC",
+                                        "config": new VFP_NODEPICKDRAG(_geometryLength).getSrc()});
         comp_renderer_nodes.setGraphicEnableDepthTest(false);
         comp_renderer_nodes.setGraphicEnableBlend(true);
         comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
         comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
+        comp_renderer_nodes.setGraphicArgDestination([_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"], null]);
         comp_renderer_nodes.onPreProcessKernels((function() {
             if(_enableAnimation == true) {
                 var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
@@ -1030,66 +1032,39 @@ Graph = function(sce) {
                 }
             }
         }).bind(this));
-        comp_renderer_nodes.onPreProcessGraphic((function() {
-            comp_renderer_nodes.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-            //_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
+        comp_renderer_nodes.onPreProcessGraphic(0, (function() {
+            comp_renderer_nodes.gl.blendFunc(comp_renderer_nodes.gl[Constants.BLENDING_MODES.SRC_ALPHA], comp_renderer_nodes.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA]);
         }).bind(this));
-
-
-        /*comp_renderer_nodes.addKernel({	"name": "dir",
-            "kernel": new KERNEL_DIR(jsonIn.argsDirection, jsonIn.codeDirection, _geometryLength),
-            "onPreTick": (function() {
-
-            }).bind(this)});
-        comp_renderer_nodes.addKernel({	"name": "posXYZW",
-            "kernel": new KERNEL_POSBYDIR(jsonIn.argsPosition, jsonIn.codePosition, _geometryLength),
-            "onPostTick": (function() {
-
-            }).bind(this)});
-        comp_renderer_nodes.addVFP({"name": "NODES_RGB",
-            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
-            "drawMode": 4,
-            "enableDepthTest": false,
-            "enableBlend": true,
-            "blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-            "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
-            "onPreTick": (function() {
-                comp_renderer_nodes.setVfpArgDestination("NODES_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-                //_gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
-            }).bind(this)});*/
-        /*comp_renderer_nodes.addVFP({"name": "NODES_PICKDRAG",
-            "vfp": new VFP_NODEPICKDRAG(_geometryLength),
-            "drawMode": 4,
-            "enableDepthTest": false,
-            "enableBlend": true,
-            "onPreTick": (function() {
-                comp_renderer_nodes.setVfpArgDestination("NODES_PICKDRAG", undefined);
-            }).bind(this),
-            "onPostTick": (function() {
-                if(_enableHover == false) {
-                    if(readPixel == true) {
-                        readPixel = false;
-
-                        readPix();
-
-                        comp_renderer_nodes.disableVfp("NODES_PICKDRAG");
-                    }
-                } else {
-                    var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET);
-                    if(comp_controller_trans_target.isLeftBtnActive() == true) {
-                        readPixel = false;
-                    }
+        comp_renderer_nodes.onPreProcessGraphic(1, (function() {
+            comp_renderer_nodes.gl.blendFunc(comp_renderer_nodes.gl[Constants.BLENDING_MODES.ONE], comp_renderer_nodes.gl[Constants.BLENDING_MODES.ZERO]);
+        }).bind(this));
+        comp_renderer_nodes.onPostProcessGraphic(1, (function() {
+            if(_enableHover == false) {
+                if(readPixel == true) {
+                    readPixel = false;
 
                     readPix();
 
-                    if(comp_controller_trans_target.isLeftBtnActive() == true) {
-                        comp_renderer_nodes.disableVfp("NODES_PICKDRAG");
-                    }
+                    comp_renderer_nodes.disableGraphic(1);
                 }
-            }).bind(this)});
-        comp_renderer_nodes.disableVfp("NODES_PICKDRAG");*/
+            } else {
+                var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET);
+                if(comp_controller_trans_target.isLeftBtnActive() == true) {
+                    readPixel = false;
+                }
 
-        // links
+                readPix();
+
+                if(comp_controller_trans_target.isLeftBtnActive() == true) {
+                    comp_renderer_nodes.disableGraphic(1);
+                }
+            }
+        }).bind(this));
+        comp_renderer_nodes.disableGraphic(1);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        //                          LINKS
+        ///////////////////////////////////////////////////////////////////////////////////////////
         comp_renderer_links.setGPUFor(  comp_renderer_links.gl,
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
@@ -1099,20 +1074,11 @@ Graph = function(sce) {
         comp_renderer_links.setGraphicBlendSrc(Constants.BLENDING_MODES.ONE);
         comp_renderer_links.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
         comp_renderer_links.setGraphicDrawMode(1);
-        comp_renderer_links.onPreProcessGraphic((function() {
-            comp_renderer_links.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-        }).bind(this));
-        /*comp_renderer_links.addVFP({"name": "LINKS_RGB",
-            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
-            "drawMode": 1,
-            "enableBlend": true,
-            "blendSrc": Constants.BLENDING_MODES.ONE,
-            "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
-            "onPreTick": (function() {
-                comp_renderer_links.setVfpArgDestination("LINKS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-            }).bind(this)});*/
+        comp_renderer_links.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
 
-        // arrows
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        //                          ARROWS
+        ///////////////////////////////////////////////////////////////////////////////////////////
         comp_renderer_arrows.setGPUFor( comp_renderer_arrows.gl,
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
@@ -1121,20 +1087,11 @@ Graph = function(sce) {
         comp_renderer_arrows.setGraphicEnableBlend(true);
         comp_renderer_arrows.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
         comp_renderer_arrows.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-        comp_renderer_arrows.onPreProcessGraphic((function() {
-            comp_renderer_arrows.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-        }).bind(this));
-        /*comp_renderer_arrows.addVFP({	"name": "ARROWS_RGB",
-            "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
-            "drawMode": 4,
-            "enableBlend": true,
-            "blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-            "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
-            "onPreTick": (function() {
-                comp_renderer_arrows.setVfpArgDestination("ARROWS_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-            }).bind(this)});*/
+        comp_renderer_arrows.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
 
-        // nodestext
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        //                          NODESTEXT
+        ///////////////////////////////////////////////////////////////////////////////////////////
         if(_enableFont == true) {
             comp_renderer_nodesText.setGPUFor(  comp_renderer_nodesText.gl,
                                                 Object.create(varDef_VFPNode),
@@ -1144,18 +1101,7 @@ Graph = function(sce) {
             comp_renderer_nodesText.setGraphicEnableBlend(true);
             comp_renderer_nodesText.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
             comp_renderer_nodesText.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-            comp_renderer_nodesText.onPreProcessGraphic((function() {
-                comp_renderer_nodesText.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-            }).bind(this));
-            /*comp_renderer_nodesText.addVFP({"name": "NODESTEXT_RGB",
-                "vfp": new VFP_NODE(jsonIn.argsObject, jsonIn.codeObject, _geometryLength),
-                "drawMode": 4,
-                "enableBlend": true,
-                "blendSrc": Constants.BLENDING_MODES.SRC_ALPHA,
-                "blendDst": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA,
-                "onPreTick": (function() {
-                    comp_renderer_nodesText.setVfpArgDestination("NODESTEXT_RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
-                }).bind(this)});*/
+            comp_renderer_nodesText.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
         }
     };
 
@@ -1442,14 +1388,16 @@ Graph = function(sce) {
             comp_renderer_arrows.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
             comp_renderer_arrows.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
 
-            comp_renderer_nodesText.setArg("enableDrag", (function() {return 1;}).bind(this));
-            comp_renderer_nodesText.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-            comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-            comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-            comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-            comp_renderer_nodesText.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
-            comp_renderer_nodesText.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
-            comp_renderer_nodesText.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+            if(_enableFont == true) {
+                comp_renderer_nodesText.setArg("enableDrag", (function() {return 1;}).bind(this));
+                comp_renderer_nodesText.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+                comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+                comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+                comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+                comp_renderer_nodesText.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
+                comp_renderer_nodesText.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
+                comp_renderer_nodesText.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+            }
         }).bind(this);
         /**
          * disableDrag
@@ -1474,11 +1422,13 @@ Graph = function(sce) {
             comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
             comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 
-            comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
-            comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
-            comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-            comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-            comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+            if(_enableFont == true) {
+                comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
+                comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
+                comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+                comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+                comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+            }
         }).bind(this);
         /**
          * enableHov
@@ -1489,7 +1439,9 @@ Graph = function(sce) {
             comp_renderer_nodes.setArg("idToHover", (function() {return selectedId;}).bind(this));
             comp_renderer_links.setArg("idToHover", (function() {return selectedId;}).bind(this));
             comp_renderer_arrows.setArg("idToHover", (function() {return selectedId;}).bind(this));
-            comp_renderer_nodesText.setArg("idToHover", (function() {return selectedId;}).bind(this));
+            if(_enableFont == true) {
+                comp_renderer_nodesText.setArg("idToHover", (function() {return selectedId;}).bind(this));
+            }
         };
 
 
