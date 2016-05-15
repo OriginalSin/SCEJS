@@ -18,8 +18,8 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
                         'float bornDate = data[x].z;'+
                         'float dieDate = data[x].w;'+
 
-                        'vec3 currentDir = dir[xGeometry].xyz;\n'+
-                        'vec3 currentPos = posXYZW[xGeometry].xyz;\n'+
+                        'vec3 currentDir = dir[x].xyz;\n'+
+                        'vec3 currentPos = posXYZW[x].xyz;\n'+
 
                         'if(currentAdjMatrix == 0.0) {'+
                             'currentDir = vec3(0.0, 0.0, 0.0);'+

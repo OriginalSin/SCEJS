@@ -902,7 +902,7 @@ Graph = function(sce) {
         if(arrArgsObject != null)
             _customArgs = createCustomArgsArrays(_customArgs, arrArgsObject);
 
-        const varDef_VFPNode = {
+        var varDef_VFPNode = {
             'float4* posXYZW': (function(){return null;}).bind(this),
             "float4* dataB": (function(){return null;}).bind(this),
             "float4*attr data": (function(){return null;}).bind(this),
@@ -939,7 +939,7 @@ Graph = function(sce) {
             for(var n=0; n < arrArgsObject.length; n++)
                 varDef_VFPNode[arrArgsObject[n]] = (function(){return null;}).bind(this);
 
-        const varDef_NodesKernel = {
+        var varDef_NodesKernel = {
             'float4* dir': (function(){return null;}).bind(this),
             "float enableForceLayout": (function(){return null;}).bind(this),
             'float performFL': (function(){return null;}).bind(this),
