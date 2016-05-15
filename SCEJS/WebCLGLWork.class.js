@@ -52,6 +52,24 @@ WebCLGLWork = function(webCLGL, offset) {
     };
 
     /**
+     * onPreProcessKernel
+     * @param {String} kernelName
+     * @param {Callback} fn
+     */
+    this.onPreProcessKernel = function(kernelName, fn) {
+        this.kernels[kernelName].onpre = fn;
+    };
+
+    /**
+     * onPostProcessKernel
+     * @param {String} kernelName
+     * @param {Callback} fn
+     */
+    this.onPostProcessKernel = function(kernelName, fn) {
+        this.kernels[kernelName].onpost = fn;
+    };
+
+    /**
      * Get one added WebCLGLKernel
      * @param {String} name Get assigned kernel for this argument
      */
@@ -340,6 +358,9 @@ WebCLGLWork = function(webCLGL, offset) {
         for(var key in this.kernels) {
             var kernel = this.kernels[key];
 
+            if(this.kernels[key].onpre != undefined)
+                this.kernels[key].onpre();
+
             if(kernel.output != undefined) {
                 var outputBuff;
                 if(kernel.output instanceof Array) {
@@ -356,6 +377,9 @@ WebCLGLWork = function(webCLGL, offset) {
             } else {
                 this.webCLGL.enqueueNDRangeKernel(kernel);
             }
+
+            if(this.kernels[key].onpost != undefined)
+                this.kernels[key].onpost();
         }
 
         for(var key in this.kernels) {

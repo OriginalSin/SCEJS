@@ -8,12 +8,7 @@ Component_GPU = function() {
     this.gpufG = null;
     this.args = {};
 
-    var _onPreProcessKernels;
-    var _onPostProcessKernels;
     var _enableKernel = true;
-
-    var _onPreProcessGraphic;
-    var _onPostProcessGraphic;
     var _enableGraphic = true;
     var _drawMode = 4;
     var _enableDepthTest = true;
@@ -84,18 +79,20 @@ Component_GPU = function() {
 
     /**
      * onPreProcessKernels
+     * @param {Int} [kernelNum=0]
      * @param {Callback} fn
      */
-    this.onPreProcessKernels = function(fn) {
-        _onPreProcessKernels = fn;
+    this.onPreProcessKernels = function(kernelNum, fn) {
+        this.gpufG.onPreProcessKernel(kernelNum, fn);
     };
 
     /**
      * onPostProcessKernels
+     * @param {Int} [kernelNum=0]
      * @param {Callback} fn
      */
-    this.onPostProcessKernels = function(fn) {
-        _onPostProcessKernels = fn;
+    this.onPostProcessKernels = function(kernelNum, fn) {
+        this.gpufG.onPostProcessKernel(kernelNum, fn);
     };
 
     /**
@@ -107,14 +104,8 @@ Component_GPU = function() {
         if(this.gpufG != null && _enableKernel == true) {
             this.gl.enable(this.gl.DEPTH_TEST);
 
-            if(_onPreProcessKernels != undefined)
-                _onPreProcessKernels();
-
             var buffDest = (isScreenEffects != undefined && isScreenEffects == true) ? 0 : null;
             this.gpufG.processKernels(buffDest);
-
-            if(_onPostProcessKernels != undefined)
-                _onPostProcessKernels();
         }
     };
 
@@ -190,7 +181,7 @@ Component_GPU = function() {
 
     /**
      * onPreProcessGraphic
-     * @param {Int} graphicNum
+     * @param {Int} [graphicNum=0]
      * @param {Callback} fn
      */
     this.onPreProcessGraphic = function(graphicNum, fn) {
@@ -199,7 +190,7 @@ Component_GPU = function() {
 
     /**
      * onPostProcessGraphic
-     * @param {Int} graphicNum
+     * @param {Int} [graphicNum=0]
      * @param {Callback} fn
      */
     this.onPostProcessGraphic = function(graphicNum, fn) {

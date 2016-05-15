@@ -289,6 +289,26 @@ var gpufor = function() {
     };
 
     /**
+     * onPreProcessKernel
+     * @param {Int} [kernelNum=0]
+     * @param {Callback} fn
+     */
+    this.onPreProcessKernel = function(kernelNum, fn) {
+        var kernelName = (kernelNum instanceof Function) ? Object.keys(_clglWork.kernels)[0] : Object.keys(_clglWork.kernels)[kernelNum];
+        _clglWork.onPreProcessKernel(kernelName, fn);
+    };
+
+    /**
+     * onPostProcessKernel
+     * @param {Int} [kernelNum=0]
+     * @param {Callback} fn
+     */
+    this.onPostProcessKernel = function(kernelNum, fn) {
+        var kernelName = (kernelNum instanceof Function) ? Object.keys(_clglWork.kernels)[0] : Object.keys(_clglWork.kernels)[kernelNum];
+        _clglWork.onPostProcessKernel(kernelName, fn);
+    };
+
+    /**
      * setArg
      * @param {String} argName
      * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
@@ -341,22 +361,22 @@ var gpufor = function() {
 
     /**
      * onPreProcessGraphic
-     * @param {Int} graphicNum
+     * @param {Int} [graphicNum=0]
      * @param {Callback} fn
      */
     this.onPreProcessGraphic = function(graphicNum, fn) {
-        var num = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
-        _clglWork.onPreProcessVertexFragmentProgram(num, fn);
+        var vfpName = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
+        _clglWork.onPreProcessVertexFragmentProgram(vfpName, fn);
     };
 
     /**
      * onPostProcessGraphic
-     * @param {Int} graphicNum
+     * @param {Int} [graphicNum=0]
      * @param {Callback} fn
      */
     this.onPostProcessGraphic = function(graphicNum, fn) {
-        var num = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
-        _clglWork.onPostProcessVertexFragmentProgram(graphicNum.toString(), fn);
+        var vfpName = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
+        _clglWork.onPostProcessVertexFragmentProgram(vfpName, fn);
     };
 
     /**
@@ -369,18 +389,18 @@ var gpufor = function() {
 
     /**
      * enableGraphic
-     * @param {Int} graphicNum
+     * @param {Int} [graphicNum=0]
      */
     this.enableGraphic = function(graphicNum) {
-        _clglWork.enableVertexFragmentProgram(graphicNum.toString());
+        _clglWork.enableVertexFragmentProgram(graphicNum|"0");
     };
 
     /**
      * disableGraphic
-     * @param {Int} graphicNum
+     * @param {Int} [graphicNum=0]
      */
     this.disableGraphic = function(graphicNum) {
-        _clglWork.disableVertexFragmentProgram(graphicNum.toString());
+        _clglWork.disableVertexFragmentProgram(graphicNum|"0");
     };
 };
 
