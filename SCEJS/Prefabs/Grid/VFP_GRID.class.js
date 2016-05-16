@@ -1,7 +1,7 @@
 /** @private **/
 function VFP_GRID() { VFP.call(this);
 	this.getSrc = function() {
-		var str_vfp = [
+		var str_vfp = [["RGB"],
 		    // vertex head
 			'varying vec4 vVC;\n',
 			
@@ -17,7 +17,7 @@ function VFP_GRID() { VFP.call(this);
 			'varying vec4 vVC;\n',
 			 
 			// fragment source
-			'gl_FragColor = vVC;\n'
+			'return [vVC];\n'
 		];
 		
 		return str_vfp;

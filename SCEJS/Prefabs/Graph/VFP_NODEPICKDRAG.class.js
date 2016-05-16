@@ -1,7 +1,7 @@
 /** @private **/
 function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
 	this.getSrc = function() {
-		var str_vfp = [
+		var str_vfp = [[undefined],
        	    // vertex head
        		'varying vec4 vColor;\n'+
 			//'uniform sampler2D posXYZW;\n'+
@@ -60,7 +60,7 @@ function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
        		// fragment source
             //'vec2 x = get_global_id();'+ // no needed
 
-            'gl_FragColor = vColor;\n'
+            'return [vColor];\n'
         ];
 
        	return str_vfp;

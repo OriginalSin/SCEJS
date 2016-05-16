@@ -1,7 +1,8 @@
 /** @private **/
 function VFP_NODE(customCode, geometryLength) { VFP.call(this);
 	this.getSrc = function() {
-		var str_vfp = [
+		var str_vfp = [["RGB"],
+
             //██╗   ██╗███████╗██████╗ ████████╗███████╗██╗  ██╗    ██╗  ██╗███████╗ █████╗ ██████╗
             //██║   ██║██╔════╝██╔══██╗╚══██╔══╝██╔════╝╚██╗██╔╝    ██║  ██║██╔════╝██╔══██╗██╔══██╗
             //██║   ██║█████╗  ██████╔╝   ██║   █████╗   ╚███╔╝     ███████║█████╗  ███████║██║  ██║
@@ -321,6 +322,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             'vec4 colorOrangeDark = vec4(255.0/255.0, 80.0/255.0, 0.0/255.0, 1.0);'+
             'vec4 colorPurple = vec4(132.0/255.0, 0.0/255.0, 255.0/255.0, 1.0);'+
 
+            'vec4 fcolor = vec4(0.0, 0.0, 0.0, 1.0);'+
             'if(isNode == 1.0) {'+
                 'if(vUseTex == 1.0) {'+
                     'vec4 tex;'+
@@ -337,14 +339,14 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                     '}'+
                     'color = vec4(tex.rgb*color.rgb, tex.a);\n'+
                 '}'+
-                'gl_FragColor = color;'+
+                'fcolor = color;'+
             '} else if(isLink == 1.0) {'+
                 'if(vIsSelected == 1.0) {'+
                     'color = colorOrange;'+
                 '} else if(vIsHover == 1.0) {'+
                     'color = colorPurple;'+
                 '}'+
-                'gl_FragColor = vec4(color.rgb*vDist, 1.0);\n'+
+                'fcolor = vec4(color.rgb*vDist, 1.0);\n'+
             '} else if(isArrow == 1.0) {'+
                 'if(vIstarget == 1.0) {'+
                     'if(vIsSelected == 1.0) {'+
@@ -355,13 +357,15 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                 '} else {'+
                     'color = vec4(1.0, 0.0, 0.0, 0.0);'+
                 '}'+
-                'gl_FragColor = color;\n'+
+                'fcolor = color;\n'+
             '} else if(isNodeText == 1.0) {'+
-                'gl_FragColor = fontsImg[vVertexUV.xy];\n'+
+                'fcolor = fontsImg[vVertexUV.xy];\n'+
             '}'+
 
-             'if(vVisibility == 0.0)'+
-                 'gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);'
+            'if(vVisibility == 0.0)'+
+                 'fcolor = vec4(0.0, 0.0, 0.0, 0.0);'+
+
+            'return [fcolor];'
         ];
 
        	return str_vfp;

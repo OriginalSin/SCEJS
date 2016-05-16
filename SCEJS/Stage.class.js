@@ -152,15 +152,13 @@ Stage = function() {
 			for(var n=0, fn = nodes.length; n < fn; n++) {
 				for(var key in nodes[n].getComponents()) {
 					var component = nodes[n].getComponent(key);
-					
+
 					if(component.tick != null && component.type != Constants.COMPONENT_TYPES.SCREEN_EFFECTS)
 						component.tick(activeCamera);
 				}
 				
 				if(nodes[n].onTick != null)  nodes[n].onTick();
 			}
-			
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 						
 			if(comp_screen_effects != undefined) {
 				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 

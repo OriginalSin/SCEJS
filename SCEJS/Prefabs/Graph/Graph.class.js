@@ -860,7 +860,8 @@ Graph = function(sce) {
             'float fontImgColumns': (function(){return null;}).bind(this),
             'float4* fontsImg': (function(){return null;}).bind(this),
             'float4* nodesImg': (function(){return null;}).bind(this),
-            'float4* nodesImgCrosshair': (function(){return null;}).bind(this)};
+            'float4* nodesImgCrosshair': (function(){return null;}).bind(this)
+            };
         if(arrArgsDirection != null)
             for(var n=0; n < arrArgsDirection.length; n++)
                 varDef_VFPNode[arrArgsDirection[n]] = (function(){return null;}).bind(this);
@@ -905,8 +906,8 @@ Graph = function(sce) {
         comp_renderer_nodes.setGraphicEnableDepthTest(false);
         comp_renderer_nodes.setGraphicEnableBlend(true);
         comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
-        comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-        comp_renderer_nodes.setGraphicArgDestination([_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"], null]);
+        comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA)
+        comp_renderer_nodes.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));;
         comp_renderer_nodes.onPreProcessKernels((function() {
             if(_enableAnimation == true) {
                 var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
@@ -1003,7 +1004,7 @@ Graph = function(sce) {
         comp_renderer_links.setGraphicBlendSrc(Constants.BLENDING_MODES.ONE);
         comp_renderer_links.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
         comp_renderer_links.setGraphicDrawMode(1);
-        comp_renderer_links.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+        comp_renderer_links.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          ARROWS
@@ -1016,7 +1017,7 @@ Graph = function(sce) {
         comp_renderer_arrows.setGraphicEnableBlend(true);
         comp_renderer_arrows.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
         comp_renderer_arrows.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-        comp_renderer_arrows.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+        comp_renderer_arrows.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          NODESTEXT
@@ -1030,7 +1031,7 @@ Graph = function(sce) {
             comp_renderer_nodesText.setGraphicEnableBlend(true);
             comp_renderer_nodesText.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
             comp_renderer_nodesText.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-            comp_renderer_nodesText.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
+            comp_renderer_nodesText.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         }
     };
 
