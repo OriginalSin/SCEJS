@@ -10,6 +10,11 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 	var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
 	var _precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
 
+    var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
+    var _maxDrawBuffers = null;
+    if(_glDrawBuff_ext != null)
+        _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
+
 	var _utils = new WebCLGLUtils();
 
 	this.in_vertex_values = {};
@@ -77,6 +82,31 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
             return str;
         }).bind(this);
 
+        var lines_drawBuffersEnable = (function() {
+            return ((_maxDrawBuffers != null) ? '#extension GL_EXT_draw_buffers : require\n' : "");
+        }).bind(this);
+        var lines_drawBuffersInit = (function() {
+            var str = '';
+            if(_maxDrawBuffers != null) {
+                for(var n= 1, fn=_maxDrawBuffers; n < fn; n++) {
+                    str += ''+
+                        'float out'+n+'_float = -999.99989;\n'+
+                        'vec4 out'+n+'_float4;\n';
+                }
+            }
+            return str;
+        }).bind(this);
+        var lines_drawBuffersWrite = (function() {
+            var str = '';
+            if(_maxDrawBuffers != null) {
+                for(var n= 1, fn=_maxDrawBuffers; n < fn; n++) {
+                    str += ''+
+                        'if(out'+n+'_float != -999.99989) gl_FragData['+n+'] = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
+                        ' else gl_FragData['+n+'] = out'+n+'_float4;\n';
+                }
+            }
+            return str;
+        }).bind(this);
 
         var sourceVertex = 	""+
             'uniform float uOffset;\n'+
@@ -113,16 +143,23 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
             '}\n';
         //console.log(sourceVertex);
-        var sourceFragment = _precision+
+        var sourceFragment = lines_drawBuffersEnable()+
+            _precision+
 
             lines_fragment_attrs()+
 
             _fragmentHead+
 
             'void main(void) {\n'+
+                'float out_float = -999.99989;\n'+
+                'vec4 out_float4;\n'+
+                lines_drawBuffersInit()+
 
-            _fragmentSource+
+                _fragmentSource+
 
+                'if(out_float != -999.99989) gl_FragData[0] = vec4(out_float,0.0,0.0,1.0);\n'+
+                'else gl_FragData[0] = out_float4;\n'+
+                lines_drawBuffersWrite()+
             '}\n';
         //console.log(sourceFragment);
 

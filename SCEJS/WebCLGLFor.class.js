@@ -6,7 +6,6 @@
 var gpufor = function() {
     var _webCLGL;
     var _clglWork;
-    var _graphicArgDestination = null;
 
     /** @private  */
     var ini = (function() {
@@ -71,20 +70,108 @@ var gpufor = function() {
         var arguments = arguments[0]; // override
         var args = arguments[1]; // first is context or canvas
 
+        var prepareReturnCode = (function(source, outArg) {
+            var objOutStr;
+            var retCode = source.match(new RegExp(/return.*$/gm));
+            retCode = retCode[0].replace("return ", ""); // now "varx" or "[varx1,varx2,..]"
+            var isArr = retCode.match(new RegExp(/\[/gm));
+            if(isArr != null && isArr.length >= 1) { // type outputs array
+                objOutStr = [];
+                retCode = retCode.split("[")[1].split("]")[0];
+                var itemStr = "", openParenth = 0;
+                for(var n=0; n < retCode.length; n++) {
+                    if(retCode[n] == "," && openParenth == 0) {
+                        objOutStr.push(itemStr);
+                        itemStr = "";
+                    } else
+                        itemStr += retCode[n];
+
+                    if(retCode[n] == "(")
+                        openParenth++;
+                    if(retCode[n] == ")")
+                        openParenth--;
+                }
+                objOutStr.push(itemStr); // and the last
+            } else { // type one output
+                objOutStr = retCode.replace(/;$/gm, "");
+            }
+
+
+            var returnCode = "";
+            if(outArg instanceof Array) { // type outputs array
+                for(var n = 0; n < outArg.length; n++) {
+                    // set output type float|float4
+                    _clglWork.setAllowKernelWriting(outArg[n]);
+                    var found = false;
+                    for(var key in args) {
+                        if(key != "indices") {
+                            var expl = key.split(" ");
+
+                            if(expl[1] == outArg[n]) {
+                                var mt = expl[0].match(new RegExp("float4", "gm"));
+                                if(n==0)
+                                    returnCode += (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr[n]+";\n" : "out_float = "+objOutStr[n]+";\n";
+                                else
+                                    returnCode += (mt != null && mt.length > 0) ? "out"+n+"_float4 = "+objOutStr[n]+";\n" : "out"+n+"_float = "+objOutStr[n]+";\n";
+
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if(found == false) {
+                        if(n==0)
+                            returnCode += "out_float4 = "+objOutStr[n]+";\n";
+                        else
+                            returnCode += "out"+n+"_float4 = "+objOutStr[n]+";\n";
+                    }
+                }
+            } else { // type one output
+                // set output type float|float4
+                if(outArg != undefined) {
+                    _clglWork.setAllowKernelWriting(outArg);
+                    var found = false;
+                    for(var key in args) {
+                        if(key != "indices") {
+                            var expl = key.split(" ");
+
+                            if(expl[1] == outArg) {
+                                var mt = expl[0].match(new RegExp("float4", "gm"));
+                                returnCode += (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr+";\n" : "out_float = "+objOutStr+";\n";
+
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if(found == false) {
+                        if(n==0)
+                            returnCode += "out_float4 = "+objOutStr+";\n";
+                        else
+                            returnCode += "out"+n+"_float4 = "+objOutStr+";\n";
+                    }
+                } else {
+                    returnCode += "out_float4 = "+objOutStr+";\n";
+                }
+            }
+            return returnCode;
+        }).bind(this);
+
+
         for(var i = 2; i < arguments.length; i++) {
             if(arguments[i].type == "KERNEL") {
-                var K = arguments[i].config;
+                var conf = arguments[i].config;
                 var kH;
                 var kS;
 
                 var idx;
                 var outArg;
                 var argsInThisKernel = [];
-                if(K.length == 1) { // by direct assign "posXYZW += dir" (typical use when MRT is not available)
+                if(conf.length == 1) { // by direct assign "posXYZW += dir" (typical use when MRT is not available)
                     idx = "n";
-                    outArg = K[0].match(new RegExp(/(([a-z|A-Z])| )*/gm))[0].trim(); // "posXYZW" (out as String)
-                    var rightVar = K[0].match(new RegExp(/=(([a-z|A-Z])| )*$/gm))[0].replace("=","").trim(); // "dir"
-                    var operation = K[0].match(new RegExp(/([^a-z|^A-Z])+/gm))[0].trim(); // "+="
+                    outArg = conf[0].match(new RegExp(/(([a-z|A-Z])| )*/gm))[0].trim(); // "posXYZW" (out as String)
+                    var rightVar = conf[0].match(new RegExp(/=(([a-z|A-Z])| )*$/gm))[0].replace("=","").trim(); // "dir"
+                    var operation = conf[0].match(new RegExp(/([^a-z|^A-Z])+/gm))[0].trim(); // "+="
                     kH = "";
                     kS ='vec4 current = '+outArg+'['+idx+'];\n'+
                         'current '+operation+' '+rightVar+'['+idx+'];\n'+
@@ -97,10 +184,10 @@ var gpufor = function() {
                             argsInThisKernel.push(key);
                     }
                 } else { // by normal code
-                    idx = K[0];
-                    outArg = K[1]; // out can be String or Array
-                    kH = K[2];
-                    kS = K[3];
+                    idx = conf[0];
+                    outArg = conf[1]; // out can be String or Array
+                    kH = conf[2];
+                    kS = conf[3];
 
                     for(var key in args) {
                         var expl = key.split(" ");
@@ -114,66 +201,6 @@ var gpufor = function() {
                 }
 
 
-                var objOutStr;
-                var retCode = kS.match(new RegExp(/return.*$/gm));
-                retCode = retCode[0].replace("return ", ""); // now "varx" or "[varx1,varx2,..]"
-                var isArr = retCode.match(new RegExp(/\[/gm));
-                if(isArr != null && isArr.length >= 1) { // type outputs array
-                    objOutStr = [];
-                    retCode = retCode.split("[")[1].split("]")[0];
-                    var itemStr = "", openParenth = 0;
-                    for(var n=0; n < retCode.length; n++) {
-                        if(retCode[n] == "," && openParenth == 0) {
-                            objOutStr.push(itemStr);
-                            itemStr = "";
-                        } else
-                            itemStr += retCode[n];
-
-                        if(retCode[n] == "(")
-                            openParenth++;
-                        if(retCode[n] == ")")
-                            openParenth--;
-                    }
-                    objOutStr.push(itemStr); // and the last
-                } else { // type one output
-                    objOutStr = retCode.replace(/;$/gm, "");
-                }
-
-
-                var returnCode;
-                if(outArg instanceof Array) { // type outputs array
-                    for(var n = 0; n < outArg.length; n++) {
-                        // set output type float|float4
-                        _clglWork.setAllowKernelWriting(outArg[n]);
-                        for(var key in args) {
-                            var expl = key.split(" ");
-
-                            if(expl[1] == outArg[n]) {
-                                var mt = expl[0].match(new RegExp("float4", "gm"));
-                                if(n==0)
-                                    returnCode = (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr[n]+";\n" : "out_float = "+objOutStr[n]+";\n";
-                                else
-                                    returnCode += (mt != null && mt.length > 0) ? "out"+n+"_float4 = "+objOutStr[n]+";\n" : "out"+n+"_float = "+objOutStr[n]+";\n";
-                            }
-                        }
-                    }
-                } else { // type one output
-                    // set output type float|float4
-                    if(outArg != undefined) {
-                        _clglWork.setAllowKernelWriting(outArg);
-                        for(var key in args) {
-                            var expl = key.split(" ");
-
-                            if(expl[1] == outArg) {
-                                var mt = expl[0].match(new RegExp("float4", "gm"));
-                                returnCode = (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr+";\n" : "out_float = "+objOutStr+";\n";
-                            }
-                        }
-                    } else
-                        returnCode = "out_float4 = "+objOutStr+";\n";
-                }
-
-
                 var strArgs = "", sep="";
                 for(var n=0; n < argsInThisKernel.length; n++)
                     strArgs += sep+argsInThisKernel[n], sep=",";
@@ -181,18 +208,31 @@ var gpufor = function() {
 
                 kS = 'void main('+strArgs+') {'+
                     'vec2 '+idx+' = get_global_id();'+
-                    kS.replace(/return.*$/gm, returnCode)+
+                    kS.replace(/return.*$/gm, prepareReturnCode(kS, outArg))+
                     '}';
                 var kernel = _webCLGL.createKernel();
                 kernel.setKernelSource(kS, kH);
                 _clglWork.addKernel(kernel, outArg);
 
             } else if(arguments[i].type == "GRAPHIC") { // VFP
-                var VFP = arguments[i].config;
-                var VFP_vertexH = VFP[0];
-                var VFP_vertexS = VFP[1];
-                var VFP_fragmentH = VFP[2];
-                var VFP_fragmentS = VFP[3];
+                var conf = arguments[i].config;
+                var outArg = null;
+                var VFP_vertexH;
+                var VFP_vertexS;
+                var VFP_fragmentH;
+                var VFP_fragmentS;
+                if(conf.length == 5) {
+                    outArg = conf[0]; // out can be String or Array
+                    VFP_vertexH = conf[1];
+                    VFP_vertexS = conf[2];
+                    VFP_fragmentH = conf[3];
+                    VFP_fragmentS = conf[4];
+                } else {
+                    VFP_vertexH = conf[0];
+                    VFP_vertexS = conf[1];
+                    VFP_fragmentH = conf[2];
+                    VFP_fragmentS = conf[3];
+                }
 
 
                 var argsInThisVFP_v = [];
@@ -223,12 +263,12 @@ var gpufor = function() {
                     VFP_vertexS+
                     '}';
                 VFP_fragmentS = 'void main('+strArgs_f+') {'+
-                    VFP_fragmentS+
+                    VFP_fragmentS.replace(/return.*$/gm, prepareReturnCode(VFP_fragmentS, outArg))+
                     '}';
                 var vfprogram = _webCLGL.createVertexFragmentProgram();
                 vfprogram.setVertexSource(VFP_vertexS, VFP_vertexH);
                 vfprogram.setFragmentSource(VFP_fragmentS, VFP_fragmentH);
-                _clglWork.addVertexFragmentProgram(vfprogram, Object.keys(_clglWork.vertexFragmentPrograms).length.toString());
+                _clglWork.addVertexFragmentProgram(vfprogram, outArg, Object.keys(_clglWork.vertexFragmentPrograms).length.toString());
             }
         }
 
@@ -282,10 +322,9 @@ var gpufor = function() {
 
     /**
      * processKernels
-     * @param {Int} [buffDest=undefined] - if 0 then output to null screen
      */
-    this.processKernels = function(buffDest) {
-        _clglWork.enqueueNDRangeKernel(buffDest);
+    this.processKernels = function() {
+        _clglWork.enqueueNDRangeKernel();
     };
 
     /**
@@ -358,13 +397,13 @@ var gpufor = function() {
 
     /**
      * processGraphic
-     * @param {String} [argument=undefined] Argument for vertices count or undefined if indices exist
+     * @param {String} [argumentInd=undefined] Argument for vertices count or undefined if indices exist
      * @param {Int} [drawMode=0] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
      **/
-    this.processGraphic = function(argument, drawMode) {
+    this.processGraphic = function(argumentInd, drawMode) {
         var dmode = (drawMode != undefined) ? drawMode : 0;
 
-        _clglWork.enqueueVertexFragmentProgram(argument, dmode, _graphicArgDestination);
+        _clglWork.enqueueVertexFragmentProgram(argumentInd, dmode);
     };
 
     /**
@@ -387,14 +426,6 @@ var gpufor = function() {
         var fnc = (graphicNum instanceof Function) ? graphicNum : fn;
         var vfpName = (graphicNum instanceof Function) ? "0" : graphicNum.toString();
         _clglWork.onPostProcessVertexFragmentProgram(vfpName, fnc);
-    };
-
-    /**
-     * setGraphicArgDestination
-     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
-     */
-    this.setGraphicArgDestination = function(buffDest) {
-        _graphicArgDestination = buffDest;
     };
 
     /**
