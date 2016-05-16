@@ -43,11 +43,10 @@ WebCLGLWork = function(webCLGL, offset) {
     this.addKernel = function(kernel, output) {
         kernel.output = output;
 
-        if(output instanceof Array) {
-            this.kernels[output[0]] = kernel;
-        } else {
-            this.kernels[output] = kernel;
-        }
+        var name = Object.keys(this.kernels).length.toString();
+
+        this.kernels[name] = kernel;
+        this.kernels[name].enabled = true;
     };
 
     /**
@@ -69,6 +68,22 @@ WebCLGLWork = function(webCLGL, offset) {
     };
 
     /**
+     * enableKernel
+     * @param {String} kernelName
+     */
+    this.enableKernel = function(kernelName) {
+        this.kernels[kernelName].enabled = true;
+    };
+
+    /**
+     * disableKernel
+     * @param {String} kernelName
+     */
+    this.disableKernel = function(kernelName) {
+        this.kernels[kernelName].enabled = false;
+    };
+
+    /**
      * Get one added WebCLGLKernel
      * @param {String} name Get assigned kernel for this argument
      */
@@ -84,10 +99,11 @@ WebCLGLWork = function(webCLGL, offset) {
      * Add one WebCLGLVertexFragmentProgram to the work
      * @param {WebCLGLVertexFragmentProgram} vertexFragmentProgram
      * @param {String|Array<String>} output - Used for to write and update ARG name with the result in out_float4/out_float
-     * @param {String} name Name for identify this vertexFragmentProgram
      */
-    this.addVertexFragmentProgram = function(vertexFragmentProgram, output, name) {
+    this.addVertexFragmentProgram = function(vertexFragmentProgram, output) {
         vertexFragmentProgram.output = output;
+
+        var name = Object.keys(this.vertexFragmentPrograms).length.toString();
 
         this.vertexFragmentPrograms[name] = vertexFragmentProgram;
         this.vertexFragmentPrograms[name].enabled = true;
@@ -404,13 +420,15 @@ WebCLGLWork = function(webCLGL, offset) {
         for(var key in this.kernels) {
             var kernel = this.kernels[key];
 
-            if(kernel.onpre != undefined)
-                kernel.onpre();
+            if(kernel.enabled == true) {
+                if(kernel.onpre != undefined)
+                    kernel.onpre();
 
-            this.webCLGL.enqueueNDRangeKernel(kernel, getOutputBuffers(kernel));
+                this.webCLGL.enqueueNDRangeKernel(kernel, getOutputBuffers(kernel));
 
-            if(kernel.onpost != undefined)
-                kernel.onpost();
+                if(kernel.onpost != undefined)
+                    kernel.onpost();
+            }
         }
 
         updateOutputBuffers(this.kernels);

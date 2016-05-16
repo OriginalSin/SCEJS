@@ -268,7 +268,7 @@ var gpufor = function() {
                 var vfprogram = _webCLGL.createVertexFragmentProgram();
                 vfprogram.setVertexSource(VFP_vertexS, VFP_vertexH);
                 vfprogram.setFragmentSource(VFP_fragmentS, VFP_fragmentH);
-                _clglWork.addVertexFragmentProgram(vfprogram, outArg, Object.keys(_clglWork.vertexFragmentPrograms).length.toString());
+                _clglWork.addVertexFragmentProgram(vfprogram, outArg);
             }
         }
 
@@ -381,10 +381,10 @@ var gpufor = function() {
     /**
      * Set shared argument from other work
      * @param {String} argument Argument to set
-     * @param {WebCLGLWork} clglWork
+     * @param {gpufor} gpufor
      */
-    this.setSharedBufferArg = function(argument, clglWork) {
-        _clglWork.setSharedBufferArg(argument, clglWork);
+    this.setSharedBufferArg = function(argument, gpufor) {
+        _clglWork.setSharedBufferArg(argument, gpufor.getWork());
     };
 
     /**
@@ -397,7 +397,7 @@ var gpufor = function() {
 
     /**
      * processGraphic
-     * @param {String} [argumentInd=undefined] Argument for vertices count or undefined if indices exist
+     * @param {String} [argumentInd=undefined] Argument for vertices count or undefined if argument "indices" exist
      * @param {Int} [drawMode=0] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
      **/
     this.processGraphic = function(argumentInd, drawMode) {
