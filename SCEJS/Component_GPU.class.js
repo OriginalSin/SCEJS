@@ -65,16 +65,18 @@ Component_GPU = function() {
 
     /**
      * enableKernel
+     * @param {Int} [kernelNum=0]
      */
-    this.enableKernels = function() {
-        _enableKernel = true;
+    this.enableKernel = function(kernelNum) {
+        this.gpufG.enableKernel(kernelNum);
     };
 
     /**
      * disableKernel
+     * @param {Int} [kernelNum=0]
      */
-    this.disableKernels = function() {
-        _enableKernel = false;
+    this.disableKernel = function(kernelNum) {
+        this.gpufG.disableKernel(kernelNum);
     };
 
     /**
@@ -273,12 +275,12 @@ Component_GPU = function() {
     };
 
     /**
-     * setSharedBufferArg
+     * setSharedArg
      * @param {String} argument Argument to set
      * @param {ComponentRenderer} comp_renderer
      */
-    this.setSharedBufferArg = function(argument, comp_renderer) {
-        this.gpufG.setSharedBufferArg(argument, comp_renderer.gpufG);
+    this.setSharedArg = function(argument, comp_renderer) {
+        this.gpufG.setSharedArg(argument, comp_renderer.gpufG);
         this.args[argument] = {	"fnvalue": null,
             "updatable": null,
             "splits": null,

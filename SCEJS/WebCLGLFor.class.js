@@ -357,42 +357,19 @@ var gpufor = function() {
     };
 
     /**
-     * setArg
-     * @param {String} argName
-     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
-     * @param {Array<Float>} [splits=[value.length]]
-     * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
-     * @param {String} [overrideType="FLOAT4"] - force "FLOAT4" or "FLOAT"
-     * @returns {WebCLGLBuffer}
+     * enableKernel
+     * @param {Int} [kernelNum=0]
      */
-    this.setArg = function(argName, value, splits, overrideDimensions, overrideType) {
-        return _clglWork.setArg(argName, value, splits, overrideDimensions, overrideType);
+    this.enableKernel = function(kernelNum) {
+        _clglWork.enableKernel(kernelNum.toString()|"0");
     };
 
     /**
-     * fillPointerArg
-     * @param {String} argName
-     * @param {Array<Float>} clearColor
+     * disableKernel
+     * @param {Int} [kernelNum=0]
      */
-    this.fillPointerArg = function(argName, clearColor) {
-        return _clglWork.fillPointerArg(argName, clearColor);
-    };
-
-    /**
-     * Set shared argument from other work
-     * @param {String} argument Argument to set
-     * @param {gpufor} gpufor
-     */
-    this.setSharedBufferArg = function(argument, gpufor) {
-        _clglWork.setSharedBufferArg(argument, gpufor.getWork());
-    };
-
-    /**
-     * Get all arguments existing in passed kernels & vertexFragmentPrograms
-     * @returns {Object}
-     */
-    this.getAllArgs = function() {
-        return _clglWork.getAllArgs();
+    this.disableKernel = function(kernelNum) {
+        _clglWork.disableKernel(kernelNum.toString()|"0");
     };
 
     /**
@@ -433,7 +410,7 @@ var gpufor = function() {
      * @param {Int} [graphicNum=0]
      */
     this.enableGraphic = function(graphicNum) {
-        _clglWork.enableVertexFragmentProgram(graphicNum|"0");
+        _clglWork.enableVertexFragmentProgram(graphicNum.toString()|"0");
     };
 
     /**
@@ -441,7 +418,43 @@ var gpufor = function() {
      * @param {Int} [graphicNum=0]
      */
     this.disableGraphic = function(graphicNum) {
-        _clglWork.disableVertexFragmentProgram(graphicNum|"0");
+        _clglWork.disableVertexFragmentProgram(graphicNum.toString()|"0");
     };
+
+    /**
+     * setArg
+     * @param {String} argName
+     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
+     */
+    this.setArg = function(argName, value) {
+        return _clglWork.setArg(argName, value);
+    };
+
+    /**
+     * fillPointerArg
+     * @param {String} argName
+     * @param {Array<Float>} clearColor
+     */
+    this.fillPointerArg = function(argName, clearColor) {
+        return _clglWork.fillPointerArg(argName, clearColor);
+    };
+
+    /**
+     * Set shared argument from other gpufor
+     * @param {String} argument Argument to set
+     * @param {gpufor} gpufor
+     */
+    this.setSharedArg = function(argument, gpufor) {
+        _clglWork.setSharedBufferArg(argument, gpufor.getWork());
+    };
+
+    /**
+     * Get all arguments existing in passed kernels & vertexFragmentPrograms
+     * @returns {Object}
+     */
+    this.getAllArgs = function() {
+        return _clglWork.getAllArgs();
+    };
+
 };
 

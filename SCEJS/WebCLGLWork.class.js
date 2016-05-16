@@ -143,10 +143,8 @@ WebCLGLWork = function(webCLGL, offset) {
         this.vertexFragmentPrograms[vfpName].enabled = false;
     };
 
-    /**
-     * @private
-     */
-    this.checkArg = function(argument, value) {
+    /** @private  */
+    var checkArg = (function(argument, value) {
         kernelPr = [];
         vPr = [];
         fPr = [];
@@ -213,7 +211,7 @@ WebCLGLWork = function(webCLGL, offset) {
         if(kernelPr.length == 0 && usedInVertex == false && usedInFragment == false &&
             (value instanceof Array || value instanceof Float32Array || value instanceof Uint8Array || value instanceof HTMLImageElement))
             isBuffer = true;
-    };
+    }).bind(this);
 
     /**
      * Assign value of a argument for all added Kernels and vertexFragmentPrograms
@@ -221,17 +219,13 @@ WebCLGLWork = function(webCLGL, offset) {
      * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
      * @param {Array<Float>} [splits=[value.length]]
      * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
-     * @param {String} [overrideType="FLOAT4"] - force "FLOAT4" or "FLOAT"
      * @returns {WebCLGLBuffer}
      */
-    this.setArg = function(argument, value, splits, overrideDimensions, overrideType) {
+    this.setArg = function(argument, value, splits, overrideDimensions) {
         if(argument == "indices") {
             this.setIndices(value, splits);
         } else {
-            this.checkArg(argument, value);
-
-            if(overrideType != undefined)
-                type = overrideType;
+            checkArg(argument, value);
 
             if(isBuffer == true) {
                 var mode = "SAMPLER"; // "ATTRIBUTE", "SAMPLER", "UNIFORM"
@@ -315,7 +309,7 @@ WebCLGLWork = function(webCLGL, offset) {
      * @param {WebCLGLWork} clglWork
      */
     this.setSharedBufferArg = function(argument, clglWork) {
-        this.checkArg(argument);
+        checkArg(argument);
 
 
         this.buffers[argument] = clglWork.buffers[argument];
