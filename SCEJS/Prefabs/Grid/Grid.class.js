@@ -121,6 +121,6 @@ Grid = function(sce) {
         comp_renderer.setArgUpdatable("PMatrix", true);
         comp_renderer.setArgUpdatable("cameraWMatrix", true);
         comp_renderer.setArgUpdatable("nodeWMatrix", true);
-        comp_renderer.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
 	};
 };

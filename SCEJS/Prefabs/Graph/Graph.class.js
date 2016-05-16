@@ -903,11 +903,11 @@ Graph = function(sce) {
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()},
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODEPICKDRAG(_geometryLength).getSrc()});
+        comp_renderer_nodes.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         comp_renderer_nodes.setGraphicEnableDepthTest(false);
         comp_renderer_nodes.setGraphicEnableBlend(true);
         comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
-        comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA)
-        comp_renderer_nodes.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));;
+        comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
         comp_renderer_nodes.onPreProcessKernels((function() {
             if(_enableAnimation == true) {
                 var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
@@ -999,12 +999,12 @@ Graph = function(sce) {
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+        comp_renderer_links.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         comp_renderer_links.setGraphicEnableDepthTest(true);
         comp_renderer_links.setGraphicEnableBlend(true);
         comp_renderer_links.setGraphicBlendSrc(Constants.BLENDING_MODES.ONE);
         comp_renderer_links.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
         comp_renderer_links.setGraphicDrawMode(1);
-        comp_renderer_links.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          ARROWS
@@ -1013,11 +1013,11 @@ Graph = function(sce) {
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+        comp_renderer_arrows.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         comp_renderer_arrows.setGraphicEnableDepthTest(true);
         comp_renderer_arrows.setGraphicEnableBlend(true);
         comp_renderer_arrows.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
         comp_renderer_arrows.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-        comp_renderer_arrows.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          NODESTEXT
@@ -1027,11 +1027,11 @@ Graph = function(sce) {
                                                 Object.create(varDef_VFPNode),
                                                 {"type": "GRAPHIC",
                                                 "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+            comp_renderer_nodesText.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
             comp_renderer_nodesText.setGraphicEnableDepthTest(true);
             comp_renderer_nodesText.setGraphicEnableBlend(true);
             comp_renderer_nodesText.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
             comp_renderer_nodesText.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-            comp_renderer_nodesText.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         }
     };
 
@@ -2068,7 +2068,7 @@ Graph = function(sce) {
     /** @private */
     var updateNodesText = (function() {
         comp_renderer_nodesText.setArg("data", (function() {return this.arrayNodeTextData;}).bind(this), this.splitNodesText);
-        comp_renderer_nodesText.setSharedBufferArg("posXYZW", comp_renderer_nodes);
+        comp_renderer_nodesText.setSharedArg("posXYZW", comp_renderer_nodes);
 
         comp_renderer_nodesText.setArg("nodeVertexPos", (function() {return this.arrayNodeTextVertexPos;}).bind(this), this.splitNodesText);
         comp_renderer_nodesText.setArg("nodeVertexNormal", (function() {return this.arrayNodeTextVertexNormal;}).bind(this), this.splitNodesText);
@@ -2111,8 +2111,8 @@ Graph = function(sce) {
         comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
 
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
-        comp_renderer_links.setSharedBufferArg("dataB", comp_renderer_nodes);
-		comp_renderer_links.setSharedBufferArg("posXYZW", comp_renderer_nodes);
+        comp_renderer_links.setSharedArg("dataB", comp_renderer_nodes);
+		comp_renderer_links.setSharedArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
 		comp_renderer_links.setArg("indices", (function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
 
@@ -2141,8 +2141,8 @@ Graph = function(sce) {
     /** @private */
     var updateArrows = (function() {
         comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
-        comp_renderer_arrows.setSharedBufferArg("dataB", comp_renderer_nodes);
-        comp_renderer_arrows.setSharedBufferArg("posXYZW", comp_renderer_nodes);
+        comp_renderer_arrows.setSharedArg("dataB", comp_renderer_nodes);
+        comp_renderer_arrows.setSharedArg("posXYZW", comp_renderer_nodes);
 
         comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
         comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this), this.splitArrows);
@@ -2231,14 +2231,14 @@ Graph = function(sce) {
 
 
 
-        comp_renderer_links.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_links.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
         comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
         comp_renderer_links.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
         comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 
 
 
-        comp_renderer_arrows.setSharedBufferArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_arrows.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
         comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
         comp_renderer_arrows.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
         comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
