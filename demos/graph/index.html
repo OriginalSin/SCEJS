@@ -45,17 +45,17 @@
 			// GRAPH
 			var OFFSET = 1000.0;
 			var offs = OFFSET/10;
-			
+
 			var graph = new Graph(sce);
 			graph.setOffset(OFFSET);
 
 			var mesh_point = new Mesh().loadPoint();
 			//graph.setNodeMesh(mesh_point);
-			
-			graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
-			
 
-			// APPLY THIS LAYOUT			
+			graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
+
+
+			// APPLY THIS LAYOUT
 			graph.applyLayout({	// OBJECT
 								// [x], vec4 nodeVertexColor, vec4 nodeVertexPosition, vec4 XYZW_opposite
 								// float isNode, float isLink, float isArrow, float isNodeText, float isTarget
@@ -80,7 +80,7 @@
 
 			// NODES AND LINKS CREATION
 			/*var numNodes = 100;
-			var numLinks = 100; 
+			var numLinks = 100;
 			for(var n=0; n < numNodes; n++) {
 				var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
@@ -115,7 +115,7 @@
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [1.0, 0.0, 0.0, 1.0]},
 					"onmouseup": (function(nodeData) {
-		
+
 					}).bind(this)});
 			graph.addNode({
 					"name": "#1",
@@ -124,7 +124,7 @@
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 1.0, 0.0, 1.0]},
 					"onmouseup": (function(nodeData) {
-		
+
 					}).bind(this)});
 			graph.addNode({
 					"name": "#2",
@@ -133,7 +133,7 @@
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 0.0, 1.0, 1.0]},
 					"onmouseup": (function(nodeData) {
-		
+
 					}).bind(this)});
 			graph.addNode({
 					"name": "#3",
@@ -142,7 +142,7 @@
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [1.0, 1.0, 1.0, 1.0]},
 					"onmouseup": (function(nodeData) {
-		
+
 					}).bind(this)});
 			graph.addNode({
 					"name": "#4",
@@ -151,7 +151,7 @@
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [1.0, 0.0, 1.0, 1.0]},
 					"onmouseup": (function(nodeData) {
-	
+
 					}).bind(this)});
 			graph.addNode({
 					"name": "#5",
@@ -160,7 +160,7 @@
 					"color": "../_RESOURCES/lena_128x128.jpg",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 1.0, 0.0, 1.0]},
 					"onmouseup": (function(nodeData) {
-	
+
 					}).bind(this)});
 			graph.addNode({
 					"name": "#6",

@@ -9,7 +9,6 @@ Component_GPU = function() {
     this.args = {};
 
     var _enableKernel = true;
-    var _enableGraphic = true;
     var _drawMode = 4;
     var _enableDepthTest = true;
     var _enableBlend = false;
@@ -25,7 +24,8 @@ Component_GPU = function() {
             var expl = key.split(" ");
             if(expl != null && expl.length > 1) {
                 var argName = expl[1];
-                this.args[argName] = {	"fnvalue": arguments[1][key],
+                this.args[argName] = {
+                	"fnvalue": arguments[1][key],
                     "updatable": null,
                     "splits": null,
                     "overrideDimensions": null};
@@ -104,8 +104,7 @@ Component_GPU = function() {
         if(this.gpufG != null && _enableKernel == true) {
             this.gl.enable(this.gl.DEPTH_TEST);
 
-            var buffDest = (isScreenEffects != undefined && isScreenEffects == true) ? 0 : null;
-            this.gpufG.processKernels(buffDest);
+            this.gpufG.processKernels();
         }
     };
 
@@ -119,16 +118,18 @@ Component_GPU = function() {
 
     /**
      * enableGraphic
+     * @param {Int} [graphicNum=0]
      */
-    this.enableGraphic = function() {
-        _enableGraphic = true;
+    this.enableGraphic = function(graphicNum) {
+        this.gpufG.enableGraphic(graphicNum);
     };
 
     /**
      * disableGraphic
+     * @param {Int} [graphicNum=0]
      */
-    this.disableGraphic = function() {
-        _enableGraphic = false;
+    this.disableGraphic = function(graphicNum) {
+        this.gpufG.disableGraphic(graphicNum);
     };
 
     /**
@@ -208,7 +209,7 @@ Component_GPU = function() {
             var resolution = activeCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION).getResolution();
             this.gl.viewport(0, 0, resolution.width, resolution.height);
 
-            if(this.gpufG != null && _enableGraphic == true) {
+            if(this.gpufG != null) {
                 if(_enableDepthTest == true) {
                     this.gl.enable(this.gl.DEPTH_TEST);
                 } else {
@@ -227,14 +228,6 @@ Component_GPU = function() {
                 this.gpufG.processGraphic(undefined, _drawMode);
             }
         } else console.log("ComponentScreenEffects not exists in camera");
-    };
-
-    /**
-     * setGraphicArgDestination
-     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
-     */
-    this.setGraphicArgDestination = function(buffDest) {
-        this.gpufG.setGraphicArgDestination(buffDest);
     };
 
     /**

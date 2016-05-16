@@ -25,7 +25,7 @@ WebCLGLWork = function(webCLGL, offset) {
 	var usedInVertex;
 	var usedInFragment;
 
-
+    var _alerted = false;
 
     /**
      * setAllowKernelWriting
@@ -48,7 +48,6 @@ WebCLGLWork = function(webCLGL, offset) {
         } else {
             this.kernels[output] = kernel;
         }
-        this.arrAllowKernelWriting[output] = true;
     };
 
     /**
@@ -84,9 +83,12 @@ WebCLGLWork = function(webCLGL, offset) {
     /**
      * Add one WebCLGLVertexFragmentProgram to the work
      * @param {WebCLGLVertexFragmentProgram} vertexFragmentProgram
+     * @param {String|Array<String>} output - Used for to write and update ARG name with the result in out_float4/out_float
      * @param {String} name Name for identify this vertexFragmentProgram
      */
-    this.addVertexFragmentProgram = function(vertexFragmentProgram, name) {
+    this.addVertexFragmentProgram = function(vertexFragmentProgram, output, name) {
+        vertexFragmentProgram.output = output;
+
         this.vertexFragmentPrograms[name] = vertexFragmentProgram;
         this.vertexFragmentPrograms[name].enabled = true;
     };
@@ -235,11 +237,11 @@ WebCLGLWork = function(webCLGL, offset) {
                     var buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                     this.webCLGL.enqueueWriteBuffer(buff, value);
                     this.buffers[argument] = buff;
-                    if(this.arrAllowKernelWriting.hasOwnProperty(argument) == true) {
+                    //if(this.arrAllowKernelWriting.hasOwnProperty(argument) == true) {
                         var buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                         this.webCLGL.enqueueWriteBuffer(buffTMP, value);
                         this.buffers_TEMP[argument] = buffTMP;
-                    }
+                    //}
 
 
                     for(var n=0; n < kernelPr.length; n++)
@@ -251,6 +253,9 @@ WebCLGLWork = function(webCLGL, offset) {
                     for(var n=0; n < fPr.length; n++)
                         fPr[n].setFragmentArg(argument, this.buffers[argument]);
                 } else {
+                    this.buffers[argument] = null;
+                    this.buffers_TEMP[argument] = null;
+
                     for(var n=0; n < kernelPr.length; n++)
                         kernelPr[n].setKernelArg(argument, null);
 
@@ -350,78 +355,92 @@ WebCLGLWork = function(webCLGL, offset) {
         this.webCLGL.enqueueWriteBuffer(this.CLGL_bufferIndices, arr);
     };
 
+    /** @private **/
+    var getOutputBuffers = (function(prog) {
+        var outputBuff = null;
+        if(prog.output != undefined) {
+            if(prog.output instanceof Array) {
+                outputBuff = [];
+                if(prog.output[0] != null) {
+                    for(var n=0; n < prog.output.length; n++) {
+                        if(this.buffers_TEMP.hasOwnProperty(prog.output[n]) == false && _alerted == false)
+                            _alerted = true, alert("output argument "+prog.output[n]+" not found in buffers. add desired argument as shared");
+                        outputBuff[n] = this.buffers_TEMP[prog.output[n]];
+                    }
+                } else
+                    outputBuff = null;
+            } else {
+                outputBuff = this.buffers_TEMP[prog.output];
+            }
+
+            //if(buffDest != null && buffDest === 0)
+            //    outputBuff = null;
+        }
+        return outputBuff;
+    }).bind(this);
+
+    /** @private **/
+    var updateOutputBuffers = (function(progGroup) {
+        for(var key in progGroup) {
+            var prog = progGroup[key];
+
+            if(prog.output != undefined) {
+                if(prog.output instanceof Array) {
+                    for(var n=0; n < prog.output.length; n++) {
+                        if(prog.output[n] != null)
+                            this.webCLGL.copy(this.buffers_TEMP[prog.output[n]], this.buffers[prog.output[n]]);
+                    }
+                } else {
+                    this.webCLGL.copy(this.buffers_TEMP[prog.output], this.buffers[prog.output]);
+                }
+            }
+        }
+    }).bind(this);
+
     /**
      * Process kernels
-     * @param {Int} [buffDest=undefined] - if 0 then output to null screen
      */
-    this.enqueueNDRangeKernel = function(buffDest) {
+    this.enqueueNDRangeKernel = function() {
         for(var key in this.kernels) {
             var kernel = this.kernels[key];
 
-            if(this.kernels[key].onpre != undefined)
-                this.kernels[key].onpre();
+            if(kernel.onpre != undefined)
+                kernel.onpre();
 
-            if(kernel.output != undefined) {
-                var outputBuff;
-                if(kernel.output instanceof Array) {
-                    outputBuff = [];
-                    for(var n=0; n < kernel.output.length; n++)
-                        outputBuff[n] = this.buffers_TEMP[kernel.output[n]];
-                } else {
-                    outputBuff = this.buffers_TEMP[kernel.output];
-                }
+            this.webCLGL.enqueueNDRangeKernel(kernel, getOutputBuffers(kernel));
 
-                if(buffDest != null && buffDest === 0)
-                    outputBuff = null;
-                this.webCLGL.enqueueNDRangeKernel(kernel, outputBuff);
-            } else {
-                this.webCLGL.enqueueNDRangeKernel(kernel);
-            }
-
-            if(this.kernels[key].onpost != undefined)
-                this.kernels[key].onpost();
+            if(kernel.onpost != undefined)
+                kernel.onpost();
         }
 
-        for(var key in this.kernels) {
-            var kernel = this.kernels[key];
-
-            if(kernel.output != undefined) {
-                if(kernel.output instanceof Array) {
-                    for(var n=0; n < kernel.output.length; n++)
-                        this.webCLGL.copy(this.buffers_TEMP[kernel.output[n]], this.buffers[kernel.output[n]]);
-                } else {
-                    this.webCLGL.copy(this.buffers_TEMP[kernel.output], this.buffers[kernel.output]);
-                }
-            }
-        }
+        updateOutputBuffers(this.kernels);
     };
 
     /**
      * Process VertexFragmentProgram
-     * @param {String} [argument=undefined] Argument for vertices count or undefined if indices exist
+     * @param {String} [argumentInd=undefined] Argument for vertices count or undefined if indices exist
      * @param {Int} drawMode 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
-     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [buffDest=undefined]
      */
-    this.enqueueVertexFragmentProgram = function(argument, drawMode, buffDest) {
-        var nn = 0;
+    this.enqueueVertexFragmentProgram = function(argumentInd, drawMode) {
         for(var key in this.vertexFragmentPrograms) {
-            if(this.vertexFragmentPrograms[key].enabled == true) {
-                var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argument];
+            var vfp = this.vertexFragmentPrograms[key];
+
+            if(vfp.enabled == true) {
+                var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argumentInd];
 
                 if(buff != undefined && buff.length > 0) {
+                    if(vfp.onpre != undefined)
+                        vfp.onpre();
 
-                    if(this.vertexFragmentPrograms[key].onpre != undefined)
-                        this.vertexFragmentPrograms[key].onpre();
+                    this.webCLGL.enqueueVertexFragmentProgram(vfp, buff, drawMode, getOutputBuffers(vfp));
 
-                    var dest = (buffDest instanceof Array) ? buffDest[nn] : buffDest;
-                    this.webCLGL.enqueueVertexFragmentProgram(this.vertexFragmentPrograms[key], buff, drawMode, dest);
-
-                    if(this.vertexFragmentPrograms[key].onpost != undefined)
-                        this.vertexFragmentPrograms[key].onpost();
+                    if(vfp.onpost != undefined)
+                        vfp.onpost();
                 }
             }
-            nn++;
         }
+
+        updateOutputBuffers(this.vertexFragmentPrograms);
     };
 };
 

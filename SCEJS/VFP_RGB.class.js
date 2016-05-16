@@ -1,7 +1,7 @@
 /** @private **/
 function VFP_RGB(textureUnitCount) { VFP.call(this);
 	this.getSrc = function() {
-		var str_vfp = [
+		var str_vfp = [["RGB"],
 		    // vertex head
 			'varying vec4 vVN;\n'+
 			 'varying vec4 vVT;\n'+
@@ -27,7 +27,7 @@ function VFP_RGB(textureUnitCount) { VFP.call(this);
 			// fragment source
             'vec4 textureColor = texture2D(texAlbedo, vVT.xy);\n'+
             // diffuse
-            'gl_FragColor = textureColor;\n'];
+            'return [textureColor];\n'];
 		
 		return str_vfp;
 	};

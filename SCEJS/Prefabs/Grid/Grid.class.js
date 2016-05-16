@@ -118,9 +118,9 @@ Grid = function(sce) {
                                 {"type": "GRAPHIC",
                                 "config": new VFP_GRID().getSrc()});
         comp_renderer.setGraphicDrawMode(1);
-        comp_renderer.setGraphicArgDestination(_project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS).getBuffers()["RGB"]);
         comp_renderer.setArgUpdatable("PMatrix", true);
         comp_renderer.setArgUpdatable("cameraWMatrix", true);
         comp_renderer.setArgUpdatable("nodeWMatrix", true);
+        comp_renderer.setSharedBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
 	};
 };
