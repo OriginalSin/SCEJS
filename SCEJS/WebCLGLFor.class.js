@@ -6,6 +6,7 @@
 var gpufor = function() {
     var _webCLGL;
     var _clglWork;
+    var _args;
 
     /** @private  */
     var ini = (function() {
@@ -50,7 +51,6 @@ var gpufor = function() {
                 buffLength = argVal.length;
         }
 
-        //_clglWork.setAllowKernelWriting("result");
         _clglWork.setArg("result", new Float32Array(buffLength), null, null, typOut);
 
 
@@ -67,9 +67,6 @@ var gpufor = function() {
 
     /** @private  */
     var iniG = (function() {
-        var arguments = arguments[0]; // override
-        var args = arguments[1]; // first is context or canvas
-
         var prepareReturnCode = (function(source, outArg) {
             var objOutStr;
             var retCode = source.match(new RegExp(/return.*$/gm));
@@ -101,9 +98,8 @@ var gpufor = function() {
             if(outArg instanceof Array) { // type outputs array
                 for(var n = 0; n < outArg.length; n++) {
                     // set output type float|float4
-                    _clglWork.setAllowKernelWriting(outArg[n]);
                     var found = false;
-                    for(var key in args) {
+                    for(var key in _args) {
                         if(key != "indices") {
                             var expl = key.split(" ");
 
@@ -129,9 +125,8 @@ var gpufor = function() {
             } else { // type one output
                 // set output type float|float4
                 if(outArg != undefined) {
-                    _clglWork.setAllowKernelWriting(outArg);
                     var found = false;
-                    for(var key in args) {
+                    for(var key in _args) {
                         if(key != "indices") {
                             var expl = key.split(" ");
 
@@ -158,6 +153,9 @@ var gpufor = function() {
         }).bind(this);
 
 
+        var arguments = arguments[0]; // override
+        _args = arguments[1]; // first is context or canvas
+
         for(var i = 2; i < arguments.length; i++) {
             if(arguments[i].type == "KERNEL") {
                 var conf = arguments[i].config;
@@ -177,7 +175,7 @@ var gpufor = function() {
                         'current '+operation+' '+rightVar+'['+idx+'];\n'+
                         'return current;\n';
 
-                    for(var key in args) {
+                    for(var key in _args) {
                         var expl = key.split(" ");
 
                         if(expl[1] == outArg || expl[1] == rightVar)
@@ -189,7 +187,7 @@ var gpufor = function() {
                     kH = conf[2];
                     kS = conf[3];
 
-                    for(var key in args) {
+                    for(var key in _args) {
                         var expl = key.split(" ");
                         var argName = expl[1];
 
@@ -237,7 +235,7 @@ var gpufor = function() {
 
                 var argsInThisVFP_v = [];
                 var strArgs_v = "", sep="";
-                for(var key in args) {
+                for(var key in _args) {
                     // search arguments in use
                     var matches = (VFP_vertexH+VFP_vertexS).match(new RegExp(key.split(" ")[1], "gm"));
                     if(key != "indices" && matches != null && matches.length > 0)
@@ -249,7 +247,7 @@ var gpufor = function() {
 
                 var argsInThisVFP_f = [];
                 var strArgs_f = "", sep="";
-                for(var key in args) {
+                for(var key in _args) {
                     // search arguments in use
                     matches = (VFP_fragmentH+VFP_fragmentS).match(new RegExp(key.split(" ")[1], "gm"));
                     if(key != "indices" && matches != null && matches.length > 0)
@@ -273,8 +271,8 @@ var gpufor = function() {
         }
 
         // args
-        for(var key in args) {
-            var argVal = args[key];
+        for(var key in _args) {
+            var argVal = _args[key];
 
             if(key == "indices") {
                 if(argVal != null)
