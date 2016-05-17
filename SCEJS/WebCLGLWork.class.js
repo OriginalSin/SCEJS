@@ -14,8 +14,6 @@ WebCLGLWork = function(webCLGL, offset) {
 	this.buffers = {};
 	this.buffers_TEMP = {};
 
-    this.arrAllowKernelWriting = {};
-
 
 	var kernelPr;
 	var vPr;
@@ -26,14 +24,6 @@ WebCLGLWork = function(webCLGL, offset) {
 	var usedInFragment;
 
     var _alerted = false;
-
-    /**
-     * setAllowKernelWriting
-     * @param {String} argument
-     */
-    this.setAllowKernelWriting = function(argument) {
-        this.arrAllowKernelWriting[argument] = true;
-    };
 
     /**
      * Add one WebCLGLKernel to the work
@@ -247,12 +237,10 @@ WebCLGLWork = function(webCLGL, offset) {
                     var buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                     this.webCLGL.enqueueWriteBuffer(buff, value);
                     this.buffers[argument] = buff;
-                    //if(this.arrAllowKernelWriting.hasOwnProperty(argument) == true) {
-                        var buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
-                        this.webCLGL.enqueueWriteBuffer(buffTMP, value);
-                        this.buffers_TEMP[argument] = buffTMP;
-                    //}
 
+                    var buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
+                    this.webCLGL.enqueueWriteBuffer(buffTMP, value);
+                    this.buffers_TEMP[argument] = buffTMP;
 
                     for(var n=0; n < kernelPr.length; n++)
                         kernelPr[n].setKernelArg(argument, this.buffers[argument]);
