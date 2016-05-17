@@ -25,13 +25,52 @@ WebCLGLWork = function(webCLGL, offset) {
 
     var _alerted = false;
 
+    /** @private */
+    var defineOutputTempModes = function(output, args) {
+        var searchInArgs = function(outputName, args) {
+            var found = false;
+            for(var key in args) {
+                if(key != "indices") {
+                    var expl = key.split(" ");
+                    if(expl.length > 0) {
+                        var argName = expl[1];
+                        if(argName == outputName) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            return found;
+        };
+
+        var outputTempModes;
+        if(output instanceof Array) {
+            outputTempModes = [];
+            for(var n=0; n < output.length; n++) {
+                if(output[n] != null) {
+                    outputTempModes[n] = searchInArgs(output[n], args);
+                } else {
+                    outputTempModes[n] = false;
+                }
+            }
+        } else {
+            if(output != null) {
+                outputTempModes = searchInArgs(output, args);
+            }
+        }
+        return outputTempModes;
+    };
+
     /**
      * Add one WebCLGLKernel to the work
      * @param {WebCLGLKernel} kernel
      * @param {String|Array<String>} output - Used for to write and update ARG name with the result in out_float4/out_float
+     * @param {Object} args
      */
-    this.addKernel = function(kernel, output) {
+    this.addKernel = function(kernel, output, args) {
         kernel.output = output;
+        kernel.outputTempModes = defineOutputTempModes(output, args);
 
         var name = Object.keys(this.kernels).length.toString();
 
@@ -89,9 +128,11 @@ WebCLGLWork = function(webCLGL, offset) {
      * Add one WebCLGLVertexFragmentProgram to the work
      * @param {WebCLGLVertexFragmentProgram} vertexFragmentProgram
      * @param {String|Array<String>} output - Used for to write and update ARG name with the result in out_float4/out_float
+     * @param {Object} args
      */
-    this.addVertexFragmentProgram = function(vertexFragmentProgram, output) {
+    this.addVertexFragmentProgram = function(vertexFragmentProgram, output, args) {
         vertexFragmentProgram.output = output;
+        vertexFragmentProgram.outputTempModes = defineOutputTempModes(output, args);
 
         var name = Object.keys(this.vertexFragmentPrograms).length.toString();
 
@@ -361,14 +402,21 @@ WebCLGLWork = function(webCLGL, offset) {
                 outputBuff = [];
                 if(prog.output[0] != null) {
                     for(var n=0; n < prog.output.length; n++) {
-                        if(this.buffers_TEMP.hasOwnProperty(prog.output[n]) == false && _alerted == false)
+                        if(this.buffers.hasOwnProperty(prog.output[n]) == false && _alerted == false)
                             _alerted = true, alert("output argument "+prog.output[n]+" not found in buffers. add desired argument as shared");
-                        outputBuff[n] = this.buffers_TEMP[prog.output[n]];
+
+                        if(prog.outputTempModes[n] == true)
+                            outputBuff[n] = this.buffers_TEMP[prog.output[n]];
+                        else
+                            outputBuff[n] = this.buffers[prog.output[n]];
                     }
                 } else
                     outputBuff = null;
             } else {
-                outputBuff = this.buffers_TEMP[prog.output];
+                if(prog.outputTempModes == true)
+                    outputBuff = this.buffers_TEMP[prog.output];
+                else
+                    outputBuff = this.buffers[prog.output];
             }
 
             //if(buffDest != null && buffDest === 0)
@@ -385,11 +433,12 @@ WebCLGLWork = function(webCLGL, offset) {
             if(prog.output != undefined) {
                 if(prog.output instanceof Array) {
                     for(var n=0; n < prog.output.length; n++) {
-                        if(prog.output[n] != null)
+                        if(prog.output[n] != null && prog.outputTempModes[n] == true)
                             this.webCLGL.copy(this.buffers_TEMP[prog.output[n]], this.buffers[prog.output[n]]);
                     }
                 } else {
-                    this.webCLGL.copy(this.buffers_TEMP[prog.output], this.buffers[prog.output]);
+                    if(prog.output != null && prog.outputTempModes == true)
+                        this.webCLGL.copy(this.buffers_TEMP[prog.output], this.buffers[prog.output]);
                 }
             }
         }
