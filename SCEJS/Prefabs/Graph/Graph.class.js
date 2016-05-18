@@ -21,44 +21,50 @@ Graph = function(sce) {
 	var NODE_IMG_SPRITE_WIDTH = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
 	var OFFSET = 1000.0;
 
-
-	var _nodesByName = {};
-	var _nodesById = {};
-	var _links = {};
-
-
-    var arrAdjMatrix_STORE = [];
-    var maxItemsInSTORE = 10;
-	var _ADJ_MATRIX_WIDTH = 4096;
-    var _ADJ_MATRIX_WIDTH_TOTAL;
-	var _currentAdjMatrix = 0;
-	var _numberOfColumns;
-	var _numberOfAdjMatrix;
-	var _enabledForceLayout = false;
-	var _buffAdjMatrix;
-	var _adjMatrixTime = 0;
-	var lineVertexCount = 4;
+    var _enableFont = false;
+    var _enableHover = false;
+    var _enableAutoLink = true;
+    var _enabledForceLayout = false;
+    var _forceWidthAdjMatrix = -1;
 
     var _enableAnimation = false;
     var _loop = false;
     var _animationFrames = 500;
+    
+    var _geometryLength = 4;
+    var circleSegments = 12;
+    var nodesTextPlanes = 12;
+
+
+
+
+	var _nodesByName = {};
+	var _nodesById = {};
+	var _links = {};
+    var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
+
+
+    var arrAdjMatrix_STORE = [];
+    var maxItemsInSTORE = 10;
+	var _ADJ_MATRIX_WIDTH;
+    var _ADJ_MATRIX_WIDTH_TOTAL;
+	var _currentAdjMatrix = 0;
+	var _numberOfColumns;
+	var _numberOfAdjMatrix;
+	var _buffAdjMatrix;
+	var _adjMatrixTime = 0;
+	var lineVertexCount = 4;
+
     var _initTimestamp;
     var _endTimestamp;
     var _timeFrameIncrement;
     var _currentFrame = 0;
 
-	var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
-
 	var readPixel = false;
 	var selectedId = -1;
-    var _enableHover = false;
-    var _enableAutoLink = true;
 	var _initialPosDrag;
 
 	// meshes
-	var _geometryLength = 4;
-	var circleSegments = 12;
-	var nodesTextPlanes = 12;
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
 	var mesh_arrows = new Mesh().loadTriangle({"scale": 1.75, "side": 0.3});
 	var mesh_nodesText = new Mesh().loadQuad(4.0, 4.0);
@@ -87,8 +93,6 @@ Graph = function(sce) {
 	var nodesImgCrosshair = null;
 	var nodesImgCrosshairLoaded = false;
 
-
-    var _enableFont = false;
 	var FONT_IMG_COLUMNS = 7.0;
 
 
@@ -2207,6 +2211,10 @@ Graph = function(sce) {
         }).bind(this);
 
         arrAdjMatrix_STORE = [];
+
+        _ADJ_MATRIX_WIDTH = this.currentNodeId;
+        if(_forceWidthAdjMatrix != -1)
+            _ADJ_MATRIX_WIDTH = _forceWidthAdjMatrix;
 
         _numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
         _numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
