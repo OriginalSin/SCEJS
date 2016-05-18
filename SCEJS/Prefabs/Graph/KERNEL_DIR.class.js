@@ -53,7 +53,7 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
                             'currentPos += currentDir;\n'+
 
 
-                        'return [vec4(currentDir, 1.0), vec4(currentPos.x, 0.0, currentPos.z, 1.0)];'];
+                        'return [vec4(currentDir, 1.0), vec4(currentPos.x, currentPos.y, currentPos.z, 1.0)];'];
 
         return str_vfp;
     };

@@ -13,7 +13,7 @@ ComponentProjection = function() { Component.call(this);
 	var mProjectionMatrix = $M16([1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]);
 	
 	var proy = Constants.PROJECTION_TYPES.PERSPECTIVE;
-	var _width = 512;	
+	var _width = 512;
 	var _height = 512;
 	
 	var _fov = 45;
@@ -33,7 +33,7 @@ ComponentProjection = function() { Component.call(this);
 	 * @override
 	 */
 	this.initialize = function(nod, glCtx) {
-		node = nod;
+		this.node = nod;
 		gl = glCtx;
 		
 		updateProjectionMatrix();

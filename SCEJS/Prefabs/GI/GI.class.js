@@ -143,47 +143,50 @@ GI = function(sce) {
 	this.runGI = function() {
 		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
         comp_screenEffects.setGPUFor(  comp_screenEffects.gl,
-            {"float4* sampler_GIVoxel": (function(){return null;}).bind(this)},
+            {"float4* sampler_GIVoxel": (function(){return null;}).bind(this),
+            "float4* RGB": (function(){return new Float32Array(_sce.getCanvas().width*_sce.getCanvas().width*4);}).bind(this)},
             {"type": "KERNEL",
             "config": ["x", undefined,
                         // head
                         '',
-
                         // source
                         // GI
                         'vec4 textureFBGIVoxel = sampler_GIVoxel[x];\n'+
                         'vec3 GIweight = vec3((textureFBGIVoxel.r/textureFBGIVoxel.a), (textureFBGIVoxel.g/textureFBGIVoxel.a), (textureFBGIVoxel.b/textureFBGIVoxel.a));'+
 
-                        'return vec4(GIweight, 1.0);'+
-                        //'out_float4 = vec4(textureFBGIVoxel.rgb, 1.0);\n'+
+                        'return vec4(1.0-(GIweight/8.0), 1.0);'+
+                        '']},
+            {"type": "KERNEL",
+                "config": [ "n", undefined,
+                    // head
+                    '',
+                    // source
+                    'vec4 color = RGB[n];\n'+
+                    'return color;\n']});
 
-
-                        //'out_float4 = vec4(out_float4.xyz*(0.75+(length(GIVoxelsShadow)/4.0)), out_float4.a);\n'+
-                        //'out_float4 = vec4(GIweight, GIweight, GIweight, 1.0);\n'+
-                        '']});
-        comp_screenEffects.onPreProcessKernels(0, (function() {
+        comp_screenEffects.onPostProcessKernels(0, (function() {
+            //comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+        }).bind(this));
+        comp_screenEffects.onPreProcessKernels(1, (function() {
             comp_screenEffects.gl.blendFunc(comp_renderer_node.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_COLOR], comp_renderer_node.gl[Constants.BLENDING_MODES.SRC_COLOR]);
         }).bind(this));
         comp_screenEffects.setGraphicEnableDepthTest(false);
         comp_screenEffects.setGraphicEnableBlend(true);
+
 
         var arr = new Float32Array(_sce.getDimensions().width*_sce.getDimensions().height*4);
         comp_renderer_node.setArg("sampler_screenColor", (function() {return arr;}).bind(this));
         comp_renderer_node.setArg("sampler_screenPos", (function() {return arr;}).bind(this));
         comp_renderer_node.setArg("sampler_screenNormal", (function() {return arr;}).bind(this));
         comp_renderer_node.setArg("sampler_GIVoxel", (function() {return arr;}).bind(this));
-
-		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
-		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 1.0]);
-		comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
-
-
         comp_screenEffects.setSharedArg("sampler_GIVoxel", comp_renderer_node);
+        comp_renderer_node.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+		comp_renderer_node.clearArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
+        comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
 
-		
-		comp_renderer_node.enableGraphic(1);
-		comp_screenEffects.enableKernel(0);
+        comp_renderer_node.enableGraphic(1);
 		_runGI = true;
 	};
 	
@@ -200,22 +203,18 @@ GI = function(sce) {
 	*/
 	this.stop = function() {
 		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-		comp_renderer_node.disableGraphic(1);
-		comp_screenEffects.disableKernel(0);
 	};
 	
 	/**
 	* resume
 	*/
 	this.resume = function() {
-		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-		comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 0.0]);
+        comp_renderer_node.clearArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
+        comp_renderer_node.clearArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
 
 		
 		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-		comp_renderer_node.enableGraphic(1);
-		comp_screenEffects.enableKernel(0);
 	};
 };

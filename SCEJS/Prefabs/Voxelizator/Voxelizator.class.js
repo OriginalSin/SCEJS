@@ -62,7 +62,7 @@ Voxelizator = function(sce) {
     comp_renderer_node.setGraphicEnableBlend(true);
     comp_renderer_node.onPreProcessGraphic(0, (function() {
         var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-        comp_screenEffects.gl.blendFunc(comp_renderer_node.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_COLOR], comp_renderer_node.gl[Constants.BLENDING_MODES.SRC_COLOR]);
+        //comp_screenEffects.gl.blendFunc(comp_renderer_node.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_COLOR], comp_renderer_node.gl[Constants.BLENDING_MODES.SRC_COLOR]);
 
         if(_makeVoxels == true) {
             comp_renderer_node.setArg("uCurrentHeight", (function(){return _currentHeight;}).bind(this));

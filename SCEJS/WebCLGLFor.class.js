@@ -210,7 +210,7 @@ var gpufor = function() {
                     '}';
                 var kernel = _webCLGL.createKernel();
                 kernel.setKernelSource(kS, kH);
-                _clglWork.addKernel(kernel, outArg);
+                _clglWork.addKernel(kernel, outArg, _args);
 
             } else if(arguments[i].type == "GRAPHIC") { // VFP
                 var conf = arguments[i].config;
@@ -266,7 +266,7 @@ var gpufor = function() {
                 var vfprogram = _webCLGL.createVertexFragmentProgram();
                 vfprogram.setVertexSource(VFP_vertexS, VFP_vertexH);
                 vfprogram.setFragmentSource(VFP_fragmentS, VFP_fragmentH);
-                _clglWork.addVertexFragmentProgram(vfprogram, outArg);
+                _clglWork.addVertexFragmentProgram(vfprogram, outArg, _args);
             }
         }
 
