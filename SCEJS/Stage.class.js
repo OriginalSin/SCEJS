@@ -159,7 +159,7 @@ Stage = function() {
 				
 				if(nodes[n].onTick != null)  nodes[n].onTick();
 			}
-						
+
 			if(comp_screen_effects != undefined) {
 				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
 				comp_screen_effects.tick();

@@ -100,13 +100,17 @@
 			// CAMERA
 			var simpleCamera = new SimpleCamera(sce, {	"onmousedown": (function() {
 															if(gi.isRunned() == true) {
-																gi.stop();
+																//gi.stop();
 															}
 														}).bind(this), "onmouseup": (function() {
 															if(gi.isRunned() == true) {
 																gi.resume();
 															}
-														}).bind(this)});
+														}).bind(this), "onmousemove": (function() {
+                                                            if(gi.isRunned() == true) {
+                                                                gi.resume();
+                                                            }
+                                                        }).bind(this)});
 			var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
 			
 			// GRID
@@ -282,7 +286,7 @@
 											gi.runGI();
 											
 											// volume view
-											setVolumeView_samplers(voxelizator.getGeneratedArrays().albedo, voxelizator.getGeneratedArrays().position, voxelizator.getGeneratedArrays().normal);
+											//setVolumeView_samplers(voxelizator.getGeneratedArrays().albedo, voxelizator.getGeneratedArrays().position, voxelizator.getGeneratedArrays().normal);
 											
 											
 											if(_viewVolume == true) {

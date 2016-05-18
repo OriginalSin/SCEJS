@@ -52,6 +52,7 @@ Graph = function(sce) {
 	var readPixel = false;
 	var selectedId = -1;
     var _enableHover = false;
+    var _enableAutoLink = true;
 	var _initialPosDrag;
 
 	// meshes
@@ -417,6 +418,20 @@ Graph = function(sce) {
     };
 
     /**
+     *  enableAutoLink
+     */
+    this.enableAutoLink = function() {
+        _enableAutoLink = true;
+    };
+
+    /**
+     *  disableAutoLink
+     */
+    this.disableAutoLink = function() {
+        _enableAutoLink = false;
+    };
+
+    /**
      * setFontsImage
      * @param {String} url
      */
@@ -593,7 +608,7 @@ Graph = function(sce) {
         for(var n = 0; n < rowCount; n++) {
             var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
-            var bd = generateRandomBornAndDie(_animationFrames);
+            var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? generateRandomBornAndDie(_animationFrames) : {"bornDate": null, "dieDate": null};
 
             var node = this.addNode({
                 "name": n.toString(),
@@ -1774,48 +1789,47 @@ Graph = function(sce) {
 
         if(pass == true) {
             console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
+            if(jsonIn.origin != jsonIn.target || (jsonIn.origin == jsonIn.target && _enableAutoLink == true)) {
+                jsonIn.origin_nodeName = jsonIn.origin.toString();
+                jsonIn.target_nodeName = jsonIn.target.toString();
+                jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
+                jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
+                jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
+                jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
+                jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
+                jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
 
-            jsonIn.origin_nodeName = jsonIn.origin.toString();
-            jsonIn.target_nodeName = jsonIn.target.toString();
-            jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
-            jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
-            jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
-            jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
-            jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
-            jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
-
-            var repeatId = 1;
-            while(true) {
-                var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
-                if(exists == true) {
-                    repeatId++;
-                } else
-                    break;
-            }
-            jsonIn.repeatId = repeatId;
-
-            var link = createLink(jsonIn);
-
-            if(link.directed != undefined && link.directed == true)
-                createArrow(link);
-
-            // ADD LINK TO ARRAY LINKS
-            _links[link.origin+"->"+link.target+"_"+repeatId] = link;
-            //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
-
-
-            // UPDATE arrayNodeData
-            for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-                var id = n*4;
-                if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
-                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                var repeatId = 1;
+                while(true) {
+                    var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
+                    if(exists == true) {
+                        repeatId++;
+                    } else
+                        break;
                 }
-                if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
-                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                jsonIn.repeatId = repeatId;
+
+                var link = createLink(jsonIn);
+
+                if(link.directed != undefined && link.directed == true)
+                    createArrow(link);
+
+                // ADD LINK TO ARRAY LINKS
+                _links[link.origin+"->"+link.target+"_"+repeatId] = link;
+                //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
+
+
+                // UPDATE arrayNodeData
+                for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+                    var id = n*4;
+                    if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
+                        this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                    }
+                    if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
+                        this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
+                    }
                 }
             }
-        } else {
-            console.log();
         }
     };
 

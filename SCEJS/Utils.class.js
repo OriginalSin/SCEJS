@@ -437,9 +437,57 @@ Utils.prototype.rayTraversalInitSTR = function() {
 	'float voxelToWorldZ(float z) {return z * _len.z + gl.z;}\n';
 };
 /** @private  */
-Utils.prototype.rayTraversalSTR = function(resolution, getVoxelFunctionGLSLStr) {  
+Utils.prototype.rayTraversalSTR = function(resolution) {
 	return ''+
-	'vec4 rayTraversal(vec3 RayOrigin, vec3 RayDir) {\n'+
+	'vec2 getId(vec3 voxel) {\n'+
+        'int tex3dId = (int(voxel.y)*(int(uResolution)*int(uResolution)))+(int(voxel.z)*(int(uResolution)))+int(voxel.x);\n'+
+        'float num = float(tex3dId)/wh;\n'+
+        'float col = fract(num)*wh;\n'+
+        'float row = floor(num);\n'+
+        'return vec2(col*texelSize, row*texelSize);\n'+
+    '}\n'+
+    'vec4 getVoxel_Color(vec2 texVec, vec3 voxel, vec3 RayOrigin) {\n'+
+        'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
+
+        'vec4 texture = sampler_voxelColor[vec2(texVec.x, texVec.y)];\n'+
+        'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
+            'rgba = vec4(texture.rgb/255.0,distance(vec3(voxelToWorldX(voxel.x), voxelToWorldX(voxel.y), voxelToWorldX(voxel.z)),RayOrigin));\n'+
+        '}\n'+
+
+        'return rgba;\n'+
+    '}\n'+
+    'vec4 getVoxel_Pos(vec2 texVec) {\n'+
+        'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
+
+        'vec4 texture = sampler_voxelPos[vec2(texVec.x, texVec.y)];\n'+
+        'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
+            'vec4 texVoxelPosX = sampler_voxelPos[vec2(texVec.x,texVec.y)]/255.0;\n'+
+
+            'rgba = vec4( (texVoxelPosX.xyz*uGridsize)-(uGridsize/2.0), 1.0);\n'+
+        '}\n'+
+
+        'return rgba;\n'+
+    '}\n'+
+    'vec4 getVoxel_Normal(vec2 texVec) {\n'+
+        'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
+
+        'vec4 texture = sampler_voxelNormal[vec2(texVec.x, texVec.y)];\n'+
+        'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
+            'rgba = vec4(((texture.rgb/255.0)*2.0)-1.0,1.0);\n'+
+        '}\n'+
+
+        'return rgba;\n'+
+    '}\n'+
+    'struct RayTraversalResponse {'+
+        'vec4 voxelColor;'+
+        'vec4 voxelPos;'+
+        'vec4 voxelNormal;'+
+    '};'+
+	'RayTraversalResponse rayTraversal(vec3 RayOrigin, vec3 RayDir) {\n'+
+        'vec4 fvoxelColor = vec4(0.0, 0.0, 0.0, 0.0);'+
+        'vec4 fvoxelPos = vec4(0.0, 0.0, 0.0, 0.0);'+
+        'vec4 fvoxelNormal = vec4(0.0, 0.0, 0.0, 0.0);'+
+
 		'vec3 voxel = worldToVoxel(RayOrigin);'+   
 		'vec3 _dir = normalize(RayDir);'+   
 		'vec3 tMax;'+  
@@ -461,7 +509,6 @@ Utils.prototype.rayTraversalSTR = function(resolution, getVoxelFunctionGLSLStr) 
 		'if(RayDir.z < 0.0) {stepZ = -1.0; outZ = -1.0;}'+ 
 			
 		'vec4 color = vec4(0.0,0.0,0.0,0.0);\n'+
-		'vec4 gv = vec4(0.0,0.0,0.0,0.0);\n'+
 		'bool c1; bool c2; bool c3; bool isOut;'+
 		'for(int c = 0; c < ('+resolution+'*2); c++) {\n'+      
 			'c1 = bool(tMax.x < tMax.y);'+
@@ -483,12 +530,21 @@ Utils.prototype.rayTraversalSTR = function(resolution, getVoxelFunctionGLSLStr) 
 			'}'+       
 			'if(isOut == true) break;\n'+  
 			'else {'+
-				'if((voxel.x >= 0.0 && voxel.x <= _rRes.x && voxel.y >= 0.0 && voxel.y <= _rRes.y && voxel.z >= 0.0 && voxel.z <= _rRes.z)) {;\n'+  
-					getVoxelFunctionGLSLStr+ 
+				'if((voxel.x >= 0.0 && voxel.x <= _rRes.x && voxel.y >= 0.0 && voxel.y <= _rRes.y && voxel.z >= 0.0 && voxel.z <= _rRes.z)) {;\n'+
+
+                    'vec2 vid = getId(voxel);'+
+                    'vec4 vcc = getVoxel_Color(vid, voxel, RayOrigin);'+
+                    'if(vcc.a != 0.0) {'+
+                        'fvoxelColor = vcc;'+
+                        'fvoxelPos = getVoxel_Pos(vid);'+
+                        'fvoxelNormal = getVoxel_Normal(vid);'+
+                        'break;\n'+
+                    '}'+
+
 				'}'+ 
 			'}'+
 		'}'+
-		'return color;'+
+		'return RayTraversalResponse(fvoxelColor, fvoxelPos, fvoxelNormal);'+
 	'}\n';
 };
 
