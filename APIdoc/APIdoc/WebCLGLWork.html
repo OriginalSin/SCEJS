@@ -37,23 +37,7 @@
 						</li>
 						
 						<li>
-							<a href="Component_Argument.html">Component_Argument</a>
-						</li>
-						
-						<li>
-							<a href="Component_Indices.html">Component_Indices</a>
-						</li>
-						
-						<li>
-							<a href="Component_Kernel.html">Component_Kernel</a>
-						</li>
-						
-						<li>
-							<a href="Component_Vfp.html">Component_Vfp</a>
-						</li>
-						
-						<li>
-							<a href="Component_Work.html">Component_Work</a>
+							<a href="Component_GPU.html">Component_GPU</a>
 						</li>
 						
 						<li>
@@ -86,6 +70,10 @@
 						
 						<li>
 							<a href="ComponentTransformTarget.html">ComponentTransformTarget</a>
+						</li>
+						
+						<li>
+							<a href="gpufor.html">gpufor</a>
 						</li>
 						
 						<li>
@@ -146,10 +134,6 @@
 						
 						<li>
 							<a href="WebCLGLKernel.html">WebCLGLKernel</a>
-						</li>
-						
-						<li>
-							<a href="WebCLGLKernelProgram.html">WebCLGLKernelProgram</a>
 						</li>
 						
 						<li>
@@ -305,7 +289,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="addKernel"><span class="type-signature"></span>addKernel<span class="signature">(kernel, name)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addKernel"><span class="type-signature"></span>addKernel<span class="signature">(kernel, output, args)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -370,13 +354,16 @@
 
         <tr>
             
-                <td class="name"><code>name</code></td>
+                <td class="name"><code>output</code></td>
             
 
             <td class="type">
             
                 
 <span class="param-type">String</span>
+|
+
+<span class="param-type">Array.&lt;String></span>
 
 
             
@@ -386,7 +373,30 @@
 
             
 
-            <td class="description last"><p>Name for identify this kernel</p></td>
+            <td class="description last"><p>Used for to write and update ARG name with the result in out_float4/out_float</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>args</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
         </tr>
 
 	
@@ -418,7 +428,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-44">line 44</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-71">line 71</a>
     </li></ul></dd>
     
 
@@ -448,7 +458,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="addVertexFragmentProgram"><span class="type-signature"></span>addVertexFragmentProgram<span class="signature">(vertexFragmentProgram, name)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addVertexFragmentProgram"><span class="type-signature"></span>addVertexFragmentProgram<span class="signature">(vertexFragmentProgram, output, args)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -513,13 +523,16 @@
 
         <tr>
             
-                <td class="name"><code>name</code></td>
+                <td class="name"><code>output</code></td>
             
 
             <td class="type">
             
                 
 <span class="param-type">String</span>
+|
+
+<span class="param-type">Array.&lt;String></span>
 
 
             
@@ -529,7 +542,30 @@
 
             
 
-            <td class="description last"><p>Name for identify this vertexFragmentProgram</p></td>
+            <td class="description last"><p>Used for to write and update ARG name with the result in out_float4/out_float</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>args</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
         </tr>
 
 	
@@ -561,7 +597,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-75">line 75</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-133">line 133</a>
     </li></ul></dd>
     
 
@@ -591,7 +627,7 @@
 			
 				
 <dt>
-    <h4 class="name" id="enqueueNDRangeKernel"><span class="type-signature"></span>enqueueNDRangeKernel<span class="signature">(kernelName, <span class="optional">webCLGLBuffer</span>, <span class="optional">geometryLength</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="disableKernel"><span class="type-signature"></span>disableKernel<span class="signature">(kernelName)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -599,7 +635,7 @@
     
     
     <div class="description">
-        <p>Process kernels</p>
+        <p>disableKernel</p>
     </div>
     
 
@@ -621,11 +657,7 @@
 		<th>Type</th>
 
 		
-		<th>Argument</th>
-		
 
-		
-		<th>Default</th>
 		
 
 		<th class="last">Description</th>
@@ -650,100 +682,10 @@
             </td>
 
             
-                <td class="attributes">
-                
 
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
             
 
             <td class="description last"></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>webCLGLBuffer</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="WebCLGLBuffer.html">WebCLGLBuffer</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    undefined
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>geometryLength</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    1
-                
-                </td>
-            
-
-            <td class="description last"><p>Length of geometry (1 for points, 3 for triangles...)</p></td>
         </tr>
 
 	
@@ -775,7 +717,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-291">line 291</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-111">line 111</a>
     </li></ul></dd>
     
 
@@ -805,7 +747,438 @@
 			
 				
 <dt>
-    <h4 class="name" id="enqueueVertexFragmentProgram"><span class="type-signature"></span>enqueueVertexFragmentProgram<span class="signature">(<span class="optional">argument</span>, Name, drawMode, <span class="optional">geometryLength</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="disableVertexFragmentProgram"><span class="type-signature"></span>disableVertexFragmentProgram<span class="signature">(vfpName)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>disableVertexFragmentProgram</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>vfpName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-173">line 173</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="enableKernel"><span class="type-signature"></span>enableKernel<span class="signature">(kernelName)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>enableKernel</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>kernelName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-103">line 103</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="enableVertexFragmentProgram"><span class="type-signature"></span>enableVertexFragmentProgram<span class="signature">(vfpName)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>enableVertexFragmentProgram</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>vfpName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-165">line 165</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="enqueueNDRangeKernel"><span class="type-signature"></span>enqueueNDRangeKernel<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Process kernels</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-450">line 450</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="enqueueVertexFragmentProgram"><span class="type-signature"></span>enqueueVertexFragmentProgram<span class="signature">(<span class="optional">argumentInd</span>, drawMode)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -851,7 +1224,7 @@
 
         <tr>
             
-                <td class="name"><code>argument</code></td>
+                <td class="name"><code>argumentInd</code></td>
             
 
             <td class="type">
@@ -890,41 +1263,6 @@
 
         <tr>
             
-                <td class="name"><code>Name</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>(vertexFragmentProgramName) of vertexFragmentProgram to execute</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
                 <td class="name"><code>drawMode</code></td>
             
 
@@ -953,46 +1291,7 @@
                 </td>
             
 
-            <td class="description last"></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>geometryLength</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    1
-                
-                </td>
-            
-
-            <td class="description last"><p>Length of geometry (1 for points, 3 for triangles...)</p></td>
+            <td class="description last"><p>0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES</p></td>
         </tr>
 
 	
@@ -1024,7 +1323,150 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-302">line 302</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-473">line 473</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="fillPointerArg"><span class="type-signature"></span>fillPointerArg<span class="signature">(argName, clearColor)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>fillPointerArg</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>argName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>clearColor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Float></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-327">line 327</a>
     </li></ul></dd>
     
 
@@ -1095,7 +1537,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-249">line 249</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-361">line 361</a>
     </li></ul></dd>
     
 
@@ -1234,7 +1676,579 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-62">line 62</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-119">line 119</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="onPostProcessKernel"><span class="type-signature"></span>onPostProcessKernel<span class="signature">(kernelName, fn)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>onPostProcessKernel</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>kernelName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-95">line 95</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="onPostProcessVertexFragmentProgram"><span class="type-signature"></span>onPostProcessVertexFragmentProgram<span class="signature">(vfpName, fn)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>onPostProcessVertexFragmentProgram</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>vfpName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-157">line 157</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="onPreProcessKernel"><span class="type-signature"></span>onPreProcessKernel<span class="signature">(kernelName, fn)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>onPreProcessKernel</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>kernelName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-86">line 86</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+			
+        
+			
+				
+<dt>
+    <h4 class="name" id="onPreProcessVertexFragmentProgram"><span class="type-signature"></span>onPreProcessVertexFragmentProgram<span class="signature">(vfpName, fn)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>onPreProcessVertexFragmentProgram</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>vfpName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Callback</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-148">line 148</a>
     </li></ul></dd>
     
 
@@ -1495,7 +2509,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-165">line 165</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-255">line 255</a>
     </li></ul></dd>
     
 
@@ -1689,7 +2703,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-279">line 279</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-391">line 391</a>
     </li></ul></dd>
     
 
@@ -1832,127 +2846,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-228">line 228</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-			
-        
-			
-				
-<dt>
-    <h4 class="name" id="setUpdateFromKernel"><span class="type-signature"></span>setUpdateFromKernel<span class="signature">(argument)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>setUpdateFromKernel</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>argument</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-35">line 35</a>
+        <a href="WebCLGLWork.class.js.html">WebCLGLWork.class.js</a>, <a href="WebCLGLWork.class.js.html#sunlight-1-line-340">line 340</a>
     </li></ul></dd>
     
 
@@ -1983,6 +2877,22 @@
 		
 		
 		
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
 			
         
 			
@@ -2034,7 +2944,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha2</a>
-		on Thu May 05 2016 17:26:00 GMT+0200 (CEST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		on Wed May 18 2016 06:14:43 GMT+0200 (CEST) using the <a href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
 			</div>
