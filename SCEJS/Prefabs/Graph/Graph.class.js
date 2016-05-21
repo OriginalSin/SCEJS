@@ -276,6 +276,7 @@ Graph = function(sce) {
 
     /**
      * datetimeToTimestamp
+     * @private
      * @example
      * var ts = datetimeToTimestamp("24-Nov-2009 17:57:35")
      * */
@@ -329,8 +330,8 @@ Graph = function(sce) {
     /**
      * setTimelineDatetimeRange
      * @param {Object} jsonIn
-     * @param {String} jsonIn.initDatetime - date of born in Datetime format
-     * @param {String} jsonIn.endDatetime - date of die in Datetime format
+     * @param {String} jsonIn.initDatetime - date of animation start
+     * @param {String} jsonIn.endDatetime - date of animation end
      */
     this.setTimelineDatetimeRange = function(jsonIn) {
         _initTimestamp = datetimeToTimestamp(jsonIn.initDatetime);
@@ -341,10 +342,10 @@ Graph = function(sce) {
 
     /**
      * setTimelineDatetimeRange
-     * @param {Int} len - frames length
+     * @param {Int} length - frames length
      */
-    this.setTimelineFramesLength = function(len) {
-        _animationFrames = len;
+    this.setTimelineFramesLength = function(length) {
+        _animationFrames = length;
 
         _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
     };
