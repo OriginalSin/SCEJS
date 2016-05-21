@@ -350,9 +350,10 @@ Utils.prototype.angle = function(vA, vB) {
 };*/
 
 /**
-* Pack 1float (0.0-1.0) to 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0)
-* @returns {Array<Float>}
+* Pack 1float (0.0-1.0) to 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0)*
 * @param {Float} value
+* @returns {Array<Float>}
+*
 */
 Utils.prototype.pack = function(v) {
 	var bias = [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0];

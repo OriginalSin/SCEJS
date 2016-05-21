@@ -22,7 +22,7 @@ var ForceLayout_FunctionsString = ''+
     'float collisionExists;'+
 '};'+
 
-'CalculationResponse calculate(int connectionExists, vec2 xGeom_oppo, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion) {'+
+'CalculationResponse calculate(int connectionExists, vec2 xAdjMat, vec2 xGeom_oppo, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion) {'+
     'float radius = 4.0;\n'+
     'float collisionExists = 0.0;\n'+
 
@@ -41,12 +41,22 @@ var ForceLayout_FunctionsString = ''+
             'float bornDateOpposite = dataB[xGeom_oppo].x;'+
             'float dieDateOpposite = dataB[xGeom_oppo].y;'+
 
-            'int mak = 0;'+
+            'int mak = 1;'+
             'if(dieDateOpposite != -1.0) {'+
-                'if(currentTimestamp > bornDateOpposite && currentTimestamp < dieDateOpposite) '+
-                    'mak = 1;'+
-            '} else '+
-                'mak = 1;'+
+                'if(currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite) {'+
+                    'mak = 0;'+
+                '} else {'+
+                    // nodes exists, now check link
+                    'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
+                        'mak = 0;'+
+                    '}'+
+                '}'+
+            '} else {'+
+                // now check link
+                'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
+                    'mak = 0;'+
+                '}'+
+            '}'+
 
             'if(mak == 1) {'+
                 'atraction += dirToBN*dist*0.5;\n'+
@@ -72,9 +82,9 @@ var AdjMatrix_ForceLayout_initVars = ''+
 
 var AdjMatrix_ForceLayout_relationFound = function(geometryLength) {
     var str = ''+
-    'int connectionExists = (it > 0.5) ? 1 : 0;'+
+    'int connectionExists = (it.x > 0.0) ? 1 : 0;'+
     'vec2 xGeom_oppo = get_global_id(idb, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
-    'CalculationResponse calcResponse = calculate(connectionExists, xGeom_oppo, currentPos, currentDir, atraction, acumAtraction, repulsion);'+
+    'CalculationResponse calcResponse = calculate(connectionExists, xAdjMat, xGeom_oppo, currentPos, currentDir, atraction, acumAtraction, repulsion);'+
     'atraction = calcResponse.atraction;'+
     'acumAtraction = calcResponse.acumAtraction;'+
     'repulsion = calcResponse.repulsion;'+
@@ -142,7 +152,7 @@ var AdjMatrix_Autolink_initVars = ''+
 
 var AdjMatrix_Autolink_relationFound = function(geometryLength) {
     var str = ''+
-    'if(it > 0.5) {'+
+    'if(it.x > 0.0) {'+
         'vec2 xGeom_oppo = get_global_id(idb, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
         'vec3 currentPosB = posXYZW[xGeom_oppo].xyz;\n'+
         'vec3 dirToBN = normalize(currentPosB-currentPos);\n'+
@@ -158,9 +168,9 @@ var AdjMatrix_Autolink_relationFound = function(geometryLength) {
             'if(idbB >= nodesCount) break;\n'+
             'if(idbB != idb && idbB != nodeId) {'+
                 'vec2 xAdjMatB = get_global_id(vec2(nodeId-initA, float(nB)), widthAdjMatrix);'+
-                'float itB = adjacencyMatrix[xAdjMatB];\n'+
+                'vec4 itB = adjacencyMatrix[xAdjMatB];\n'+
 
-                'if(itB > 0.5) {'+
+                'if(itB.x > 0.0) {'+
                     'vec2 xGeom_oppoB = get_global_id(idbB, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
                     'vec3 currentPosBB = posXYZW[xGeom_oppoB].xyz;\n'+
                     'vec3 dirToBBN = normalize(currentPosBB-currentPos);\n'+
@@ -210,7 +220,7 @@ var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, 
                 'if(idb >= nodesCount) break;\n'+
                 'if(idb != nodeId) {'+
                     'vec2 xAdjMat = get_global_id(vec2(nodeId-initA, float(n)), widthAdjMatrix);'+
-                    'float it = adjacencyMatrix[xAdjMat];\n'+
+                    'vec4 it = adjacencyMatrix[xAdjMat];\n'+
 
                     relationFound+
 

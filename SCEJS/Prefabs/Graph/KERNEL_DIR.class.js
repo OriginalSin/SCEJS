@@ -15,8 +15,8 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
                         'vec2 xGeometry = get_global_id(nodeId, uBufferWidth, '+geometryLength.toFixed(1)+');'+
 
 
-                        'float bornDate = data[x].z;'+
-                        'float dieDate = data[x].w;'+
+                        'float bornDate = dataB[x].x;'+
+                        'float dieDate = dataB[x].y;'+
 
                         'vec3 currentDir = dir[x].xyz;\n'+
                         'vec3 currentPos = posXYZW[x].xyz;\n'+
