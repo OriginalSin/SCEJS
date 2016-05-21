@@ -42,19 +42,23 @@ var ForceLayout_FunctionsString = ''+
             'float dieDateOpposite = dataB[xGeom_oppo].y;'+
 
             'int mak = 1;'+
-            'if(dieDateOpposite != -1.0) {'+
+            'if(dieDateOpposite != 0.0) {'+
                 'if(currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite) {'+
                     'mak = 0;'+
                 '} else {'+
                     // nodes exists, now check link
-                    'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
-                        'mak = 0;'+
+                    'if(adjacencyMatrix[xAdjMat].y != 0.0) {'+
+                        'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
+                            'mak = 0;'+
+                        '}'+
                     '}'+
                 '}'+
             '} else {'+
                 // now check link
-                'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
-                    'mak = 0;'+
+                'if(adjacencyMatrix[xAdjMat].y != 0.0) {'+
+                    'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
+                        'mak = 0;'+
+                    '}'+
                 '}'+
             '}'+
 
@@ -94,7 +98,7 @@ var AdjMatrix_ForceLayout_relationFound = function(geometryLength) {
         'break;'+
     '}'+
 
-    'if(dieDate != -1.0) {'+
+    'if(dieDate != 0.0) {'+
         'if(currentTimestamp < bornDate || currentTimestamp > dieDate) {'+
             'force = vec3(0.0, 0.0, 0.0);'+
             'break;'+

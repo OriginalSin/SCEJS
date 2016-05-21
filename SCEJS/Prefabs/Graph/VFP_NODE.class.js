@@ -114,12 +114,12 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             '}'+
             'float checkLinkArrowVisibility(float currentTimestamp, float bornDate, float dieDate, float bornDateOpposite, float dieDateOpposite, float linkBornDate, float linkDieDate) {'+
                 'float visible =1.0;'+
-                'if(dieDate != -1.0) {'+
+                'if(dieDate != 0.0) {'+
                     'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite)) {'+
                         'visible = 0.0;'+
                     '} else {'+
                         // now check link
-                        'if(linkDieDate != -1.0) {'+
+                        'if(linkDieDate != 0.0) {'+
                             'if(currentTimestamp < linkBornDate || currentTimestamp > linkDieDate) {'+
                                 'visible = 0.0;'+
                             '}'+
@@ -127,7 +127,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                     '}'+
                 '} else {'+
                     // now check link
-                    'if(linkDieDate != -1.0) {'+
+                    'if(linkDieDate != 0.0) {'+
                         'if(currentTimestamp < linkBornDate || currentTimestamp > linkDieDate) {'+
                             'visible = 0.0;'+
                         '}'+
@@ -201,7 +201,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                     'vVertexUV = get2Dfrom1D(nodeImgId, nodeImgColumns)+vec2(nodeVertexTexture.x/nodeImgColumns,nodeVertexTexture.y/nodeImgColumns);'+
                 '}'+
 
-                'if(dieDate != -1.0) '+
+                'if(dieDate != 0.0) '+
                 'if(currentTimestamp < bornDate || currentTimestamp > dieDate)'+
                     'vVisibility = 0.0;'+
             '}'+

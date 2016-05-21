@@ -27,7 +27,7 @@ Graph = function(sce) {
     var _enabledForceLayout = false;
     var _forceWidthAdjMatrix = -1;
 
-    var _enableAnimation = false;
+    var _playAnimation = false;
     var _loop = false;
     var _animationFrames = 500;
     
@@ -59,6 +59,9 @@ Graph = function(sce) {
     var _endTimestamp;
     var _timeFrameIncrement;
     var _currentFrame = 0;
+    _initTimestamp = 0;
+    _endTimestamp = Date.now()/1000;
+    _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
 
 	var readPixel = false;
 	var selectedId = -1;
@@ -285,15 +288,13 @@ Graph = function(sce) {
     }).bind(this);
 
     /** @private */
-    var getTS = (function(bornD, dieD) {
+    var getBornDieTS = (function(bornD, dieD) {
         /** @private */
         var generateRandomBornAndDie = (function() {
-            var timeFrameIncrement = this.getTimeFrameIncrement();
-
-            var bornDate = this.getInitTimestamp()+(parseInt(Math.random()*Math.max(0, _animationFrames-20))*timeFrameIncrement);
+            var bornDate = _initTimestamp+(parseInt(Math.random()*Math.max(0, _animationFrames-20))*_timeFrameIncrement);
             var dieDate;
             while(true) {
-                dieDate = this.getInitTimestamp()+(parseInt(Math.random()*_animationFrames)*timeFrameIncrement);
+                dieDate = _initTimestamp+(parseInt(Math.random()*_animationFrames)*_timeFrameIncrement);
                 if(dieDate > bornDate)
                     break;
             }
@@ -320,8 +321,8 @@ Graph = function(sce) {
                 dd = dieD;
             }
         } else {
-            bd = -1.0;
-            dd = -1.0;
+            bd = 1.0;
+            dd = 0.0;
         }
 
         return {"bornDate": bd, "dieDate": dd};
@@ -351,35 +352,11 @@ Graph = function(sce) {
     };
 
     /**
-     * getTimeFrameIncrement
-     * @returns {Float}
-     */
-    this.getTimeFrameIncrement = function() {
-        return _timeFrameIncrement;
-    };
-
-    /**
-     * getInitTimestamp
-     * @returns {Int}
-     */
-    this.getInitTimestamp = function() {
-        return _initTimestamp;
-    };
-
-    /**
-     * getEndTimestamp
-     * @returns {Int}
-     */
-    this.getEndTimestamp = function() {
-        return _endTimestamp;
-    };
-
-    /**
      * play
      * @param {Bool} [loop=false]
      */
     this.playTimeline = function(loop) {
-        _enableAnimation = true;
+        _playAnimation = true;
         if(loop != undefined)
             _loop = loop;
     };
@@ -388,7 +365,7 @@ Graph = function(sce) {
      * pause
      */
     this.pauseTimeline = function() {
-        _enableAnimation = false;
+        _playAnimation = false;
     };
 
     /**
@@ -641,7 +618,7 @@ Graph = function(sce) {
         for(var n = 0; n < rowCount; n++) {
             var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
-            var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? {"bornDate": "RANDOM", "dieDate": "RANDOM"} : {"bornDate": null, "dieDate": null};
+            var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? {"bornDate": "RANDOM", "dieDate": "RANDOM"} : {"bornDate": 1.0, "dieDate": 0.0};
 
             var node = this.addNode({
                 "name": n.toString(),
@@ -700,7 +677,7 @@ Graph = function(sce) {
             for(var nb=0, fnb = nextPointer-pointer; nb < fnb; nb++) {
                 var xx = parseInt(rowIndices[pointer+nb])-1;
 
-                var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? {"bornDate": "RANDOM", "dieDate": "RANDOM"} : {"bornDate": null, "dieDate": null};
+                var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? {"bornDate": "RANDOM", "dieDate": "RANDOM"} : {"bornDate": 1.0, "dieDate": 0.0};
 
                 this.addLink({	"origin": xx,
                     "target": yy,
@@ -962,7 +939,7 @@ Graph = function(sce) {
         comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
         comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
         comp_renderer_nodes.onPreProcessKernels((function() {
-            if(_enableAnimation == true) {
+            if(_playAnimation == true) {
                 var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
                 comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
                 comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
@@ -1554,7 +1531,7 @@ Graph = function(sce) {
         for(var n=0; n < mesh_nodes.vertexArray.length/4; n++) {
             var idxVertex = n*4;
 
-            var ts = getTS(jsonIn.bornDate, jsonIn.dieDate);
+            var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
             this.arrayNodeData.push(this.currentNodeId, 0.0, ts.bornDate, ts.dieDate);
             this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -1.0, -1.0);
             this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
@@ -1836,7 +1813,7 @@ Graph = function(sce) {
                 jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
                 jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
 
-                var ts = getTS(jsonIn.bornDate, jsonIn.dieDate);
+                var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
                 jsonIn.bornDate = ts.bornDate;
                 jsonIn.dieDate = ts.dieDate;
 
