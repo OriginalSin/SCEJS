@@ -35,6 +35,8 @@ Graph = function(sce) {
     var circleSegments = 12;
     var nodesTextPlanes = 12;
 
+    var lineVertexCount = 4;
+
 
 
 
@@ -44,8 +46,7 @@ Graph = function(sce) {
     var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
 
 
-    var arrAdjMatrix_STORE = [];
-    var maxItemsInSTORE = 10;
+    var arrAdjMatrix = [];
 	var _ADJ_MATRIX_WIDTH;
     var _ADJ_MATRIX_WIDTH_TOTAL;
 	var _currentAdjMatrix = 0;
@@ -53,7 +54,6 @@ Graph = function(sce) {
 	var _numberOfAdjMatrix;
 	var _buffAdjMatrix;
 	var _adjMatrixTime = 0;
-	var lineVertexCount = 4;
 
     var _initTimestamp;
     var _endTimestamp;
@@ -121,6 +121,7 @@ Graph = function(sce) {
     this.splitLinksIndices = [];
 
     this.arrayLinkData = []; // nodeId origin, nodeId target, currentLineVertex, repeatId
+    this.arrayLinkDataC = []; // linkBornDate, linkDieDate, 0, 0
     this.arrayLinkNodeName = [];
     this.arrayLinkPosXYZW = [];
     this.arrayLinkVertexPos = [];
@@ -134,6 +135,7 @@ Graph = function(sce) {
     this.splitArrowsIndices = [];
 
     this.arrayArrowData = [];
+    this.arrayArrowDataC = [];
     this.arrayArrowNodeName = [];
     this.arrayArrowPosXYZW = [];
     this.arrayArrowVertexPos = [];
@@ -273,21 +275,64 @@ Graph = function(sce) {
 
 
     /**
+     * datetimeToTimestamp
+     * @example
+     * var ts = datetimeToTimestamp("24-Nov-2009 17:57:35")
+     * */
+    var datetimeToTimestamp = (function(dt) {
+        return Date.parse(dt)/1000;
+    }).bind(this);
+
+    /** @private */
+    var getTS = (function(bornD, dieD) {
+        /** @private */
+        var generateRandomBornAndDie = (function() {
+            var timeFrameIncrement = this.getTimeFrameIncrement();
+
+            var bornDate = this.getInitTimestamp()+(parseInt(Math.random()*Math.max(0, _animationFrames-20))*timeFrameIncrement);
+            var dieDate;
+            while(true) {
+                dieDate = this.getInitTimestamp()+(parseInt(Math.random()*_animationFrames)*timeFrameIncrement);
+                if(dieDate > bornDate)
+                    break;
+            }
+            //console.log(bornDate);
+            //console.log(dieDate);
+
+            return {bornDate: bornDate, dieDate: dieDate};
+        }).bind(this);
+
+        var bd;
+        var dd;
+        if(bornD != null) {
+            if(bornD.constructor===String) {
+                if(bornD == "RANDOM") {
+                    var rbdd = generateRandomBornAndDie();
+                    bd = rbdd.bornDate;
+                    dd = rbdd.dieDate;
+                } else {
+                    bd = datetimeToTimestamp(bornD);
+                    dd = datetimeToTimestamp(dieD);
+                }
+            } else {
+                bd = bornD;
+                dd = dieD;
+            }
+        } else {
+            bd = -1.0;
+            dd = -1.0;
+        }
+
+        return {"bornDate": bd, "dieDate": dd};
+    }).bind(this);
+
+    /**
      * setTimelineDatetimeRange
      * @param {Object} jsonIn
      * @param {String} jsonIn.initDatetime - date of born in Datetime format
      * @param {String} jsonIn.endDatetime - date of die in Datetime format
      */
     this.setTimelineDatetimeRange = function(jsonIn) {
-        /**
-         * datetimeToTimestamp
-         * @example
-         * ar ts = datetimeToTimestamp("24-Nov-2009 17:57:35")
-         * */
-        var datetimeToTimestamp = function(dt) {
-            return Date.parse(dt)/1000;
-        };
-
         _initTimestamp = datetimeToTimestamp(jsonIn.initDatetime);
         _endTimestamp = datetimeToTimestamp(jsonIn.endDatetime);
 
@@ -556,23 +601,6 @@ Graph = function(sce) {
      * @param {Bool} [jsonIn.generateBornAndDieDates=undefined]
      */
     this.loadRBFromStr = function(jsonIn) {
-        var generateRandomBornAndDie = (function(animationFrames) {
-            var timeFrameIncrement = this.getTimeFrameIncrement();
-
-            var bornDate = this.getInitTimestamp()+(parseInt(Math.random()*Math.max(0, animationFrames-20))*timeFrameIncrement);
-            var dieDate;
-            while(true) {
-                dieDate = this.getInitTimestamp()+(parseInt(Math.random()*animationFrames)*timeFrameIncrement);
-                if(dieDate > bornDate)
-                    break;
-            }
-            //console.log(bornDate);
-            //console.log(dieDate);
-
-            return {bornDate: bornDate, dieDate: dieDate};
-        }).bind(this);
-
-
         var _sourceText = jsonIn.data;
         var lines = _sourceText.split("\r\n");
         if(lines.length == 1) lines = _sourceText.split("\n");
@@ -612,7 +640,7 @@ Graph = function(sce) {
         for(var n = 0; n < rowCount; n++) {
             var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
-            var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? generateRandomBornAndDie(_animationFrames) : {"bornDate": null, "dieDate": null};
+            var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? {"bornDate": "RANDOM", "dieDate": "RANDOM"} : {"bornDate": null, "dieDate": null};
 
             var node = this.addNode({
                 "name": n.toString(),
@@ -671,9 +699,13 @@ Graph = function(sce) {
             for(var nb=0, fnb = nextPointer-pointer; nb < fnb; nb++) {
                 var xx = parseInt(rowIndices[pointer+nb])-1;
 
+                var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? {"bornDate": "RANDOM", "dieDate": "RANDOM"} : {"bornDate": null, "dieDate": null};
+
                 this.addLink({	"origin": xx,
                     "target": yy,
-                    "directed": true});
+                    "directed": true,
+                    "bornDate": bd.bornDate,
+                    "dieDate": bd.dieDate});
             }
 
             yy++;
@@ -854,13 +886,14 @@ Graph = function(sce) {
             'float4* posXYZW': (function(){return null;}).bind(this),
             "float4* dataB": (function(){return null;}).bind(this),
             "float4*attr data": (function(){return null;}).bind(this),
+            "float4*attr dataC": (function(){return null;}).bind(this),
             'float4*attr nodeVertexPos': (function(){return null;}).bind(this),
             'float4*attr nodeVertexNormal': (function(){return null;}).bind(this),
             'float4*attr nodeVertexTexture': (function(){return null;}).bind(this),
             'float*attr letterId': (function(){return null;}).bind(this),
             'float*attr nodeImgId': (function(){return null;}).bind(this),
             'indices': (function(){return null;}).bind(this),
-            "float* adjacencyMatrix": (function(){return null;}).bind(this),
+            "float4* adjacencyMatrix": (function(){return null;}).bind(this),
             "float widthAdjMatrix": (function(){return null;}).bind(this),
             "float currentAdjMatrix": (function(){return null;}).bind(this),
             "float numberOfColumns": (function(){return null;}).bind(this),
@@ -959,9 +992,7 @@ Graph = function(sce) {
                     } else {
                         comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
 
-                        var idSTORE = _currentAdjMatrix/maxItemsInSTORE;
-                        var bn = arrAdjMatrix_STORE[Math.floor(idSTORE)][_currentAdjMatrix];
-                        _buffAdjMatrix.items[0].writeWebGLTextureBuffer(bn);
+                        _buffAdjMatrix.items[0].writeWebGLTextureBuffer(arrAdjMatrix[_currentAdjMatrix]);
 
                         //comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
                     }
@@ -1469,8 +1500,8 @@ Graph = function(sce) {
 	* @param {String} [jsonIn.data=""] - Custom data associated to this node
 	* @param {Array<Float4>} [jsonIn.position=new Array(Math.Random(), Math.Random(), Math.Random(), 1.0)] - Position of node
 	* @param {String} [jsonIn.color=undefined] - URL of image
-    * @param {Float} [jsonIn.bornDate=undefined] -
-    * @param {Float} [jsonIn.dieDate=undefined] -
+    * @param {Float|String|Datetime} [jsonIn.bornDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
+    * @param {Float|String|Datetime} [jsonIn.dieDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
 	* @param {LayoutNodeData} [jsonIn.layoutNodeArgumentData=undefined] - Data for the custom layout
 	* @param {Graph~addNode~onmousedown} [jsonIn.onmousedown=undefined] - Event when mousedown
 	* @param {Graph~addNode~onmouseup} [jsonIn.onmouseup=undefined] - Event when mouseup
@@ -1522,10 +1553,9 @@ Graph = function(sce) {
         for(var n=0; n < mesh_nodes.vertexArray.length/4; n++) {
             var idxVertex = n*4;
 
-            var bornDate = (jsonIn.bornDate != undefined) ? jsonIn.bornDate : -1.0;
-            var dieDate = (jsonIn.dieDate != undefined) ? jsonIn.dieDate : -1.0;
-            this.arrayNodeData.push(this.currentNodeId, 0.0, bornDate, dieDate);
-            this.arrayNodeDataB.push(bornDate, dieDate, 0.0, 0.0);
+            var ts = getTS(jsonIn.bornDate, jsonIn.dieDate);
+            this.arrayNodeData.push(this.currentNodeId, 0.0, ts.bornDate, ts.dieDate);
+            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -1.0, -1.0);
             this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
             this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
             this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
@@ -1781,6 +1811,8 @@ Graph = function(sce) {
      * @param {String} jsonIn.origin - NodeName Origin for this link
      * @param {String} jsonIn.target - NodeName Target for this link
      * @param {Bool} [jsonIn.directed=false] -
+     * @param {Float|String|Datetime} [jsonIn.bornDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
+     * @param {Float|String|Datetime} [jsonIn.dieDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
      */
     this.addLink = function(jsonIn) {
         var pass = true;
@@ -1802,6 +1834,10 @@ Graph = function(sce) {
                 jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
                 jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
                 jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
+
+                var ts = getTS(jsonIn.bornDate, jsonIn.dieDate);
+                jsonIn.bornDate = ts.bornDate;
+                jsonIn.dieDate = ts.dieDate;
 
                 var repeatId = 1;
                 while(true) {
@@ -1855,6 +1891,7 @@ Graph = function(sce) {
     var createLink = (function(jsonIn) {
         for(var n=0; n < lineVertexCount*2; n++) {
             this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), jsonIn.repeatId);
+            this.arrayLinkDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
 
             if(Math.ceil(n/2) != (lineVertexCount-1)) {
                 this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
@@ -1939,6 +1976,7 @@ Graph = function(sce) {
                 this.arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
                 if(o == 0) {
                     this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, jsonIn.repeatId);
+                    this.arrayArrowDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
                     this.arrayArrowNodeName.push(jsonIn.origin_nodeName);
                     if(jsonIn.origin_layoutNodeArgumentData != undefined) {
                         for(var argNameKey in _customArgs) {
@@ -1958,6 +1996,7 @@ Graph = function(sce) {
                     }
                 } else {
                     this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, jsonIn.repeatId);
+                    this.arrayArrowDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
                     this.arrayArrowNodeName.push(jsonIn.target_nodeName);
                     if(jsonIn.target_layoutNodeArgumentData != undefined) {
                         for(var argNameKey in _customArgs) {
@@ -2129,6 +2168,7 @@ Graph = function(sce) {
         comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
 
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
+        comp_renderer_links.setArg("dataC", (function() {return this.arrayLinkDataC;}).bind(this), this.splitLinks);
         comp_renderer_links.setSharedArg("dataB", comp_renderer_nodes);
 		comp_renderer_links.setSharedArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
@@ -2159,6 +2199,7 @@ Graph = function(sce) {
     /** @private */
     var updateArrows = (function() {
         comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setArg("dataC", (function() {return this.arrayArrowDataC;}).bind(this), this.splitArrows);
         comp_renderer_arrows.setSharedArg("dataB", comp_renderer_nodes);
         comp_renderer_arrows.setSharedArg("posXYZW", comp_renderer_nodes);
 
@@ -2186,7 +2227,7 @@ Graph = function(sce) {
 
     /** @private */
     var updateAdjMat = (function() {
-        var setAdjMat = (function(id) {
+        var setAdjMat = (function(id, bornDate, dieDate) {
             var num = id/_ADJ_MATRIX_WIDTH_TOTAL;
             var idX = new Utils().fract(num)*_ADJ_MATRIX_WIDTH_TOTAL;
             var idY = Math.floor(num);
@@ -2206,11 +2247,13 @@ Graph = function(sce) {
 
             var currentItemAdjMatrix = (iY*_ADJ_MATRIX_WIDTH)+iX;
 
-            var idSTORE = currentItemArrayAdjMatrix/maxItemsInSTORE;
-            arrAdjMatrix_STORE[Math.floor(idSTORE)][currentItemArrayAdjMatrix][Math.round(currentItemAdjMatrix)] = 1;
+            var idx = Math.round(currentItemAdjMatrix)*4;
+
+            arrAdjMatrix[currentItemArrayAdjMatrix][idx] = bornDate;
+            arrAdjMatrix[currentItemArrayAdjMatrix][idx+1] = dieDate;
         }).bind(this);
 
-        arrAdjMatrix_STORE = [];
+        arrAdjMatrix = [];
 
         _ADJ_MATRIX_WIDTH = this.currentNodeId;
         if(_forceWidthAdjMatrix != -1)
@@ -2221,13 +2264,10 @@ Graph = function(sce) {
         _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
 
         // creating adjMatrixArray
-        for(var n=0; n < _numberOfAdjMatrix; n++) {
-            var idSTORE = n/maxItemsInSTORE;
-            if(arrAdjMatrix_STORE[Math.floor(idSTORE)] == undefined)
-                arrAdjMatrix_STORE[Math.floor(idSTORE)] = [];
-
-            arrAdjMatrix_STORE[Math.floor(idSTORE)][n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH);
+        for(var n=0; n < _numberOfAdjMatrix; n++){
+            arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
         }
+
 
         // walk relations and adding in corresponding adjMatrixArray item
         for(var key in _links) {
@@ -2239,39 +2279,37 @@ Graph = function(sce) {
 
 
             // id
-            setAdjMat(id);
-            setAdjMat(idSymmetrical);
+            setAdjMat(id, _links[key].bornDate, _links[key].dieDate);
+            setAdjMat(idSymmetrical, _links[key].bornDate, _links[key].dieDate);
         }
 
 
 
-        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix_STORE[0][0];}).bind(this));
+        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[0];}).bind(this));
         _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
+        comp_renderer_links.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_arrows.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
+
+
+
+
         comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
         comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
         comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 
-
-
-        comp_renderer_links.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
         comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
         comp_renderer_links.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
         comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 
-
-
-        comp_renderer_arrows.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
         comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
         comp_renderer_arrows.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
         comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
 
 
         /*for(var n=0; n < _numberOfAdjMatrix; n++) {
-         var idSTORE = n/maxItemsInSTORE;
-         this.adjacencyMatrixToImage(arrAdjMatrix_STORE[Math.floor(idSTORE)][n], _ADJ_MATRIX_WIDTH, (function(img) {
-         document.body.appendChild(img);
-         }).bind(this));
-         }*/
+             this.adjacencyMatrixToImage(arrAdjMatrix[n], _ADJ_MATRIX_WIDTH, (function(img) {
+             document.body.appendChild(img);
+         }).bind(this));*/
     }).bind(this);
 
 

@@ -111,6 +111,29 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                 'initialVec = getVV(initialVec, (totalAngleRelations/2.0)*repeatDistribution);'+
                 // and now left or right (oddEven)
                 'return getVV(initialVec, getOddEven(repeatId)*totalAngleRelations*0.01);'+
+            '}'+
+            'float checkLinkArrowVisibility(float currentTimestamp, float bornDate, float dieDate, float bornDateOpposite, float dieDateOpposite, float linkBornDate, float linkDieDate) {'+
+                'float visible =1.0;'+
+                'if(dieDate != -1.0) {'+
+                    'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite)) {'+
+                        'visible = 0.0;'+
+                    '} else {'+
+                        // now check link
+                        'if(linkDieDate != -1.0) {'+
+                            'if(currentTimestamp < linkBornDate || currentTimestamp > linkDieDate) {'+
+                                'visible = 0.0;'+
+                            '}'+
+                        '}'+
+                    '}'+
+                '} else {'+
+                    // now check link
+                    'if(linkDieDate != -1.0) {'+
+                        'if(currentTimestamp < linkBornDate || currentTimestamp > linkDieDate) {'+
+                            'visible = 0.0;'+
+                        '}'+
+                    '}'+
+                '}'+
+                'return visible;'+
             '}',
 
 
@@ -130,6 +153,8 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             'vec4 nodePosition = posXYZW[xGeometry];\n'+
             'float bornDate = dataB[xGeometry].x;'+
             'float dieDate = dataB[xGeometry].y;'+
+            'float linkBornDate = dataC[].x;'+
+            'float linkDieDate = dataC[].y;'+
 
             'vec3 XYZW_opposite = posXYZW[xGeometry_opposite].xyz;\n'+
             'float bornDateOpposite = dataB[xGeometry_opposite].x;'+
@@ -208,9 +233,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                     '}'+
                 '}'+
 
-                'if(dieDate != -1.0) '+
-                    'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite))'+
-                        'vVisibility = 0.0;'+
+                'vVisibility = checkLinkArrowVisibility(currentTimestamp, bornDate, dieDate, bornDateOpposite, dieDateOpposite, linkBornDate, linkDieDate);'+
             '}'+
             'if(isArrow == 1.0) {'+
                 'vec3 nodePositionTMP;'+
@@ -263,9 +286,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                 'dir = nodePositionTMP-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
                 'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
 
-                'if(dieDate != -1.0) '+
-                    'if((currentTimestamp < bornDate || currentTimestamp > dieDate) || (currentTimestamp < bornDateOpposite || currentTimestamp > dieDateOpposite))'+
-                        'vVisibility = 0.0;'+
+                'vVisibility = checkLinkArrowVisibility(currentTimestamp, bornDate, dieDate, bornDateOpposite, dieDateOpposite, linkBornDate, linkDieDate);'+
             '}'+
             'if(isNodeText == 1.0) {'+
                 'float letId = letterId[];\n'+
