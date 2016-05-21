@@ -37,7 +37,7 @@ function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
 
             'vColor = vec4(1.0, 1.0, 1.0, 1.0);'+
             'int mak = 0;'+
-            'if(dieDate != -1.0) {'+
+            'if(dieDate != 0.0) {'+
                 'if(currentTimestamp > bornDate && currentTimestamp < dieDate) '+
                     'mak = 1;'+
             '} else '+
