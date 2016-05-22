@@ -106,14 +106,17 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
     this.writeWebGLTextureBuffer = function(arr, flip) {
         inData = arr;
 
-        if(arr instanceof WebGLTexture) this.textureData = arr;
+        if(arr instanceof WebGLTexture)
+            this.textureData = arr;
         else {
             if(flip == false || flip == undefined)
                 _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, false);
             else
                 _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
+
             _gl.pixelStorei(_gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
             _gl.bindTexture(_gl.TEXTURE_2D, this.textureData);
+
             if(arr instanceof HTMLImageElement)  {
                 inData = new WebCLGLUtils().getUint8ArrayFromHTMLImageElement(arr);
                 //texImage2D(			target, 			level, 	internalformat, 	format, 		type, 			TexImageSource);
@@ -123,19 +126,19 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
                  _gl.texImage2D(	_gl.TEXTURE_2D, 0, 		_gl.RGBA, 		_gl.RGBA, 	_gl.UNSIGNED_BYTE, 	arr);
                  }*/
             } else {
-                //console.log("Write arr with length of "+arr.length+" in Buffer "+this.type+" with length of "+this.length+" (W: "+this.W+"; H: "+this.H+")");
-
                 if(this.type == 'FLOAT4') {
-                    var arrt = new Float32Array((this.W*this.H)*4);
-                    for(var n=0; n < arr.length; n++) arrt[n] = arr[n];
+                    var arrt;
+                    if(arr.length != (this.W*this.H*4)) {
+                        arrt = new Float32Array((this.W*this.H)*4);
+                        for(var n=0; n < arr.length; n++)
+                            arrt[n] = arr[n];
+                    } else
+                        arrt = arr;
+
+                    arrt = (arrt instanceof Float32Array) ? arrt : new Float32Array(arrt);
+
                     //texImage2D(			target, 			level, 	internalformat, 	width, height, border, 	format, 		type, 			pixels);
-                    if(arr instanceof Uint8Array) {
-                        _gl.texImage2D(	_gl.TEXTURE_2D, 0, 		_gl.RGBA, 		this.W, this.H, 0, 	_gl.RGBA, 	_gl.FLOAT, 	arrt);
-                    } else if(arr instanceof Float32Array) {
-                        _gl.texImage2D(_gl.TEXTURE_2D, 	0, 		_gl.RGBA, 		this.W, this.H, 0, 	_gl.RGBA, 	_gl.FLOAT, 	arrt);
-                    } else {
-                        _gl.texImage2D(_gl.TEXTURE_2D, 	0, 		_gl.RGBA, 		this.W, this.H, 0, 	_gl.RGBA, 	_gl.FLOAT, 	arrt);
-                    }
+                    _gl.texImage2D(_gl.TEXTURE_2D, 	0, 		_gl.RGBA, 		this.W, this.H, 0, 	_gl.RGBA, 	_gl.FLOAT, 	arrt);
                 } else if(this.type == 'FLOAT') {
                     var arrayTemp = new Float32Array(this.W*this.H*4);
 
@@ -165,8 +168,18 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
             _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.vertexData0);
             _gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arr), _gl.DYNAMIC_DRAW);
         } else { // "ATTRIBUTE" ARRAY_BUFFER
+            var arrt;
+            if(arr.length != (this.W*this.H*4)) {
+                arrt = new Float32Array((this.W*this.H)*4);
+                for(var n=0; n < arr.length; n++)
+                    arrt[n] = arr[n];
+            } else
+                arrt = arr;
+
+            arrt = (arrt instanceof Float32Array) ? arrt : new Float32Array(arrt);
+
             _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexData0);
-            _gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(arr), _gl.DYNAMIC_DRAW);
+            _gl.bufferData(_gl.ARRAY_BUFFER, arrt, _gl.DYNAMIC_DRAW);
         }
     };
 

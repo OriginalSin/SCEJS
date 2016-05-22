@@ -5,9 +5,9 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
                         // head
                         ForceLayout_FunctionsString+
                         adjMatrix_GLSLFunctionString(   AdjMatrix_ForceLayout_initVars,
-                        AdjMatrix_ForceLayout_relationFound(geometryLength),
-                        AdjMatrix_ForceLayout_summation,
-                        AdjMatrix_ForceLayout_returnInstruction),
+                                                        AdjMatrix_ForceLayout_relationFound(geometryLength),
+                                                        AdjMatrix_ForceLayout_summation,
+                                                        AdjMatrix_ForceLayout_returnInstruction),
 
                         // source
                         'float nodeId = data[x].x;'+

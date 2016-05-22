@@ -150,9 +150,6 @@
             };
 
 			var graph;
-            var animationFrames = 5000;
-
-
 			var loadGraph = function(rbUrl) {
 				if(graph != undefined) graph.clear();
 				
@@ -167,9 +164,10 @@
 
                 //graph.setTimelineDatetimeRange({"initDatetime": "24-Nov-2000 17:57:35", "endDatetime": "24-Nov-2015 17:57:35"});
 
-                //graph.setTimelineFramesLength(animationFrames);
+                //graph.setTimelineFramesLength(5000);
 
                 //graph.enableFonts(true);
+                graph.disableAutoLink();
                 aL();
                 graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
                 graph.enableHover();
@@ -179,7 +177,7 @@
 				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
                                                             // TMP
 
-                                                        }).bind(this), true);
+                                                        }).bind(this), false);
 			};			
 			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
 			
