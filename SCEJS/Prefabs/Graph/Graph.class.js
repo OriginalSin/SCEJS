@@ -25,7 +25,7 @@ Graph = function(sce) {
     var _enableHover = false;
     var _enableAutoLink = true;
     var _enabledForceLayout = false;
-    var _forceWidthAdjMatrix = -1;
+    var _MAX_ADJ_MATRIX_WIDTH = 4096;
 
     var _playAnimation = false;
     var _loop = false;
@@ -47,13 +47,13 @@ Graph = function(sce) {
 
 
     var arrAdjMatrix = [];
-	var _ADJ_MATRIX_WIDTH;
+    var _ADJ_MATRIX_WIDTH;
     var _ADJ_MATRIX_WIDTH_TOTAL;
-	var _currentAdjMatrix = 0;
-	var _numberOfColumns;
+    var _currentAdjMatrix = 0;
+    var _buffAdjMatrix;
+    var _adjMatrixTime = 0;
+    var _numberOfColumns;
 	var _numberOfAdjMatrix;
-	var _buffAdjMatrix;
-	var _adjMatrixTime = 0;
 
     var _initTimestamp;
     var _endTimestamp;
@@ -614,7 +614,7 @@ Graph = function(sce) {
         console.log(line3);
 
 
-        var offs = 1000/10;
+        var offs = 1000/2;
         for(var n = 0; n < rowCount; n++) {
             var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
@@ -895,9 +895,11 @@ Graph = function(sce) {
         if(arrArgsDirection != null)
             for(var n=0; n < arrArgsDirection.length; n++)
                 varDef_VFPNode[arrArgsDirection[n]] = (function(){return null;}).bind(this);
+
         if(arrArgsObject != null)
             for(var n=0; n < arrArgsObject.length; n++)
                 varDef_VFPNode[arrArgsObject[n]] = (function(){return null;}).bind(this);
+
 
         var varDef_NodesKernel = {
             'float4* dir': (function(){return null;}).bind(this),
@@ -952,7 +954,7 @@ Graph = function(sce) {
                         this.pauseTimeline();
                     }
                 }
-                console.log(currentTimestamp+"  "+_currentFrame);
+                //console.log(currentTimestamp+"  "+_currentFrame);
             }
 
             if(this.currentNodeId > 0 && _enabledForceLayout == true) {
@@ -2233,9 +2235,7 @@ Graph = function(sce) {
 
         arrAdjMatrix = [];
 
-        _ADJ_MATRIX_WIDTH = this.currentNodeId;
-        if(_forceWidthAdjMatrix != -1)
-            _ADJ_MATRIX_WIDTH = _forceWidthAdjMatrix;
+        _ADJ_MATRIX_WIDTH = (this.currentNodeId < _MAX_ADJ_MATRIX_WIDTH) ? this.currentNodeId : _MAX_ADJ_MATRIX_WIDTH;
 
         _numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
         _numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
@@ -2262,12 +2262,10 @@ Graph = function(sce) {
         }
 
 
-
         comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[0];}).bind(this));
-        _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
         comp_renderer_links.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
         comp_renderer_arrows.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
-
+        _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 
 
 
@@ -2286,8 +2284,10 @@ Graph = function(sce) {
 
         /*for(var n=0; n < _numberOfAdjMatrix; n++) {
              this.adjacencyMatrixToImage(arrAdjMatrix[n], _ADJ_MATRIX_WIDTH, (function(img) {
-             document.body.appendChild(img);
-         }).bind(this));*/
+                 document.body.appendChild(img);
+                 img.style.border = "1px solid red";
+             }).bind(this));
+        }*/
     }).bind(this);
 
 

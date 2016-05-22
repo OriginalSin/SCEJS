@@ -22,7 +22,7 @@ var ForceLayout_FunctionsString = ''+
     'float collisionExists;'+
 '};'+
 
-'CalculationResponse calculate(int connectionExists, vec2 xAdjMat, vec2 xGeom_oppo, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion) {'+
+'CalculationResponse calculate(vec4 it, vec2 xGeom_oppo, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion) {'+
     'float radius = 4.0;\n'+
     'float collisionExists = 0.0;\n'+
 
@@ -37,7 +37,7 @@ var ForceLayout_FunctionsString = ''+
         'collisionExists = 1.0;'+
         'atraction = sphericalColl(currentDir, currentDirB, dirToBN);'+
     '} else {'+
-        'if(connectionExists == 1) {'+
+        'if(it.x > 0.0) {'+
             'float bornDateOpposite = dataB[xGeom_oppo].x;'+
             'float dieDateOpposite = dataB[xGeom_oppo].y;'+
 
@@ -47,16 +47,16 @@ var ForceLayout_FunctionsString = ''+
                     'mak = 0;'+
                 '} else {'+
                     // nodes exists, now check link
-                    'if(adjacencyMatrix[xAdjMat].y != 0.0) {'+
-                        'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
+                    'if(it.y != 0.0) {'+
+                        'if(currentTimestamp < it.x || currentTimestamp > it.y) {'+
                             'mak = 0;'+
                         '}'+
                     '}'+
                 '}'+
             '} else {'+
                 // now check link
-                'if(adjacencyMatrix[xAdjMat].y != 0.0) {'+
-                    'if(currentTimestamp < adjacencyMatrix[xAdjMat].x || currentTimestamp > adjacencyMatrix[xAdjMat].y) {'+
+                'if(it.y != 0.0) {'+
+                    'if(currentTimestamp < it.x || currentTimestamp > it.y) {'+
                         'mak = 0;'+
                     '}'+
                 '}'+
@@ -86,12 +86,13 @@ var AdjMatrix_ForceLayout_initVars = ''+
 
 var AdjMatrix_ForceLayout_relationFound = function(geometryLength) {
     var str = ''+
-    'int connectionExists = (it.x > 0.0) ? 1 : 0;'+
     'vec2 xGeom_oppo = get_global_id(idb, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
-    'CalculationResponse calcResponse = calculate(connectionExists, xAdjMat, xGeom_oppo, currentPos, currentDir, atraction, acumAtraction, repulsion);'+
+
+    'CalculationResponse calcResponse = calculate(it, xGeom_oppo, currentPos, currentDir, atraction, acumAtraction, repulsion);'+
     'atraction = calcResponse.atraction;'+
     'acumAtraction = calcResponse.acumAtraction;'+
     'repulsion = calcResponse.repulsion;'+
+
     'if(calcResponse.collisionExists == 1.0) {'+
         'collisionExists = 1.0;'+
         'force = calcResponse.atraction;'+
@@ -103,7 +104,7 @@ var AdjMatrix_ForceLayout_relationFound = function(geometryLength) {
             'force = vec3(0.0, 0.0, 0.0);'+
             'break;'+
         '}'+
-    '} ';
+    '}';
 
     return str;
 };
@@ -114,7 +115,7 @@ var AdjMatrix_ForceLayout_summation = ''+
         'vec3 cA = atraction/acumAtraction;'+
         'force += cA;'+
 
-        'vec3 cR = repulsion/(widthAdjMatrix);'+
+        'vec3 cR = repulsion/(widthAdjMatrix-acumAtraction);'+
         'force += cR*sqrt( max(0.0, 1.0-length(cA)) );'+
     '} else {'+
         'vec3 cA = atraction/acumAtraction;'+
@@ -165,28 +166,38 @@ var AdjMatrix_Autolink_relationFound = function(geometryLength) {
         'float angleRelations = 360.0;'+
 
 
+        'float num_b;float rowAdjMat_b;float colAdjMat_b;float initCol_b;float initRow_b;'+
 
+        'num_b = currentAdjMatrix/numberOfColumns;\n'+
+        'rowAdjMat_b = floor(num_b);\n'+
+        'colAdjMat_b = float(int( fract(num_b)*numberOfColumns ));\n'+
+        //'initCol_b = colAdjMat_b*widthAdjMatrix;\n'+
+        'initRow_b = rowAdjMat_b*widthAdjMatrix;\n'+
 
-        'for(int nB=0; nB < 4096; nB++) {\n'+
-            'float idbB = float(nB)+initB;\n'+
-            'if(idbB >= nodesCount) break;\n'+
-            'if(idbB != idb && idbB != nodeId) {'+
-                'vec2 xAdjMatB = get_global_id(vec2(nodeId-initA, float(nB)), widthAdjMatrix);'+
-                'vec4 itB = adjacencyMatrix[xAdjMatB];\n'+
+        'if(nodeId >= initCol && nodeId < (initCol+widthAdjMatrix)) {\n'+
 
-                'if(itB.x > 0.0) {'+
-                    'vec2 xGeom_oppoB = get_global_id(idbB, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
-                    'vec3 currentPosBB = posXYZW[xGeom_oppoB].xyz;\n'+
-                    'vec3 dirToBBN = normalize(currentPosBB-currentPos);\n'+
+            'for(int nB=0; nB < 4096; nB++) {\n'+
+                'float idbB = float(nB)+initRow_b;\n'+
+                'if(idbB >= nodesCount) break;\n'+
+                'if(idbB != idb && idbB != nodeId) {'+
+                    'vec2 xAdjMatB = get_global_id(vec2(nodeId-initCol, float(nB)), widthAdjMatrix);'+
+                    'vec4 itB = adjacencyMatrix[xAdjMatB];\n'+
 
-                    'float angle = GetAngle(dirToBN,dirToBBN);'+
+                    'if(itB.x > 0.0) {'+
+                        'vec2 xGeom_oppoB = get_global_id(idbB, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
+                        'vec3 currentPosBB = posXYZW[xGeom_oppoB].xyz;\n'+
+                        'vec3 dirToBBN = normalize(currentPosBB-currentPos);\n'+
 
-                    'if(angle > 0.0 && angle < angleRelations) {'+
-                        'IDrelation = xGeom_oppoB;'+
-                        'angleRelations = angle;'+
+                        'float angle = GetAngle(dirToBN,dirToBBN);'+
+
+                        'if(angle > 0.0 && angle < angleRelations) {'+
+                            'IDrelation = xGeom_oppoB;'+
+                            'angleRelations = angle;'+
+                        '}'+
                     '}'+
                 '}'+
             '}'+
+
         '}'+
 
         'if(angleRelations < 360.0 && angleRelations > totalAngleRelations) {'+
@@ -211,26 +222,27 @@ var adjMatrix_GLSLFunctionString = function(initVars, relationFound, summation, 
     'vec4 idAdjMatrix(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections, float currentTimestamp, float bornDate, float dieDate) {\n'+
         initVars+
 
-        'float num = currentAdjMatrix/numberOfColumns;\n'+
-        'float rowAdjMat = floor(num);\n'+
-        'float colAdjMat = float(int( fract(num)*numberOfColumns ));\n'+
-        'float initA = colAdjMat*widthAdjMatrix;\n'+
-        'float initB = rowAdjMat*widthAdjMatrix;\n'+
+        'float num;float rowAdjMat;float colAdjMat;float initCol;float initRow;'+
 
-        'if(nodeId >= initA && nodeId < (initA+widthAdjMatrix)) {\n'+
+        'num = currentAdjMatrix/numberOfColumns;\n'+
+        'rowAdjMat = floor(num);\n'+
+        'colAdjMat = float(int( fract(num)*numberOfColumns ));\n'+
+        'initCol = colAdjMat*widthAdjMatrix;\n'+
+        'initRow = rowAdjMat*widthAdjMatrix;\n'+
+
+        'if(nodeId >= initCol && nodeId < (initCol+widthAdjMatrix)) {\n'+
 
             'for(int n=0; n < 4096; n++) {\n'+
-                'float idb = float(n)+initB;\n'+
+                'float idb = float(n)+initRow;\n'+
                 'if(idb >= nodesCount) break;\n'+
                 'if(idb != nodeId) {'+
-                    'vec2 xAdjMat = get_global_id(vec2(nodeId-initA, float(n)), widthAdjMatrix);'+
+                    'vec2 xAdjMat = get_global_id(vec2(nodeId-initCol, float(n)), widthAdjMatrix);'+
                     'vec4 it = adjacencyMatrix[xAdjMat];\n'+
 
                     relationFound+
 
                 '}'+
             '}'+
-
             summation+
 
         '}'+
