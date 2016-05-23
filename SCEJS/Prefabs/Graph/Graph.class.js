@@ -52,7 +52,7 @@ Graph = function(sce) {
     var _ADJ_MATRIX_WIDTH;
     var _ADJ_MATRIX_WIDTH_TOTAL;
     var _currentAdjMatrix = 0;
-    var _buffAdjMatrix;
+    var _buffAdjMatrix; // linkBornDate, linkDieDate, linkWeight, isChild
     var _adjMatrixTime = 0;
     var _numberOfColumns;
 	var _numberOfAdjMatrix;
@@ -106,7 +106,11 @@ Graph = function(sce) {
     this.splitNodesIndices = [];
 
     this.arrayNodeData = []; // nodeId, acums, bornDate, dieDate
-    this.arrayNodeDataB = []; // bornDate, dieDate, 0.0, 0.0 (SHARED with LINKS, ARROWS & NODESTEXT)
+    // if(own networkWaitData == -2.0)
+    // own has been read. then see networkWaitData of childs, calculate weights & save output in own networkWaitData & networkProcData(for visualization).
+    // else if(own networkWaitData != -2.0)
+    // own networkWaitData is being read. then set own networkWaitData to -2.0()
+    this.arrayNodeDataB = []; // bornDate, dieDate, networkWaitData, networkProcData (SHARED with LINKS, ARROWS & NODESTEXT)
     this.arrayNodePosXYZW = [];
     this.arrayNodeVertexPos = [];
     this.arrayNodeVertexNormal = [];
@@ -1560,7 +1564,7 @@ Graph = function(sce) {
 
             var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
             this.arrayNodeData.push(this.currentNodeId, 0.0, ts.bornDate, ts.dieDate);
-            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -1.0, -1.0);
+            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -2.0, 1.0); // bornDate, dieDate, networkWaitData, networkProcData
             this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
             this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
             this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);

@@ -46,15 +46,15 @@
 
 			// NEURONAL NETWORK
             var nn = new NeuronalNetwork(sce);
-            nn.addEfferentNeuron("color", 0); // actuator output; 0=color
-            nn.addAfferentNeuron("realTemp");
-            nn.addAfferentNeuron("month");
+            nn.addNeuron("color"); // efferent neuron (actuator)
+            nn.addNeuron("realTemp"); // afferent neuron (sensor)
+            nn.addNeuron("month"); // afferent neuron
             nn.addSinapsis("realTemp", "color");
             nn.addSinapsis("month", "color");
             nn.update();
 
-            nn.afferentData({"realTemp": 0.5, "month": 0.9}); // update Efferent Neurons status according actual link weights & afferent data
-            nn.efferentData({"color": 1.0}); // update links weights (train) from Efferents Neurons according to actual afferent data
+            nn.setAfferentData({"realTemp": 0.5, "month": 0.9}); // update Efferent Neurons status according to actual afferent data & link weights
+            nn.setEfferentData({"color": 1.0}); // update links weights (train) from Efferents Neurons according to actual afferent data
 
 			//*********
 			// RENDER STAGE

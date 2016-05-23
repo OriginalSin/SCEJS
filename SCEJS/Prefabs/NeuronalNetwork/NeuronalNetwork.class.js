@@ -49,36 +49,17 @@ NeuronalNetwork = function(sce) {
 
 
     /**
-     * addAfferentNeuron
+     * addNeuron
      * @param {String} neuronName
      */
-    this.addAfferentNeuron = function(neuronName) {
+    this.addNeuron = function(neuronName) {
         var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
         graph.addNode({
             "name": neuronName,
-            "data": "#0",
+            "data": neuronName,
             "position": pos,
-            "color": "../_RESOURCES/UV.jpg",
-            "layoutNodeArgumentData": {"nodeColor": [1.0, 1.0, 1.0, 1.0]},
-            "onmouseup": (function(nodeData) {
-
-            }).bind(this)});
-    };
-
-    /**
-     * addEfferentNeuron
-     * @param {String} neuronName
-     * @param {Int} [efectType=0] - efectuator type
-     */
-    this.addEfferentNeuron = function(neuronName, efectType) {
-        var efcTyp = efectType|0;
-        var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
-
-        graph.addNode({
-            "name": neuronName,
-            "data": "#0",
-            "position": pos,
+            //"color": "../_RESOURCES/UV.jpg",
             "layoutNodeArgumentData": {"nodeColor": [1.0, 1.0, 1.0, 1.0]},
             "onmouseup": (function(nodeData) {
 
@@ -102,18 +83,18 @@ NeuronalNetwork = function(sce) {
     };
 
     /**
-     * afferentData
+     * setAfferentData
      * @param {Object} jsonIn
      */
-    this.afferentData = function(jsonIn) {
+    this.setAfferentData = function(jsonIn) {
 
     };
 
     /**
-     * afferentData
+     * setEfferentData
      * @param {Object} jsonIn
      */
-    this.efferentData = function(jsonIn) {
+    this.setEfferentData = function(jsonIn) {
 
     };
 
