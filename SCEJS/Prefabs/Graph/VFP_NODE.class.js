@@ -75,11 +75,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
        			'0.0,                                0.0,                                0.0,                                1.0);'+
        		'}'+
 
-            Autolink_FunctionsString+
-            adjMatrix_GLSLFunctionString(   AdjMatrix_Autolink_initVars,
-                                            AdjMatrix_Autolink_relationFound(geometryLength),
-                                            AdjMatrix_Autolink_summation,
-                                            AdjMatrix_Autolink_returnInstruction)+
+            adjMatrix_Autolink_GLSLFunctionString(geometryLength)+
 
             new Utils().degToRadGLSLFunctionString()+
             new Utils().radToDegGLSLFunctionString()+
@@ -104,7 +100,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             'vec3 getFirstDispl(float nodeId, vec4 nodePosition, float repeatId) {'+
                 'float repeatDistribution = -0.1;'+
                 // first check output edges of own node and return the node (textCoord for get posXYZW) with max available angle to the right
-                'vec4 adjMatrix = idAdjMatrix(nodeId, nodePosition.xyz, vec3(0.0,0.0,0.0), 0.0, 0.0, 0.0, 0.0);'+
+                'vec4 adjMatrix = idAdjMatrix_Autolink(nodeId, nodePosition.xyz);'+
                 'vec3 initialVec = normalize(posXYZW[adjMatrix.xy].xyz-nodePosition.xyz)*vec3(1.0, -1.0, 1.0);'+
                 'float totalAngleRelations = adjMatrix.z;'+
                 // then first sum half of available angle received
@@ -201,9 +197,10 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                     'vVertexUV = get2Dfrom1D(nodeImgId, nodeImgColumns)+vec2(nodeVertexTexture.x/nodeImgColumns,nodeVertexTexture.y/nodeImgColumns);'+
                 '}'+
 
-                'if(dieDate != 0.0) '+
-                'if(currentTimestamp < bornDate || currentTimestamp > dieDate)'+
-                    'vVisibility = 0.0;'+
+                'if(dieDate != 0.0) {'+
+                    'if(currentTimestamp < bornDate || currentTimestamp > dieDate)'+
+                        'vVisibility = 0.0;'+
+                '}'+
             '}'+
             'if(isLink == 1.0) {'+
                 'if(xGeometry != xGeometry_opposite) {'+

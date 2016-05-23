@@ -37,6 +37,8 @@ Graph = function(sce) {
 
     var lineVertexCount = 4;
 
+    var _enableNeuronalNetwork = false;
+
 
 
 
@@ -456,6 +458,20 @@ Graph = function(sce) {
      */
     this.disableAutoLink = function() {
         _enableAutoLink = false;
+    };
+
+    /**
+     *  enableNeuronalNetwork
+     */
+    this.enableNeuronalNetwork = function() {
+        _enableNeuronalNetwork = true;
+    };
+
+    /**
+     *  disableNeuronalNetwork
+     */
+    this.disableNeuronalNetwork = function() {
+        _enableNeuronalNetwork = false;
     };
 
     /**
@@ -892,6 +908,7 @@ Graph = function(sce) {
             'float isNodeText': (function(){return null;}).bind(this),
             'float idToDrag': (function(){return null;}).bind(this),
             'float idToHover': (function(){return null;}).bind(this),
+            'float enableNeuronalNetwork': (function(){return null;}).bind(this),
             'float nodeImgColumns': (function(){return null;}).bind(this),
             'float fontImgColumns': (function(){return null;}).bind(this),
             'float4* fontsImg': (function(){return null;}).bind(this),
@@ -997,6 +1014,8 @@ Graph = function(sce) {
                     comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
                 }
             }
+
+            comp_renderer_nodes.setArg("enableNeuronalNetwork", (function() {return _enableNeuronalNetwork;}).bind(this));
         }).bind(this));
         comp_renderer_nodes.onPreProcessGraphic(0, (function() {
             comp_renderer_nodes.gl.blendFunc(comp_renderer_nodes.gl[Constants.BLENDING_MODES.SRC_ALPHA], comp_renderer_nodes.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA]);
@@ -1796,7 +1815,7 @@ Graph = function(sce) {
      * @param {Object} jsonIn
      * @param {String} jsonIn.origin - NodeName Origin for this link
      * @param {String} jsonIn.target - NodeName Target for this link
-     * @param {Bool} [jsonIn.directed=false] -
+     * @param {Bool} [jsonIn.directed=false] - Default false=bidir
      * @param {Float|String} [jsonIn.weight=1.0] - Float weight or "RANDOM"
      * @param {Float|String|Datetime} [jsonIn.bornDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
      * @param {Float|String|Datetime} [jsonIn.dieDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
@@ -2221,7 +2240,7 @@ Graph = function(sce) {
 
     /** @private */
     var updateAdjMat = (function() {
-        var setAdjMat = (function(id, bornDate, dieDate, weight) {
+        var setAdjMat = (function(id, isOrigin, bornDate, dieDate, weight) {
             var num = id/_ADJ_MATRIX_WIDTH_TOTAL;
             var idX = new Utils().fract(num)*_ADJ_MATRIX_WIDTH_TOTAL;
             var idY = Math.floor(num);
@@ -2246,6 +2265,7 @@ Graph = function(sce) {
             arrAdjMatrix[currentItemArrayAdjMatrix][idx] = bornDate;
             arrAdjMatrix[currentItemArrayAdjMatrix][idx+1] = dieDate;
             arrAdjMatrix[currentItemArrayAdjMatrix][idx+2] = weight;
+            arrAdjMatrix[currentItemArrayAdjMatrix][idx+3] = ((isOrigin==true)?1.0:0.0); // isOrigin=isChild=1.0;
         }).bind(this);
 
         arrAdjMatrix = [];
@@ -2267,13 +2287,14 @@ Graph = function(sce) {
             var origin = _links[key].origin_nodeId;
             var target = _links[key].target_nodeId;
 
-            var id = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+target;
-            var idSymmetrical = (target*_ADJ_MATRIX_WIDTH_TOTAL)+origin;
+            var id = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+(target);
+            var idSymmetrical = (target*_ADJ_MATRIX_WIDTH_TOTAL)+(origin);
 
+            // the directed
+            setAdjMat(id, false, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as no child (parent) =false
 
-            // id
-            setAdjMat(id, _links[key].bornDate, _links[key].dieDate, _links[key].weight);
-            setAdjMat(idSymmetrical, _links[key].bornDate, _links[key].dieDate, _links[key].weight);
+            // & when bidirected
+            setAdjMat(idSymmetrical, true, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as child=true
         }
 
 
