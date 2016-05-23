@@ -124,7 +124,7 @@ Graph = function(sce) {
     this.splitLinksIndices = [];
 
     this.arrayLinkData = []; // nodeId origin, nodeId target, currentLineVertex, repeatId
-    this.arrayLinkDataC = []; // linkBornDate, linkDieDate, 0, 0
+    this.arrayLinkDataC = []; // linkBornDate, linkDieDate, linkWeight, 0
     this.arrayLinkNodeName = [];
     this.arrayLinkPosXYZW = [];
     this.arrayLinkVertexPos = [];
@@ -554,16 +554,19 @@ Graph = function(sce) {
      * @param {String} fileurl
      * @param {Callback} [onload=undefined]
      * @param {Bool} [generateBornAndDieDates=false]
+     * @param {Bool} [randomLinkWeights=false]
      */
-    this.loadRBFromFile = function(fileurl, onload, generateBornAndDieDates) {
+    this.loadRBFromFile = function(fileurl, onload, generateBornAndDieDates, randomLinkWeights) {
         var req = new XHR();
         req.open("GET", fileurl, true);
-        req.addEventListener("load", (function(onload, gbd, evt) {
+        req.addEventListener("load", (function(onload, gbd, rlw, evt) {
             console.log("RB file Loaded");
-            this.loadRBFromStr({"data": evt.target.responseText, "generateBornAndDieDates": gbd});
+            this.loadRBFromStr({"data": evt.target.responseText,
+                                "generateBornAndDieDates": gbd,
+                                "randomLinkWeights": rlw});
 
             if(onload != undefined) onload();
-        }).bind(this, onload, generateBornAndDieDates));
+        }).bind(this, onload, generateBornAndDieDates, randomLinkWeights));
 
         req.addEventListener("error", (function(evt) {
             console.log(evt);
@@ -576,7 +579,8 @@ Graph = function(sce) {
      * loadRBFromStr
      * @param {Object} jsonIn
      * @param {String} jsonIn.data
-     * @param {Bool} [jsonIn.generateBornAndDieDates=undefined]
+     * @param {Bool} [jsonIn.generateBornAndDieDates=false] -
+     * @param {Bool} [jsonIn.randomLinkWeights=false] -
      */
     this.loadRBFromStr = function(jsonIn) {
         var _sourceText = jsonIn.data;
@@ -678,12 +682,14 @@ Graph = function(sce) {
                 var xx = parseInt(rowIndices[pointer+nb])-1;
 
                 var bd = (jsonIn.generateBornAndDieDates != undefined && jsonIn.generateBornAndDieDates == true) ? {"bornDate": "RANDOM", "dieDate": "RANDOM"} : {"bornDate": 1.0, "dieDate": 0.0};
+                var w = (jsonIn.randomLinkWeights != undefined && jsonIn.randomLinkWeights == true) ? "RANDOM" : null;
 
                 this.addLink({	"origin": xx,
                     "target": yy,
                     "directed": true,
                     "bornDate": bd.bornDate,
-                    "dieDate": bd.dieDate});
+                    "dieDate": bd.dieDate,
+                    "weight": w});
             }
 
             yy++;
@@ -1791,6 +1797,7 @@ Graph = function(sce) {
      * @param {String} jsonIn.origin - NodeName Origin for this link
      * @param {String} jsonIn.target - NodeName Target for this link
      * @param {Bool} [jsonIn.directed=false] -
+     * @param {Float|String} [jsonIn.weight=1.0] - Float weight or "RANDOM"
      * @param {Float|String|Datetime} [jsonIn.bornDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
      * @param {Float|String|Datetime} [jsonIn.dieDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
      */
@@ -1803,51 +1810,55 @@ Graph = function(sce) {
         if(_nodesByName[jsonIn.target] == undefined)
             console.log("%clink "+jsonIn.origin+"->"+jsonIn.target+". Node "+jsonIn.target+" not exists", "color:red"), pass=false;
 
+        if(jsonIn.origin == jsonIn.target && _enableAutoLink == false)
+            console.log("%cDiscarting autolink "+jsonIn.origin+"->"+jsonIn.target, "color:orange"), pass=false;
+
         if(pass == true) {
             console.log("%clink "+jsonIn.origin+"->"+jsonIn.target, "color:green");
-            if(jsonIn.origin != jsonIn.target || (jsonIn.origin == jsonIn.target && _enableAutoLink == true)) {
-                jsonIn.origin_nodeName = jsonIn.origin.toString();
-                jsonIn.target_nodeName = jsonIn.target.toString();
-                jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
-                jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
-                jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
-                jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
-                jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
-                jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
 
-                var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
-                jsonIn.bornDate = ts.bornDate;
-                jsonIn.dieDate = ts.dieDate;
+            jsonIn.origin_nodeName = jsonIn.origin.toString();
+            jsonIn.target_nodeName = jsonIn.target.toString();
+            jsonIn.origin_nodeId = _nodesByName[jsonIn.origin].nodeId;
+            jsonIn.target_nodeId = _nodesByName[jsonIn.target].nodeId;
+            jsonIn.origin_itemStart = _nodesByName[jsonIn.origin].itemStart;
+            jsonIn.target_itemStart = _nodesByName[jsonIn.target].itemStart;
+            jsonIn.origin_layoutNodeArgumentData = _nodesByName[jsonIn.origin].layoutNodeArgumentData;
+            jsonIn.target_layoutNodeArgumentData = _nodesByName[jsonIn.target].layoutNodeArgumentData;
 
-                var repeatId = 1;
-                while(true) {
-                    var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
-                    if(exists == true) {
-                        repeatId++;
-                    } else
-                        break;
+            var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
+            jsonIn.bornDate = ts.bornDate;
+            jsonIn.dieDate = ts.dieDate;
+
+            jsonIn.weight = (jsonIn.weight != undefined && jsonIn.weight.constructor===String) ? Math.random() : (jsonIn.weight|1.0);
+
+            var repeatId = 1;
+            while(true) {
+                var exists = _links.hasOwnProperty(jsonIn.origin+"->"+jsonIn.target+"_"+repeatId) || _links.hasOwnProperty(jsonIn.target+"->"+jsonIn.origin+"_"+repeatId);
+                if(exists == true) {
+                    repeatId++;
+                } else
+                    break;
+            }
+            jsonIn.repeatId = repeatId;
+
+            jsonIn = createLink(jsonIn);
+
+            if(jsonIn.directed != undefined && jsonIn.directed == true)
+                createArrow(jsonIn);
+
+            // ADD LINK TO ARRAY LINKS
+            _links[jsonIn.origin+"->"+jsonIn.target+"_"+repeatId] = jsonIn;
+            //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
+
+
+            // UPDATE arrayNodeData
+            for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+                var id = n*4;
+                if(this.arrayNodeData[id] == _nodesByName[jsonIn.origin].nodeId) {
+                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
                 }
-                jsonIn.repeatId = repeatId;
-
-                var link = createLink(jsonIn);
-
-                if(link.directed != undefined && link.directed == true)
-                    createArrow(link);
-
-                // ADD LINK TO ARRAY LINKS
-                _links[link.origin+"->"+link.target+"_"+repeatId] = link;
-                //console.log("link "+jsonIn.origin+"->"+jsonIn.target);
-
-
-                // UPDATE arrayNodeData
-                for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-                    var id = n*4;
-                    if(this.arrayNodeData[id] == _nodesByName[link.origin].nodeId) {
-                        this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    }
-                    if(this.arrayNodeData[id] == _nodesByName[link.target].nodeId) {
-                        this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
-                    }
+                if(this.arrayNodeData[id] == _nodesByName[jsonIn.target].nodeId) {
+                    this.arrayNodeData[id+1] = this.arrayNodeData[id+1]+1.0;
                 }
             }
         }
@@ -1864,14 +1875,17 @@ Graph = function(sce) {
      * @param {Int} jsonIn.target_itemStart
      * @param {Int} jsonIn.origin_layoutNodeArgumentData
      * @param {Int} jsonIn.target_layoutNodeArgumentData
-     * @param {Bool} [jsonIn.directed=false]
+     * @param {Bool} [jsonIn.directed=false] -
+     * @param {Float} [jsonIn.weight=1.0] - Float weight or "RANDOM"
+     * @param {Float|String|Datetime} [jsonIn.bornDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
+     * @param {Float|String|Datetime} [jsonIn.dieDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
      * @returns {Object}
      * @private
      */
     var createLink = (function(jsonIn) {
         for(var n=0; n < lineVertexCount*2; n++) {
             this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), jsonIn.repeatId);
-            this.arrayLinkDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
+            this.arrayLinkDataC.push(jsonIn.bornDate, jsonIn.dieDate, jsonIn.weight, 0.0);
 
             if(Math.ceil(n/2) != (lineVertexCount-1)) {
                 this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
@@ -2207,7 +2221,7 @@ Graph = function(sce) {
 
     /** @private */
     var updateAdjMat = (function() {
-        var setAdjMat = (function(id, bornDate, dieDate) {
+        var setAdjMat = (function(id, bornDate, dieDate, weight) {
             var num = id/_ADJ_MATRIX_WIDTH_TOTAL;
             var idX = new Utils().fract(num)*_ADJ_MATRIX_WIDTH_TOTAL;
             var idY = Math.floor(num);
@@ -2231,6 +2245,7 @@ Graph = function(sce) {
 
             arrAdjMatrix[currentItemArrayAdjMatrix][idx] = bornDate;
             arrAdjMatrix[currentItemArrayAdjMatrix][idx+1] = dieDate;
+            arrAdjMatrix[currentItemArrayAdjMatrix][idx+2] = weight;
         }).bind(this);
 
         arrAdjMatrix = [];
@@ -2257,8 +2272,8 @@ Graph = function(sce) {
 
 
             // id
-            setAdjMat(id, _links[key].bornDate, _links[key].dieDate);
-            setAdjMat(idSymmetrical, _links[key].bornDate, _links[key].dieDate);
+            setAdjMat(id, _links[key].bornDate, _links[key].dieDate, _links[key].weight);
+            setAdjMat(idSymmetrical, _links[key].bornDate, _links[key].dieDate, _links[key].weight);
         }
 
 
