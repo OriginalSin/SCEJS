@@ -1,7 +1,17 @@
 /** @private **/
-function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
+function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.call(this);
+    var outputArr;
+    var returnStr;
+    if(_enableNeuronalNetwork == true) {
+        outputArr = ["dir", "posXYZW", "dataB"];
+        returnStr = 'return [vec4(currentDir, 1.0), vec4(currentPos.x, currentPos.y, currentPos.z, 1.0), currentDataB];';
+    } else {
+        outputArr = ["dir", "posXYZW"];
+        returnStr = 'return [vec4(currentDir, 1.0), vec4(currentPos.x, currentPos.y, currentPos.z, 1.0)];';
+    }
+
     this.getSrc = function() {
-        var str_vfp = ["x", ["dir", "posXYZW"],
+        var str_vfp = ["x", outputArr,
                         // head
                         adjMatrix_ForceLayout_GLSLFunctionString(geometryLength),
 
@@ -17,20 +27,27 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
                         'vec3 currentDir = dir[x].xyz;\n'+
                         'vec3 currentPos = posXYZW[x].xyz;\n'+
 
+                        'vec4 currentDataB = dataB[x];\n'+
+
                         'if(currentAdjMatrix == 0.0) {'+
                             'currentDir = vec3(0.0, 0.0, 0.0);'+
                         '}'+
 
                             // FORCE LAYOUT
                         "if(enableForceLayout == 1.0 && performFL == 0.0) {"+
-                            'vec4 forC = idAdjMatrix_ForceLayout(nodeId, currentPos, currentDir, numOfConnections, currentTimestamp, bornDate, dieDate);'+
-                            'currentDir = (forC.w == 1.0) ? forC.xyz : (currentDir+forC.xyz);'+
+                            'idAdjMatrixResponse adjM = idAdjMatrix_ForceLayout(nodeId, currentPos, currentDir, numOfConnections, currentTimestamp, bornDate, dieDate);'+
+                            'currentDir = (adjM.collisionExists == 1.0) ? adjM.force : (currentDir+adjM.force);'+
+
+                            'if(enableNeuronalNetwork == 1.0) {'+
+                                'if(adjM.netProcData > 0.0) {'+
+                                    'currentDataB = vec4(currentDataB.x, currentDataB.y, adjM.netProcData, adjM.netProcData);'+
+                                '} else {'+
+                                    'currentDataB = vec4(currentDataB.x, currentDataB.y, -2.0, currentDataB.w);'+
+                                '}'+
+                            '}'+
                         "}"+
 
-                        'if(enableNeuronalNetwork == 1.0) {'+
-                            //'vec4 adjMatrix = idAdjMatrix_NeuronalNetwork_Efference(nodeId, nodePosition.xyz);'+
-                            //'vVertexColor = getEfferenceColor();'+
-                        '}'+
+
 
 
                         "if(enableForceLayout == 1.0) {"+
@@ -54,7 +71,7 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
                             'currentPos += currentDir;\n'+
 
 
-                        'return [vec4(currentDir, 1.0), vec4(currentPos.x, currentPos.y, currentPos.z, 1.0)];'];
+                        returnStr];
 
         return str_vfp;
     };

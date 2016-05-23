@@ -943,7 +943,7 @@ Graph = function(sce) {
         comp_renderer_nodes.setGPUFor(  comp_renderer_nodes.gl,
                                         nodesVarDef,
                                         {"type": "KERNEL",
-                                        "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength).getSrc()},
+                                        "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc()},
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()},
                                         {"type": "GRAPHIC",
