@@ -149,6 +149,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             'vec4 nodePosition = posXYZW[xGeometry];\n'+
             'float bornDate = dataB[xGeometry].x;'+
             'float dieDate = dataB[xGeometry].y;'+
+            'float networkProcData = dataB[xGeometry].w;'+
             'float linkBornDate = dataC[].x;'+
             'float linkDieDate = dataC[].y;'+
 
@@ -200,6 +201,10 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                 'if(dieDate != 0.0) {'+
                     'if(currentTimestamp < bornDate || currentTimestamp > dieDate)'+
                         'vVisibility = 0.0;'+
+                '}'+
+
+                'if(enableNeuronalNetwork == 1.0) {'+
+                    'nodeVertexColor = vec4(networkProcData, networkProcData, networkProcData, 1.0);'+
                 '}'+
             '}'+
             'if(isLink == 1.0) {'+

@@ -465,20 +465,6 @@ Graph = function(sce) {
     };
 
     /**
-     *  enableNeuronalNetwork
-     */
-    this.enableNeuronalNetwork = function() {
-        _enableNeuronalNetwork = true;
-    };
-
-    /**
-     *  disableNeuronalNetwork
-     */
-    this.disableNeuronalNetwork = function() {
-        _enableNeuronalNetwork = false;
-    };
-
-    /**
      * setFontsImage
      * @param {String} url
      */
@@ -1143,6 +1129,102 @@ Graph = function(sce) {
             }
         }
     };
+
+    /**
+     *  enableNeuronalNetwork
+     */
+    this.enableNeuronalNetwork = function() {
+        _enableNeuronalNetwork = true;
+
+        this.disableAutoLink();
+
+        // APPLY THIS LAYOUT
+        this.applyLayout({	// OBJECT
+            // [x], vec4 nodeVertexColor, vec4 nodeVertexPosition, vec4 XYZW_opposite
+            // float isNode, float isLink, float isArrow, float isNodeText, float isTarget
+            "argsObject":
+            // nodeColor
+                "float4*attr nodeColor",
+            "codeObject":
+            // nodeColor
+            //'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
+            //'if(isLink == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+
+            'float degr = (currentLineVertex/vertexCount)/2.0;'+
+            'if(isLink == 1.0) nodeVertexColor = vec4(0.5+degr, 0.5+degr, 0.5+degr, 1.0);'+ // this is isTarget for arrows
+            'if(isArrow == 1.0 && currentLineVertex == vertexCount) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+            'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
+
+        });
+        this.enableForceLayout();
+    };
+
+    /**
+     *  disableNeuronalNetwork
+     */
+    this.disableNeuronalNetwork = function() {
+        _enableNeuronalNetwork = false;
+    };
+
+    /**
+     * addNeuron
+     * @param {String} neuronName
+     */
+    this.addNeuron = function(neuronName) {
+        var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
+
+        graph.addNode({
+            "name": neuronName,
+            "data": neuronName,
+            "position": pos,
+            //"color": "../_RESOURCES/UV.jpg",
+            "layoutNodeArgumentData": {"nodeColor": [1.0, 1.0, 1.0, 1.0]},
+            "onmouseup": (function(nodeData) {
+
+            }).bind(this)});
+    };
+
+    /**
+     * addSinapsis
+     * @param {String} neuronNameA
+     * @param {String} neuronNameB
+     */
+    this.addSinapsis = function(neuronNameA, neuronNameB) {
+        graph.addLink({	"origin": neuronNameA,
+            "target": neuronNameB,
+            "directed": true});
+    };
+
+    /**
+     * setAfferentData
+     * @param {Object} jsonIn
+     */
+    this.setAfferentData = function(jsonIn) {
+        for(var neuronName in jsonIn) {
+            var node = _nodesByName[neuronName];
+
+            // nodes id
+            for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+                if(this.arrayNodeData[n*4] == node.nodeId) {
+                    var id = n*4;
+                    // (ts.bornDate, ts.dieDate, -2.0, 0.5); // bornDate, dieDate, networkWaitData, networkProcData
+                    this.arrayNodeDataB[id+2] = jsonIn[neuronName];
+                    this.arrayNodeDataB[id+3] = jsonIn[neuronName];
+                }
+            }
+
+            comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
+        }
+    };
+
+    /**
+     * setEfferentData
+     * @param {Object} jsonIn
+     */
+    this.setEfferentData = function(jsonIn) {
+
+    };
+
     /**
      * setLayoutNodeArgumentData
      * @param {Object} jsonIn
@@ -1564,7 +1646,7 @@ Graph = function(sce) {
 
             var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
             this.arrayNodeData.push(this.currentNodeId, 0.0, ts.bornDate, ts.dieDate);
-            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -2.0, 1.0); // bornDate, dieDate, networkWaitData, networkProcData
+            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -2.0, 0.5); // bornDate, dieDate, networkWaitData, networkProcData
             this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
             this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
             this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
