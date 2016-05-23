@@ -63,7 +63,7 @@ var ForceLayout_FunctionsString = ''+
             '}'+
 
             'if(mak == 1) {'+
-                'atraction += dirToBN*dist*0.5;\n'+
+                'atraction += dirToBN*dist*0.5*it.z;\n'+
                 'atraction += dirToBN*-10.0;\n'+
 
                 'acumAtraction += 1.0;\n'+
