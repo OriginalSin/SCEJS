@@ -11,8 +11,6 @@
 		<script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
 
 		<script src="../../SCEJS/Prefabs/Graph/Graph.class.js"></script>
-
-        <script src="../../SCEJS/Prefabs/NeuronalNetwork/NeuronalNetwork.class.js"></script>
 	</head>
 
 	<body>
@@ -44,17 +42,31 @@
 			//grid.generate(100.0, 1.0);
 
 
-			// NEURONAL NETWORK
-            var nn = new NeuronalNetwork(sce);
-            nn.addEfferentNeuron("color", 0); // actuator output; 0=color
-            nn.addAfferentNeuron("realTemp");
-            nn.addAfferentNeuron("month");
-            nn.addSinapsis("realTemp", "color");
-            nn.addSinapsis("month", "color");
-            nn.update();
+			// GRAPH NEURONAL NETWORK
+            var OFFSET = 1000.0;
+            var offs = OFFSET/10;
 
-            nn.afferentData({"realTemp": 0.5, "month": 0.9}); // update Efferent Neurons status according actual link weights & afferent data
-            nn.efferentData({"color": 1.0}); // update links weights (train) from Efferents Neurons according to actual afferent data
+            var graph = new Graph(sce);
+            graph.enableNeuronalNetwork();
+            graph.setOffset(OFFSET);
+
+            var mesh_point = new Mesh().loadPoint();
+            //graph.setNodeMesh(mesh_point);
+
+
+            graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
+
+
+            graph.addNeuron("color"); // efferent neuron (actuator)
+            graph.addNeuron("realTemp"); // afferent neuron (sensor)
+            graph.addNeuron("month"); // afferent neuron
+            graph.addSinapsis("realTemp", "color");
+            graph.addSinapsis("month", "color");
+            graph.updateNodes();
+            graph.updateLinks();
+
+            graph.setAfferentData({"realTemp": 0.1, "month": 1.0}); // update Efferent Neurons status according to actual afferent data & link weights
+            graph.setEfferentData({"color": 1.0}); // update links weights (train) from Efferents Neurons according to actual afferent data
 
 			//*********
 			// RENDER STAGE
