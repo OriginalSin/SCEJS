@@ -3,11 +3,7 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
     this.getSrc = function() {
         var str_vfp = ["x", ["dir", "posXYZW"],
                         // head
-                        ForceLayout_FunctionsString+
-                        adjMatrix_GLSLFunctionString(   AdjMatrix_ForceLayout_initVars,
-                                                        AdjMatrix_ForceLayout_relationFound(geometryLength),
-                                                        AdjMatrix_ForceLayout_summation,
-                                                        AdjMatrix_ForceLayout_returnInstruction),
+                        adjMatrix_ForceLayout_GLSLFunctionString(geometryLength),
 
                         // source
                         'float nodeId = data[x].x;'+
@@ -27,9 +23,14 @@ function KERNEL_DIR(customCode, geometryLength) { VFP.call(this);
 
                             // FORCE LAYOUT
                         "if(enableForceLayout == 1.0 && performFL == 0.0) {"+
-                            'vec4 forC = idAdjMatrix(nodeId, currentPos, currentDir, numOfConnections, currentTimestamp, bornDate, dieDate);'+
+                            'vec4 forC = idAdjMatrix_ForceLayout(nodeId, currentPos, currentDir, numOfConnections, currentTimestamp, bornDate, dieDate);'+
                             'currentDir = (forC.w == 1.0) ? forC.xyz : (currentDir+forC.xyz);'+
                         "}"+
+
+                        'if(enableNeuronalNetwork == 1.0) {'+
+                            //'vec4 adjMatrix = idAdjMatrix_NeuronalNetwork_Efference(nodeId, nodePosition.xyz);'+
+                            //'vVertexColor = getEfferenceColor();'+
+                        '}'+
 
 
                         "if(enableForceLayout == 1.0) {"+
