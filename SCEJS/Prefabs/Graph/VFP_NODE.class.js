@@ -204,6 +204,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                 '}'+
 
                 'if(enableNeuronalNetwork == 1.0) {'+
+                    'float we = (networkProcData+1.0)/2.0;'+
                     'nodeVertexColor = vec4(networkProcData, networkProcData, networkProcData, 1.0);'+
                 '}'+
             '}'+

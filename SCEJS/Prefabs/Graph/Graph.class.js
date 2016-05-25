@@ -1,4 +1,5 @@
 var includesF = [   '/graphUtil.js',
+                    '/KERNEL_ADJMATRIX_UPDATE.class.js',
                     '/KERNEL_DIR.class.js',
                     '/VFP_NODEPICKDRAG.class.js',
                     '/VFP_NODE.class.js'];
@@ -69,6 +70,8 @@ Graph = function(sce) {
 	var selectedId = -1;
 	var _initialPosDrag;
 
+	var _onClickNode;
+
 	// meshes
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
 	var mesh_arrows = new Mesh().loadTriangle({"scale": 1.75, "side": 0.3});
@@ -111,6 +114,7 @@ Graph = function(sce) {
     // else if(own networkWaitData != -2.0)
     // own networkWaitData is being read. then set own networkWaitData to -2.0()
     this.arrayNodeDataB = []; // bornDate, dieDate, networkWaitData, networkProcData (SHARED with LINKS, ARROWS & NODESTEXT)
+    this.arrayNodeDataF = []; // efferenceData, null, null, null
     this.arrayNodePosXYZW = [];
     this.arrayNodeVertexPos = [];
     this.arrayNodeVertexNormal = [];
@@ -282,6 +286,13 @@ Graph = function(sce) {
     var comp_renderer_nodesText = new ComponentRenderer();
     nodesText.addComponent(comp_renderer_nodesText);
 
+    /**
+     * onClickNode
+     * @param {Callback} fn
+     */
+    this.onClickNode = function(fn) {
+        _onClickNode = fn;
+    };
 
     /**
      * datetimeToTimestamp
@@ -333,6 +344,31 @@ Graph = function(sce) {
 
         return {"bornDate": bd, "dieDate": dd};
     }).bind(this);
+
+    /**
+     * showTimeline
+     * @param {HTMLDivElement} target
+     */
+    this.showTimeline = function(target) {
+        var eSlider = document.createElement("input");
+        eSlider.type = "range";
+        eSlider.min = 0;
+        eSlider.max = _animationFrames;
+        eSlider.step = 1;
+        eSlider.value = 0;
+        eSlider.style.verticalAlign = "middle";
+        eSlider.style.width = "78%";
+
+        target.innerText = "";
+        target.appendChild(eSlider);
+
+        var set_spinner = function(e) {
+            var frame = e.value;
+            this.setFrame(frame);
+        };
+
+        eSlider.addEventListener("input", set_spinner.bind(this, eSlider));
+    };
 
     /**
      * setTimelineDatetimeRange
@@ -635,7 +671,7 @@ Graph = function(sce) {
                 "data": n.toString(),
                 "label": n.toString(),
                 "position": pos,
-                "color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+                "color": ((_enableNeuronalNetwork == false) ? "../_RESOURCES/UV.jpg" : "../_RESOURCES/white.jpg"),
                 "bornDate": bd.bornDate,
                 "dieDate": bd.dieDate,
                 "layoutNodeArgumentData": {
@@ -648,7 +684,7 @@ Graph = function(sce) {
                     // lifeDistance
                     "initPos": pos, "initDir": [0.0, 0.0, 0.0, 0.0],
                     // nodeColor
-                    "nodeColor": [Math.random(), Math.random(), Math.random(), 1.0],
+                    "nodeColor": [1.0, 1.0, 1.0, 1.0],
                     // lock
                     "nodeLock": 0.0},
                 "onmouseup": (function(nodeData) {
@@ -836,7 +872,11 @@ Graph = function(sce) {
             //console.log("hoverId: "+selectedId);
             if(selectedId != -1 && selectedId < this.currentNodeId) {
                 var node = _nodesById[selectedId];
-                if(node != undefined && node.onmousedown != undefined) node.onmousedown(node);
+                if(node != undefined && node.onmousedown != undefined)
+                    node.onmousedown(node);
+
+                if(node != undefined && _onClickNode != undefined)
+                    _onClickNode(node);
 
 
                 var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
@@ -874,9 +914,10 @@ Graph = function(sce) {
 
         var varDef_VFPNode = {
             'float4* posXYZW': (function(){return null;}).bind(this),
-            "float4* dataB": (function(){return null;}).bind(this),
-            "float4*attr data": (function(){return null;}).bind(this),
-            "float4*attr dataC": (function(){return null;}).bind(this),
+            "float4* dataB": (function(){return null;}).bind(this), // in nodes (SHARED with LINKS, ARROWS & NODESTEXT)
+            "float4* dataF": (function(){return null;}).bind(this), // in nodes
+            "float4*attr data": (function(){return null;}).bind(this), // in nodes, nodesText, links & arrows
+            "float4*attr dataC": (function(){return null;}).bind(this), // in links & arrows
             'float4*attr nodeVertexPos': (function(){return null;}).bind(this),
             'float4*attr nodeVertexNormal': (function(){return null;}).bind(this),
             'float4*attr nodeVertexTexture': (function(){return null;}).bind(this),
@@ -942,8 +983,11 @@ Graph = function(sce) {
 
         comp_renderer_nodes.setGPUFor(  comp_renderer_nodes.gl,
                                         nodesVarDef,
+            //{"type": "KERNEL",
+            //"config": new KERNEL_ADJMATRIX_UPDATE(_geometryLength).getSrc()},
                                         {"type": "KERNEL",
                                         "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc()},
+
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()},
                                         {"type": "GRAPHIC",
@@ -953,13 +997,13 @@ Graph = function(sce) {
         comp_renderer_nodes.setGraphicEnableBlend(true);
         comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
         comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-        comp_renderer_nodes.onPreProcessKernels((function() {
-            if(_playAnimation == true) {
-                var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
-                comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
-                comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
-                comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+        comp_renderer_nodes.onPreProcessKernels(0, (function() {
+            var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
+            comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+            comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+            comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
 
+            if(_playAnimation == true) {
                 _currentFrame++;
                 if(_currentFrame == _animationFrames) {
                     _currentFrame = 0;
@@ -1150,9 +1194,9 @@ Graph = function(sce) {
             //'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
             //'if(isLink == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
 
-            'float degr = (currentLineVertex/vertexCount)/2.0;'+
-            'if(isLink == 1.0) nodeVertexColor = vec4(0.5+degr, 0.5+degr, 0.5+degr, 1.0);'+ // this is isTarget for arrows
-            'if(isArrow == 1.0 && currentLineVertex == vertexCount) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+            //'float degr = (currentLineVertex/vertexCount)/2.0;'+
+            'if(isLink == 1.0) nodeVertexColor = vec4(0.3, 0.2, 0.2, 1.0);'+ // this is isTarget for arrows
+            'if(isArrow == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.3, 0.2, 0.2, 1.0);'+ // this is isTarget for arrows
             'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
 
         });
@@ -1646,7 +1690,8 @@ Graph = function(sce) {
 
             var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
             this.arrayNodeData.push(this.currentNodeId, 0.0, ts.bornDate, ts.dieDate);
-            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -2.0, 0.5); // bornDate, dieDate, networkWaitData, networkProcData
+            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, -2.0, 0.0); // bornDate, dieDate, networkWaitData, networkProcData
+            this.arrayNodeDataF.push(-2.0, 0.0, 0.0, 0.0); // efferenceData, null, null, null
             this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
             this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
             this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
@@ -2170,8 +2215,40 @@ Graph = function(sce) {
 	this.updateNodes = function() {
 		console.log((this.currentNodeId)+" nodes");
 
+        _ADJ_MATRIX_WIDTH = (this.currentNodeId < _MAX_ADJ_MATRIX_WIDTH) ? this.currentNodeId : _MAX_ADJ_MATRIX_WIDTH;
+        _numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
+        _numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
+        _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
+
+        arrAdjMatrix = [];
+        for(var n=0; n < _numberOfAdjMatrix; n++){
+            arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
+        }
+
+        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[0];}).bind(this));
+        comp_renderer_links.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_arrows.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
+        _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
+
+
+        comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+        comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
+        comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        comp_renderer_links.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+        comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
+        comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        comp_renderer_arrows.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
+        comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
+
+
+
+
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
         comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this), this.splitNodes);
 
 		if(comp_renderer_nodes.getTempBuffers()["posXYZW"] != undefined) {
 			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getTempBuffers()["posXYZW"]);
@@ -2264,7 +2341,7 @@ Graph = function(sce) {
 		console.log(Object.keys(_links).length+" links");
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
-        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
+        //comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
 
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
         comp_renderer_links.setArg("dataC", (function() {return this.arrayLinkDataC;}).bind(this), this.splitLinks);
@@ -2355,14 +2432,6 @@ Graph = function(sce) {
         }).bind(this);
 
         arrAdjMatrix = [];
-
-        _ADJ_MATRIX_WIDTH = (this.currentNodeId < _MAX_ADJ_MATRIX_WIDTH) ? this.currentNodeId : _MAX_ADJ_MATRIX_WIDTH;
-
-        _numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
-        _numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
-        _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
-
-        // creating adjMatrixArray
         for(var n=0; n < _numberOfAdjMatrix; n++){
             arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
         }
@@ -2373,36 +2442,14 @@ Graph = function(sce) {
             var origin = _links[key].origin_nodeId;
             var target = _links[key].target_nodeId;
 
-            var id = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+(target);
-            var idSymmetrical = (target*_ADJ_MATRIX_WIDTH_TOTAL)+(origin);
+            var idParent = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+(target);
+            var idChild = (target*_ADJ_MATRIX_WIDTH_TOTAL)+(origin);
 
-            // the directed
-            setAdjMat(id, false, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as no child (parent) =false
-
-            // & when bidirected
-            setAdjMat(idSymmetrical, true, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as child=true
+            setAdjMat(idParent, false, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as no child (columns=parents;rows=childs) =false
+            setAdjMat(idChild, true, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as child (columns=childs;rows=parents) =true
         }
 
-
         comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[0];}).bind(this));
-        comp_renderer_links.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
-        comp_renderer_arrows.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
-        _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
-
-
-
-        comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-        comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
-        comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_links.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-        comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
-        comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_arrows.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-        comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
 
         /*for(var n=0; n < _numberOfAdjMatrix; n++) {
              this.adjacencyMatrixToImage(arrAdjMatrix[n], _ADJ_MATRIX_WIDTH, (function(img) {
