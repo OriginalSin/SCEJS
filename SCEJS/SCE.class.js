@@ -112,7 +112,7 @@ SCE = function() {
 	* @type Void
 	* @param {Object} jsonIn
 	* @param {HTMLDivElement} jsonIn.target
-	* @param {Object} [jsonIn.dimensions={width: Int, height: Int}],
+	* @param {Object} [jsonIn.dimensions={width: Int, height: Int}]
 	* @param {Bool} [enableUI=true]
     * @param {WebGLRenderingContext} [gl=undefined]
 	*/

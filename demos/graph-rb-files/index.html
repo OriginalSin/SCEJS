@@ -15,6 +15,7 @@
 
 	<body>
 		<div id="SCEJS"></div>
+        <div id="SCEJS_timeline"></div>
 
 		<script>
 			var sce = new SCE();
@@ -45,8 +46,8 @@
 			sce.setDimensions(1024, 700);
 			
 			// GRID
-			var grid = new Grid(sce);
-			grid.generate(100.0, 1.0);
+			//var grid = new Grid(sce);
+			//grid.generate(100.0, 1.0);
 
 
 			// GRAPH
@@ -154,21 +155,21 @@
 				if(graph != undefined) graph.clear();
 				
 				graph = new Graph(sce);
-				graph.setOffset(OFFSET);
+                graph.setOffset(OFFSET);
 
-				var mesh_point = new Mesh().loadPoint();
-				//graph.setNodeMesh(mesh_point);
+                graph.disableAutoLink();
 
-
-
+                var mesh_point = new Mesh().loadPoint();
+                //graph.setNodeMesh(mesh_point);
 
                 //graph.setTimelineDatetimeRange({"initDatetime": "24-Nov-2000 17:57:35", "endDatetime": "24-Nov-2015 17:57:35"});
-
                 //graph.setTimelineFramesLength(5000);
-
                 //graph.enableFonts(true);
-                graph.disableAutoLink();
+
+                graph.showTimeline(document.getElementById("SCEJS_timeline"));
+                //graph.enableNeuronalNetwork();
                 aL();
+
                 graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
                 graph.enableHover();
 
@@ -177,7 +178,7 @@
 				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
                                                             // TMP
 
-                                                        }).bind(this), false, false);
+                                                        }).bind(this), true, false);
 			};			
 			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
 			
@@ -192,9 +193,11 @@
 				//sce.setDimensions(512, 128);
 		    }).bind(this);
 		</script>
-		
-		
-		
+
+
+        <button id="BTNID_AFFERENCEDATA">afference data</button> Input data<br />
+        <button id="BTNID_EFFERENCEDATA">efference data</button> Train output from current afference data updating link weights<br />
+
 		<br />
 		Load RB: <select id="select_rb">			
 			<option>b1_ss.rb (7 7 15)</option>
@@ -244,7 +247,6 @@
         <br />
 		<button id="BTNID_IMG">node per pixel color</button><br />
 		<img id="IMGID_lena" src="../_RESOURCES/lena_128x128.jpg" /><br />
-		
 		
 		
 		T for top view<br />
@@ -405,6 +407,24 @@
 																							"image": document.getElementById("IMGID_lena")})
 													});
 			}).bind(this));
+
+            document.getElementById("BTNID_AFFERENCEDATA").addEventListener("click", (function() {
+                var randNode = parseInt(Math.random()*graph.getNodesCount()).toString();
+                var randNumber = (Math.random()*2.0)-1.0;
+                console.log(randNode+" "+randNumber);
+                var ob = {};
+                ob[randNode] = randNumber;
+                graph.setAfferentData(ob);
+            }).bind(this));
+
+            document.getElementById("BTNID_EFFERENCEDATA").addEventListener("click", (function() {
+                var randNode = parseInt(Math.random()*graph.getNodesCount()).toString();
+                var randNumber = parseInt((Math.random()*2.0)-1.0);
+                console.log(randNode+" "+randNumber);
+                var ob = {};
+                ob[randNode] = randNumber;
+                graph.setEfferentData(ob);
+            }).bind(this));
 		</script>
 
 	</body>

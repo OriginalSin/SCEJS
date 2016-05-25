@@ -159,7 +159,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
             // END SUMMATION
         '}'+
 
-        'return idAdjMatrixResponse(vec3(force), collisionExists, netProc);'+
+        'return idAdjMatrixResponse(vec3(force), collisionExists, clamp(netProc, -1.0, 1.0));'+
     '}';
 
     return str;
