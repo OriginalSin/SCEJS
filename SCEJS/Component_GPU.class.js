@@ -275,12 +275,12 @@ Component_GPU = function() {
     };
 
     /**
-     * setSharedArg
+     * getComponentBufferArg
      * @param {String} argument Argument to set
      * @param {ComponentRenderer} comp_renderer
      */
-    this.setSharedArg = function(argument, comp_renderer) {
-        this.gpufG.setSharedArg(argument, comp_renderer.gpufG);
+    this.getComponentBufferArg = function(argument, comp_renderer) {
+        this.gpufG.getGPUForPointerArg(argument, comp_renderer.gpufG);
         this.args[argument] = {	"fnvalue": null,
             "updatable": null,
             "splits": null,

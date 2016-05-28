@@ -13,7 +13,7 @@ WebCLGLWork = function(webCLGL, offset) {
 	this.vertexFragmentPrograms = {};
 	this.buffers = {};
 	this.buffers_TEMP = {};
-
+    this.calledArgs = {};
 
 	var kernelPr;
 	var vPr;
@@ -277,10 +277,12 @@ WebCLGLWork = function(webCLGL, offset) {
 
                     var buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                     this.webCLGL.enqueueWriteBuffer(buff, value);
-                    this.buffers[argument] = buff;
 
                     var buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                     this.webCLGL.enqueueWriteBuffer(buffTMP, value);
+
+
+                    this.buffers[argument] = buff;
                     this.buffers_TEMP[argument] = buffTMP;
 
                     for(var n=0; n < kernelPr.length; n++)
@@ -317,27 +319,22 @@ WebCLGLWork = function(webCLGL, offset) {
                 return value;
             }
         }
+
+        if(this.calledArgs.hasOwnProperty(argument) == true) {
+            for(var n=0; n < this.calledArgs[argument].length; n++) {
+                var work = this.calledArgs[argument][n];
+                work.getWorkBufferArg(argument, this, false);
+            }
+        }
     };
 
     /**
-     * fillPointerArg
-     * @param {String} argName
-     * @param {Array<Float>} clearColor
-     */
-    this.fillPointerArg = function(argName, clearColor) {
-        if(this.buffers.hasOwnProperty(argName))
-            this.webCLGL.fillBuffer(this.buffers[argName], clearColor);
-
-        if(this.buffers_TEMP.hasOwnProperty(argName))
-            this.webCLGL.fillBuffer(this.buffers_TEMP[argName], clearColor);
-    };
-
-    /**
-     * Set shared argument from other work
+     * Get argument from other work
      * @param {String} argument Argument to set
      * @param {WebCLGLWork} clglWork
+     * @param {Bool} [makeAdd=true]
      */
-    this.setSharedBufferArg = function(argument, clglWork) {
+    this.getWorkBufferArg = function(argument, clglWork, makeAdd) {
         checkArg(argument);
 
 
@@ -352,6 +349,27 @@ WebCLGLWork = function(webCLGL, offset) {
 
         for(var n=0; n < fPr.length; n++)
             fPr[n].setFragmentArg(argument, this.buffers[argument]);
+
+
+        if(clglWork.calledArgs.hasOwnProperty(argument) == false) {
+            clglWork.calledArgs[argument] = []
+        }
+
+        if(makeAdd == undefined || makeAdd == true)
+            clglWork.calledArgs[argument].push(this);
+    };
+
+    /**
+     * fillPointerArg
+     * @param {String} argName
+     * @param {Array<Float>} clearColor
+     */
+    this.fillPointerArg = function(argName, clearColor) {
+        if(this.buffers.hasOwnProperty(argName))
+            this.webCLGL.fillBuffer(this.buffers[argName], clearColor);
+
+        if(this.buffers_TEMP.hasOwnProperty(argName))
+            this.webCLGL.fillBuffer(this.buffers_TEMP[argName], clearColor);
     };
 
     /**

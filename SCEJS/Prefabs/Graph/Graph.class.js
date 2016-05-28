@@ -304,6 +304,17 @@ Graph = function(sce) {
         return Date.parse(dt)/1000;
     }).bind(this);
 
+    /**
+     * timestampToDate
+     * @private
+     */
+    var timestampToDate = (function(ts) {
+        var d = new Date(ts*1000);
+        d = d.toISOString().split("T")[0].split("-");
+
+        return d[2]+"/"+d[1]+"/"+d[0];
+    }).bind(this);
+
     /** @private */
     var getBornDieTS = (function(bornD, dieD) {
         /** @private */
@@ -384,6 +395,36 @@ Graph = function(sce) {
     };
 
     /**
+     * setTimelineDatetimeRangeStart
+     * @param {String} initDatetime - date of animation start
+     */
+    this.setTimelineDatetimeRangeStart = function(initDatetime) {
+        _initTimestamp = datetimeToTimestamp(initDatetime);
+
+        _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * setTimelineDatetimeRangeEnd
+     * @param {String} endDatetime - date of animation end
+     */
+    this.setTimelineDatetimeRangeEnd = function(endDatetime) {
+        _endTimestamp = datetimeToTimestamp(endDatetime);
+
+        _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * getTimelineRangeDates
+     * @returns {Object}
+     */
+    this.getTimelineRangeDates = function() {
+        var d = new Date(_initTimestamp);
+        return {"initDate": timestampToDate(_initTimestamp),
+                "endDate": timestampToDate(_endTimestamp)};
+    };
+
+    /**
      * setTimelineDatetimeRange
      * @param {Int} length - frames length
      */
@@ -416,6 +457,14 @@ Graph = function(sce) {
      */
     this.setFrame = function(frame) {
         _currentFrame = frame;
+    };
+
+    /**
+     * getFrame
+     * @returns {Int}
+     */
+    this.getFrame = function(frame) {
+        return _currentFrame;
     };
 
     /**
@@ -992,7 +1041,7 @@ Graph = function(sce) {
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()},
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODEPICKDRAG(_geometryLength).getSrc()});
-        comp_renderer_nodes.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer_nodes.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         comp_renderer_nodes.setGraphicEnableDepthTest(false);
         comp_renderer_nodes.setGraphicEnableBlend(true);
         comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
@@ -1088,7 +1137,7 @@ Graph = function(sce) {
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
-        comp_renderer_links.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer_links.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         comp_renderer_links.setGraphicEnableDepthTest(true);
         comp_renderer_links.setGraphicEnableBlend(true);
         comp_renderer_links.setGraphicBlendSrc(Constants.BLENDING_MODES.ONE);
@@ -1102,7 +1151,7 @@ Graph = function(sce) {
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
-        comp_renderer_arrows.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer_arrows.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         comp_renderer_arrows.setGraphicEnableDepthTest(true);
         comp_renderer_arrows.setGraphicEnableBlend(true);
         comp_renderer_arrows.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
@@ -1116,7 +1165,7 @@ Graph = function(sce) {
                                                 Object.create(varDef_VFPNode),
                                                 {"type": "GRAPHIC",
                                                 "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
-            comp_renderer_nodesText.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+            comp_renderer_nodesText.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
             comp_renderer_nodesText.setGraphicEnableDepthTest(true);
             comp_renderer_nodesText.setGraphicEnableBlend(true);
             comp_renderer_nodesText.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
@@ -1350,22 +1399,24 @@ Graph = function(sce) {
         }
         comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this), this.splitArrows);
 
-        // nodeText id
-        for(var n=0; n < (this.arrayNodeTextData.length/4); n++) {
-            var id = n;
-            if(jsonIn.nodeName == undefined || (jsonIn.nodeName != undefined && this.arrayNodeTextData[n*4] == node.nodeId))
-                setVal(type, jsonIn.argName, "nodestext_array_value", n, jsonIn.value);
-            else {
-                var id = (type == "float") ? n : n*4;
-                if(_customArgs[jsonIn.argName]["nodestext_array_value"][id] == undefined) {
-                    if(type == "float")
-                        setVal(type, jsonIn.argName, "nodestext_array_value", n, 0.0);
-                    else
-                        setVal(type, jsonIn.argName, "nodestext_array_value", n, [0.0,0.0,0.0,0.0]);
+        if(_enableFont == true) {
+            // nodeText id
+            for(var n=0; n < (this.arrayNodeTextData.length/4); n++) {
+                var id = n;
+                if(jsonIn.nodeName == undefined || (jsonIn.nodeName != undefined && this.arrayNodeTextData[n*4] == node.nodeId))
+                    setVal(type, jsonIn.argName, "nodestext_array_value", n, jsonIn.value);
+                else {
+                    var id = (type == "float") ? n : n*4;
+                    if(_customArgs[jsonIn.argName]["nodestext_array_value"][id] == undefined) {
+                        if(type == "float")
+                            setVal(type, jsonIn.argName, "nodestext_array_value", n, 0.0);
+                        else
+                            setVal(type, jsonIn.argName, "nodestext_array_value", n, [0.0,0.0,0.0,0.0]);
+                    }
                 }
             }
+            comp_renderer_nodesText.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodestext_array_value;}).bind(this), this.splitNodesText);
         }
-        comp_renderer_nodesText.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodestext_array_value;}).bind(this), this.splitNodesText);
     };
 
     /**
@@ -2226,8 +2277,8 @@ Graph = function(sce) {
         }
 
         comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[0];}).bind(this));
-        comp_renderer_links.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
-        comp_renderer_arrows.setSharedArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_links.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
+        comp_renderer_arrows.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
         _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
 
 
@@ -2301,7 +2352,7 @@ Graph = function(sce) {
     /** @private */
     var updateNodesText = (function() {
         comp_renderer_nodesText.setArg("data", (function() {return this.arrayNodeTextData;}).bind(this), this.splitNodesText);
-        comp_renderer_nodesText.setSharedArg("posXYZW", comp_renderer_nodes);
+        comp_renderer_nodesText.getComponentBufferArg("posXYZW", comp_renderer_nodes);
 
         comp_renderer_nodesText.setArg("nodeVertexPos", (function() {return this.arrayNodeTextVertexPos;}).bind(this), this.splitNodesText);
         comp_renderer_nodesText.setArg("nodeVertexNormal", (function() {return this.arrayNodeTextVertexNormal;}).bind(this), this.splitNodesText);
@@ -2345,8 +2396,8 @@ Graph = function(sce) {
 
 		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
         comp_renderer_links.setArg("dataC", (function() {return this.arrayLinkDataC;}).bind(this), this.splitLinks);
-        comp_renderer_links.setSharedArg("dataB", comp_renderer_nodes);
-		comp_renderer_links.setSharedArg("posXYZW", comp_renderer_nodes);
+        comp_renderer_links.getComponentBufferArg("dataB", comp_renderer_nodes);
+		comp_renderer_links.getComponentBufferArg("posXYZW", comp_renderer_nodes);
 		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
 		comp_renderer_links.setArg("indices", (function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
 
@@ -2376,8 +2427,8 @@ Graph = function(sce) {
     var updateArrows = (function() {
         comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
         comp_renderer_arrows.setArg("dataC", (function() {return this.arrayArrowDataC;}).bind(this), this.splitArrows);
-        comp_renderer_arrows.setSharedArg("dataB", comp_renderer_nodes);
-        comp_renderer_arrows.setSharedArg("posXYZW", comp_renderer_nodes);
+        comp_renderer_arrows.getComponentBufferArg("dataB", comp_renderer_nodes);
+        comp_renderer_arrows.getComponentBufferArg("posXYZW", comp_renderer_nodes);
 
         comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
         comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this), this.splitArrows);

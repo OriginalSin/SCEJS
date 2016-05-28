@@ -65,7 +65,7 @@ GI = function(sce) {
                                     "config": new VFP_RGB(1).getSrc()},
                                     {"type": "GRAPHIC",
                                     "config": new VFP_GI(resolution).getSrc()});
-        comp_renderer_node.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer_node.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
         comp_renderer_node.onPreProcessGraphic(1, (function() {
             if(_runGI == true) {
                 comp_renderer_node.setArg("randX1", (function(){return Math.random();}).bind(this));
@@ -179,8 +179,8 @@ GI = function(sce) {
         comp_renderer_node.setArg("sampler_screenPos", (function() {return arr;}).bind(this));
         comp_renderer_node.setArg("sampler_screenNormal", (function() {return arr;}).bind(this));
         comp_renderer_node.setArg("sampler_GIVoxel", (function() {return arr;}).bind(this));
-        comp_screenEffects.setSharedArg("sampler_GIVoxel", comp_renderer_node);
-        comp_renderer_node.setSharedArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_screenEffects.getComponentBufferArg("sampler_GIVoxel", comp_renderer_node);
+        comp_renderer_node.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
 		comp_renderer_node.clearArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
         comp_renderer_node.clearArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
         comp_renderer_node.clearArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
