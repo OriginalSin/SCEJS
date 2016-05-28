@@ -184,12 +184,19 @@ SCE = function() {
 		 
 		canvas.setAttribute("width", dimensions.width);
 		canvas.setAttribute("height", dimensions.height); 
-		
-		if(project != null && project.getActiveStage() != null && project.getActiveStage().getActiveCamera() != null) {
-			project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).setResolution(dimensions.width, dimensions.width);
 
-            var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
-            comp_screenEffects.setArg("RGB", (function() {return new Float32Array(dimensions.width*dimensions.width*4);}).bind(this));
+
+		if(project != null) {
+		    if(project.getActiveStage() != null) {
+                var actCamera = project.getActiveStage().getActiveCamera();
+		        if(actCamera != null) {
+                    var comp_proj = actCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION);
+                    var comp_screenEffects = actCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+
+                    comp_proj.setResolution(dimensions.width, dimensions.width);
+                    comp_screenEffects.setArg("RGB", (function() {return new Float32Array(dimensions.width*dimensions.width*4);}).bind(this));
+                }
+            }
 		}
 	};
 	

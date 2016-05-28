@@ -161,7 +161,7 @@ Stage = function() {
 			}
 
 			if(comp_screen_effects != undefined) {
-				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
+				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 				comp_screen_effects.tick();
 			}
 		}
