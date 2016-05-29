@@ -63,7 +63,7 @@ Graph = function(sce) {
     var _timeFrameIncrement;
     var _currentFrame = 0;
     _initTimestamp = 0;
-    _endTimestamp = Date.now()/1000;
+    _endTimestamp = Date.now();
     _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
 
 	var readPixel = false;
@@ -71,6 +71,8 @@ Graph = function(sce) {
 	var _initialPosDrag;
 
 	var _onClickNode;
+	var _onAnimationStep;
+	var _onAnimationEnd;
 
 	// meshes
 	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
@@ -301,7 +303,7 @@ Graph = function(sce) {
      * var ts = datetimeToTimestamp("24-Nov-2009 17:57:35")
      * */
     var datetimeToTimestamp = (function(dt) {
-        return Date.parse(dt)/1000;
+        return Date.parse(dt);
     }).bind(this);
 
     /**
@@ -309,7 +311,7 @@ Graph = function(sce) {
      * @private
      */
     var timestampToDate = (function(ts) {
-        var d = new Date(ts*1000);
+        var d = new Date(ts);
         d = d.toISOString().split("T")[0].split("-");
 
         return d[2]+"/"+d[1]+"/"+d[0];
@@ -395,6 +397,14 @@ Graph = function(sce) {
     };
 
     /**
+     * getTimelineTimestampRangeStart
+     * @returns {Int}
+     */
+    this.getTimelineTimestampRangeStart = function() {
+        return _initTimestamp;
+    };
+
+    /**
      * setTimelineDatetimeRangeStart
      * @param {String} initDatetime - date of animation start
      */
@@ -402,6 +412,14 @@ Graph = function(sce) {
         _initTimestamp = datetimeToTimestamp(initDatetime);
 
         _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * getTimelineTimestampRangeEnd
+     * @returns {Int}
+     */
+    this.getTimelineTimestampRangeEnd = function() {
+        return _endTimestamp;
     };
 
     /**
@@ -419,19 +437,50 @@ Graph = function(sce) {
      * @returns {Object}
      */
     this.getTimelineRangeDates = function() {
-        var d = new Date(_initTimestamp);
         return {"initDate": timestampToDate(_initTimestamp),
                 "endDate": timestampToDate(_endTimestamp)};
     };
 
     /**
-     * setTimelineDatetimeRange
+     * getTimelineFramesLength
+     * @returns {Int}
+     */
+    this.getTimelineFramesLength = function() {
+        return _animationFrames;
+    };
+
+    /**
+     * setTimelineFramesLength
      * @param {Int} length - frames length
      */
     this.setTimelineFramesLength = function(length) {
         _animationFrames = length;
 
         _timeFrameIncrement = (_endTimestamp-_initTimestamp)/_animationFrames;
+    };
+
+    /**
+     * setTimelineTimestamp
+     * @param {Int} frame
+     */
+    this.setTimelineTimestamp = function(ts) {
+        _currentFrame = parseInt((ts-_initTimestamp)/_timeFrameIncrement);
+    };
+
+    /**
+     * setFrame
+     * @param {Int} frame
+     */
+    this.setFrame = function(frame) {
+        _currentFrame = frame;
+    };
+
+    /**
+     * getFrame
+     * @returns {Int}
+     */
+    this.getFrame = function(frame) {
+        return _currentFrame;
     };
 
     /**
@@ -452,19 +501,19 @@ Graph = function(sce) {
     };
 
     /**
-     * setFrame
-     * @param {Int} frame
+     * onAnimationStep
+     * @param {Callback} fn
      */
-    this.setFrame = function(frame) {
-        _currentFrame = frame;
+    this.onAnimationStep = function(fn) {
+        _onAnimationStep = fn;
     };
 
     /**
-     * getFrame
-     * @returns {Int}
+     * onAnimationEnd
+     * @param {Callback} fn
      */
-    this.getFrame = function(frame) {
-        return _currentFrame;
+    this.onAnimationEnd = function(fn) {
+        _onAnimationEnd = fn;
     };
 
     /**
@@ -1054,10 +1103,15 @@ Graph = function(sce) {
 
             if(_playAnimation == true) {
                 _currentFrame++;
+                if(_onAnimationStep != undefined)
+                    _onAnimationStep(_currentFrame);
+
                 if(_currentFrame == _animationFrames) {
                     _currentFrame = 0;
                     if(_loop == false) {
                         this.pauseTimeline();
+                        if(_onAnimationEnd != undefined)
+                            _onAnimationEnd();
                     }
                 }
                 //console.log(currentTimestamp+"  "+_currentFrame);
