@@ -167,8 +167,8 @@
                 //graph.enableFonts(true);
 
                 graph.showTimeline(document.getElementById("SCEJS_timeline"));
-                //graph.enableNeuronalNetwork();
-                aL();
+                graph.enableNeuronalNetwork();
+                //aL();
 
                 graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
                 graph.enableHover();
@@ -178,7 +178,7 @@
 				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
                                                             // TMP
 
-                                                        }).bind(this), true, false);
+                                                        }).bind(this), false, false);
 			};			
 			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
 			
@@ -419,7 +419,9 @@
 
             document.getElementById("BTNID_EFFERENCEDATA").addEventListener("click", (function() {
                 var randNode = parseInt(Math.random()*graph.getNodesCount()).toString();
-                var randNumber = parseInt((Math.random()*2.0)-1.0);
+
+                var randNumber = Math.random()*1000.0;
+                randNumber = ((Math.floor(randNumber%2) == 0.0)?-1.0:1.0);
                 console.log(randNode+" "+randNumber);
                 var ob = {};
                 ob[randNode] = randNumber;

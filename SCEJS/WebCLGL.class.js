@@ -169,7 +169,6 @@ var WebCLGL = function(webglcontext) {
 
 	this.sampler_copyTexture_toSave = _gl.getUniformLocation(this.shader_copyTexture, "sampler_toSave");
 
-    this.rBuffer;
 
     /**
      * getContext
@@ -179,13 +178,6 @@ var WebCLGL = function(webglcontext) {
         return _gl;
     };
 
-    /**
-     * getRenderBuffer
-     * @returns {WebGLRenderBuffer}
-     */
-    this.getRenderBuffer = function() {
-        return this.rBuffer;
-    };
 
     /**
      * getMaxDrawBuffers
@@ -220,9 +212,9 @@ var WebCLGL = function(webglcontext) {
     var copyItem = (function(valueToRead, valueToWrite) {
         if(valueToRead instanceof WebCLGLBufferItem) {
             _gl.viewport(0, 0, valueToWrite.W, valueToWrite.H);
-            if(valueToWrite.fBuffer == undefined) {
-                this.rBuffer = valueToWrite.createWebGLFrameBuffer(this.rBuffer);
-            }
+            if(valueToWrite.fBuffer == undefined)
+                valueToWrite.createWebGLFrameBuffer();
+
             _gl.bindFramebuffer(_gl.FRAMEBUFFER, valueToWrite.fBuffer);
             _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, valueToWrite.textureData, 0);
         } else if(valueToRead instanceof WebGLTexture)
@@ -329,7 +321,7 @@ var WebCLGL = function(webglcontext) {
      */
     this.fillBuffer = function(buffer, clearColor) {
         if(buffer.items[0].fBuffer == undefined)
-            buffer.items[0].createWebGLFrameBuffer(this.getRenderBuffer());
+            buffer.items[0].createWebGLFrameBuffer();
 
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, buffer.items[0].fBuffer);
 
@@ -443,9 +435,9 @@ var WebCLGL = function(webglcontext) {
     var bindFB = (function(webCLGLBuffers) {
         if(webCLGLBuffers instanceof WebCLGLBuffer) {
             _gl.viewport(0, 0, webCLGLBuffers.items[0].W, webCLGLBuffers.items[0].H);
-            if(webCLGLBuffers.items[0].fBuffer == undefined) {
-                this.rBuffer = webCLGLBuffers.items[0].createWebGLFrameBuffer(this.rBuffer);
-            }
+            if(webCLGLBuffers.items[0].fBuffer == undefined)
+                webCLGLBuffers.items[0].createWebGLFrameBuffer();
+
             _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffers.items[0].fBuffer);
 
             if(_maxDrawBuffers != null) {
@@ -459,9 +451,9 @@ var WebCLGL = function(webglcontext) {
         } else if(webCLGLBuffers instanceof Array) { // Array of WebCLGLBuffers
             if(webCLGLBuffers[0] != null) {
                 _gl.viewport(0, 0, webCLGLBuffers[0].items[0].W, webCLGLBuffers[0].items[0].H);
-                if(webCLGLBuffers[0].items[0].fBuffer == undefined) {
-                    this.rBuffer = webCLGLBuffers[0].items[0].createWebGLFrameBuffer(this.rBuffer);
-                }
+                if(webCLGLBuffers[0].items[0].fBuffer == undefined)
+                    webCLGLBuffers[0].items[0].createWebGLFrameBuffer();
+
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffers[0].items[0].fBuffer);
 
                 if(_maxDrawBuffers != null) {

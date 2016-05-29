@@ -57,7 +57,7 @@ function KERNEL_ADJMATRIX_UPDATE(geometryLength) { VFP.call(this);
 
             'return [vec4(currentAdjMatrix, 1.0)];'+*/
 
-            'return [vec4(linkBornDate, linkDieDate, 1.0, linkTypeChild)];'+
+            'return [vec4(linkBornDate, linkDieDate, linkWeight, linkTypeChild)];'+
             ''];
 
         return str_vfp;

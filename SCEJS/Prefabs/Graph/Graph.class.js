@@ -660,7 +660,7 @@ Graph = function(sce) {
                 "data": nodes[key].name,
                 "label": nodes[key].label,
                 "position": nodes[key].pos,
-                "color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+                "color": ((Math.floor(n%2) == 0.0) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
                 "layoutNodeArgumentData": {
                     // dir
                     "ndirect": [0.0, 0.0, 0.0, 1.0],
@@ -1081,11 +1081,10 @@ Graph = function(sce) {
 
         comp_renderer_nodes.setGPUFor(  comp_renderer_nodes.gl,
                                         nodesVarDef,
-            //{"type": "KERNEL",
-            //"config": new KERNEL_ADJMATRIX_UPDATE(_geometryLength).getSrc()},
                                         {"type": "KERNEL",
                                         "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc()},
-
+                                        {"type": "KERNEL",
+                                        "config": new KERNEL_ADJMATRIX_UPDATE(_geometryLength).getSrc()},
                                         {"type": "GRAPHIC",
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()},
                                         {"type": "GRAPHIC",
@@ -1369,7 +1368,20 @@ Graph = function(sce) {
      * @param {Object} jsonIn
      */
     this.setEfferentData = function(jsonIn) {
+        for(var neuronName in jsonIn) {
+            var node = _nodesByName[neuronName];
 
+            // nodes id
+            for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+                if(this.arrayNodeData[n*4] == node.nodeId) {
+                    var id = n*4;
+                    // (-2.0, 0.0, 0.0, 0.0); // efferenceData, null, null, null
+                    this.arrayNodeDataF[id] = jsonIn[neuronName];
+                }
+            }
+
+            comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this), this.splitNodes);
+        }
     };
 
     /**

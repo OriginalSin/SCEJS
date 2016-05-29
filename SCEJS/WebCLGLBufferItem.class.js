@@ -32,7 +32,9 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
 
     this.mode = (mode != undefined) ? mode : "SAMPLER"; // "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
 
-
+    /**
+     * initialize
+     */
     this.initialize = function() {
         if(this.mode == "SAMPLER") {
             // Create WebGLTexture buffer
@@ -45,27 +47,23 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
         }
     };
 
-
-    this.createWebGLRenderBuffer = function() {
+    /**
+     * createWebGLFrameBuffer
+     */
+    this.createWebGLFrameBuffer = function() {
         var rBuffer = _gl.createRenderbuffer();
         _gl.bindRenderbuffer(_gl.RENDERBUFFER, rBuffer);
         _gl.renderbufferStorage(_gl.RENDERBUFFER, _gl.DEPTH_COMPONENT16, this.W, this.H);
         _gl.bindRenderbuffer(_gl.RENDERBUFFER, null);
-        return rBuffer;
-    };
-    this.createWebGLFrameBuffer = function(rBuffer) {
-        if(rBuffer == undefined)
-            rBuffer = this.createWebGLRenderBuffer();
 
         this.fBuffer = _gl.createFramebuffer();
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBuffer);
         _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, rBuffer);
-
-        return rBuffer;
     };
 
     /**
      * Create the WebGLTexture buffer
+     * @private
      */
     var createWebGLTextureBuffer = (function() {
         _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -91,6 +89,7 @@ WebCLGLBufferItem = function(gl, length, type, offset, linear, mode) {
 
     /**
      * Create the WebGL buffer
+     * @private
      */
     var createWebGLBuffer = (function() {
         var vertexData = _gl.createBuffer();
