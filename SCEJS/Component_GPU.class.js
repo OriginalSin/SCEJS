@@ -312,14 +312,6 @@ Component_GPU = function() {
     };
 
     /**
-     * getTempBuffers
-     * @returns {Array<WebCLGLBuffer>}
-     */
-    this.getTempBuffers = function() {
-        return this.gpufG.getWork().buffers_TEMP;
-    };
-
-    /**
      * clearArg
      * @param {String} argName
      * @param {Array<Float>} clearColor

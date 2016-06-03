@@ -16,7 +16,11 @@ WebCLGLKernel = function(gl, source, header) {
         _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
 
 	this.in_values = {};
-    this.output; //String or Array<String> of arg names with the items in same order that in the final return
+
+    this.output = null; //String or Array<String> of arg names with the items in same order that in the final return
+    this.outputTempModes = null;
+    this.fBuffer = null;
+    this.fBufferTemp = null;
 
     var _enableDebug = false;
 
@@ -251,11 +255,30 @@ WebCLGLKernel = function(gl, source, header) {
      * Bind float or a WebCLGLBuffer to a kernel argument
      * @type Void
      * @param {Int|String} argument Id of argument or name of this
-     * @param {Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer} data
      */
-    this.setKernelArg = function(argument, data) {
+    this.setKernelArg = function(argument, data, buffers) {
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_values)[argument];
         this.in_values[arg].value = data;
+
+        if(buffers != undefined) {
+            if(this.output != undefined &&
+             ((this.output instanceof Array && this.output.indexOf(argument) > -1) || (this.output == argument))
+             ) {
+                var fbs = new WebCLGLUtils().createFBs(_gl, _glDrawBuff_ext, this, buffers, data.items[0].W, data.items[0].H);
+                this.fBuffer = fbs[0];
+                this.fBufferTemp = fbs[1];
+                new WebCLGLUtils().updateFBnow(false, this.fBuffer, _gl, _glDrawBuff_ext, _maxDrawBuffers, this, buffers);
+                new WebCLGLUtils().updateFBnow(true, this.fBufferTemp, _gl, _glDrawBuff_ext, _maxDrawBuffers, this, buffers);
+            }
+        }
+    };
+
+    /**
+     * clearArg
+     */
+    this.clearArg = function(webCLGL, buff, clearColor, buffers) {
+        webCLGL.fillBuffer(buff.items[0].textureData, clearColor, this.fBuffer);
+        webCLGL.fillBuffer(buff.items[0].textureDataTemp, clearColor, this.fBufferTemp);
     };
 };
 

@@ -86,7 +86,7 @@
 					"name": "#"+n.toString()+":"+n.toString(),
 					"data": "#"+n.toString()+":"+n.toString(),
 					"position": pos,
-					"color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+					"color": ((Math.floor(n%2) == 0.0) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
                     "bornDate": "RANDOM",
                     "dieDate": "RANDOM",
 					"layoutNodeArgumentData": {"nodeColor": [0.0, 1.0, 0.0, 1.0]},

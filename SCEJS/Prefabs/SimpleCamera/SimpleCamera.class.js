@@ -52,8 +52,9 @@ SimpleCamera = function(sce, jsonIn) {
                                             'vec4 color = RGB[n];\n'+
                                             'return color;\n']});
     comp_screenEffects.onPostProcessKernels((function() {
-        comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+        //comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
     }).bind(this));
+    //comp_screenEffects.setArg("RGB", (function() {return new Float32Array(_sce.getCanvas().width*_sce.getCanvas().width*4);}).bind(this));
 
 	// ComponentKeyboardEvents
 	var comp_keyboardEvents = new ComponentKeyboardEvents();
