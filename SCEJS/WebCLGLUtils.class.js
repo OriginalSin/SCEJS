@@ -272,6 +272,107 @@ WebCLGLUtils = function() {
             'return dot(colour, bitShifts);\n'+
             '}\n';
     };
+
+
+    /**
+     * getOutputBuffers
+     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} prog
+     * @param {Array<WebCLGLBuffer>} buffers
+     */
+    this.getOutputBuffers = function(prog, buffers) {
+        var outputBuff = null;
+        if(prog.output != undefined) {
+            if(prog.output instanceof Array) {
+                outputBuff = [];
+                if(prog.output[0] != null) {
+                    for(var n=0; n < prog.output.length; n++) {
+                        //if(buffers.hasOwnProperty(prog.output[n]) == false && _alerted == false)
+                        //    _alerted = true, alert("output argument "+prog.output[n]+" not found in buffers. add desired argument as shared");
+
+                        outputBuff[n] = buffers[prog.output[n]];
+                    }
+                } else
+                    outputBuff = null;
+            } else {
+                outputBuff = buffers[prog.output];
+            }
+        }
+        return outputBuff;
+    };
+
+    this.updateFBnow = function(t, fBuffer, gl, extDB, maxDrawBuffers, pgr, buffers) {
+        var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
+
+        if(webCLGLBuffers instanceof WebCLGLBuffer) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
+
+            var o = (t == true) ? webCLGLBuffers.items[0].textureDataTemp : webCLGLBuffers.items[0].textureData;
+
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, extDB.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, o, 0);
+            extDB.drawBuffersWEBGL([
+                extDB.COLOR_ATTACHMENT0_WEBGL
+            ]);
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        } else if(webCLGLBuffers instanceof Array) { // Array of WebCLGLBuffers
+            if(webCLGLBuffers[0] != null) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
+
+                if(webCLGLBuffers.length > maxDrawBuffers)
+                    console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
+
+                var arrDBuff = [];
+                for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+                    var o = (t == true) ? webCLGLBuffers[n].items[0].textureDataTemp : webCLGLBuffers[n].items[0].textureData;
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT'+n+'_WEBGL'], gl.TEXTURE_2D, o, 0);
+                    arrDBuff[n] = extDB['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
+                }
+                extDB.drawBuffersWEBGL(arrDBuff);
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            }
+        }
+    };
+
+    /**
+     * updateFB
+     */
+    this.createFBs = function(gl, extDB, pgr, buffers, width, height) {
+        var createWebGLFrameBuffer = (function(gl, extDB, pgr, buffers, width, height) {
+            var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
+
+            var fBuffer = gl.createFramebuffer();
+
+            if(webCLGLBuffers instanceof WebCLGLBuffer) {
+                var rBuffer = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rBuffer);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, width, height);
+                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT0_WEBGL'], gl.RENDERBUFFER, rBuffer);
+            } else if(webCLGLBuffers instanceof Array) { // Array of WebCLGLBuffers
+                for(var n=0; n < webCLGLBuffers.length; n++) {
+                    var rBuffer = gl.createRenderbuffer();
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, rBuffer);
+                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, width, height);
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
+                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT'+n+'_WEBGL'], gl.RENDERBUFFER, rBuffer);
+                }
+            }
+
+            return fBuffer;
+        }).bind(this);
+
+
+        var fBuffer = createWebGLFrameBuffer(gl, extDB, pgr, buffers, width, height);
+        var fBufferTemp = createWebGLFrameBuffer(gl, extDB, pgr, buffers, width, height);
+
+        return [fBuffer, fBufferTemp];
+    };
+
 };
 
 

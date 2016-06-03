@@ -13,13 +13,15 @@ function KERNEL_ADJMATRIX_UPDATE(geometryLength) { VFP.call(this);
             'float linkWeight = adjMat.z;'+
             'float linkTypeChild = adjMat.w;'+// if w=0.0 then indicate that in this relation(pixel) the parentId(targetId) is the column location. Rows is the child
 
-            'if(linkBornDate > 0.0 && linkTypeChild == 0.0) {'+
-                'float parentNodeId = gl_FragCoord.x;'+
+            'float disabVal = 0.0;'+
+
+            'if(linkBornDate > 0.0) {'+ // 0.0=(col=parentId;row=childId) 1.0=(col=childId;row=parentId)
+                'float parentNodeId = (linkTypeChild == 0.0) ? gl_FragCoord.x : gl_FragCoord.y;'+
                 'vec2 xGeometry = get_global_id(parentNodeId, nodesCount, '+geometryLength.toFixed(1)+');'+
                 'float efferenceData = dataF[xGeometry].x;'+
                 'float networkProcData = dataB[xGeometry].w;'+
 
-                'if(efferenceData != -2.0) {'+ // evidence exists
+                'if(efferenceData > disabVal) {'+ // evidence exists
                     'if(efferenceData != networkProcData) {'+ // error exists. calibrate link weight
                         // W=W+learnCoef(Y)*D
                         'linkWeight = linkWeight+linkWeight*efferenceData*networkProcData;'+

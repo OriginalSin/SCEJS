@@ -58,15 +58,14 @@
 
 
             graph.addNeuron("color"); // efferent neuron (actuator)
-            graph.addNeuron("realTemp"); // afferent neuron (sensor)
-            graph.addNeuron("month"); // afferent neuron
-            graph.addSinapsis("realTemp", "color");
-            graph.addSinapsis("month", "color");
+            graph.addNeuron("R"); // afferent neuron (sensor)
+            graph.addNeuron("G"); // afferent neuron
+            graph.addNeuron("B"); // afferent neuron
+            graph.addSinapsis("R", "color");
+            graph.addSinapsis("G", "color");
+            graph.addSinapsis("B", "color");
             graph.updateNodes();
             graph.updateLinks();
-
-            graph.setAfferentData({"realTemp": 0.1, "month": 0.9}); // update Efferent Neurons status according to actual afferent data & link weights
-            graph.setEfferentData({"color": 1.0}); // update links weights (train) from Efferents Neurons according to actual afferent data
 
 			//*********
 			// RENDER STAGE
@@ -84,5 +83,28 @@
 		Alt+MiddleMouse for Pan<br />		
 		P for perspective view<br />
 		WASD for to move<br />
+
+        <button id="BTNID_AFFERENCEDATA">random afference data</button> Input data<br />
+        <button id="BTNID_EFFERENCEDATA0">efference data 0</button> Train output from current afference data updating link weights<br />
+        <button id="BTNID_EFFERENCEDATA1">efference data 1</button> Train output from current afference data updating link weights<br />
+        <button id="BTNID_NETWORKSTEP">network step</button> <br />
+		<script>
+            document.getElementById("BTNID_AFFERENCEDATA").addEventListener("click", (function() {
+                graph.setAfferentData({ "R": (Math.random()*2.0)-1.0,
+                                        "G": (Math.random()*2.0)-1.0,
+                                        "B": (Math.random()*2.0)-1.0});
+            }).bind(this));
+
+            document.getElementById("BTNID_EFFERENCEDATA0").addEventListener("click", (function() {
+                graph.setEfferentData({"color": 0.0});
+            }).bind(this));
+            document.getElementById("BTNID_EFFERENCEDATA1").addEventListener("click", (function() {
+                graph.setEfferentData({"color": 1.0});
+            }).bind(this));
+
+            document.getElementById("BTNID_NETWORKSTEP").addEventListener("click", (function() {
+                graph.makeNetworkStep();
+            }).bind(this));
+		</script>
 	</body>
 </html>

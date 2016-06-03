@@ -146,8 +146,8 @@ Stage = function() {
 			gl.depthFunc(gl.LEQUAL);
 			
 			var comp_screen_effects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS); 
-			/*if(comp_screen_effects != undefined)
-				comp_screen_effects.clearArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);*/
+			if(comp_screen_effects != undefined)
+				comp_screen_effects.clearArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
 			
 			for(var n=0, fn = nodes.length; n < fn; n++) {
 				for(var key in nodes[n].getComponents()) {

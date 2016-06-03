@@ -189,6 +189,8 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
 
 
             'if(isNode == 1.0) {'+
+                'nodePosition += vec4(0.0, 0.1, 0.0, 1.0);'+
+
                 'mat4 mm = rotationMatrix(vec3(1.0,0.0,0.0), (3.1416/2.0)*3.0);'+
                 'nodepos = nodepos*mm;'+
                 'float nodeImgId = nodeImgId[];'+
@@ -204,8 +206,16 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                 '}'+
 
                 'if(enableNeuronalNetwork == 1.0) {'+
-                    'float we = (networkProcData+1.0)/2.0;'+
-                    'nodeVertexColor = vec4(networkProcData, networkProcData, networkProcData, 1.0);'+
+                    'if(networkProcData == 0.0) {'+
+                        'nodeVertexColor = vec4(0.2, 0.2, 0.2, 1.0);'+
+                    '} else {'+
+                        'if(networkProcData > 0.0)'+
+                            'nodeVertexColor = vec4(0.0, abs(networkProcData), 0.0, 1.0);'+
+                        ' else if(networkProcData < 0.0) '+
+                            'nodeVertexColor = vec4(abs(networkProcData), 0.0, 0.0, 1.0);'+
+                    '}'+
+
+
                 '}'+
             '}'+
             'if(isLink == 1.0) {'+
@@ -363,6 +373,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                     '}'+
                     'color = vec4(tex.rgb*color.rgb, tex.a);\n'+
                 '}'+
+                'if(color.a < 0.1) discard;'+
                 'fcolor = color;'+
             '} else if(isLink == 1.0) {'+
                 'if(vIsSelected == 1.0) {'+

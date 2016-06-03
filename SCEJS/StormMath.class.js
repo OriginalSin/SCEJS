@@ -58,61 +58,49 @@ StormM16 = function(elements) {
 */
 StormM16.prototype.x = function(stormM16) {
 	if(stormM16 instanceof StormM16) {
-		var mx = function asm(stdlib,f) {
-			"use asm";
-			return [	(f[0][0]*f[1][0]) + (f[0][1]*f[1][4]) + (f[0][2]*f[1][8]) + (f[0][3]*f[1][12]),
-					  (f[0][0]*f[1][1]) + (f[0][1]*f[1][5]) + (f[0][2]*f[1][9]) + (f[0][3]*f[1][13]),
-					  (f[0][0]*f[1][2]) + (f[0][1]*f[1][6]) + (f[0][2]*f[1][10]) + (f[0][3]*f[1][14]),
-					  (f[0][0]*f[1][3]) + (f[0][1]*f[1][7]) + (f[0][2]*f[1][11]) + (f[0][3]*f[1][15]),
+		return $M16([
+          (this.e[0]*stormM16.e[0]) + (this.e[1]*stormM16.e[4]) + (this.e[2]*stormM16.e[8]) + (this.e[3]*stormM16.e[12]),
+          (this.e[0]*stormM16.e[1]) + (this.e[1]*stormM16.e[5]) + (this.e[2]*stormM16.e[9]) + (this.e[3]*stormM16.e[13]),
+          (this.e[0]*stormM16.e[2]) + (this.e[1]*stormM16.e[6]) + (this.e[2]*stormM16.e[10]) + (this.e[3]*stormM16.e[14]),
+          (this.e[0]*stormM16.e[3]) + (this.e[1]*stormM16.e[7]) + (this.e[2]*stormM16.e[11]) + (this.e[3]*stormM16.e[15]),
 
-					  (f[0][4]*f[1][0]) + (f[0][5]*f[1][4]) + (f[0][6]*f[1][8]) + (f[0][7]*f[1][12]),
-					  (f[0][4]*f[1][1]) + (f[0][5]*f[1][5]) + (f[0][6]*f[1][9]) + (f[0][7]*f[1][13]),
-					  (f[0][4]*f[1][2]) + (f[0][5]*f[1][6]) + (f[0][6]*f[1][10]) + (f[0][7]*f[1][14]),
-					  (f[0][4]*f[1][3]) + (f[0][5]*f[1][7]) + (f[0][6]*f[1][11]) + (f[0][7]*f[1][15]),
+          (this.e[4]*stormM16.e[0]) + (this.e[5]*stormM16.e[4]) + (this.e[6]*stormM16.e[8]) + (this.e[7]*stormM16.e[12]),
+          (this.e[4]*stormM16.e[1]) + (this.e[5]*stormM16.e[5]) + (this.e[6]*stormM16.e[9]) + (this.e[7]*stormM16.e[13]),
+          (this.e[4]*stormM16.e[2]) + (this.e[5]*stormM16.e[6]) + (this.e[6]*stormM16.e[10]) + (this.e[7]*stormM16.e[14]),
+          (this.e[4]*stormM16.e[3]) + (this.e[5]*stormM16.e[7]) + (this.e[6]*stormM16.e[11]) + (this.e[7]*stormM16.e[15]),
 
-					  (f[0][8]*f[1][0]) + (f[0][9]*f[1][4]) + (f[0][10]*f[1][8]) + (f[0][11]*f[1][12]),
-					  (f[0][8]*f[1][1]) + (f[0][9]*f[1][5]) + (f[0][10]*f[1][9]) + (f[0][11]*f[1][13]),
-					  (f[0][8]*f[1][2]) + (f[0][9]*f[1][6]) + (f[0][10]*f[1][10]) + (f[0][11]*f[1][14]),
-					  (f[0][8]*f[1][3]) + (f[0][9]*f[1][7]) + (f[0][10]*f[1][11]) + (f[0][11]*f[1][15]),
+          (this.e[8]*stormM16.e[0]) + (this.e[9]*stormM16.e[4]) + (this.e[10]*stormM16.e[8]) + (this.e[11]*stormM16.e[12]),
+          (this.e[8]*stormM16.e[1]) + (this.e[9]*stormM16.e[5]) + (this.e[10]*stormM16.e[9]) + (this.e[11]*stormM16.e[13]),
+          (this.e[8]*stormM16.e[2]) + (this.e[9]*stormM16.e[6]) + (this.e[10]*stormM16.e[10]) + (this.e[11]*stormM16.e[14]),
+          (this.e[8]*stormM16.e[3]) + (this.e[9]*stormM16.e[7]) + (this.e[10]*stormM16.e[11]) + (this.e[11]*stormM16.e[15]),
 
-					  (f[0][12]*f[1][0]) + (f[0][13]*f[1][4]) + (f[0][14]*f[1][8]) + (f[0][15]*f[1][12]),
-					  (f[0][12]*f[1][1]) + (f[0][13]*f[1][5]) + (f[0][14]*f[1][9]) + (f[0][15]*f[1][13]),
-					  (f[0][12]*f[1][2]) + (f[0][13]*f[1][6]) + (f[0][14]*f[1][10]) + (f[0][15]*f[1][14]),
-					  (f[0][12]*f[1][3]) + (f[0][13]*f[1][7]) + (f[0][14]*f[1][11]) + (f[0][15]*f[1][15])	];
-		}(undefined,[this.e, stormM16.e]);
-		
-		return $M16([	mx[0],mx[1],mx[2],mx[3],
-						mx[4],mx[5],mx[6],mx[7],
-						mx[8],mx[9],mx[10],mx[11],
-						mx[12],mx[13],mx[14],mx[15]	]); 
+          (this.e[12]*stormM16.e[0]) + (this.e[13]*stormM16.e[4]) + (this.e[14]*stormM16.e[8]) + (this.e[15]*stormM16.e[12]),
+          (this.e[12]*stormM16.e[1]) + (this.e[13]*stormM16.e[5]) + (this.e[14]*stormM16.e[9]) + (this.e[15]*stormM16.e[13]),
+          (this.e[12]*stormM16.e[2]) + (this.e[13]*stormM16.e[6]) + (this.e[14]*stormM16.e[10]) + (this.e[15]*stormM16.e[14]),
+          (this.e[12]*stormM16.e[3]) + (this.e[13]*stormM16.e[7]) + (this.e[14]*stormM16.e[11]) + (this.e[15]*stormM16.e[15])
+         ]);
 	} else {
-		var mx = function asm(stdlib,f) {
-			"use asm";
-			return [	0.0,
-						0.0,
-						0.0,
-						(f[0][0]*f[1][0]) + (f[0][1]*f[1][1]) + (f[0][2]*f[1][2]),
+		return $M16([
+          0.0,
+          0.0,
+          0.0,
+          (this.e[0]*stormM16.e[0]) + (this.e[1]*stormM16.e[1]) + (this.e[2]*stormM16.e[2]),
 
-						0.0,
-						0.0,
-						0.0,
-						(f[0][4]*f[1][0]) + (f[0][5]*f[1][1]) + (f[0][6]*f[1][2]),
+          0.0,
+          0.0,
+          0.0,
+          (this.e[4]*stormM16.e[0]) + (this.e[5]*stormM16.e[1]) + (this.e[6]*stormM16.e[2]),
 
-						0.0,
-						0.0,
-						0.0,
-						(f[0][8]*f[1][0]) + (f[0][9]*f[1][1]) + (f[0][10]*f[1][2]),
+          0.0,
+          0.0,
+          0.0,
+          (this.e[8]*stormM16.e[0]) + (this.e[9]*stormM16.e[1]) + (this.e[10]*stormM16.e[2]),
 
-						0.0,
-						0.0,
-						0.0,
-						(f[0][12]*f[1][0]) + (f[0][13]*f[1][1]) + (f[0][14]*f[1][2])	];
-		}(undefined,[this.e, stormM16.e]);
-		
-		return $M16([	mx[0],mx[1],mx[2],mx[3],
-						mx[4],mx[5],mx[6],mx[7],
-						mx[8],mx[9],mx[10],mx[11],
-						mx[12],mx[13],mx[14],mx[15]	]);
+          0.0,
+          0.0,
+          0.0,
+          (this.e[12]*stormM16.e[0]) + (this.e[13]*stormM16.e[1]) + (this.e[14]*stormM16.e[2])
+         ]);
 	}
 };
 /**
@@ -130,89 +118,96 @@ StormM16.prototype.transpose = function() {
 * @returns {StormM16}
 */
 StormM16.prototype.inverse = function() {
-	var mx = function asm(stdlib,f) {
-			"use asm";
-		var src = new Float32Array([f[0][0], f[0][4], f[0][8], f[0][12],
-									f[0][1], f[0][5], f[0][9], f[0][13],
-									f[0][2], f[0][6], f[0][10], f[0][14],
-									f[0][3], f[0][7], f[0][11], f[0][15]	]); // transpose
-		var tmp = new Float32Array(12);
-		var dst = new Float32Array(16);
-		// Calculate pairs for first 8 elements (cofactors) 
-		tmp[0] = src[10] * src[15];
-		tmp[1] = src[11] * src[14];
-		tmp[2] = src[9]  * src[15];
-		tmp[3] = src[11] * src[13];
-		tmp[4] = src[9]  * src[14];
-		tmp[5] = src[10] * src[13];
-		tmp[6] = src[8]  * src[15];
-		tmp[7] = src[11] * src[12];
-		tmp[8] = src[8]  * src[14];
-		tmp[9] = src[10] * src[12];
-		tmp[10] = src[8] * src[13];
-		tmp[11] = src[9] * src[12];
-		
-		// Calculate first 8 elements (cofactors)
-		dst[0]  = tmp[0]*src[5] + tmp[3]*src[6] + tmp[4]*src[7];
-		dst[0] -= tmp[1]*src[5] + tmp[2]*src[6] + tmp[5]*src[7];
-		dst[1]  = tmp[1]*src[4] + tmp[6]*src[6] + tmp[9]*src[7];
-		dst[1] -= tmp[0]*src[4] + tmp[7]*src[6] + tmp[8]*src[7];
-		dst[2]  = tmp[2]*src[4] + tmp[7]*src[5] + tmp[10]*src[7];
-		dst[2] -= tmp[3]*src[4] + tmp[6]*src[5] + tmp[11]*src[7];
-		dst[3]  = tmp[5]*src[4] + tmp[8]*src[5] + tmp[11]*src[6];
-		dst[3] -= tmp[4]*src[4] + tmp[9]*src[5] + tmp[10]*src[6];
-		dst[4]  = tmp[1]*src[1] + tmp[2]*src[2] + tmp[5]*src[3];
-		dst[4] -= tmp[0]*src[1] + tmp[3]*src[2] + tmp[4]*src[3];
-		dst[5]  = tmp[0]*src[0] + tmp[7]*src[2] + tmp[8]*src[3];
-		dst[5] -= tmp[1]*src[0] + tmp[6]*src[2] + tmp[9]*src[3];
-		dst[6]  = tmp[3]*src[0] + tmp[6]*src[1] + tmp[11]*src[3];
-		dst[6] -= tmp[2]*src[0] + tmp[7]*src[1] + tmp[10]*src[3];
-		dst[7]  = tmp[4]*src[0] + tmp[9]*src[1] + tmp[10]*src[2];
-		dst[7] -= tmp[5]*src[0] + tmp[8]*src[1] + tmp[11]*src[2];
-		
-		// Calculate pairs for second 8 elements (cofactors)
-		tmp[0]  = src[2]*src[7];
-		tmp[1]  = src[3]*src[6];
-		tmp[2]  = src[1]*src[7];
-		tmp[3]  = src[3]*src[5];
-		tmp[4]  = src[1]*src[6];
-		tmp[5]  = src[2]*src[5];
-		tmp[6]  = src[0]*src[7];
-		tmp[7]  = src[3]*src[4];
-		tmp[8]  = src[0]*src[6];
-		tmp[9]  = src[2]*src[4];
-		tmp[10] = src[0]*src[5];
-		tmp[11] = src[1]*src[4];
+	var src = $M16(this.e).transpose().e;
+	var tmp = new Float32Array(12);
+	var dst = new Float32Array(16);
+	// Calculate pairs for first 8 elements (cofactors)
+    tmp[0] = src[10] * src[15];
+    tmp[1] = src[11] * src[14];
+    tmp[2] = src[9]  * src[15];
+    tmp[3] = src[11] * src[13];
+    tmp[4] = src[9]  * src[14];
+    tmp[5] = src[10] * src[13];
+    tmp[6] = src[8]  * src[15];
+    tmp[7] = src[11] * src[12];
+    tmp[8] = src[8]  * src[14];
+    tmp[9] = src[10] * src[12];
+    tmp[10] = src[8] * src[13];
+    tmp[11] = src[9] * src[12];
 
-		// Calculate second 8 elements (cofactors)
-		dst[8]   = tmp[0] * src[13]  + tmp[3] * src[14]  + tmp[4] * src[15];
-		dst[8]  -= tmp[1] * src[13]  + tmp[2] * src[14]  + tmp[5] * src[15];
-		dst[9]   = tmp[1] * src[12]  + tmp[6] * src[14]  + tmp[9] * src[15];
-		dst[9]  -= tmp[0] * src[12]  + tmp[7] * src[14]  + tmp[8] * src[15];
-		dst[10]  = tmp[2] * src[12]  + tmp[7] * src[13]  + tmp[10]* src[15];
-		dst[10] -= tmp[3] * src[12]  + tmp[6] * src[13]  + tmp[11]* src[15];
-		dst[11]  = tmp[5] * src[12]  + tmp[8] * src[13]  + tmp[11]* src[14];
-		dst[11] -= tmp[4] * src[12]  + tmp[9] * src[13]  + tmp[10]* src[14];
-		dst[12]  = tmp[2] * src[10]  + tmp[5] * src[11]  + tmp[1] * src[9];
-		dst[12] -= tmp[4] * src[11]  + tmp[0] * src[9]   + tmp[3] * src[10];
-		dst[13]  = tmp[8] * src[11]  + tmp[0] * src[8]   + tmp[7] * src[10];
-		dst[13] -= tmp[6] * src[10]  + tmp[9] * src[11]  + tmp[1] * src[8];
-		dst[14]  = tmp[6] * src[9]   + tmp[11]* src[11]  + tmp[3] * src[8];
-		dst[14] -= tmp[10]* src[11] + tmp[2] * src[8]   + tmp[7] * src[9];
-		dst[15]  = tmp[10]* src[10]  + tmp[4] * src[8]   + tmp[9] * src[9];
-		dst[15] -= tmp[8] * src[9]   + tmp[11]* src[10]  + tmp[5] * src[8];
-		
-		var det = src[0]*dst[0] + src[1]*dst[1] + src[2]*dst[2] + src[3]*dst[3];
-		return [	dst[0] * det, dst[1] * det, dst[2] * det, dst[3] * det,
-					dst[4] * det, dst[5] * det, dst[6] * det, dst[7] * det,
-					dst[8] * det, dst[9] * det, dst[10] * det, dst[11] * det,
-					dst[12] * det, dst[13] * det, dst[14] * det, dst[15] * det	];
-	}(undefined,[this.e]);
+    // Calculate first 8 elements (cofactors)
+    dst[0]  = tmp[0]*src[5] + tmp[3]*src[6] + tmp[4]*src[7];
+    dst[0] -= tmp[1]*src[5] + tmp[2]*src[6] + tmp[5]*src[7];
+    dst[1]  = tmp[1]*src[4] + tmp[6]*src[6] + tmp[9]*src[7];
+    dst[1] -= tmp[0]*src[4] + tmp[7]*src[6] + tmp[8]*src[7];
+    dst[2]  = tmp[2]*src[4] + tmp[7]*src[5] + tmp[10]*src[7];
+    dst[2] -= tmp[3]*src[4] + tmp[6]*src[5] + tmp[11]*src[7];
+    dst[3]  = tmp[5]*src[4] + tmp[8]*src[5] + tmp[11]*src[6];
+    dst[3] -= tmp[4]*src[4] + tmp[9]*src[5] + tmp[10]*src[6];
+    dst[4]  = tmp[1]*src[1] + tmp[2]*src[2] + tmp[5]*src[3];
+    dst[4] -= tmp[0]*src[1] + tmp[3]*src[2] + tmp[4]*src[3];
+    dst[5]  = tmp[0]*src[0] + tmp[7]*src[2] + tmp[8]*src[3];
+    dst[5] -= tmp[1]*src[0] + tmp[6]*src[2] + tmp[9]*src[3];
+    dst[6]  = tmp[3]*src[0] + tmp[6]*src[1] + tmp[11]*src[3];
+    dst[6] -= tmp[2]*src[0] + tmp[7]*src[1] + tmp[10]*src[3];
+    dst[7]  = tmp[4]*src[0] + tmp[9]*src[1] + tmp[10]*src[2];
+    dst[7] -= tmp[5]*src[0] + tmp[8]*src[1] + tmp[11]*src[2];
 
-	return $M16([	mx[0],mx[1],mx[2],mx[3],
-					mx[4],mx[5],mx[6],mx[7],
-					mx[8],mx[9],mx[10],mx[11],
-					mx[12],mx[13],mx[14],mx[15]	]);
+    // Calculate pairs for second 8 elements (cofactors)
+    tmp[0]  = src[2]*src[7];
+    tmp[1]  = src[3]*src[6];
+    tmp[2]  = src[1]*src[7];
+    tmp[3]  = src[3]*src[5];
+    tmp[4]  = src[1]*src[6];
+    tmp[5]  = src[2]*src[5];
+    tmp[6]  = src[0]*src[7];
+    tmp[7]  = src[3]*src[4];
+    tmp[8]  = src[0]*src[6];
+    tmp[9]  = src[2]*src[4];
+    tmp[10] = src[0]*src[5];
+    tmp[11] = src[1]*src[4];
+
+    // Calculate second 8 elements (cofactors)
+    dst[8]   = tmp[0] * src[13]  + tmp[3] * src[14]  + tmp[4] * src[15];
+    dst[8]  -= tmp[1] * src[13]  + tmp[2] * src[14]  + tmp[5] * src[15];
+    dst[9]   = tmp[1] * src[12]  + tmp[6] * src[14]  + tmp[9] * src[15];
+    dst[9]  -= tmp[0] * src[12]  + tmp[7] * src[14]  + tmp[8] * src[15];
+    dst[10]  = tmp[2] * src[12]  + tmp[7] * src[13]  + tmp[10]* src[15];
+    dst[10] -= tmp[3] * src[12]  + tmp[6] * src[13]  + tmp[11]* src[15];
+    dst[11]  = tmp[5] * src[12]  + tmp[8] * src[13]  + tmp[11]* src[14];
+    dst[11] -= tmp[4] * src[12]  + tmp[9] * src[13]  + tmp[10]* src[14];
+    dst[12]  = tmp[2] * src[10]  + tmp[5] * src[11]  + tmp[1] * src[9];
+    dst[12] -= tmp[4] * src[11]  + tmp[0] * src[9]   + tmp[3] * src[10];
+    dst[13]  = tmp[8] * src[11]  + tmp[0] * src[8]   + tmp[7] * src[10];
+    dst[13] -= tmp[6] * src[10]  + tmp[9] * src[11]  + tmp[1] * src[8];
+    dst[14]  = tmp[6] * src[9]   + tmp[11]* src[11]  + tmp[3] * src[8];
+    dst[14] -= tmp[10]* src[11] + tmp[2] * src[8]   + tmp[7] * src[9];
+    dst[15]  = tmp[10]* src[10]  + tmp[4] * src[8]   + tmp[9] * src[9];
+    dst[15] -= tmp[8] * src[9]   + tmp[11]* src[10]  + tmp[5] * src[8];
+
+    var det = src[0]*dst[0] + src[1]*dst[1] + src[2]*dst[2] + src[3]*dst[3];
+
+    return $M16([
+	              dst[0] * det,
+	              dst[1] * det,
+	              dst[2] * det,
+	              dst[3] * det,
+
+	              dst[4] * det,
+	              dst[5] * det,
+	              dst[6] * det,
+	              dst[7] * det,
+
+	              dst[8] * det,
+	              dst[9] * det,
+	              dst[10] * det,
+	              dst[11] * det,
+
+	              dst[12] * det,
+	              dst[13] * det,
+	              dst[14] * det,
+	              dst[15] * det
+	             ]);
 };
 /**
 * Get vector left
@@ -495,12 +490,7 @@ StormV3 = function(elements) {
 * @param {StormV3} vector Vector b
 */
 StormV3.prototype.add = function(stormV3) {
-	var add = function asm(stdlib,f) {
-		"use asm";
-		return [f[0][0]+f[1][0],f[0][1]+f[1][1],f[0][2]+f[1][2]];
-	}(undefined,[this.e, stormV3.e]);
-	
-    return $V3([ add[0], add[1], add[2] ]); 
+    return $V3([ this.e[0] + stormV3.e[0], this.e[1] + stormV3.e[1], this.e[2] + stormV3.e[2] ]);
 };
 /**
 * Perform a cross b and get the vector
@@ -508,12 +498,7 @@ StormV3.prototype.add = function(stormV3) {
 * @param {StormV3} vector Vector b
 */
 StormV3.prototype.cross = function(stormV3) {
-	var cross = function asm(stdlib,f) {
-		"use asm";
-		return [f[0][1] * f[1][2] - f[0][2] * f[1][1], f[0][2] * f[1][0] - f[0][0] * f[1][2], f[0][0] * f[1][1] - f[0][1] * f[1][0]];
-	}(undefined,[this.e, stormV3.e]);
-	
-    return $V3([ cross[0], cross[1], cross[2] ]); 
+    return $V3([ this.e[1] * stormV3.e[2] - this.e[2] * stormV3.e[1], this.e[2] * stormV3.e[0] - this.e[0] * stormV3.e[2], this.e[0] * stormV3.e[1] - this.e[1] * stormV3.e[0] ]);
 };
 /**
 * Get the distance between a and b
@@ -521,12 +506,7 @@ StormV3.prototype.cross = function(stormV3) {
 * @param {StormV3} vector Vector b
 */
 StormV3.prototype.distance = function(stormV3) {
-	var distance = function asm(stdlib,f) {
-		"use asm";
-		return stdlib( (f[0][0] - f[1][0]) * (f[0][0] - f[1][0]) + (f[0][1] - f[1][1]) * (f[0][1] - f[1][1]) + (f[0][2] - f[1][2]) * (f[0][2] - f[1][2]) );
-	}(Math.sqrt,[this.e, stormV3.e]);
-	
-    return distance;  
+    return Math.sqrt( (this.e[0] - stormV3.e[0]) * (this.e[0] - stormV3.e[0]) + (this.e[1] - stormV3.e[1]) * (this.e[1] - stormV3.e[1]) + (this.e[2] - stormV3.e[2]) * (this.e[2] - stormV3.e[2]) );
 };
 /**
 * Get the dot product between a and b
@@ -534,12 +514,7 @@ StormV3.prototype.distance = function(stormV3) {
 * @param {StormV3} vector Vector b
 */
 StormV3.prototype.dot = function(stormV3) {
-	var dot = function asm(stdlib,f) {
-		"use asm";
-		return (f[0][0]*f[1][0] + f[0][1]*f[1][1] + f[0][2]*f[1][2]);
-	}(undefined,[this.e, stormV3.e]);
-	
-    return dot;
+    return this.e[0]*stormV3.e[0] + this.e[1]*stormV3.e[1] + this.e[2]*stormV3.e[2];
 };
 /**
 * Check if a and b have the same values
@@ -554,14 +529,18 @@ StormV3.prototype.equal = function(stormV3) {
 * @returns {Float}
 */
 StormV3.prototype.modulus = function() {
-	var sq = function asm(stdlib,f) {
-		"use asm";
-		var c = [f[0][0]*f[0][0], f[0][1]*f[0][1], f[0][2]*f[0][2]];// sqrComponents
-		var sc = c[0]+c[1]+c[2];//sumComponentSqrs
-		return stdlib(sc);
-	}(Math.sqrt,[this.e]);
-	
-    return sq; 
+    return Math.sqrt(this.sumComponentSqrs());
+};
+StormV3.prototype.sumComponentSqrs = function() {
+    var V3 = this.sqrComponents();
+
+    return V3[0] + V3[1] + V3[2];
+};
+StormV3.prototype.sqrComponents = function(){
+    var V3 = new Float32Array(3);
+    V3.set([ this.e[0] * this.e[0], this.e[1] * this.e[1], this.e[2] * this.e[2] ]);
+
+    return V3;
 };
 /**
 * Perform a * b and get the vector
@@ -625,12 +604,7 @@ StormV3.prototype.reflect = function(stormV3) {
 * @param {StormV3} vector Vector b
 */
 StormV3.prototype.subtract = function(stormV3) {
-	var sub = function asm(stdlib,f) {
-		"use asm";
-		return [f[0][0]-f[1][0],f[0][1]-f[1][1],f[0][2]-f[1][2]];
-	}(undefined,[this.e, stormV3.e]);
-	
-    return $V3([ sub[0], sub[1], sub[2] ]); 
+    return $V3([this.e[0] - stormV3.e[0], this.e[1] - stormV3.e[1], this.e[2] - stormV3.e[2]]);
 };
 /**
 * Get the vector normalized

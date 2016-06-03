@@ -12,7 +12,6 @@ WebCLGLWork = function(webCLGL, offset) {
 	this.kernels = {};
 	this.vertexFragmentPrograms = {};
 	this.buffers = {};
-	this.buffers_TEMP = {};
     this.calledArgs = {};
 
 	var kernelPr;
@@ -26,7 +25,7 @@ WebCLGLWork = function(webCLGL, offset) {
     var _alerted = false;
 
     /** @private */
-    var defineOutputTempModes = function(output, args) {
+    var defineOutputTempModes = (function(output, args) {
         var searchInArgs = function(outputName, args) {
             var found = false;
             for(var key in args) {
@@ -60,7 +59,7 @@ WebCLGLWork = function(webCLGL, offset) {
             }
         }
         return outputTempModes;
-    };
+    }).bind(this);
 
     /**
      * Add one WebCLGLKernel to the work
@@ -282,24 +281,18 @@ WebCLGLWork = function(webCLGL, offset) {
                     var buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
                     this.webCLGL.enqueueWriteBuffer(buff, value);
 
-                    var buffTMP = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
-                    this.webCLGL.enqueueWriteBuffer(buffTMP, value);
-
-
                     this.buffers[argument] = buff;
-                    this.buffers_TEMP[argument] = buffTMP;
 
                     for(var n=0; n < kernelPr.length; n++)
-                        kernelPr[n].setKernelArg(argument, this.buffers[argument]);
+                        kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
 
                     for(var n=0; n < vPr.length; n++)
-                        vPr[n].setVertexArg(argument, this.buffers[argument]);
+                        vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
 
                     for(var n=0; n < fPr.length; n++)
-                        fPr[n].setFragmentArg(argument, this.buffers[argument]);
+                        fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
                 } else {
                     this.buffers[argument] = null;
-                    this.buffers_TEMP[argument] = null;
 
                     for(var n=0; n < kernelPr.length; n++)
                         kernelPr[n].setKernelArg(argument, null);
@@ -341,22 +334,19 @@ WebCLGLWork = function(webCLGL, offset) {
     this.getWorkBufferArg = function(argument, clglWork, makeAdd) {
         checkArg(argument);
 
-
         this.buffers[argument] = clglWork.buffers[argument];
-        this.buffers_TEMP[argument] = clglWork.buffers_TEMP[argument];
 
         for(var n=0; n < kernelPr.length; n++)
-            kernelPr[n].setKernelArg(argument, this.buffers[argument]);
+            kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
 
         for(var n=0; n < vPr.length; n++)
-            vPr[n].setVertexArg(argument, this.buffers[argument]);
+            vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
 
         for(var n=0; n < fPr.length; n++)
-            fPr[n].setFragmentArg(argument, this.buffers[argument]);
-
+            fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
 
         if(clglWork.calledArgs.hasOwnProperty(argument) == false) {
-            clglWork.calledArgs[argument] = []
+            clglWork.calledArgs[argument] = [];
         }
 
         if(makeAdd == undefined || makeAdd == true)
@@ -369,11 +359,16 @@ WebCLGLWork = function(webCLGL, offset) {
      * @param {Array<Float>} clearColor
      */
     this.fillPointerArg = function(argName, clearColor) {
-        if(this.buffers.hasOwnProperty(argName))
-            this.webCLGL.fillBuffer(this.buffers[argName], clearColor);
+        if(this.buffers.hasOwnProperty(argName) == true) {
+            for(var n=0; n < kernelPr.length; n++)
+                kernelPr[n].clearArg(this.webCLGL, this.buffers[argName], clearColor, this.buffers);
 
-        if(this.buffers_TEMP.hasOwnProperty(argName))
-            this.webCLGL.fillBuffer(this.buffers_TEMP[argName], clearColor);
+            for(var n=0; n < vPr.length; n++)
+                vPr[n].clearArg(this.webCLGL, this.buffers[argName], clearColor, this.buffers);
+
+            for(var n=0; n < fPr.length; n++)
+                fPr[n].clearArg(this.webCLGL, this.buffers[argName], clearColor, this.buffers);
+        }
     };
 
     /**
@@ -416,60 +411,12 @@ WebCLGLWork = function(webCLGL, offset) {
         this.webCLGL.enqueueWriteBuffer(this.CLGL_bufferIndices, arr);
     };
 
-    /** @private **/
-    var getOutputBuffers = (function(prog) {
-        var outputBuff = null;
-        if(prog.output != undefined) {
-            if(prog.output instanceof Array) {
-                outputBuff = [];
-                if(prog.output[0] != null) {
-                    for(var n=0; n < prog.output.length; n++) {
-                        if(this.buffers.hasOwnProperty(prog.output[n]) == false && _alerted == false)
-                            _alerted = true, alert("output argument "+prog.output[n]+" not found in buffers. add desired argument as shared");
-
-                        if(prog.outputTempModes[n] == true)
-                            outputBuff[n] = this.buffers_TEMP[prog.output[n]];
-                        else
-                            outputBuff[n] = this.buffers[prog.output[n]];
-                    }
-                } else
-                    outputBuff = null;
-            } else {
-                if(prog.outputTempModes == true)
-                    outputBuff = this.buffers_TEMP[prog.output];
-                else
-                    outputBuff = this.buffers[prog.output];
-            }
-
-            //if(buffDest != null && buffDest === 0)
-            //    outputBuff = null;
-        }
-        return outputBuff;
-    }).bind(this);
-
-    /** @private **/
-    var updateOutputBuffers = (function(progGroup) {
-        for(var key in progGroup) {
-            var prog = progGroup[key];
-
-            if(prog.output != undefined) {
-                if(prog.output instanceof Array) {
-                    for(var n=0; n < prog.output.length; n++) {
-                        if(prog.output[n] != null && prog.outputTempModes[n] == true)
-                            this.webCLGL.copy(this.buffers_TEMP[prog.output[n]], this.buffers[prog.output[n]]);
-                    }
-                } else {
-                    if(prog.output != null && prog.outputTempModes == true)
-                        this.webCLGL.copy(this.buffers_TEMP[prog.output], this.buffers[prog.output]);
-                }
-            }
-        }
-    }).bind(this);
-
     /**
      * Process kernels
+     * @param {Bool} outputToTemp - (when no graphic mode)
      */
-    this.enqueueNDRangeKernel = function() {
+    this.enqueueNDRangeKernel = function(outputToTemp) {
+        var arrMakeCopy = [];
         for(var key in this.kernels) {
             var kernel = this.kernels[key];
 
@@ -477,14 +424,36 @@ WebCLGLWork = function(webCLGL, offset) {
                 if(kernel.onpre != undefined)
                     kernel.onpre();
 
-                this.webCLGL.enqueueNDRangeKernel(kernel, getOutputBuffers(kernel));
+                if(outputToTemp == undefined || outputToTemp == true) {
+                    var tempsFound = false;
+                    if(kernel.output instanceof Array) {
+                        for(var n=0; n < kernel.output.length; n++) {
+                            if(kernel.output[n] != null && kernel.outputTempModes[n] == true) {
+                                tempsFound = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        if(kernel.output != null && kernel.outputTempModes == true)
+                            tempsFound = true;
+                    }
+
+                    if(tempsFound == true) {
+                        this.webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this.buffers), true);
+                        arrMakeCopy.push(kernel);
+                    } else {
+                        this.webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this.buffers), false);
+                    }
+                } else
+                    this.webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this.buffers), false);
 
                 if(kernel.onpost != undefined)
                     kernel.onpost();
             }
         }
 
-        updateOutputBuffers(this.kernels);
+        for(var n=0; n < arrMakeCopy.length; n++)
+            this.webCLGL.copy(arrMakeCopy[n], new WebCLGLUtils().getOutputBuffers(arrMakeCopy[n], this.buffers));
     };
 
     /**
@@ -493,6 +462,7 @@ WebCLGLWork = function(webCLGL, offset) {
      * @param {Int} drawMode 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
      */
     this.enqueueVertexFragmentProgram = function(argumentInd, drawMode) {
+        var arrMakeCopy = [];
         for(var key in this.vertexFragmentPrograms) {
             var vfp = this.vertexFragmentPrograms[key];
 
@@ -503,7 +473,25 @@ WebCLGLWork = function(webCLGL, offset) {
                     if(vfp.onpre != undefined)
                         vfp.onpre();
 
-                    this.webCLGL.enqueueVertexFragmentProgram(vfp, buff, drawMode, getOutputBuffers(vfp));
+                    var tempsFound = false;
+                    if(vfp.output instanceof Array) {
+                        for(var n=0; n < vfp.output.length; n++) {
+                            if(vfp.output[n] != null && vfp.outputTempModes[n] == true) {
+                                tempsFound = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        if(vfp.output != null && vfp.outputTempModes == true)
+                            tempsFound = true;
+                    }
+
+                    if(tempsFound == true) {
+                        this.webCLGL.enqueueVertexFragmentProgram(vfp, buff, drawMode, new WebCLGLUtils().getOutputBuffers(vfp, this.buffers), true);
+                        arrMakeCopy.push(vfp);
+                    } else {
+                        this.webCLGL.enqueueVertexFragmentProgram(vfp, buff, drawMode, new WebCLGLUtils().getOutputBuffers(vfp, this.buffers), false);
+                    }
 
                     if(vfp.onpost != undefined)
                         vfp.onpost();
@@ -511,7 +499,8 @@ WebCLGLWork = function(webCLGL, offset) {
             }
         }
 
-        updateOutputBuffers(this.vertexFragmentPrograms);
+        for(var n=0; n < arrMakeCopy.length; n++)
+            this.webCLGL.copy(arrMakeCopy[n], new WebCLGLUtils().getOutputBuffers(arrMakeCopy[n], this.buffers));
     };
 };
 
