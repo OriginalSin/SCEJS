@@ -258,16 +258,14 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * Create a empty WebCLGLBuffer
-     * @param {Int|Array<Float>} length Length of buffer or Array with width and height values if is for a WebGLTexture
      * @param {String} [type="FLOAT"] type FLOAT4 OR FLOAT
      * @param {Int} [offset=0] If 0 the range is from 0.0 to 1.0 else if >0 then the range is from -offset.0 to offset.0
      * @param {Bool} [linear=false] linear texParameteri type for the WebGLTexture
      * @param {String} [mode="SAMPLER"] Mode for this buffer. "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
-     * @param {Array} [splits=[length]] Splits length for this buffer.
      * @returns {WebCLGLBuffer}
      */
-    this.createBuffer = function(length, type, offset, linear, mode, splits) {
-        return new WebCLGLBuffer(_gl, length, type, offset, linear, mode, splits);
+    this.createBuffer = function(type, offset, linear, mode) {
+        return new WebCLGLBuffer(_gl, type, offset, linear, mode);
     };
 
     /**
@@ -310,23 +308,6 @@ var WebCLGL = function(webglcontext) {
      */
     this.getWorks = function() {
         return _webCLGLWorks;
-    };
-
-    /**
-     * Write on buffer
-     * @type Void
-     * @param {WebCLGLBuffer} buffer
-     * @param {Array|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} array
-     * @param {Bool} [flip=false]
-     */
-    this.enqueueWriteBuffer = function(buffer, arr, flip) {
-        if(buffer.mode == "SAMPLER") {
-            buffer.writeWebGLBuffer(arr, flip);
-            buffer.writeWebGLTextureBuffer(arr, flip);
-        }
-        if(buffer.mode == "ATTRIBUTE" || buffer.mode == "VERTEX_INDEX") {
-            buffer.writeWebGLBuffer(arr, flip);
-        }
     };
 
     /**

@@ -270,27 +270,25 @@ WebCLGLWork = function(webCLGL, offset) {
                 }
 
                 if(value != undefined && value != null) {
-                    var length;
-                    if(overrideDimensions == undefined) {
-                        length = (value instanceof HTMLImageElement) ? (value.width*value.height) : ((type == "FLOAT4") ? value.length/4 : value.length);
-                    } else {
-                        length = [overrideDimensions[0], overrideDimensions[1]];
+                    var isNew = false;
+                    if(this.buffers.hasOwnProperty(argument) == false ||
+                        (this.buffers.hasOwnProperty(argument) == true && this.buffers[argument] == null)) {
+                        this.buffers[argument] = this.webCLGL.createBuffer(type, this.offset, false, mode);
+                        isNew = true;
                     }
-                    var spl = (splits != undefined) ? splits : [length];
 
-                    var buff = this.webCLGL.createBuffer(length, type, this.offset, false, mode, spl);
-                    this.webCLGL.enqueueWriteBuffer(buff, value);
+                    this.buffers[argument].writeBuffer(value, false, overrideDimensions);
 
-                    this.buffers[argument] = buff;
+                    if(isNew == true) {
+                        for(var n=0; n < kernelPr.length; n++)
+                            kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
 
-                    for(var n=0; n < kernelPr.length; n++)
-                        kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
+                        for(var n=0; n < vPr.length; n++)
+                            vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
 
-                    for(var n=0; n < vPr.length; n++)
-                        vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
-
-                    for(var n=0; n < fPr.length; n++)
-                        fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
+                        for(var n=0; n < fPr.length; n++)
+                            fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
+                    }
                 } else {
                     this.buffers[argument] = null;
 
@@ -345,9 +343,8 @@ WebCLGLWork = function(webCLGL, offset) {
         for(var n=0; n < fPr.length; n++)
             fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
 
-        if(clglWork.calledArgs.hasOwnProperty(argument) == false) {
+        if(clglWork.calledArgs.hasOwnProperty(argument) == false)
             clglWork.calledArgs[argument] = [];
-        }
 
         if(makeAdd == undefined || makeAdd == true)
             clglWork.calledArgs[argument].push(this);
@@ -407,8 +404,8 @@ WebCLGLWork = function(webCLGL, offset) {
      */
     this.setIndices = function(arr, splits) {
         var spl = (splits != undefined) ? splits : [arr.length];
-        this.CLGL_bufferIndices = this.webCLGL.createBuffer(arr.length, "FLOAT", this.offset, false, "VERTEX_INDEX", spl);
-        this.webCLGL.enqueueWriteBuffer(this.CLGL_bufferIndices, arr);
+        this.CLGL_bufferIndices = this.webCLGL.createBuffer("FLOAT", this.offset, false, "VERTEX_INDEX");
+        this.CLGL_bufferIndices.writeBuffer(arr);
     };
 
     /**
