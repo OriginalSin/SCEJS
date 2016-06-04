@@ -274,10 +274,13 @@ WebCLGLUtils = function() {
     };
 
 
+
+
     /**
      * getOutputBuffers
      * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} prog
      * @param {Array<WebCLGLBuffer>} buffers
+     * @returns {WebCLGLBuffer|Array<WebCLGLBuffer>}
      */
     this.getOutputBuffers = function(prog, buffers) {
         var outputBuff = null;
@@ -304,7 +307,7 @@ WebCLGLUtils = function() {
 
     /**
      * updateFB
-     * @private
+     * @returns {Array<WebCLGLBuffer>}
      */
     this.createFBs = function(gl, extDB, maxDrawBuffers, pgr, buffers, width, height) {
         var createWebGLFrameBuffer = (function(gl, extDB, pgr, buffers, width, height) {
@@ -381,6 +384,9 @@ WebCLGLUtils = function() {
         return [fBuffer, fBufferTemp];
     };
 
+    /**
+     * checkUpdateFBs
+     */
     this.checkUpdateFBs = function(gl, glDrawBuff_ext, maxDrawBuffers, pgr, argument, data, buffers) {
         if(buffers != undefined) {
             if(pgr.output != undefined &&
@@ -391,4 +397,154 @@ WebCLGLUtils = function() {
         }
     };
 
+
+
+
+    /**
+     * parseSource
+     * @param {String} source
+     * @param {Object} values
+     * @returns {String}
+     */
+    this.parseSource = function(source, values) {
+        //console.log(source);
+        for(var key in values) { // for each in_vertex_values (in argument)
+            var regexp = new RegExp(key+"\\[.*?\\]","gm");
+            var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
+            //console.log(varMatches);
+            if(varMatches != null) {
+                for(var nB = 0, fB = varMatches.length; nB < fB; nB++) { // for each varMatches ("A[x]", "A[x]")
+                    var regexpNativeGL = new RegExp('```(\s|\t)*gl.*'+varMatches[nB]+'.*```[^```(\s|\t)*gl]',"gm");
+                    var regexpNativeGLMatches = source.match(regexpNativeGL);
+                    if(regexpNativeGLMatches == null) {
+                        var name = varMatches[nB].split('[')[0];
+                        var vari = varMatches[nB].split('[')[1].split(']')[0];
+
+                        var map = { 'float4_fromSampler': source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+')'),
+                            'float_fromSampler': source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+').x'),
+                            'float4_fromAttr': source.replace(name+"["+vari+"]", name),
+                            'float_fromAttr': source.replace(name+"["+vari+"]", name)};
+                        source = map[values[key].type];
+                    }
+                }
+            }
+        }
+        source = source.replace(/```(\s|\t)*gl/gi, "").replace(/```/gi, "").replace(/;/gi, ";\n").replace(/}/gi, "}\n").replace(/{/gi, "{\n");
+        //console.log('%c translated source:'+source, "background-color:#000;color:#FFF");
+        return source;
+    };
+
+
+    /**
+     * lines_vertex_attrs
+     * @param {Object} values
+     */
+    this.lines_vertex_attrs = function(values) {
+        var str = '';
+        for(var key in values) {
+            str += {'float4_fromSampler': 'uniform sampler2D '+key+';',
+                    'float_fromSampler': 'uniform sampler2D '+key+';',
+                    'float4_fromAttr': 'attribute vec4 '+key+';',
+                    'float_fromAttr': 'attribute float '+key+';',
+                    'float': 'uniform float '+key+';',
+                    'float4': 'uniform vec4 '+key+';',
+                    'mat4': 'uniform mat4 '+key+';'}[values[key].type]+'\n';
+        }
+        return str;
+    };
+    /**
+     * lines_fragment_attrs
+     * @param {Object} values
+     */
+    this.lines_fragment_attrs = function(values) {
+        var str = '';
+        for(var key in values) {
+            str += {'float4_fromSampler': 'uniform sampler2D '+key+';',
+                    'float_fromSampler': 'uniform sampler2D '+key+';',
+                    'float': 'uniform float '+key+';',
+                    'float4': 'uniform vec4 '+key+';',
+                    'mat4': 'uniform mat4 '+key+';'}[values[key].type]+'\n';
+        }
+        return str;
+    };
+
+
+    /**
+     * lines_drawBuffersInit
+     * @param {Int} maxDrawBuffers
+     */
+    this.lines_drawBuffersInit = function(maxDrawBuffers) {
+        var str = ''+
+        'float out_float = -999.99989;\n'+
+        'vec4 out_float4;\n';
+        for(var n= 1, fn=maxDrawBuffers; n < fn; n++) {
+            str += ''+
+                'float out'+n+'_float = -999.99989;\n'+
+                'vec4 out'+n+'_float4;\n';
+        }
+        return str;
+    };
+    /**
+     * lines_drawBuffersWrite
+     * @param {Int} maxDrawBuffers
+     */
+    this.lines_drawBuffersWrite = function(maxDrawBuffers) {
+        var str = ''+
+        'if(out_float != -999.99989) gl_FragData[0] = vec4(out_float,0.0,0.0,1.0);\n'+
+        'else gl_FragData[0] = out_float4;\n';
+        for(var n= 1, fn=maxDrawBuffers; n < fn; n++) {
+            str += ''+
+                'if(out'+n+'_float != -999.99989) gl_FragData['+n+'] = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
+                ' else gl_FragData['+n+'] = out'+n+'_float4;\n';
+        }
+        return str;
+    };
+
+
+    /**
+     * checkArgNameInitialization
+     * @param {Object} inValues
+     * @param {String} argName
+     * @private
+     */
+    this.checkArgNameInitialization = function(inValues, argName) {
+        if(inValues.hasOwnProperty(argName) == false) {
+            var inValue = { "type": null, //
+                "expectedMode": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
+                "value": null, // Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer
+                "location": null};
+            inValues[argName] = inValue;
+        }
+    };
+
+
+    /**
+     * get_global_id3_GLSLFunctionString
+     */
+    this.get_global_id3_GLSLFunctionString = function() {
+        return ''+
+        'vec2 get_global_id(float id, float bufferWidth, float geometryLength) {\n'+
+            'float num = (id*geometryLength)/bufferWidth;'+
+            'float column = fract(num)*bufferWidth;'+
+            'float row = floor(num);'+
+
+            'float ts = 1.0/(bufferWidth-1.0);'+
+
+            'return vec2(column*ts, row*ts);'+
+        '}\n';
+    };
+    /**
+     * get_global_id2_GLSLFunctionString
+     */
+    this.get_global_id2_GLSLFunctionString = function() {
+        return ''+
+        'vec2 get_global_id(vec2 id, float bufferWidth) {\n'+
+            'float column = id.x;'+
+            'float row = id.y;'+
+
+            'float ts = 1.0/(bufferWidth-1.0);'+
+
+            'return vec2(column*ts, row*ts);'+
+        '}\n';
+    };
 };
