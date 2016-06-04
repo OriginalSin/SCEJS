@@ -306,7 +306,7 @@ WebCLGLUtils = function() {
         if(webCLGLBuffers instanceof WebCLGLBuffer) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
 
-            var o = (t == true) ? webCLGLBuffers.items[0].textureDataTemp : webCLGLBuffers.items[0].textureData;
+            var o = (t == true) ? webCLGLBuffers.textureDataTemp : webCLGLBuffers.textureData;
 
             gl.framebufferTexture2D(gl.FRAMEBUFFER, extDB.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, o, 0);
             extDB.drawBuffersWEBGL([
@@ -323,7 +323,7 @@ WebCLGLUtils = function() {
 
                 var arrDBuff = [];
                 for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
-                    var o = (t == true) ? webCLGLBuffers[n].items[0].textureDataTemp : webCLGLBuffers[n].items[0].textureData;
+                    var o = (t == true) ? webCLGLBuffers[n].textureDataTemp : webCLGLBuffers[n].textureData;
                     gl.framebufferTexture2D(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT'+n+'_WEBGL'], gl.TEXTURE_2D, o, 0);
                     arrDBuff[n] = extDB['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
                 }
