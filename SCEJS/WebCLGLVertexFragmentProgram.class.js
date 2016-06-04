@@ -411,7 +411,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
             if(this.output != undefined &&
                 ((this.output instanceof Array && this.output.indexOf(argument) > -1) || (this.output == argument))
             ) {
-                var fbs = new WebCLGLUtils().createFBs(_gl, _glDrawBuff_ext, this, buffers, data.items[0].W, data.items[0].H);
+                var fbs = new WebCLGLUtils().createFBs(_gl, _glDrawBuff_ext, this, buffers, data.W, data.H);
                 this.fBuffer = fbs[0];
                 this.fBufferTemp = fbs[1];
                 new WebCLGLUtils().updateFBnow(false, this.fBuffer, _gl, _glDrawBuff_ext, _maxDrawBuffers, this, buffers);
@@ -432,7 +432,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
             if(this.output != undefined &&
                 ((this.output instanceof Array && this.output.indexOf(argument) > -1) || (this.output == argument))
             ) {
-                var fbs = new WebCLGLUtils().createFBs(_gl, _glDrawBuff_ext, this, buffers, data.items[0].W, data.items[0].H);
+                var fbs = new WebCLGLUtils().createFBs(_gl, _glDrawBuff_ext, this, buffers, data.W, data.H);
                 this.fBuffer = fbs[0];
                 this.fBufferTemp = fbs[1];
                 new WebCLGLUtils().updateFBnow(false, this.fBuffer, _gl, _glDrawBuff_ext, _maxDrawBuffers, this, buffers);
@@ -445,8 +445,8 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      * clearArg
      */
     this.clearArg = function(webCLGL, buff, clearColor, buffers) {
-        webCLGL.fillBuffer(buff.items[0].textureData, clearColor, this.fBuffer);
-        webCLGL.fillBuffer(buff.items[0].textureDataTemp, clearColor, this.fBufferTemp);
+        webCLGL.fillBuffer(buff.textureData, clearColor, this.fBuffer);
+        webCLGL.fillBuffer(buff.textureDataTemp, clearColor, this.fBufferTemp);
     };
 };
 
