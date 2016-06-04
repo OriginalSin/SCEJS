@@ -246,7 +246,7 @@ WebCLGLWork = function(webCLGL, offset) {
     /**
      * Assign value of a argument for all added Kernels and vertexFragmentPrograms
      * @param {String} argument Argument to set
-     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
+     * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
      * @param {Array<Float>} [splits=[value.length]]
      * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
      * @param {String} [overrideType="FLOAT4"] - force "FLOAT4" or "FLOAT" (for no graphic program)

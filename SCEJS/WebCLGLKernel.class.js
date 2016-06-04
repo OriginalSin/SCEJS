@@ -255,22 +255,14 @@ WebCLGLKernel = function(gl, source, header) {
      * Bind float or a WebCLGLBuffer to a kernel argument
      * @type Void
      * @param {Int|String} argument Id of argument or name of this
+     * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} data
+     * @param {Object} buffers
      */
     this.setKernelArg = function(argument, data, buffers) {
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_values)[argument];
         this.in_values[arg].value = data;
 
-        if(buffers != undefined) {
-            if(this.output != undefined &&
-             ((this.output instanceof Array && this.output.indexOf(argument) > -1) || (this.output == argument))
-             ) {
-                var fbs = new WebCLGLUtils().createFBs(_gl, _glDrawBuff_ext, this, buffers, data.W, data.H);
-                this.fBuffer = fbs[0];
-                this.fBufferTemp = fbs[1];
-                new WebCLGLUtils().updateFBnow(false, this.fBuffer, _gl, _glDrawBuff_ext, _maxDrawBuffers, this, buffers);
-                new WebCLGLUtils().updateFBnow(true, this.fBufferTemp, _gl, _glDrawBuff_ext, _maxDrawBuffers, this, buffers);
-            }
-        }
+        new WebCLGLUtils().checkUpdateFBs(_gl, _glDrawBuff_ext, _maxDrawBuffers, this, argument, data, buffers);
     };
 
     /**
