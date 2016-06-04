@@ -37,16 +37,19 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
      * @private
      */
     var writeWebGLTextureBuffer = (function(arr, flip, overrideDimensions) {
+        var tp = (function() {
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
+            _gl.bindTexture(_gl.TEXTURE_2D, null);
+        }).bind(this);
         var writeTexNow = (function(arr) {
             if(arr instanceof HTMLImageElement)  {
                 //texImage2D(			target, 			level, 	internalformat, 	format, 		type, 			TexImageSource);
                 if(this.type == 'FLOAT4') {
                     _gl.texImage2D(	_gl.TEXTURE_2D, 0, 		_gl.RGBA, 		_gl.RGBA, 	this._supportFormat, 	arr);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
-                    _gl.bindTexture(_gl.TEXTURE_2D, null);
+                    tp();
                 }/* else if(this.type == 'INT4') {
                  _gl.texImage2D(	_gl.TEXTURE_2D, 0, 		_gl.RGBA, 		_gl.RGBA, 	_gl.UNSIGNED_BYTE, 	arr);
                  }*/
@@ -64,11 +67,7 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
 
                     //texImage2D(			target, 			level, 	internalformat, 	width, height, border, 	format, 		type, 			pixels);
                     _gl.texImage2D(_gl.TEXTURE_2D, 	0, 		_gl.RGBA, 		this.W, this.H, 0, 	_gl.RGBA, 	this._supportFormat, 	arrt);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
-                    _gl.bindTexture(_gl.TEXTURE_2D, null);
+                    tp();
                 } else if(this.type == 'FLOAT') {
                     var arrayTemp = new Float32Array(this.W*this.H*4);
 
@@ -81,11 +80,7 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
                     }
                     arr = arrayTemp;
                     _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, this.W, this.H, 0, _gl.RGBA, this._supportFormat, arr);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
-                    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
-                    _gl.bindTexture(_gl.TEXTURE_2D, null);
+                    tp();
                 }
             }
         }).bind(this);

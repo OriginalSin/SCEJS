@@ -57,11 +57,7 @@ var gpufor = function() {
         //_clglWork.enqueueNDRangeKernel("result", _clglWork.buffers_TEMP["result"]);
         //_webCLGL.copy(_clglWork.buffers_TEMP["result"], _clglWork.buffers["result"]);
 
-        var fbs = new WebCLGLUtils().createFBs(_webCLGL.getContext(), _webCLGL.getDrawBufferExt(), _clglWork.getKernel("0"), _clglWork.buffers, _clglWork.buffers[Object.keys(_clglWork.buffers)[0]].W, _clglWork.buffers[Object.keys(_clglWork.buffers)[0]].H);
-        _clglWork.getKernel("0").fBuffer = fbs[0];
-        _clglWork.getKernel("0").fBufferTemp = fbs[1];
-        new WebCLGLUtils().updateFBnow(false, _clglWork.getKernel("0").fBuffer, _webCLGL.getContext(), _webCLGL.getDrawBufferExt(), _webCLGL.getMaxDrawBuffers(), _clglWork.getKernel("0"), _clglWork.buffers);
-        new WebCLGLUtils().updateFBnow(true, _clglWork.getKernel("0").fBufferTemp, _webCLGL.getContext(), _webCLGL.getDrawBufferExt(), _webCLGL.getMaxDrawBuffers(), _clglWork.getKernel("0"), _clglWork.buffers);
+        var fbs = new WebCLGLUtils().createFBs(_webCLGL.getContext(), _webCLGL.getDrawBufferExt(), _webCLGL.getMaxDrawBuffers(), _clglWork.getKernel("0"), _clglWork.buffers, _clglWork.buffers[Object.keys(_clglWork.buffers)[0]].W, _clglWork.buffers[Object.keys(_clglWork.buffers)[0]].H);
 
         _clglWork.enqueueNDRangeKernel(false);
 
@@ -428,7 +424,7 @@ var gpufor = function() {
     /**
      * setArg
      * @param {String} argName
-     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
+     * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
      */
     this.setArg = function(argName, value) {
         return _clglWork.setArg(argName, value);
