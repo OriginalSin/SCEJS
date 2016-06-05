@@ -270,25 +270,20 @@ WebCLGLWork = function(webCLGL, offset) {
                 }
 
                 if(value != undefined && value != null) {
-                    var isNew = false;
                     if(this.buffers.hasOwnProperty(argument) == false ||
                         (this.buffers.hasOwnProperty(argument) == true && this.buffers[argument] == null)) {
                         this.buffers[argument] = this.webCLGL.createBuffer(type, this.offset, false, mode);
-                        isNew = true;
                     }
-
                     this.buffers[argument].writeBuffer(value, false, overrideDimensions);
 
-                    if(isNew == true) {
-                        for(var n=0; n < kernelPr.length; n++)
-                            kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
+                    for(var n=0; n < kernelPr.length; n++)
+                        kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
 
-                        for(var n=0; n < vPr.length; n++)
-                            vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
+                    for(var n=0; n < vPr.length; n++)
+                        vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
 
-                        for(var n=0; n < fPr.length; n++)
-                            fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
-                    }
+                    for(var n=0; n < fPr.length; n++)
+                        fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
                 } else {
                     this.buffers[argument] = null;
 
