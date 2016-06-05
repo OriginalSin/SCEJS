@@ -23,6 +23,8 @@ WebCLGLKernel = function(gl, source, header) {
     this.outputTempModes = null;
     this.fBuffer = null;
     this.fBufferTemp = null;
+    this.fBufferLength = 0;
+    this.fBufferCount = 0;
 
     var _enableDebug = false;
 

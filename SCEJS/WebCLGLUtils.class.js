@@ -307,12 +307,9 @@ WebCLGLUtils = function() {
 
     /**
      * updateFB
-     * @returns {Array<WebCLGLBuffer>}
      */
     this.createFBs = function(gl, extDB, maxDrawBuffers, pgr, buffers, width, height) {
-        var createWebGLFrameBuffer = (function(gl, extDB, pgr, buffers, width, height) {
-            var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
-
+        var createWebGLFrameBuffer = (function(webCLGLBuffers, gl, extDB, pgr, width, height) {
             var fBuffer = gl.createFramebuffer();
 
             if(webCLGLBuffers instanceof WebCLGLBuffer) {
@@ -324,23 +321,24 @@ WebCLGLUtils = function() {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
                 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT0_WEBGL'], gl.RENDERBUFFER, rBuffer);
             } else if(webCLGLBuffers instanceof Array) { // Array of WebCLGLBuffers
-                for(var n=0; n < webCLGLBuffers.length; n++) {
-                    var rBuffer = gl.createRenderbuffer();
-                    gl.bindRenderbuffer(gl.RENDERBUFFER, rBuffer);
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, width, height);
-                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                if(webCLGLBuffers[0] != null) {
+                    for(var n=0; n < webCLGLBuffers.length; n++) {
+                        var rBuffer = gl.createRenderbuffer();
+                        gl.bindRenderbuffer(gl.RENDERBUFFER, rBuffer);
+                        gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, width, height);
+                        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT'+n+'_WEBGL'], gl.RENDERBUFFER, rBuffer);
-                }
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT'+n+'_WEBGL'], gl.RENDERBUFFER, rBuffer);
+                    }
+                } else
+                    pgr.fBufferCount = 0;
             }
 
             return fBuffer;
         }).bind(this);
 
-        var updateFBnow = (function(t, fBuffer, gl, extDB, maxDrawBuffers, pgr, buffers) {
-            var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
-
+        var updateFBnow = (function(webCLGLBuffers, t, fBuffer, gl, extDB, maxDrawBuffers) {
             if(webCLGLBuffers instanceof WebCLGLBuffer) {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
 
@@ -373,15 +371,27 @@ WebCLGLUtils = function() {
         }).bind(this);
 
 
-        var fBuffer = createWebGLFrameBuffer(gl, extDB, pgr, buffers, width, height);
-        var fBufferTemp = createWebGLFrameBuffer(gl, extDB, pgr, buffers, width, height);
+        var WH = width*height;
+        var outputsCount = 1;
+        if(pgr.output instanceof Array)
+            outputsCount = pgr.output.length;
 
-        pgr.fBuffer = fBuffer;
-        pgr.fBufferTemp = fBufferTemp;
-        updateFBnow(false, pgr.fBuffer, gl, extDB, maxDrawBuffers, pgr, buffers);
-        updateFBnow(true, pgr.fBufferTemp, gl, extDB, maxDrawBuffers, pgr, buffers);
+        if(pgr.fBufferCount != outputsCount || pgr.fBufferLength != WH) {
+            pgr.fBufferCount = outputsCount;
+            pgr.fBufferLength = WH;
 
-        return [fBuffer, fBufferTemp];
+            var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
+
+            var fBuffer = createWebGLFrameBuffer(webCLGLBuffers, gl, extDB, pgr, width, height);
+            if(pgr.fBufferCount > 0) {
+                var fBufferTemp = createWebGLFrameBuffer(webCLGLBuffers, gl, extDB, pgr, width, height);
+                pgr.fBuffer = fBuffer;
+                pgr.fBufferTemp = fBufferTemp;
+
+                updateFBnow(webCLGLBuffers, false, pgr.fBuffer, gl, extDB, maxDrawBuffers);
+                updateFBnow(webCLGLBuffers, true, pgr.fBufferTemp, gl, extDB, maxDrawBuffers);
+            }
+        }
     };
 
     /**
@@ -392,7 +402,7 @@ WebCLGLUtils = function() {
             if(pgr.output != undefined &&
                 ((pgr.output instanceof Array && pgr.output.indexOf(argument) > -1) || (pgr.output == argument))
             ) {
-                var fbs = this.createFBs(gl, glDrawBuff_ext, maxDrawBuffers, pgr, buffers, data.W, data.H);
+                this.createFBs(gl, glDrawBuff_ext, maxDrawBuffers, pgr, buffers, data.W, data.H);
             }
         }
     };

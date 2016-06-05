@@ -106,10 +106,8 @@ Graph = function(sce) {
 	var FONT_IMG_COLUMNS = 7.0;
 
     var disabVal = -2.0;
-    // nodes
-    this.splitNodes = [];
-    this.splitNodesIndices = [];
 
+    // nodes
     this.arrayNodeData = []; // nodeId, acums, bornDate, dieDate
     // if(own networkWaitData == disabVal)
     // own has been read. then see networkWaitData of childs, calculate weights & save output in own networkWaitData & networkProcData(for visualization).
@@ -132,9 +130,6 @@ Graph = function(sce) {
     this.nodeArrayItemStart = 0;
 
     // links
-    this.splitLinks = [];
-    this.splitLinksIndices = [];
-
     this.arrayLinkData = []; // nodeId origin, nodeId target, currentLineVertex, repeatId
     this.arrayLinkDataC = []; // linkBornDate, linkDieDate, linkWeight, 0
     this.arrayLinkNodeName = [];
@@ -146,9 +141,6 @@ Graph = function(sce) {
     this.currentLinkId = 0;
 
     // arrows
-    this.splitArrows = [];
-    this.splitArrowsIndices = [];
-
     this.arrayArrowData = [];
     this.arrayArrowDataC = [];
     this.arrayArrowNodeName = [];
@@ -163,9 +155,6 @@ Graph = function(sce) {
     this.arrowArrayItemStart = 0;
 
     // nodesText
-    this.splitNodesText = [];
-    this.splitNodesTextIndices = [];
-
     this.arrayNodeTextData = [];
     this.arrayNodeTextNodeName = [];
     this.arrayNodeTextPosXYZW = [];
@@ -871,9 +860,6 @@ Graph = function(sce) {
          //**************************************************
          //  NODES
          //**************************************************
-         this.splitNodes = [];
-         this.splitNodesIndices = [];
-
          this.arrayNodeData = [];
          this.arrayNodePosXYZW = [];
          this.arrayNodeVertexPos = [];
@@ -892,9 +878,6 @@ Graph = function(sce) {
          //**************************************************
          //  LINKS
          //**************************************************
-         this.splitLinks = [];
-         this.splitLinksIndices = [];
-
          this.arrayLinkData = [];
          this.arrayLinkNodeName = [];
          this.arrayLinkPosXYZW = [];
@@ -907,9 +890,6 @@ Graph = function(sce) {
          //**************************************************
          //  ARROWS
          //**************************************************
-         this.splitArrows = [];
-         this.splitArrowsIndices = [];
-
          this.arrayArrowData = [];
          this.arrayArrowNodeName = [];
          this.arrayArrowPosXYZW = [];
@@ -925,9 +905,6 @@ Graph = function(sce) {
          //**************************************************
          //  NODESTEXT
          //**************************************************
-         this.splitNodesText = [];
-         this.splitNodesTextIndices = [];
-
          this.arrayNodeTextData = [];
          this.arrayNodeTextNodeName = [];
          this.arrayNodeTextPosXYZW = [];
@@ -1398,7 +1375,7 @@ Graph = function(sce) {
                 }
             }
         }
-        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
     };
 
     /**
@@ -1419,8 +1396,8 @@ Graph = function(sce) {
                     this.arrayNodeDataF[id] = disabVal;
                 }
             }
-            comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
-            comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this), this.splitNodes);
+            comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
+            comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this));
         }
         comp_renderer_nodes.enableKernel(1);
     };
@@ -1476,7 +1453,7 @@ Graph = function(sce) {
                 }
             }
         }
-        comp_renderer_nodes.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodes_array_value;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodes_array_value;}).bind(this));
 
         // link id
         for(var n=0; n < (this.arrayLinkData.length/4); n++) {
@@ -1492,7 +1469,7 @@ Graph = function(sce) {
                 }
             }
         }
-        comp_renderer_links.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this), this.splitLinks);
+        comp_renderer_links.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this));
 
         // arrow id
         for(var n=0; n < (this.arrayArrowData.length/4); n++) {
@@ -1508,7 +1485,7 @@ Graph = function(sce) {
                 }
             }
         }
-        comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this));
 
         if(_enableFont == true) {
             // nodeText id
@@ -1526,7 +1503,7 @@ Graph = function(sce) {
                     }
                 }
             }
-            comp_renderer_nodesText.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodestext_array_value;}).bind(this), this.splitNodesText);
+            comp_renderer_nodesText.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodestext_array_value;}).bind(this));
         }
     };
 
@@ -1565,7 +1542,7 @@ Graph = function(sce) {
                     _customArgs[jsonIn.argName].nodes_array_value.push(x, y, z, w);
             }
         }
-        comp_renderer_nodes.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodes_array_value;}).bind(this), this.splitNodes);
+        comp_renderer_nodes.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodes_array_value;}).bind(this));
 
 
         // links
@@ -1583,7 +1560,7 @@ Graph = function(sce) {
                     _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+3]);
             }
         }
-        comp_renderer_links.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this), this.splitLinks);
+        comp_renderer_links.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this));
 
         // arrows
         _customArgs[jsonIn.argName].arrows_array_value = [];
@@ -1600,7 +1577,7 @@ Graph = function(sce) {
                     _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+3]);
             }
         }
-        comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this));
 
         // nodestext
         if(_enableFont == true) {
@@ -1618,7 +1595,7 @@ Graph = function(sce) {
                         _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+3]);
                 }
             }
-            comp_renderer_nodesText.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodestext_array_value;}).bind(this), this.splitNodesText);
+            comp_renderer_nodesText.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodestext_array_value;}).bind(this));
         }
     };
 
@@ -1880,9 +1857,7 @@ Graph = function(sce) {
 
             this.nodeArrayItemStart++;
         }
-        if(this.splitNodesIndices.length > 0 && this.arrayNodeIndices.length == this.splitNodesIndices[this.splitNodesIndices.length-1]) {
-            this.startIndexId = 0;
-        }
+
         var maxNodeIndexId = 0;
         for(var n=0; n < mesh_nodes.indexArray.length; n++) {
             var idxIndex = n;
@@ -1892,17 +1867,6 @@ Graph = function(sce) {
 
             if(mesh_nodes.indexArray[idxIndex] > maxNodeIndexId) {
                 maxNodeIndexId = mesh_nodes.indexArray[idxIndex];
-            }
-        }
-
-        if(this.startIndexId == 0) {
-            if(this.splitNodes.length == 0) {
-                this.splitNodesEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeIndices.length); // 1=1 circle(12segm (3 indices per segm))= 3*12 indices
-                this.splitNodes.push((this.arrayNodeData.length/4)*this.splitNodesEvery);
-                this.splitNodesIndices.push(this.arrayNodeIndices.length*this.splitNodesEvery);
-            } else {
-                this.splitNodes.push(this.splitNodes[0]*(this.splitNodes.length+1));
-                this.splitNodesIndices.push(this.splitNodesIndices[0]*(this.splitNodesIndices.length+1));
             }
         }
         this.startIndexId += (maxNodeIndexId+1);
@@ -1967,9 +1931,7 @@ Graph = function(sce) {
                     }
                 }
             }
-            if(this.splitNodesTextIndices.length > 0 && this.arrayNodeTextIndices.length == this.splitNodesTextIndices[this.splitNodesTextIndices.length-1]) {
-                this.startIndexId_nodestext = 0;
-            }
+
             var maxNodeIndexId = 0;
             for(var n=0; n < mesh_nodesText.indexArray.length; n++) {
                 var idxIndex = n;
@@ -1980,16 +1942,6 @@ Graph = function(sce) {
                 if(mesh_nodesText.indexArray[idxIndex] > maxNodeIndexId) {
                     maxNodeIndexId = mesh_nodesText.indexArray[idxIndex];
                 }
-            }
-        }
-        if(this.startIndexId_nodestext == 0) {
-            if(this.splitNodesText.length == 0) {
-                this.splitNodesTextEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayNodeTextIndices.length); // 1=12 planes (6 indices per plane) = 6*12 indices
-                this.splitNodesText.push((this.arrayNodeTextData.length/4)*this.splitNodesTextEvery);
-                this.splitNodesTextIndices.push(this.arrayNodeTextIndices.length*this.splitNodesTextEvery);
-            } else {
-                this.splitNodesText.push(this.splitNodesText[0]*(this.splitNodesText.length+1));
-                this.splitNodesTextIndices.push(this.splitNodesTextIndices[0]*(this.splitNodesTextIndices.length+1));
             }
         }
         this.startIndexId_nodestext += (maxNodeIndexId+1);
@@ -2225,23 +2177,8 @@ Graph = function(sce) {
             }
         }
 
-        if(this.splitLinksIndices.length > 0 && this.arrayLinkIndices.length == this.splitLinksIndices[this.splitLinksIndices.length-1]) {
-            this.startIndexId_link = 0;
-        }
-
         for(var n=0; n < lineVertexCount*2; n++)
             this.arrayLinkIndices.push(	this.startIndexId_link++);
-
-        if(this.startIndexId_link == 0) {
-            if(this.splitLinks.length == 0) {
-                this.splitLinksEvery = parseInt(MAX_ITEMS_PER_ARRAY/this.arrayLinkIndices.length); // 1=1 link=2 indices
-                this.splitLinks.push((this.arrayLinkData.length/4)*this.splitLinksEvery);
-                this.splitLinksIndices.push(this.arrayLinkIndices.length*this.splitLinksEvery);
-            } else {
-                this.splitLinks.push(this.splitLinks[0]*(this.splitLinks.length+1));
-                this.splitLinksIndices.push(this.splitLinksIndices[0]*(this.splitLinksIndices.length+1));
-            }
-        }
 
         this.currentLinkId += 2; // augment link id
 
@@ -2324,9 +2261,7 @@ Graph = function(sce) {
 
                 this.arrowArrayItemStart++;
             }
-            if(this.splitArrowsIndices.length > 0 && this.arrayArrowIndices.length == this.splitArrowsIndices[this.splitArrowsIndices.length-1]) {
-                this.startIndexId_arrow = 0;
-            }
+
             var maxArrowIndexId = 0;
             for(var n=0; n < mesh_arrows.indexArray.length; n++) {
                 var idxIndex = n;
@@ -2335,17 +2270,6 @@ Graph = function(sce) {
 
                 if(mesh_arrows.indexArray[idxIndex] > maxArrowIndexId) {
                     maxArrowIndexId = mesh_arrows.indexArray[idxIndex];
-                }
-            }
-
-            if(this.startIndexId_arrow == 0) {
-                if(this.splitArrows.length == 0) {
-                    this.splitArrowsEvery = parseInt(MAX_ITEMS_PER_ARRAY/(this.arrayArrowIndices.length*2.0)); // 2=2 triangle=6 indices
-                    this.splitArrows.push((this.arrayArrowData.length/4)*this.splitArrowsEvery);
-                    this.splitArrowsIndices.push(this.arrayArrowIndices.length*this.splitArrowsEvery);
-                } else {
-                    this.splitArrows.push(this.splitArrows[0]*(this.splitArrows.length+1));
-                    this.splitArrowsIndices.push(this.splitArrowsIndices[0]*(this.splitArrowsIndices.length+1));
                 }
             }
             this.startIndexId_arrow += (maxArrowIndexId+1);
@@ -2408,9 +2332,9 @@ Graph = function(sce) {
 
 
 
-		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
-        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
-        comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this), this.splitNodes);
+		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this));
+        comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
+        comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this));
 
 		if(comp_renderer_nodes.getBuffers()["posXYZW"] != undefined) {
 			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getBuffers()["posXYZW"]);
@@ -2424,21 +2348,21 @@ Graph = function(sce) {
 			}
 
 		}
-		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this), this.splitNodes);
+		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this));
 
-		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this), this.splitNodes);
-		comp_renderer_nodes.setArg("nodeVertexNormal", (function() {return this.arrayNodeVertexNormal;}).bind(this), this.splitNodes);
-		comp_renderer_nodes.setArg("nodeVertexTexture", (function() {return this.arrayNodeVertexTexture;}).bind(this), this.splitNodes);
+		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this));
+		comp_renderer_nodes.setArg("nodeVertexNormal", (function() {return this.arrayNodeVertexNormal;}).bind(this));
+		comp_renderer_nodes.setArg("nodeVertexTexture", (function() {return this.arrayNodeVertexTexture;}).bind(this));
 
-		comp_renderer_nodes.setArg("nodeImgColumns", (function() {return NODE_IMG_COLUMNS;}).bind(this), this.splitNodes);
-		comp_renderer_nodes.setArg("nodeImgId", (function() {return this.arrayNodeImgId;}).bind(this), this.splitNodes);
-		comp_renderer_nodes.setArg("indices", (function() {return this.arrayNodeIndices;}).bind(this), this.splitNodesIndices);
+		comp_renderer_nodes.setArg("nodeImgColumns", (function() {return NODE_IMG_COLUMNS;}).bind(this));
+		comp_renderer_nodes.setArg("nodeImgId", (function() {return this.arrayNodeImgId;}).bind(this));
+		comp_renderer_nodes.setArg("indices", (function() {return this.arrayNodeIndices;}).bind(this));
 
 		this.arrayNodeDir = [];
 		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
 			this.arrayNodeDir.push(0, 0, 0, 1.0);
 		}
-		comp_renderer_nodes.setArg("dir", (function() {return this.arrayNodeDir;}).bind(this), this.splitNodes);
+		comp_renderer_nodes.setArg("dir", (function() {return this.arrayNodeDir;}).bind(this));
 
 		comp_renderer_nodes.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_nodes.setArgUpdatable("PMatrix", true);
@@ -2452,7 +2376,7 @@ Graph = function(sce) {
 		for(var argNameKey in _customArgs) {
 			var expl = _customArgs[argNameKey].arg.split("*");
 			if(expl.length > 0) { // argument is type buffer
-				comp_renderer_nodes.setArg(argNameKey, (function() {return _customArgs[argNameKey].nodes_array_value;}).bind(this), this.splitNodes);
+				comp_renderer_nodes.setArg(argNameKey, (function() {return _customArgs[argNameKey].nodes_array_value;}).bind(this));
 			}
 		}
 
@@ -2462,16 +2386,16 @@ Graph = function(sce) {
 
     /** @private */
     var updateNodesText = (function() {
-        comp_renderer_nodesText.setArg("data", (function() {return this.arrayNodeTextData;}).bind(this), this.splitNodesText);
+        comp_renderer_nodesText.setArg("data", (function() {return this.arrayNodeTextData;}).bind(this));
         comp_renderer_nodesText.getComponentBufferArg("posXYZW", comp_renderer_nodes);
 
-        comp_renderer_nodesText.setArg("nodeVertexPos", (function() {return this.arrayNodeTextVertexPos;}).bind(this), this.splitNodesText);
-        comp_renderer_nodesText.setArg("nodeVertexNormal", (function() {return this.arrayNodeTextVertexNormal;}).bind(this), this.splitNodesText);
-        comp_renderer_nodesText.setArg("nodeVertexTexture", (function() {return this.arrayNodeTextVertexTexture;}).bind(this), this.splitNodesText);
+        comp_renderer_nodesText.setArg("nodeVertexPos", (function() {return this.arrayNodeTextVertexPos;}).bind(this));
+        comp_renderer_nodesText.setArg("nodeVertexNormal", (function() {return this.arrayNodeTextVertexNormal;}).bind(this));
+        comp_renderer_nodesText.setArg("nodeVertexTexture", (function() {return this.arrayNodeTextVertexTexture;}).bind(this));
 
-        comp_renderer_nodesText.setArg("fontImgColumns", (function() {return FONT_IMG_COLUMNS;}).bind(this), this.splitNodesText);
-        comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this), this.splitNodesText);
-        comp_renderer_nodesText.setArg("indices", (function() {return this.arrayNodeTextIndices;}).bind(this), this.splitNodesTextIndices);
+        comp_renderer_nodesText.setArg("fontImgColumns", (function() {return FONT_IMG_COLUMNS;}).bind(this));
+        comp_renderer_nodesText.setArg("letterId", (function() {return this.arrayNodeTextLetterId;}).bind(this));
+        comp_renderer_nodesText.setArg("indices", (function() {return this.arrayNodeTextIndices;}).bind(this));
 
         comp_renderer_nodesText.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
         comp_renderer_nodesText.setArgUpdatable("PMatrix", true);
@@ -2485,7 +2409,7 @@ Graph = function(sce) {
         for(var argNameKey in _customArgs) {
             var expl = _customArgs[argNameKey].arg.split("*");
             if(expl.length > 0) { // argument is type buffer
-                comp_renderer_nodesText.setArg(argNameKey, (function() {return _customArgs[argNameKey].nodestext_array_value;}).bind(this), this.splitNodesText);
+                comp_renderer_nodesText.setArg(argNameKey, (function() {return _customArgs[argNameKey].nodestext_array_value;}).bind(this));
             }
         }
     }).bind(this);
@@ -2502,15 +2426,15 @@ Graph = function(sce) {
 	this.updateLinks = function() {
 		console.log(Object.keys(_links).length+" links");
 
-		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this), this.splitNodes);
-        //comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this), this.splitNodes);
+		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this));
+        //comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
 
-		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this), this.splitLinks);
-        comp_renderer_links.setArg("dataC", (function() {return this.arrayLinkDataC;}).bind(this), this.splitLinks);
+		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this));
+        comp_renderer_links.setArg("dataC", (function() {return this.arrayLinkDataC;}).bind(this));
         comp_renderer_links.getComponentBufferArg("dataB", comp_renderer_nodes);
 		comp_renderer_links.getComponentBufferArg("posXYZW", comp_renderer_nodes);
-		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this), this.splitLinks);
-		comp_renderer_links.setArg("indices", (function() {return this.arrayLinkIndices;}).bind(this), this.splitLinksIndices);
+		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this));
+		comp_renderer_links.setArg("indices", (function() {return this.arrayLinkIndices;}).bind(this));
 
 		comp_renderer_links.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
 		comp_renderer_links.setArgUpdatable("PMatrix", true);
@@ -2524,7 +2448,7 @@ Graph = function(sce) {
 		for(var argNameKey in _customArgs) {
 			var expl = _customArgs[argNameKey].arg.split("*");
 			if(expl.length > 0) { // argument is type buffer
-				comp_renderer_links.setArg(argNameKey, (function() {return _customArgs[argNameKey].links_array_value;}).bind(this), this.splitLinks);
+				comp_renderer_links.setArg(argNameKey, (function() {return _customArgs[argNameKey].links_array_value;}).bind(this));
 			}
 		}
 
@@ -2536,15 +2460,15 @@ Graph = function(sce) {
 
     /** @private */
     var updateArrows = (function() {
-        comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this), this.splitArrows);
-        comp_renderer_arrows.setArg("dataC", (function() {return this.arrayArrowDataC;}).bind(this), this.splitArrows);
+        comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this));
+        comp_renderer_arrows.setArg("dataC", (function() {return this.arrayArrowDataC;}).bind(this));
         comp_renderer_arrows.getComponentBufferArg("dataB", comp_renderer_nodes);
         comp_renderer_arrows.getComponentBufferArg("posXYZW", comp_renderer_nodes);
 
-        comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this), this.splitArrows);
-        comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this), this.splitArrows);
-        comp_renderer_arrows.setArg("nodeVertexTexture", (function() {return this.arrayArrowVertexTexture;}).bind(this), this.splitArrows);
-        comp_renderer_arrows.setArg("indices", (function() {return this.arrayArrowIndices;}).bind(this), this.splitArrowIndices);
+        comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this));
+        comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this));
+        comp_renderer_arrows.setArg("nodeVertexTexture", (function() {return this.arrayArrowVertexTexture;}).bind(this));
+        comp_renderer_arrows.setArg("indices", (function() {return this.arrayArrowIndices;}).bind(this));
 
         comp_renderer_arrows.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
         comp_renderer_arrows.setArgUpdatable("PMatrix", true);
@@ -2558,7 +2482,7 @@ Graph = function(sce) {
         for(var argNameKey in _customArgs) {
             var expl = _customArgs[argNameKey].arg.split("*");
             if(expl.length > 0) { // argument is type buffer
-                comp_renderer_arrows.setArg(argNameKey, (function() {return _customArgs[argNameKey].arrows_array_value;}).bind(this), this.splitArrows);
+                comp_renderer_arrows.setArg(argNameKey, (function() {return _customArgs[argNameKey].arrows_array_value;}).bind(this));
             }
         }
     }).bind(this);
