@@ -339,24 +339,14 @@ WebCLGLUtils = function() {
         }).bind(this);
 
         var updateFBnow = (function(webCLGLBuffers, t, fBuffer, gl, extDB, maxDrawBuffers) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
+
             if(webCLGLBuffers instanceof WebCLGLBuffer) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
-
                 var o = (t == true) ? webCLGLBuffers.textureDataTemp : webCLGLBuffers.textureData;
-
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, extDB.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, o, 0);
-                extDB.drawBuffersWEBGL([
-                    extDB.COLOR_ATTACHMENT0_WEBGL
-                ]);
-
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            } else if(webCLGLBuffers instanceof Array) { // Array of WebCLGLBuffers
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT0_WEBGL'], gl.TEXTURE_2D, o, 0);
+                extDB.drawBuffersWEBGL([extDB['COLOR_ATTACHMENT0_WEBGL']]);
+            } else if(webCLGLBuffers instanceof Array) {
                 if(webCLGLBuffers[0] != null) {
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
-
-                    if(webCLGLBuffers.length > maxDrawBuffers)
-                        console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
-
                     var arrDBuff = [];
                     for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
                         var o = (t == true) ? webCLGLBuffers[n].textureDataTemp : webCLGLBuffers[n].textureData;
@@ -364,10 +354,10 @@ WebCLGLUtils = function() {
                         arrDBuff[n] = extDB['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
                     }
                     extDB.drawBuffersWEBGL(arrDBuff);
-
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 }
             }
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }).bind(this);
 
 
@@ -384,6 +374,9 @@ WebCLGLUtils = function() {
 
             var fBuffer = createWebGLFrameBuffer(webCLGLBuffers, gl, extDB, pgr, width, height);
             if(pgr.fBufferCount > 0) {
+                if(webCLGLBuffers.length > maxDrawBuffers)
+                    console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
+
                 var fBufferTemp = createWebGLFrameBuffer(webCLGLBuffers, gl, extDB, pgr, width, height);
                 pgr.fBuffer = fBuffer;
                 pgr.fBufferTemp = fBufferTemp;

@@ -33,10 +33,9 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
      * Write WebGLTexture buffer
      * @param {Array|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} array
      * @param {Bool} [flip=false]
-     * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
      * @private
      */
-    var writeWebGLTextureBuffer = (function(arr, flip, overrideDimensions) {
+    var writeWebGLTextureBuffer = (function(arr, flip) {
         var tp = (function() {
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
@@ -54,28 +53,18 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
             _gl.bindTexture(_gl.TEXTURE_2D, tex);
         }).bind(this);
 
-        var writeTexNow = (function(arr) {
-            if(arr instanceof HTMLImageElement)  {
-                //texImage2D(			target, 			level, 	internalformat, 	format, 		type, 			TexImageSource);
+        var prepareArray = (function(arr) {
+            if(!(arr instanceof HTMLImageElement))  {
                 if(this.type == 'FLOAT4') {
-                    _gl.texImage2D(	_gl.TEXTURE_2D, 0, 		_gl.RGBA, 		_gl.RGBA, 	this._supportFormat, 	arr);
-                }/* else if(this.type == 'INT4') {
-                 _gl.texImage2D(	_gl.TEXTURE_2D, 0, 		_gl.RGBA, 		_gl.RGBA, 	_gl.UNSIGNED_BYTE, 	arr);
-                 }*/
-            } else {
-                if(this.type == 'FLOAT4') {
-                    var arrt;
                     if(arr.length != (this.W*this.H*4)) {
-                        arrt = new Float32Array((this.W*this.H)*4);
+                        var arrt = new Float32Array((this.W*this.H)*4);
                         for(var n=0; n < arr.length; n++)
                             arrt[n] = arr[n];
-                    } else
-                        arrt = arr;
 
-                    arrt = (arrt instanceof Float32Array) ? arrt : new Float32Array(arrt);
+                        arr = arrt;
+                    }
 
-                    //texImage2D(			target, 			level, 	internalformat, 	width, height, border, 	format, 		type, 			pixels);
-                    _gl.texImage2D(_gl.TEXTURE_2D, 	0, 		_gl.RGBA, 		this.W, this.H, 0, 	_gl.RGBA, 	this._supportFormat, 	arrt);
+                    arr = (arr instanceof Float32Array) ? arr : new Float32Array(arr);
                 } else if(this.type == 'FLOAT') {
                     var arrayTemp = new Float32Array(this.W*this.H*4);
 
@@ -87,8 +76,21 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
                         arrayTemp[idd+3] = 0.0;
                     }
                     arr = arrayTemp;
-                    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, this.W, this.H, 0, _gl.RGBA, this._supportFormat, arr);
                 }
+            }
+            return arr;
+        }).bind(this);
+        var writeTexNow = (function(arr) {
+            if(arr instanceof HTMLImageElement)  {
+                //texImage2D(target, level, internalformat, format, type, TexImageSource);
+                if(this.type == 'FLOAT4') {
+                    _gl.texImage2D(	_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, this._supportFormat, arr);
+                }/* else if(this.type == 'INT4') {
+                    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, arr);
+                 }*/
+            } else {
+                //texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+                _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, this.W, this.H, 0, _gl.RGBA, this._supportFormat, arr);
             }
         }).bind(this);
 
@@ -97,6 +99,8 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
             this.textureData = arr;
             this.textureDataTemp = arr;
         } else {
+            arr = prepareArray(arr);
+
             ps(this.textureData, flip);
             writeTexNow(arr);
             tp();
@@ -112,10 +116,9 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
     /**
      * Write WebGL buffer
      * @param {Array|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} array
-     * @param {Bool} [flip=false]
      * @private
      */
-    var writeWebGLBuffer = (function(arr, flip) {
+    var writeWebGLBuffer = (function(arr) {
         if(this.mode == "VERTEX_INDEX") { // "VERTEX_INDEX" ELEMENT_ARRAY_BUFFER
             _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.vertexData0);
             _gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arr), _gl.STATIC_DRAW);
@@ -159,10 +162,10 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
 
 
         if(this.mode == "SAMPLER") {
-            writeWebGLTextureBuffer(arr, flip, overrideDimensions);
+            writeWebGLTextureBuffer(arr, flip);
         }
         if(this.mode == "SAMPLER" || this.mode == "ATTRIBUTE" || this.mode == "VERTEX_INDEX") {
-            writeWebGLBuffer(arr, flip);
+            writeWebGLBuffer(arr);
         }
     };
 
