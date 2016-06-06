@@ -43,21 +43,10 @@ WebCLGLWork = function(webCLGL, offset) {
             return found;
         };
 
-        var outputTempModes;
-        if(output instanceof Array) {
-            outputTempModes = [];
-            for(var n=0; n < output.length; n++) {
-                if(output[n] != null) {
-                    outputTempModes[n] = searchInArgs(output[n], args);
-                } else {
-                    outputTempModes[n] = false;
-                }
-            }
-        } else {
-            if(output != null) {
-                outputTempModes = searchInArgs(output, args);
-            }
-        }
+        var outputTempModes = [];
+        for(var n=0; n < output.length; n++)
+            outputTempModes[n] = (output[n] != null) ? searchInArgs(output[n], args) : false;
+
         return outputTempModes;
     }).bind(this);
 
@@ -418,16 +407,11 @@ WebCLGLWork = function(webCLGL, offset) {
 
                 if(outputToTemp == undefined || outputToTemp == true) {
                     var tempsFound = false;
-                    if(kernel.output instanceof Array) {
-                        for(var n=0; n < kernel.output.length; n++) {
-                            if(kernel.output[n] != null && kernel.outputTempModes[n] == true) {
-                                tempsFound = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        if(kernel.output != null && kernel.outputTempModes == true)
+                    for(var n=0; n < kernel.output.length; n++) {
+                        if(kernel.output[n] != null && kernel.outputTempModes[n] == true) {
                             tempsFound = true;
+                            break;
+                        }
                     }
 
                     if(tempsFound == true) {
@@ -466,16 +450,11 @@ WebCLGLWork = function(webCLGL, offset) {
                         vfp.onpre();
 
                     var tempsFound = false;
-                    if(vfp.output instanceof Array) {
-                        for(var n=0; n < vfp.output.length; n++) {
-                            if(vfp.output[n] != null && vfp.outputTempModes[n] == true) {
-                                tempsFound = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        if(vfp.output != null && vfp.outputTempModes == true)
+                    for(var n=0; n < vfp.output.length; n++) {
+                        if(vfp.output[n] != null && vfp.outputTempModes[n] == true) {
                             tempsFound = true;
+                            break;
+                        }
                     }
 
                     if(tempsFound == true) {

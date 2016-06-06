@@ -37,7 +37,7 @@ var gpufor = function() {
             '}';
         var kernel = _webCLGL.createKernel();
         kernel.setKernelSource(ksrc);
-        _clglWork.addKernel(kernel, "result");
+        _clglWork.addKernel(kernel, ["result"]);
 
 
         var buffLength = 0;
@@ -70,12 +70,11 @@ var gpufor = function() {
     /** @private  */
     var iniG = (function() {
         var prepareReturnCode = (function(source, outArg) {
-            var objOutStr;
+            var objOutStr = [];
             var retCode = source.match(new RegExp(/return.*$/gm));
             retCode = retCode[0].replace("return ", ""); // now "varx" or "[varx1,varx2,..]"
             var isArr = retCode.match(new RegExp(/\[/gm));
             if(isArr != null && isArr.length >= 1) { // type outputs array
-                objOutStr = [];
                 retCode = retCode.split("[")[1].split("]")[0];
                 var itemStr = "", openParenth = 0;
                 for(var n=0; n < retCode.length; n++) {
@@ -91,64 +90,35 @@ var gpufor = function() {
                         openParenth--;
                 }
                 objOutStr.push(itemStr); // and the last
-            } else { // type one output
-                objOutStr = retCode.replace(/;$/gm, "");
-            }
+            } else  // type one output
+                objOutStr.push(retCode.replace(/;$/gm, ""));
 
 
             var returnCode = "";
-            if(outArg instanceof Array) { // type outputs array
-                for(var n = 0; n < outArg.length; n++) {
-                    // set output type float|float4
-                    var found = false;
-                    for(var key in _args) {
-                        if(key != "indices") {
-                            var expl = key.split(" ");
+            for(var n = 0; n < outArg.length; n++) {
+                // set output type float|float4
+                var found = false;
+                for(var key in _args) {
+                    if(key != "indices") {
+                        var expl = key.split(" ");
 
-                            if(expl[1] == outArg[n]) {
-                                var mt = expl[0].match(new RegExp("float4", "gm"));
-                                if(n==0)
-                                    returnCode += (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr[n]+";\n" : "out_float = "+objOutStr[n]+";\n";
-                                else
-                                    returnCode += (mt != null && mt.length > 0) ? "out"+n+"_float4 = "+objOutStr[n]+";\n" : "out"+n+"_float = "+objOutStr[n]+";\n";
+                        if(expl[1] == outArg[n]) {
+                            var mt = expl[0].match(new RegExp("float4", "gm"));
+                            if(n==0)
+                                returnCode += (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr[n]+";\n" : "out_float = "+objOutStr[n]+";\n";
+                            else
+                                returnCode += (mt != null && mt.length > 0) ? "out"+n+"_float4 = "+objOutStr[n]+";\n" : "out"+n+"_float = "+objOutStr[n]+";\n";
 
-                                found = true;
-                                break;
-                            }
+                            found = true;
+                            break;
                         }
-                    }
-                    if(found == false) {
-                        if(n==0)
-                            returnCode += "out_float4 = "+objOutStr[n]+";\n";
-                        else
-                            returnCode += "out"+n+"_float4 = "+objOutStr[n]+";\n";
                     }
                 }
-            } else { // type one output
-                // set output type float|float4
-                if(outArg != undefined) {
-                    var found = false;
-                    for(var key in _args) {
-                        if(key != "indices") {
-                            var expl = key.split(" ");
-
-                            if(expl[1] == outArg) {
-                                var mt = expl[0].match(new RegExp("float4", "gm"));
-                                returnCode += (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr+";\n" : "out_float = "+objOutStr+";\n";
-
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if(found == false) {
-                        if(n==0)
-                            returnCode += "out_float4 = "+objOutStr+";\n";
-                        else
-                            returnCode += "out"+n+"_float4 = "+objOutStr+";\n";
-                    }
-                } else {
-                    returnCode += "out_float4 = "+objOutStr+";\n";
+                if(found == false) {
+                    if(n==0)
+                        returnCode += "out_float4 = "+objOutStr[n]+";\n";
+                    else
+                        returnCode += "out"+n+"_float4 = "+objOutStr[n]+";\n";
                 }
             }
             return returnCode;
@@ -161,43 +131,23 @@ var gpufor = function() {
         for(var i = 2; i < arguments.length; i++) {
             if(arguments[i].type == "KERNEL") {
                 var conf = arguments[i].config;
-                var kH;
-                var kS;
+                var idx = conf[0];
+                var outArg = (conf[1] instanceof Array) ? conf[1] : [conf[1]];
+                var kH = conf[2];
+                var kS = conf[3];
 
-                var idx;
-                var outArg;
                 var argsInThisKernel = [];
-                if(conf.length == 1) { // by direct assign "posXYZW += dir" (typical use when MRT is not available)
-                    idx = "n";
-                    outArg = conf[0].match(new RegExp(/(([a-z|A-Z])| )*/gm))[0].trim(); // "posXYZW" (out as String)
-                    var rightVar = conf[0].match(new RegExp(/=(([a-z|A-Z])| )*$/gm))[0].replace("=","").trim(); // "dir"
-                    var operation = conf[0].match(new RegExp(/([^a-z|^A-Z])+/gm))[0].trim(); // "+="
-                    kH = "";
-                    kS ='vec4 current = '+outArg+'['+idx+'];\n'+
-                        'current '+operation+' '+rightVar+'['+idx+'];\n'+
-                        'return current;\n';
 
-                    for(var key in _args) {
-                        var expl = key.split(" ");
 
-                        if(expl[1] == outArg || expl[1] == rightVar)
-                            argsInThisKernel.push(key);
-                    }
-                } else { // by normal code
-                    idx = conf[0];
-                    outArg = conf[1]; // out can be String or Array
-                    kH = conf[2];
-                    kS = conf[3];
 
-                    for(var key in _args) {
-                        var expl = key.split(" ");
-                        var argName = expl[1];
+                for(var key in _args) {
+                    var expl = key.split(" ");
+                    var argName = expl[1];
 
-                        // search arguments in use
-                        var matches = (kH+kS).match(new RegExp(argName, "gm"));
-                        if(key != "indices" && matches != null && matches.length > 0)
-                            argsInThisKernel.push(key.replace("*attr ", "* ")); // make replace for ensure no *attr in KERNEL
-                    }
+                    // search arguments in use
+                    var matches = (kH+kS).match(new RegExp(argName, "gm"));
+                    if(key != "indices" && matches != null && matches.length > 0)
+                        argsInThisKernel.push(key.replace("*attr ", "* ")); // make replace for ensure no *attr in KERNEL
                 }
 
 
@@ -216,13 +166,13 @@ var gpufor = function() {
 
             } else if(arguments[i].type == "GRAPHIC") { // VFP
                 var conf = arguments[i].config;
-                var outArg = null;
+                var outArg = [null];
                 var VFP_vertexH;
                 var VFP_vertexS;
                 var VFP_fragmentH;
                 var VFP_fragmentS;
                 if(conf.length == 5) {
-                    outArg = conf[0]; // out can be String or Array
+                    outArg = (conf[0] instanceof Array) ? conf[0] : [conf[0]];
                     VFP_vertexH = conf[1];
                     VFP_vertexS = conf[2];
                     VFP_fragmentH = conf[3];
