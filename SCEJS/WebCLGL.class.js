@@ -208,21 +208,10 @@ var WebCLGL = function(webglcontext) {
     /**
      * copy
      * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram}
-     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [webCLGLBuffer=null]
+     * @param {Array<WebCLGLBuffer>} [webCLGLBuffers=null]
      */
     this.copy = function(pgr, webCLGLBuffers) {
-        if(webCLGLBuffers instanceof WebCLGLBuffer) {
-            _gl.viewport(0, 0, webCLGLBuffers.W, webCLGLBuffers.H);
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, pgr.fBuffer);
-
-            _gl.useProgram(this.shader_copyTexture);
-
-            _gl.activeTexture(_gl.TEXTURE0);
-            _gl.bindTexture(_gl.TEXTURE_2D, webCLGLBuffers.textureDataTemp);
-            _gl.uniform1i(arrayCopyTex[0], 0);
-
-            copyNow(webCLGLBuffers);
-        } else if(webCLGLBuffers instanceof Array) { // Array of WebCLGLBuffers
+        if(webCLGLBuffers != null) {
             if(webCLGLBuffers[0] != null) {
                 _gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, pgr.fBuffer);
@@ -239,9 +228,8 @@ var WebCLGL = function(webglcontext) {
             } else {
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
             }
-        } else {
+        } else
             _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
-        }
     };
     var copyNow = (function(webCLGLBuffers) {
         _gl.enableVertexAttribArray(this.attr_copyTexture_pos);
@@ -409,25 +397,21 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * bindFB
-     * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [webCLGLBuffer=null]
+     * @param {Array<WebCLGLBuffer>} [webCLGLBuffers=null]
      * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram}
      * @param {Bool} outputToTemp
      * @private
      */
     var bindFB = (function(webCLGLBuffers, pgr, outputToTemp) {
-        if(webCLGLBuffers instanceof WebCLGLBuffer) {
-            _gl.viewport(0, 0, webCLGLBuffers.W, webCLGLBuffers.H);
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, ((outputToTemp == true)?pgr.fBufferTemp:pgr.fBuffer));
-        } else if(webCLGLBuffers instanceof Array) { // Array of WebCLGLBuffers
+        if(webCLGLBuffers != null) {
             if(webCLGLBuffers[0] != null) {
                 _gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, ((outputToTemp == true)?pgr.fBufferTemp:pgr.fBuffer));
             } else {
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
             }
-        } else {
+        } else
             _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
-        }
     }).bind(this);
 
     /**
