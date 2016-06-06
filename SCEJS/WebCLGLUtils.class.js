@@ -452,13 +452,11 @@ WebCLGLUtils = function() {
      * @param {Int} maxDrawBuffers
      */
     this.lines_drawBuffersInit = function(maxDrawBuffers) {
-        var str = ''+
-        'float out_float = -999.99989;\n'+
-        'vec4 out_float4;\n';
-        for(var n= 1, fn=maxDrawBuffers; n < fn; n++) {
+        var str = '';
+        for(var n= 0, fn=maxDrawBuffers; n < fn; n++) {
             str += ''+
-                'float out'+n+'_float = -999.99989;\n'+
-                'vec4 out'+n+'_float4;\n';
+            'float out'+n+'_float = -999.99989;\n'+
+            'vec4 out'+n+'_float4;\n';
         }
         return str;
     };
@@ -467,13 +465,11 @@ WebCLGLUtils = function() {
      * @param {Int} maxDrawBuffers
      */
     this.lines_drawBuffersWrite = function(maxDrawBuffers) {
-        var str = ''+
-        'if(out_float != -999.99989) gl_FragData[0] = vec4(out_float,0.0,0.0,1.0);\n'+
-        'else gl_FragData[0] = out_float4;\n';
-        for(var n= 1, fn=maxDrawBuffers; n < fn; n++) {
+        var str = '';
+        for(var n= 0, fn=maxDrawBuffers; n < fn; n++) {
             str += ''+
-                'if(out'+n+'_float != -999.99989) gl_FragData['+n+'] = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
-                ' else gl_FragData['+n+'] = out'+n+'_float4;\n';
+            'if(out'+n+'_float != -999.99989) gl_FragData['+n+'] = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
+            ' else gl_FragData['+n+'] = out'+n+'_float4;\n';
         }
         return str;
     };

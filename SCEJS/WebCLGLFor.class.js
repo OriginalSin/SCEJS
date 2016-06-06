@@ -33,7 +33,7 @@ var gpufor = function() {
 
         var ksrc =   'void main('+strArgs+') {'+
                 'vec2 '+idx+' = get_global_id();'+
-                code.replace("return", ((typOut=="FLOAT")?"out_float":"out_float4")+" = ")+
+                code.replace("return", ((typOut=="FLOAT")?"out0_float":"out0_float4")+" = ")+
             '}';
         var kernel = _webCLGL.createKernel();
         kernel.setKernelSource(ksrc);
@@ -104,22 +104,15 @@ var gpufor = function() {
 
                         if(expl[1] == outArg[n]) {
                             var mt = expl[0].match(new RegExp("float4", "gm"));
-                            if(n==0)
-                                returnCode += (mt != null && mt.length > 0) ? "out_float4 = "+objOutStr[n]+";\n" : "out_float = "+objOutStr[n]+";\n";
-                            else
-                                returnCode += (mt != null && mt.length > 0) ? "out"+n+"_float4 = "+objOutStr[n]+";\n" : "out"+n+"_float = "+objOutStr[n]+";\n";
+                            returnCode += (mt != null && mt.length > 0) ? "out"+n+"_float4 = "+objOutStr[n]+";\n" : "out"+n+"_float = "+objOutStr[n]+";\n";
 
                             found = true;
                             break;
                         }
                     }
                 }
-                if(found == false) {
-                    if(n==0)
-                        returnCode += "out_float4 = "+objOutStr[n]+";\n";
-                    else
-                        returnCode += "out"+n+"_float4 = "+objOutStr[n]+";\n";
-                }
+                if(found == false)
+                    returnCode += "out"+n+"_float4 = "+objOutStr[n]+";\n";
             }
             return returnCode;
         }).bind(this);
