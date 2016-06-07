@@ -90,9 +90,9 @@
         <button id="BTNID_NETWORKSTEP">network step</button> <br />
 		<script>
             document.getElementById("BTNID_AFFERENCEDATA").addEventListener("click", (function() {
-                graph.setAfferentData({ "R": (Math.random()*2.0)-1.0,
-                                        "G": (Math.random()*2.0)-1.0,
-                                        "B": (Math.random()*2.0)-1.0});
+                var vv = parseFloat(((Math.random()*2.0)-1.0).toFixed(1));
+                console.log(vv)
+                graph.setAfferentData({ "R": vv});
             }).bind(this));
 
             document.getElementById("BTNID_EFFERENCEDATA0").addEventListener("click", (function() {

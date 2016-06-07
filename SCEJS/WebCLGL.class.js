@@ -80,9 +80,6 @@ var WebCLGL = function(webglcontext) {
 	this.vertexBuffer_QUAD = _gl.createBuffer();
 	_gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
 	_gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(mesh.vertexArray), _gl.STATIC_DRAW);
-	this.textureBuffer_QUAD = _gl.createBuffer();
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, this.textureBuffer_QUAD);
-	_gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(mesh.textureArray), _gl.STATIC_DRAW);
 	this.indexBuffer_QUAD = _gl.createBuffer();
 	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
 	_gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indexArray), _gl.STATIC_DRAW);
@@ -93,13 +90,11 @@ var WebCLGL = function(webglcontext) {
 	// SHADER READPIXELS
 	var sourceVertex = 	""+
 			'attribute vec3 aVertexPosition;\n'+
-			'attribute vec2 aTextureCoord;\n'+
-
-			'varying vec2 vTextureCoord;\n'+
+			'varying vec2 vCoord;\n'+
 
 			'void main(void) {\n'+
 				'gl_Position = vec4(aVertexPosition, 1.0);\n'+
-				'vTextureCoord = aTextureCoord;\n'+
+				'vCoord = aVertexPosition.xy*0.5+0.5;\n'+
 			'}\n';
 	var sourceFragment = this.precision+
 			'uniform sampler2D sampler_buffer;\n'+
@@ -107,12 +102,12 @@ var WebCLGL = function(webglcontext) {
 			'uniform int u_vectorValue;\n'+
 			'uniform int u_offset;\n'+
 
-			'varying vec2 vTextureCoord;\n'+
+			'varying vec2 vCoord;\n'+
 
 			this.utils.packGLSLFunctionString()+
 
 			'void main(void) {\n'+
-				'vec4 tex = texture2D(sampler_buffer, vTextureCoord);'+
+				'vec4 tex = texture2D(sampler_buffer, vCoord);'+
 				'if(u_offset > 0) {'+
 					'float offset = float(u_offset);'+
 					'if(u_vectorValue == 0) gl_FragColor = pack((tex.r+offset)/(offset*2.0));\n'+
@@ -136,7 +131,6 @@ var WebCLGL = function(webglcontext) {
 	this.sampler_buffer = _gl.getUniformLocation(this.shader_readpixels, "sampler_buffer");
 
 	this.attr_VertexPos = _gl.getAttribLocation(this.shader_readpixels, "aVertexPosition");
-	this.attr_TextureCoord = _gl.getAttribLocation(this.shader_readpixels, "aTextureCoord");
     // END SHADER READPIXELS
 
     // SHADER COPYTEXTURE
@@ -146,26 +140,24 @@ var WebCLGL = function(webglcontext) {
     var lines_drawBuffersWrite = (function() {
         var str = '';
         for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
-            str += 'gl_FragData['+n+'] = texture2D(uArrayCT['+n+'], vTextureCoord);\n';
+            str += 'gl_FragData['+n+'] = texture2D(uArrayCT['+n+'], vCoord);\n';
 
         return str;
     }).bind(this);
 	var sourceVertex = 	""+
 		'attribute vec3 aVertexPosition;\n'+
-		'attribute vec2 aTextureCoord;\n'+
-
-		'varying vec2 vTextureCoord;\n'+
+		'varying vec2 vCoord;\n'+
 
 		'void main(void) {\n'+
 			'gl_Position = vec4(aVertexPosition, 1.0);\n'+
-			'vTextureCoord = aTextureCoord;\n'+
+			'vCoord = aVertexPosition.xy*0.5+0.5;\n'+
 		'}';
 	var sourceFragment = lines_drawBuffersEnable()+
 	    this.precision+
 
         'uniform sampler2D uArrayCT['+_maxDrawBuffers+'];\n'+
 
-		'varying vec2 vTextureCoord;\n'+
+		'varying vec2 vCoord;\n'+
 
 		'void main(void) {\n'+
             lines_drawBuffersWrite()+
@@ -174,7 +166,6 @@ var WebCLGL = function(webglcontext) {
 	this.utils.createShader(_gl, "CLGLCOPYTEXTURE", sourceVertex, sourceFragment, this.shader_copyTexture);
 
 	this.attr_copyTexture_pos = _gl.getAttribLocation(this.shader_copyTexture, "aVertexPosition");
-	this.attr_copyTexture_tex = _gl.getAttribLocation(this.shader_copyTexture, "aTextureCoord");
 
     for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
         arrayCopyTex[n] = _gl.getUniformLocation(this.shader_copyTexture, "uArrayCT["+n+"]");
@@ -235,10 +226,6 @@ var WebCLGL = function(webglcontext) {
         _gl.enableVertexAttribArray(this.attr_copyTexture_pos);
         _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
         _gl.vertexAttribPointer(this.attr_copyTexture_pos, 3, _gl.FLOAT, false, 0, 0);
-
-        _gl.enableVertexAttribArray(this.attr_copyTexture_tex);
-        _gl.bindBuffer(_gl.ARRAY_BUFFER, this.textureBuffer_QUAD);
-        _gl.vertexAttribPointer(this.attr_copyTexture_tex, 3, _gl.FLOAT, false, 0, 0);
 
         _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
         _gl.drawElements(_gl.TRIANGLES, 6, _gl.UNSIGNED_SHORT, 0);
@@ -435,10 +422,6 @@ var WebCLGL = function(webglcontext) {
         _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
         _gl.vertexAttribPointer(webCLGLKernel.attr_VertexPos, 3, _gl.FLOAT, false, 0, 0);
 
-        _gl.enableVertexAttribArray(webCLGLKernel.attr_TextureCoord);
-        _gl.bindBuffer(_gl.ARRAY_BUFFER, this.textureBuffer_QUAD);
-        _gl.vertexAttribPointer(webCLGLKernel.attr_TextureCoord, 3, _gl.FLOAT, false, 0, 0);
-
         _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
         _gl.drawElements(_gl.TRIANGLES, 6, _gl.UNSIGNED_SHORT, 0);
     };
@@ -511,10 +494,6 @@ var WebCLGL = function(webglcontext) {
         _gl.enableVertexAttribArray(this.attr_VertexPos);
         _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
         _gl.vertexAttribPointer(this.attr_VertexPos, 3, buffer._supportFormat, false, 0, 0);
-
-        _gl.enableVertexAttribArray(this.attr_TextureCoord);
-        _gl.bindBuffer(_gl.ARRAY_BUFFER, this.textureBuffer_QUAD);
-        _gl.vertexAttribPointer(this.attr_TextureCoord, 3, buffer._supportFormat, false, 0, 0);
 
         _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
         _gl.drawElements(_gl.TRIANGLES, 6, _gl.UNSIGNED_SHORT, 0);

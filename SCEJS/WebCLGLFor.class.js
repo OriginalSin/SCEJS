@@ -51,7 +51,7 @@ var gpufor = function() {
                 buffLength = argVal.length;
         }
 
-        _clglWork.setArg("result", new Float32Array(buffLength), null, null, typOut);
+        _clglWork.setArg("result", new Float32Array(buffLength), null, typOut);
 
 
         //_clglWork.enqueueNDRangeKernel("result", _clglWork.buffers_TEMP["result"]);
