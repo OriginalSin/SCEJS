@@ -39,13 +39,11 @@ WebCLGLKernel = function(gl, source, header) {
         var compile = (function() {
             var sourceVertex = 	""+
                 'attribute vec3 aVertexPosition;\n'+
-                'attribute vec2 aTextureCoord;\n'+
-
                 'varying vec2 global_id;\n'+
 
                 'void main(void) {\n'+
                     'gl_Position = vec4(aVertexPosition, 1.0);\n'+
-                    'global_id = aTextureCoord;\n'+
+                    'global_id = aVertexPosition.xy*0.5+0.5;\n'+
                 '}\n';
             var sourceFragment = '#extension GL_EXT_draw_buffers : require\n'+
                 _precision+
@@ -82,7 +80,6 @@ WebCLGLKernel = function(gl, source, header) {
 
 
             this.attr_VertexPos = _gl.getAttribLocation(this.kernel, "aVertexPosition");
-            this.attr_TextureCoord = _gl.getAttribLocation(this.kernel, "aTextureCoord");
 
             this.uBufferWidth = _gl.getUniformLocation(this.kernel, "uBufferWidth");
 
