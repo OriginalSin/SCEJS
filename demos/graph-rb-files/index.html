@@ -43,7 +43,7 @@
 			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
 			simpleCamera.setFov(500);
 			simpleCamera.setVelocity(1.0);
-			sce.setDimensions(1024, 768);
+			sce.setDimensions(768, 512);
 			
 			// GRID
 			//var grid = new Grid(sce);
@@ -167,8 +167,8 @@
                 //graph.enableFonts(true);
 
                 graph.showTimeline(document.getElementById("SCEJS_timeline"));
-                graph.enableNeuronalNetwork();
-                //aL();
+                //graph.enableNeuronalNetwork();
+                aL();
 
                 graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
                 graph.enableHover();
@@ -178,7 +178,7 @@
 				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
                                                             // TMP
 
-                                                        }).bind(this), false, true);
+                                                        }).bind(this), false, false);
 			};			
 			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
 			

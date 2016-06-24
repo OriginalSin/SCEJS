@@ -49,14 +49,8 @@ Graph = function(sce) {
     var _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
 
 
-    var arrAdjMatrix = [];
+    var arrAdjMatrix = null; // linkBornDate, linkDieDate, linkWeight, columnAsParent
     var _ADJ_MATRIX_WIDTH;
-    var _ADJ_MATRIX_WIDTH_TOTAL;
-    var _currentAdjMatrix = 0;
-    var _buffAdjMatrix; // linkBornDate, linkDieDate, linkWeight, isChild
-    var _adjMatrixTime = 0;
-    var _numberOfColumns;
-	var _numberOfAdjMatrix;
 
     var _initTimestamp;
     var _endTimestamp;
@@ -1001,8 +995,6 @@ Graph = function(sce) {
             'indices': (function(){return null;}).bind(this),
             "float4* adjacencyMatrix": (function(){return null;}).bind(this),
             "float widthAdjMatrix": (function(){return null;}).bind(this),
-            "float currentAdjMatrix": (function(){return null;}).bind(this),
-            "float numberOfColumns": (function(){return null;}).bind(this),
             'float nodesCount': (function(){return null;}).bind(this),
             "float currentTimestamp": (function(){return null;}).bind(this),
             'mat4 PMatrix': (function(){return null;}).bind(this),
@@ -1130,34 +1122,7 @@ Graph = function(sce) {
                 comp_renderer_links.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
                 comp_renderer_arrows.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
 
-                if(_numberOfAdjMatrix > 1) {
-                    comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-                    comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-                    comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
-                    if(_currentAdjMatrix == _numberOfAdjMatrix) {
-                        comp_renderer_nodes.setArg("performFL", (function() {return 1;}).bind(this));
-                    } else {
-                        comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
-
-                        _buffAdjMatrix.items[0].writeWebGLTextureBuffer(arrAdjMatrix[_currentAdjMatrix]);
-
-                        //comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-                    }
-
-                    _currentAdjMatrix++;
-                    if(_currentAdjMatrix == _numberOfAdjMatrix+1) {
-                        if(_adjMatrixTime == 0) {
-                            _adjMatrixTime = 0;
-                            _currentAdjMatrix = 0;
-                        } else {
-                            _adjMatrixTime--;
-                            _currentAdjMatrix--;
-                        }
-                    }
-                } else {
-                    comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
-                }
+                comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
             }
 
             comp_renderer_nodes.setArg("enableNeuronalNetwork", (function() {return _enableNeuronalNetwork;}).bind(this));
@@ -2302,35 +2267,14 @@ Graph = function(sce) {
 		console.log((this.currentNodeId)+" nodes");
 
         _ADJ_MATRIX_WIDTH = (this.currentNodeId < _MAX_ADJ_MATRIX_WIDTH) ? this.currentNodeId : _MAX_ADJ_MATRIX_WIDTH;
-        _numberOfColumns = Math.ceil(this.currentNodeId/_ADJ_MATRIX_WIDTH);
-        _numberOfAdjMatrix = _numberOfColumns*_numberOfColumns;
-        _ADJ_MATRIX_WIDTH_TOTAL = _numberOfColumns*_ADJ_MATRIX_WIDTH;
 
-        arrAdjMatrix = [];
-        for(var n=0; n < _numberOfAdjMatrix; n++){
-            arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
-        }
-
-        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[0];}).bind(this));
+        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);}).bind(this));
         comp_renderer_links.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
         comp_renderer_arrows.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
-        _buffAdjMatrix = comp_renderer_nodes.getBuffers()["adjacencyMatrix"];
-
 
         comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_nodes.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-        comp_renderer_nodes.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
         comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_links.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-        comp_renderer_links.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
         comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_arrows.setArg("numberOfColumns", (function() {return _numberOfColumns;}).bind(this));
-        comp_renderer_arrows.setArg("currentAdjMatrix", (function() {return _currentAdjMatrix;}).bind(this));
-
-
-
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this));
         comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
@@ -2489,60 +2433,31 @@ Graph = function(sce) {
 
     /** @private */
     var updateAdjMat = (function() {
-        var setAdjMat = (function(id, isOrigin, bornDate, dieDate, weight) {
-            var num = id/_ADJ_MATRIX_WIDTH_TOTAL;
-            var idX = new Utils().fract(num)*_ADJ_MATRIX_WIDTH_TOTAL;
-            var idY = Math.floor(num);
+        var setAdjMat = (function(id, columnAsParent, bornDate, dieDate, weight) {
+            var idx = id*4;
 
-
-            var x = idX/_ADJ_MATRIX_WIDTH;
-            var xx = Math.floor(x);
-
-            var y = idY/_ADJ_MATRIX_WIDTH;
-            var yy = Math.floor(y);
-
-
-            var currentItemArrayAdjMatrix = (yy*_numberOfColumns)+xx;
-
-            var iX = new Utils().fract(x)*_ADJ_MATRIX_WIDTH;
-            var iY = new Utils().fract(y)*_ADJ_MATRIX_WIDTH;
-
-            var currentItemAdjMatrix = (iY*_ADJ_MATRIX_WIDTH)+iX;
-
-            var idx = Math.round(currentItemAdjMatrix)*4;
-
-            arrAdjMatrix[currentItemArrayAdjMatrix][idx] = bornDate;
-            arrAdjMatrix[currentItemArrayAdjMatrix][idx+1] = dieDate;
-            arrAdjMatrix[currentItemArrayAdjMatrix][idx+2] = weight;
-            arrAdjMatrix[currentItemArrayAdjMatrix][idx+3] = ((isOrigin==true)?1.0:0.0); // isOrigin=isChild=1.0;
+            arrAdjMatrix[idx] = bornDate;
+            arrAdjMatrix[idx+1] = dieDate;
+            arrAdjMatrix[idx+2] = weight;
+            arrAdjMatrix[idx+3] = ((columnAsParent==true)?1.0:0.0); // columnAsParent=1.0;
         }).bind(this);
 
-        arrAdjMatrix = [];
-        for(var n=0; n < _numberOfAdjMatrix; n++){
-            arrAdjMatrix[n] = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
-        }
-
-
-        // walk relations and adding in corresponding adjMatrixArray item
+        arrAdjMatrix = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
         for(var key in _links) {
             var origin = _links[key].origin_nodeId;
             var target = _links[key].target_nodeId;
 
-            var idParent = (origin*_ADJ_MATRIX_WIDTH_TOTAL)+(target);
-            var idChild = (target*_ADJ_MATRIX_WIDTH_TOTAL)+(origin);
-
-            setAdjMat(idParent, false, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as no child (columns=parents;rows=childs) =false
-            setAdjMat(idChild, true, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // mark as child (columns=childs;rows=parents) =true
+            setAdjMat((origin*_ADJ_MATRIX_WIDTH)+(target), true, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // (columns=parent;rows=child)
+            setAdjMat((target*_ADJ_MATRIX_WIDTH)+(origin), false, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // (columns=child;rows=parent)
         }
 
-        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix[0];}).bind(this));
+        comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix;}).bind(this));
 
-        /*for(var n=0; n < _numberOfAdjMatrix; n++) {
-             this.adjacencyMatrixToImage(arrAdjMatrix[n], _ADJ_MATRIX_WIDTH, (function(img) {
-                 document.body.appendChild(img);
-                 img.style.border = "1px solid red";
-             }).bind(this));
-        }*/
+        /*
+        this.adjacencyMatrixToImage(arrAdjMatrix, _ADJ_MATRIX_WIDTH, (function(img) {
+            document.body.appendChild(img);
+            img.style.border = "1px solid red";
+        }).bind(this)); */
     }).bind(this);
 
 

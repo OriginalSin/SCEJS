@@ -7,7 +7,7 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.ca
         returnStr = 'return [vec4(currentDir, 1.0), vec4(currentPos.x, 0.0, currentPos.z, 1.0), currentDataB];';
     } else {
         outputArr = ["dir", "posXYZW"];
-        returnStr = 'return [vec4(currentDir, 1.0), vec4(currentPos.x, 0.0, currentPos.z, 1.0)];';
+        returnStr = 'return [vec4(currentDir, 1.0), vec4(currentPos.x, currentPos.y, currentPos.z, 1.0)];';
     }
 
     this.getSrc = function() {
@@ -29,9 +29,7 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.ca
 
                         'vec4 currentDataB = dataB[x];\n'+
 
-                        'if(currentAdjMatrix == 0.0) {'+
-                            'currentDir = vec3(0.0, 0.0, 0.0);'+
-                        '}'+
+                        'currentDir = vec3(0.0, 0.0, 0.0);'+
 
                         'float disabVal = -2.0;'+
 
@@ -51,19 +49,7 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.ca
                             '}'+
                         "}"+
 
-
-
-
-                        "if(enableForceLayout == 1.0) {"+
-                            "if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0)) {"+
-                                'currentDir /= numberOfColumns;'+
-                            '}'+
-                        "} else "+
-                            'currentDir = currentDir;'+ // air resistence
-
                         ((customCode != undefined) ? customCode : '')+
-
-
 
                         'if(enableDrag == 1.0) {'+
                             'if(nodeId == idToDrag) {'+
@@ -71,8 +57,7 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.ca
                             '}\n'+
                         '}\n'+
 
-                        'if((numberOfColumns == 1.0 && performFL == 0.0) || (numberOfColumns > 1.0 && performFL == 1.0))'+
-                            'currentPos += currentDir;\n'+
+                        'currentPos += currentDir;\n'+
 
 
                         returnStr];
