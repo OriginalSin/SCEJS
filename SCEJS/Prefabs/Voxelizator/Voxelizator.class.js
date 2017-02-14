@@ -58,9 +58,119 @@ Voxelizator = function(sce) {
 
                                 'float4* texAlbedo': (function(){return null;}).bind(this)},
                                 {"type": "GRAPHIC",
-                                "config": new VFP_VOXELIZATOR().getSrc()});
-    comp_renderer_node.setGraphicEnableBlend(true);
-    comp_renderer_node.onPreProcessGraphic(0, (function() {
+                                "config": [ undefined,
+                                    // vertex head
+                                    'out vec4 vVPos;\n'+
+                                     'out vec4 vVN;\n'+
+                                    'out vec4 vVT;\n'+
+                                    'out float vVTU;\n'+
+                                    'mat4 lookAt(vec3 eye, vec3 center, vec3 up) {'+
+                                         'vec3 zaxis = normalize(center - eye);'+
+                                         'vec3 xaxis = normalize(cross(up, zaxis));'+
+                                         'vec3 yaxis = cross(zaxis, xaxis);'+
+
+                                         'mat4 matrix;'+
+                                         //Column Major
+                                         'matrix[0][0] = xaxis.x;'+
+                                         'matrix[1][0] = yaxis.x;'+
+                                         'matrix[2][0] = zaxis.x;'+
+                                         'matrix[3][0] = 0.0;'+
+
+                                         'matrix[0][1] = xaxis.y;'+
+                                         'matrix[1][1] = yaxis.y;'+
+                                         'matrix[2][1] = zaxis.y;'+
+                                         'matrix[3][1] = 0.0;'+
+
+                                         'matrix[0][2] = xaxis.z;'+
+                                         'matrix[1][2] = yaxis.z;'+
+                                         'matrix[2][2] = zaxis.z;'+
+                                         'matrix[3][2] = 0.0;'+
+
+                                         'matrix[0][3] = -dot(xaxis, eye);'+
+                                         'matrix[1][3] = -dot(yaxis, eye);'+
+                                         'matrix[2][3] = -dot(zaxis, eye);'+
+                                         'matrix[3][3] = 1.0;'+
+
+                                         'return matrix;'+
+                                     '}',
+                                    /*'mat4 transpose(mat4 m) {'+
+                                      'return mat4(  m[0][0], m[1][0], m[2][0], m[3][0],'+
+                                                    'm[0][1], m[1][1], m[2][1], m[3][1],'+
+                                                    'm[0][2], m[1][2], m[2][2], m[3][2],'+
+                                                    'm[0][3], m[1][3], m[2][3], m[3][3]);'+
+                                     '}'*/
+
+                                    // vertex source
+                                    'float gridSize = uGridsize;'+
+                                    'int maxLevelCells = int(uResolution);'+
+                                    'float cs = gridSize/float(maxLevelCells);\n'+ // cell size
+
+
+                                    'mat4 mCam = transpose(lookAt( 	vec3(0.0, (-(gridSize/2.0)+(uCurrentHeight*cs)), 0.0),'+
+                                                                    'vec3(0.0, (-(gridSize/2.0)+(uCurrentHeight*cs))-1.0, 0.001),'+
+                                                                    'vec3(0.0, 1.0, 0.0)));'+
+
+
+                                    'vec3 vp = vertexPos[].xyz;\n'+
+                                    'vp = vp*vec3(1.0, 1.0, 1.0);'+
+
+                                    'vec4 vPosition = PMatrix*mCam*nodeWMatrix*vec4(vp,1.0);'+
+                                    'float lengthOffs = 0.005*gridSize*vPosition.z;'+
+
+                                    'int currOffs = int(uCurrentOffset);'+
+                                    'if(currOffs == 0) vp = vp+vec3(lengthOffs,	0.0,	lengthOffs);'+
+                                    'if(currOffs == 1) vp = vp+vec3(-lengthOffs,	0.0,	-lengthOffs);'+
+                                    'if(currOffs == 2) vp = vp+vec3(-lengthOffs,	0.0,	lengthOffs);'+
+                                    'if(currOffs == 3) vp = vp+vec3(lengthOffs,	0.0,	-lengthOffs);'+
+                                    'if(currOffs == 4) vp = vp+vec3(0.0,		0.0,	lengthOffs);'+
+                                    'if(currOffs == 5) vp = vp+vec3(0.0,		0.0,	-lengthOffs);'+
+                                    'if(currOffs == 6) vp = vp+vec3(lengthOffs,	0.0,	0.0);'+
+                                    'if(currOffs == 7) vp = vp+vec3(-lengthOffs,	0.0,	0.0);'+
+
+                                    'vVPos = vec4(vp*vec3(-1.0, -1.0, -1.0), 1.0);'+
+                                    'gl_Position = PMatrix * mCam * nodeWMatrix * vec4(vp, 1.0);\n'+
+
+
+                                    'vVN = vertexNormal[]*vec4(-1.0, -1.0, -1.0, 1.0);\n'+
+                                    'vVT = vertexTexture[];\n'+
+                                    'vVTU = vertexTextureUnit[];\n',
+
+                                    // fragment head
+                                    'in vec4 vVPos;\n'+
+                                     'in vec4 vVN;\n'+
+                                     'in vec4 vVT;\n'+
+                                     'in float vVTU;\n'+
+                                    new Utils().packGLSLFunctionString(),
+
+                                    // fragment source
+                                    'int fillMode = int(uTypeFillMode);'+
+
+                                    'vec4 fColor;'+
+                                    'if(fillMode == 0) {'+ // fill with albedo
+                                        'fColor = texAlbedo[vVT.xy];\n'+
+                                    '} else if(fillMode == 1) {'+ // fill with position
+                                        'float gridSize = uGridsize;'+
+                                        'int maxLevelCells = int(uResolution);'+
+                                        'float cs = gridSize/float(maxLevelCells);\n'+ // cell size
+                                        'float chs = cs/2.0;\n'+
+
+
+                                        'vec3 p = (vVPos.xyz+(gridSize/2.0))/gridSize;'+
+
+                                        'fColor = vec4(p, 1.0);\n'+
+                                    '} else if(fillMode == 2) {'+ // fill with normal
+                                        'fColor = vec4((vVN.r+1.0)/2.0,(vVN.g+1.0)/2.0,(vVN.b+1.0)/2.0, 1.0);\n'+
+                                    '}'+
+
+                                    'return fColor;'
+                                ],
+                                "drawMode": 4,
+                                "depthTest": true,
+                                "blend": true,
+                                "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
+                                "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
+    comp_renderer_node.gpufG.onPreProcessGraphic(0, (function() {
         var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
         //comp_screenEffects.gl.blendFunc(comp_renderer_node.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_COLOR], comp_renderer_node.gl[Constants.BLENDING_MODES.SRC_COLOR]);
 
@@ -90,7 +200,7 @@ Voxelizator = function(sce) {
             }
         }
     }).bind(this));
-    comp_renderer_node.onPostProcessGraphic(0, (function() {
+    comp_renderer_node.gpufG.onPostProcessGraphic(0, (function() {
         if(_makeVoxels == true) {
             var setadd = (function(arrOrig, addarr, id) {
                 var idOrig = id/4;
@@ -151,7 +261,7 @@ Voxelizator = function(sce) {
 
                 if(_typeFillMode.length == 0) {
                     _makeVoxels = false;
-                    comp_renderer_node.disableGraphic(0);
+                    comp_renderer_node.gpufG.disableGraphic(0);
 
                     var comp_projection = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
                     comp_projection.setNear(-1000.0);
@@ -170,7 +280,7 @@ Voxelizator = function(sce) {
             }
         }
     }).bind(this));
-	comp_renderer_node.disableGraphic(0);
+	comp_renderer_node.gpufG.disableGraphic(0);
 	
 	/** @private */
 	var _setVoxels = (function(jsonIn) {
@@ -274,7 +384,7 @@ Voxelizator = function(sce) {
 		_sce.setDimensions(_resolution, _resolution);
 		
 		_makeVoxels = true;
-		comp_renderer_node.enableGraphic(0);
+		comp_renderer_node.gpufG.enableGraphic(0);
 	};
 	
 	/**
@@ -306,4 +416,9 @@ Voxelizator = function(sce) {
 					"position": _image3D_VoxelsPosition,
 					"normal": _image3D_VoxelsNormal};
 	};
+
+	this.disable = function() {
+        comp_renderer_node.gpufG.disableGraphic(0);
+    };
+
 };

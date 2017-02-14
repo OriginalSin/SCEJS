@@ -3,7 +3,7 @@ function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [[undefined],
        	    // vertex head
-       		'varying vec4 vColor;\n'+
+       		'out vec4 vColor;\n'+
 			//'uniform sampler2D posXYZW;\n'+
        		new Utils().packGLSLFunctionString()+
        		'mat4 rotationMatrix(vec3 axis, float angle) {'+
@@ -55,7 +55,7 @@ function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
             'gl_PointSize = 10.0;\n',
 
        		// fragment head
-       		'varying vec4 vColor;\n',
+       		'in vec4 vColor;\n',
 
        		// fragment source
             //'vec2 x = get_global_id();'+ // no needed

@@ -142,13 +142,15 @@ Stage = function() {
 
 			gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 			gl.clearDepth(1.0);
-			gl.enable(gl.DEPTH_TEST);
+			//gl.enable(gl.DEPTH_TEST);
+            //gl.enable(gl.CULL_FACE);
+            //gl.cullFace(gl.BACK);
 			gl.depthFunc(gl.LEQUAL);
-			
+
 			var comp_screen_effects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS); 
 			if(comp_screen_effects != undefined)
-				comp_screen_effects.clearArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
-			
+				comp_screen_effects.gpufG.fillPointerArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
+
 			for(var n=0, fn = nodes.length; n < fn; n++) {
 				for(var key in nodes[n].getComponents()) {
 					var component = nodes[n].getComponent(key);
@@ -156,12 +158,11 @@ Stage = function() {
 					if(component.tick != null && component.type != Constants.COMPONENT_TYPES.SCREEN_EFFECTS)
 						component.tick(activeCamera);
 				}
-				
+
 				if(nodes[n].onTick != null)  nodes[n].onTick();
 			}
 
 			if(comp_screen_effects != undefined) {
-				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 				comp_screen_effects.tick();
 			}
 		}

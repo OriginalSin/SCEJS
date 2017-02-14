@@ -33,7 +33,8 @@ ComponentScreenEffects = function() {
 	 */
 	this.tick = function() {
 		this.tickArguments();
-        this.processKernels(true);
+
+        this.gpufG.processKernels();
 	};
 
 };

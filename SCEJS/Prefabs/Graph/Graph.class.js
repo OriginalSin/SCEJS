@@ -1046,13 +1046,14 @@ Graph = function(sce) {
         comp_renderer_links.setGPUFor(  comp_renderer_links.gl,
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
-                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
+                                        "drawMode": 1,
+                                        "depthTest": true,
+                                        "blend": false,
+                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                        "blendSrcMode": Constants.BLENDING_MODES.ONE,
+                                        "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
         comp_renderer_links.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
-        comp_renderer_links.setGraphicEnableDepthTest(true);
-        comp_renderer_links.setGraphicEnableBlend(false);
-        //comp_renderer_links.setGraphicBlendSrc(Constants.BLENDING_MODES.ONE);
-        //comp_renderer_links.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
-        comp_renderer_links.setGraphicDrawMode(1);
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          ARROWS
@@ -1060,12 +1061,14 @@ Graph = function(sce) {
         comp_renderer_arrows.setGPUFor( comp_renderer_arrows.gl,
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
-                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
+                                        "drawMode": 4,
+                                        "depthTest": true,
+                                        "blend": true,
+                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                        "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
+                                        "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
         comp_renderer_arrows.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
-        comp_renderer_arrows.setGraphicEnableDepthTest(true);
-        comp_renderer_arrows.setGraphicEnableBlend(true);
-        comp_renderer_arrows.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
-        comp_renderer_arrows.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          NODES
@@ -1080,17 +1083,41 @@ Graph = function(sce) {
         comp_renderer_nodes.setGPUFor(  comp_renderer_nodes.gl,
                                         nodesVarDef,
                                         {"type": "KERNEL",
-                                        "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc()},
+                                        "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc(),
+                                        "drawMode": 4,
+                                        "depthTest": true,
+                                        "blend": true,
+                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                        "blendSrcMode": Constants.BLENDING_MODES.ONE,
+                                        "blendDstMode": Constants.BLENDING_MODES.ONE},
                                         {"type": "KERNEL",
-                                        "config": new KERNEL_ADJMATRIX_UPDATE(_geometryLength).getSrc()},
+                                        "config": new KERNEL_ADJMATRIX_UPDATE(_geometryLength).getSrc(),
+                                        "drawMode": 4,
+                                        "depthTest": true,
+                                        "blend": true,
+                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                        "blendSrcMode": Constants.BLENDING_MODES.ONE,
+                                        "blendDstMode": Constants.BLENDING_MODES.ONE},
                                         {"type": "GRAPHIC",
-                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()},
+                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
+                                        "drawMode": 4,
+                                        "depthTest": true,
+                                        "blend": true,
+                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                        "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
+                                        "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA},
                                         {"type": "GRAPHIC",
-                                        "config": new VFP_NODEPICKDRAG(_geometryLength).getSrc()});
+                                        "config": new VFP_NODEPICKDRAG(_geometryLength).getSrc(),
+                                        "drawMode": 4,
+                                        "depthTest": true,
+                                        "blend": true,
+                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                        "blendSrcMode": Constants.BLENDING_MODES.ONE,
+                                        "blendDstMode": Constants.BLENDING_MODES.ZERO});
         var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
         comp_renderer_nodes.getComponentBufferArg("RGB", comp_screenEffects);
         // KERNEL_DIR
-        comp_renderer_nodes.onPreProcessKernels(0, (function() {
+        comp_renderer_nodes.gpufG.onPreProcessKernel(0, (function() {
             var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
             comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
             comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
@@ -1127,41 +1154,34 @@ Graph = function(sce) {
 
             comp_renderer_nodes.setArg("enableNeuronalNetwork", (function() {return _enableNeuronalNetwork;}).bind(this));
         }).bind(this));
-        comp_renderer_nodes.onPostProcessKernels(0, (function() {
+        comp_renderer_nodes.gpufG.onPostProcessKernel(0, (function() {
             comp_renderer_nodes.setArg("makeNetworkStep", (function() {return 0.0;}).bind(this));
         }).bind(this));
 
         // KERNEL_ADJMATRIX_UPDATE
-        comp_renderer_nodes.onPostProcessKernels(1, (function() {
+        comp_renderer_nodes.gpufG.onPostProcessKernel(1, (function() {
             comp_renderer_nodes.disableKernel(1);
         }).bind(this));
-        comp_renderer_nodes.disableKernel(1);
+        comp_renderer_nodes.gpufG.disableKernel(1);
 
-
-        comp_renderer_nodes.setGraphicEnableDepthTest(true);
-        comp_renderer_nodes.setGraphicEnableBlend(true);
-        //comp_renderer_nodes.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
-        //comp_renderer_nodes.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
 
         // VFP_NODE
-        comp_renderer_nodes.onPreProcessGraphic(0, (function() {
+        comp_renderer_nodes.gpufG.onPreProcessGraphic(0, (function() {
 
-            comp_renderer_nodes.gl.blendFunc(comp_renderer_nodes.gl[Constants.BLENDING_MODES.SRC_ALPHA], comp_renderer_nodes.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA]);
         }).bind(this));
 
         // VFP_NODEPICKDRAG
-        comp_renderer_nodes.onPreProcessGraphic(1, (function() {
+        comp_renderer_nodes.gpufG.onPreProcessGraphic(1, (function() {
             comp_renderer_nodes.gl.clear(comp_renderer_nodes.gl.COLOR_BUFFER_BIT | comp_renderer_nodes.gl.DEPTH_BUFFER_BIT);
-            comp_renderer_nodes.gl.blendFunc(comp_renderer_nodes.gl[Constants.BLENDING_MODES.ONE], comp_renderer_nodes.gl[Constants.BLENDING_MODES.ZERO]);
         }).bind(this));
-        comp_renderer_nodes.onPostProcessGraphic(1, (function() {
+        comp_renderer_nodes.gpufG.onPostProcessGraphic(1, (function() {
             if(_enableHover == false) {
                 if(readPixel == true) {
                     readPixel = false;
 
                     readPix();
 
-                    comp_renderer_nodes.disableGraphic(1);
+                    comp_renderer_nodes.gpufG.disableGraphic(1);
                 }
             } else {
                 var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET);
@@ -1172,12 +1192,12 @@ Graph = function(sce) {
                 readPix();
 
                 if(comp_controller_trans_target.isLeftBtnActive() == true) {
-                    comp_renderer_nodes.disableGraphic(1);
+                    comp_renderer_nodes.gpufG.disableGraphic(1);
                 }
             }
         }).bind(this));
 
-        comp_renderer_nodes.disableGraphic(1);
+        comp_renderer_nodes.gpufG.disableGraphic(1);
 
 
 
@@ -1188,12 +1208,14 @@ Graph = function(sce) {
             comp_renderer_nodesText.setGPUFor(  comp_renderer_nodesText.gl,
                                                 Object.create(varDef_VFPNode),
                                                 {"type": "GRAPHIC",
-                                                "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc()});
+                                                "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
+                                                "drawMode": 4,
+                                                "depthTest": true,
+                                                "blend": true,
+                                                "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                                "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
+                                                "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
             comp_renderer_nodesText.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
-            comp_renderer_nodesText.setGraphicEnableDepthTest(true);
-            comp_renderer_nodesText.setGraphicEnableBlend(true);
-            comp_renderer_nodesText.setGraphicBlendSrc(Constants.BLENDING_MODES.SRC_ALPHA);
-            comp_renderer_nodesText.setGraphicBlendDst(Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA);
         }
 
         enableHov(-1);
@@ -2266,7 +2288,7 @@ Graph = function(sce) {
 	this.updateNodes = function() {
 		console.log((this.currentNodeId)+" nodes");
 
-        _ADJ_MATRIX_WIDTH = (this.currentNodeId < _MAX_ADJ_MATRIX_WIDTH) ? this.currentNodeId : _MAX_ADJ_MATRIX_WIDTH;
+        _ADJ_MATRIX_WIDTH = _MAX_ADJ_MATRIX_WIDTH;
 
         comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);}).bind(this));
         comp_renderer_links.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);

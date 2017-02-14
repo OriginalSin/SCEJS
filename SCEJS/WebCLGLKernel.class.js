@@ -7,15 +7,17 @@ WebCLGLKernel = function(gl, source, header) {
     "use strict";
 
 	var _gl = gl;
-	var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
-	var _precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
+	//var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
+	var _precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
 
-    var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
-    var _maxDrawBuffers = null;
-    if(_glDrawBuff_ext != null)
-        _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
+    //var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
+    var _maxDrawBuffers = 8;
+    //if(_glDrawBuff_ext != null)
+    //    _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
 
     var _utils = new WebCLGLUtils();
+
+    var _showSource = true;
 
 	this.in_values = {};
 
@@ -25,8 +27,6 @@ WebCLGLKernel = function(gl, source, header) {
     this.fBufferTemp = null;
     this.fBufferLength = 0;
     this.fBufferCount = 0;
-
-    var _enableDebug = false;
 
 
     /**
@@ -38,19 +38,21 @@ WebCLGLKernel = function(gl, source, header) {
     this.setKernelSource = function(source, header) {
         var compile = (function() {
             var sourceVertex = 	""+
-                'attribute vec3 aVertexPosition;\n'+
-                'varying vec2 global_id;\n'+
+                _precision+
+                'in vec3 aVertexPosition;\n'+
+                'in vec2 aTextureCoord;\n'+
+                'out vec2 global_id;\n'+
 
                 'void main(void) {\n'+
                     'gl_Position = vec4(aVertexPosition, 1.0);\n'+
-                    'global_id = aVertexPosition.xy*0.5+0.5;\n'+
+                    'global_id = aTextureCoord;\n'+
                 '}\n';
-            var sourceFragment = '#extension GL_EXT_draw_buffers : require\n'+
+            var sourceFragment = ''+
                 _precision+
 
                 _utils.lines_fragment_attrs(this.in_values)+
 
-                'varying vec2 global_id;\n'+
+                'in vec2 global_id;\n'+
                 'uniform float uBufferWidth;'+
 
                 'vec2 get_global_id() {\n'+
@@ -62,24 +64,26 @@ WebCLGLKernel = function(gl, source, header) {
 
                 _head+
 
+                _utils.lines_drawBuffersWriteInit(8)+
                 'void main(void) {\n'+
-                    _utils.lines_drawBuffersInit(_maxDrawBuffers)+
+                    _utils.lines_drawBuffersInit(8)+
 
                     _source+
 
-                    _utils.lines_drawBuffersWrite(_maxDrawBuffers)+
+                    _utils.lines_drawBuffersWrite(8)+
                 '}\n';
 
 
             //this.kernelPrograms = [	new WebCLGLKernelProgram(_gl, sourceVertex, sourceFrag, this.in_values) ];
 
+            //this.fBuffer = _gl.createFramebuffer();
+            //this.fBufferTemp = _gl.createFramebuffer();
+
             this.kernel = _gl.createProgram();
             var result = new WebCLGLUtils().createShader(_gl, "WEBCLGL", sourceVertex, sourceFragment, this.kernel);
-            if(result == true && _enableDebug == true)
-                console.log("WEBCLGL KERNEL\n "+sourceVertex+"\n "+sourceFragment);
-
 
             this.attr_VertexPos = _gl.getAttribLocation(this.kernel, "aVertexPosition");
+            this.attr_TextureCoord = _gl.getAttribLocation(this.kernel, "aTextureCoord");
 
             this.uBufferWidth = _gl.getUniformLocation(this.kernel, "uBufferWidth");
 
@@ -95,7 +99,7 @@ WebCLGLKernel = function(gl, source, header) {
                 this.in_values[key].expectedMode = expectedMode;
             }
 
-            return true;
+            return "VERTEX PROGRAM\n"+sourceVertex+"\n FRAGMENT PROGRAM\n"+sourceFragment;
         }).bind(this);
 
 
@@ -130,13 +134,19 @@ WebCLGLKernel = function(gl, source, header) {
         _head = _utils.parseSource(_head, this.in_values);
 
         // parse source
-        //console.log('original source: '+source);
         var _source = source.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _source = _source.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
         //console.log('minified source: '+_source);
         _source = _utils.parseSource(_source, this.in_values);
 
-        compile();
+        var ts = compile();
+
+        if(_showSource == true)
+            console.log('%c KERNEL', 'font-size: 20px; color: blue'),
+            console.log('%c WEBCLGL --------------------------------', 'color: gray'),
+            console.log('%c '+header+source, 'color: gray'),
+            console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray');
+            console.log('%c '+ts, 'color: darkgray');
     };
     if(source != undefined)
         this.setKernelSource(source, header);
@@ -154,16 +164,16 @@ WebCLGLKernel = function(gl, source, header) {
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_values)[argument];
         this.in_values[arg].value = data;
 
-        new WebCLGLUtils().checkUpdateFBs(_gl, _glDrawBuff_ext, _maxDrawBuffers, this, argument, data, buffers);
+        //new WebCLGLUtils().checkUpdateFBs(_gl, _maxDrawBuffers, this, argument, data, buffers);
     };
 
     /**
      * clearArg
      */
-    this.clearArg = function(webCLGL, buff, clearColor, buffers) {
+    /*this.clearArg = function(webCLGL, buff, clearColor, buffers) {
         webCLGL.fillBuffer(buff.textureData, clearColor, this.fBuffer);
         webCLGL.fillBuffer(buff.textureDataTemp, clearColor, this.fBufferTemp);
-    };
+    };*/
 };
 
 

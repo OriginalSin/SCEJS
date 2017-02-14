@@ -7,7 +7,6 @@
 
 		<script src="../../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
 
-		<script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
 		<script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
 
 		<script src="../../SCEJS/Prefabs/Graph/Graph.class.js"></script>
@@ -43,12 +42,12 @@
 			// GRAPH
 			var OFFSET = 1000.0;
 			var offs = OFFSET/10;
-			
+
 			var graph = new Graph(sce);
 			graph.setOffset(OFFSET);
 
 			graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
-			
+
 
 			// APPLY THIS LAYOUT
 			var arrPP = [];
@@ -224,7 +223,7 @@
 								"directed": true});
 			}
 			graph.updateLinks();
-			
+
 			/*graph.adjacencyMatrixToImage(function(im) {
 				document.body.appendChild(im);
 				im.style.border = "1px solid red";

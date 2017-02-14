@@ -169,15 +169,16 @@ WebCLGLUtils = function() {
 
         if(_sv == true && _sf == true) {
             gl.linkProgram(shaderProgram);
-            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            var success = gl.getProgramParameter(shaderProgram, gl.LINK_STATUS);
+            if(success) {
+                return true;
+            } else {
                 alert('Error in shader '+name);
                 console.log('Error shader program '+name+':\n ');
-                if(gl.getProgramInfoLog(shaderProgram) != undefined) {
-                    console.log(gl.getProgramInfoLog(shaderProgram));
-                }
+                var log = gl.getProgramInfoLog(shaderProgram);
+                if(log != undefined)
+                    console.log(log);
                 return false;
-            } else {
-                return true;
             }
         } else {
             return false;
@@ -304,19 +305,19 @@ WebCLGLUtils = function() {
     /**
      * updateFB
      */
-    this.createFBs = function(gl, extDB, maxDrawBuffers, pgr, buffers, width, height) {
-        var createWebGLFrameBuffer = (function(webCLGLBuffers, gl, extDB, pgr, width, height) {
+    /*this.createFBs = function(gl, maxDrawBuffers, pgr, buffers, width, height) {
+        var createWebGLFrameBuffer = (function(webCLGLBuffers, gl, pgr, width, height) {
             var fBuffer = gl.createFramebuffer();
 
             if(webCLGLBuffers[0] != null) {
                 for(var n=0; n < webCLGLBuffers.length; n++) {
                     var rBuffer = gl.createRenderbuffer();
                     gl.bindRenderbuffer(gl.RENDERBUFFER, rBuffer);
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, width, height);
+                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
                     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
                     gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT'+n+'_WEBGL'], gl.RENDERBUFFER, rBuffer);
+                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rBuffer);
                 }
             } else
                 pgr.fBufferCount = 0;
@@ -324,18 +325,18 @@ WebCLGLUtils = function() {
             return fBuffer;
         }).bind(this);
 
-        var updateFBnow = (function(webCLGLBuffers, t, fBuffer, gl, extDB, maxDrawBuffers) {
+        var updateFBnow = (function(webCLGLBuffers, t, fBuffer, gl) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
 
-            if(webCLGLBuffers[0] != null) {
-                var arrDBuff = [];
-                for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+            var arrDBuff = [];
+            for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+                if(webCLGLBuffers[n] != null) {
                     var o = (t == true) ? webCLGLBuffers[n].textureDataTemp : webCLGLBuffers[n].textureData;
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, extDB['COLOR_ATTACHMENT'+n+'_WEBGL'], gl.TEXTURE_2D, o, 0);
-                    arrDBuff[n] = extDB['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
+                    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl['COLOR_ATTACHMENT'+n], gl.TEXTURE_2D, o, 0);
+                    arrDBuff[n] = gl['COLOR_ATTACHMENT'+n];
                 }
-                extDB.drawBuffersWEBGL(arrDBuff);
             }
+            gl.drawBuffers(arrDBuff);
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }).bind(this);
@@ -348,32 +349,32 @@ WebCLGLUtils = function() {
             pgr.fBufferCount = outputsCount;
             pgr.fBufferLength = WH;
 
-            var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
-
-            var fBuffer = createWebGLFrameBuffer(webCLGLBuffers, gl, extDB, pgr, width, height);
             if(pgr.fBufferCount > 0) {
-                if(webCLGLBuffers.length > maxDrawBuffers)
-                    console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
+                var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
+                if(webCLGLBuffers != null && webCLGLBuffers[0] != null) {
+                    if(webCLGLBuffers.length > maxDrawBuffers)
+                        console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
 
-                var fBufferTemp = createWebGLFrameBuffer(webCLGLBuffers, gl, extDB, pgr, width, height);
-                pgr.fBuffer = fBuffer;
-                pgr.fBufferTemp = fBufferTemp;
+                    pgr.fBuffer = createWebGLFrameBuffer(webCLGLBuffers, gl, pgr, width, height);
+                    pgr.fBufferTemp = createWebGLFrameBuffer(webCLGLBuffers, gl, pgr, width, height);
 
-                updateFBnow(webCLGLBuffers, false, pgr.fBuffer, gl, extDB, maxDrawBuffers);
-                updateFBnow(webCLGLBuffers, true, pgr.fBufferTemp, gl, extDB, maxDrawBuffers);
+                    updateFBnow(webCLGLBuffers, true, pgr.fBufferTemp, gl);
+                    updateFBnow(webCLGLBuffers, false, pgr.fBuffer, gl);
+                } else
+                    pgr.fBufferCount = 0;
             }
         }
-    };
+    };*/
 
     /**
      * checkUpdateFBs
      */
-    this.checkUpdateFBs = function(gl, glDrawBuff_ext, maxDrawBuffers, pgr, argument, data, buffers) {
+    /*this.checkUpdateFBs = function(gl, maxDrawBuffers, pgr, argument, data, buffers) {
         if(buffers != undefined) {
             if(pgr.output != undefined && pgr.output.indexOf(argument) > -1)
-                this.createFBs(gl, glDrawBuff_ext, maxDrawBuffers, pgr, buffers, data.W, data.H);
+                this.createFBs(gl, maxDrawBuffers, pgr, buffers, data.W, data.H);
         }
-    };
+    };*/
 
 
 
@@ -398,8 +399,8 @@ WebCLGLUtils = function() {
                         var name = varMatches[nB].split('[')[0];
                         var vari = varMatches[nB].split('[')[1].split(']')[0];
 
-                        var map = { 'float4_fromSampler': source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+')'),
-                            'float_fromSampler': source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+').x'),
+                        var map = { 'float4_fromSampler': source.replace(name+"["+vari+"]", 'texture('+name+','+vari+')'),
+                            'float_fromSampler': source.replace(name+"["+vari+"]", 'texture('+name+','+vari+').x'),
                             'float4_fromAttr': source.replace(name+"["+vari+"]", name),
                             'float_fromAttr': source.replace(name+"["+vari+"]", name)};
                         source = map[values[key].type];
@@ -422,8 +423,8 @@ WebCLGLUtils = function() {
         for(var key in values) {
             str += {'float4_fromSampler': 'uniform sampler2D '+key+';',
                     'float_fromSampler': 'uniform sampler2D '+key+';',
-                    'float4_fromAttr': 'attribute vec4 '+key+';',
-                    'float_fromAttr': 'attribute float '+key+';',
+                    'float4_fromAttr': 'in vec4 '+key+';',
+                    'float_fromAttr': 'in float '+key+';',
                     'float': 'uniform float '+key+';',
                     'float4': 'uniform vec4 '+key+';',
                     'mat4': 'uniform mat4 '+key+';'}[values[key].type]+'\n';
@@ -460,6 +461,14 @@ WebCLGLUtils = function() {
         }
         return str;
     };
+    this.lines_drawBuffersWriteInit = function(maxDrawBuffers) {
+        var str = '';
+        for(var n= 0, fn=maxDrawBuffers; n < fn; n++) {
+            str += ''+
+            'layout(location = '+n+') out vec4 outCol'+n+';\n';
+        }
+        return str;
+    };
     /**
      * lines_drawBuffersWrite
      * @param {Int} maxDrawBuffers
@@ -468,8 +477,8 @@ WebCLGLUtils = function() {
         var str = '';
         for(var n= 0, fn=maxDrawBuffers; n < fn; n++) {
             str += ''+
-            'if(out'+n+'_float != -999.99989) gl_FragData['+n+'] = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
-            ' else gl_FragData['+n+'] = out'+n+'_float4;\n';
+            'if(out'+n+'_float != -999.99989) outCol'+n+' = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
+            ' else outCol'+n+' = out'+n+'_float4;\n';
         }
         return str;
     };
@@ -498,11 +507,11 @@ WebCLGLUtils = function() {
     this.get_global_id3_GLSLFunctionString = function() {
         return ''+
         'vec2 get_global_id(float id, float bufferWidth, float geometryLength) {\n'+
-            'float num = (id*geometryLength);'+
-            'float column = mod(num,bufferWidth);'+
-            'float row = num/bufferWidth;'+
+            'float num = (id*geometryLength)/bufferWidth;'+
+            'float column = fract(num)*bufferWidth;'+
+            'float row = floor(num);'+
 
-            'float ts = 1.0/bufferWidth;'+
+            'float ts = 1.0/(bufferWidth-1.0);'+
 
             'return vec2(column*ts, row*ts);'+
         '}\n';
@@ -516,7 +525,7 @@ WebCLGLUtils = function() {
             'float column = id.x;'+
             'float row = id.y;'+
 
-            'float ts = 1.0/bufferWidth;'+
+            'float ts = 1.0/(bufferWidth-1.0);'+
 
             'return vec2(column*ts, row*ts);'+
         '}\n';

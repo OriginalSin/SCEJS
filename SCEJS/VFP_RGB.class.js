@@ -3,9 +3,9 @@ function VFP_RGB(textureUnitCount) { VFP.call(this);
 	this.getSrc = function() {
 		var str_vfp = [["RGB"],
 		    // vertex head
-			'varying vec4 vVN;\n'+
-			 'varying vec4 vVT;\n'+
-			 'varying float vVTU;\n',
+			'out vec4 vVN;\n'+
+			 'out vec4 vVT;\n'+
+			 'out float vVTU;\n',
 			
 			// vertex source
             'vec4 vp = vertexPos[];\n'+
@@ -20,12 +20,12 @@ function VFP_RGB(textureUnitCount) { VFP.call(this);
             'gl_Position = PMatrix * cameraWMatrix * nodeWMatrix * vp;\n',
 			
 			// fragment head
-			'varying vec4 vVN;\n'+
-			 'varying vec4 vVT;\n'+
-			 'varying float vVTU;\n',
+			'in vec4 vVN;\n'+
+			 'in vec4 vVT;\n'+
+			 'in float vVTU;\n',
 			 
 			// fragment source
-            'vec4 textureColor = texture2D(texAlbedo, vVT.xy);\n'+
+            'vec4 textureColor = texture(texAlbedo, vVT.xy);\n'+
             // diffuse
             'return [textureColor];\n'];
 		

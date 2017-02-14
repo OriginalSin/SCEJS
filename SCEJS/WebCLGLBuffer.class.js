@@ -31,6 +31,27 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
     }
 
 
+
+    this.createFramebufferAndRenderbuffer = function() {
+        var createWebGLRenderBuffer = (function() {
+            var rBuffer = _gl.createRenderbuffer();
+            _gl.bindRenderbuffer(_gl.RENDERBUFFER, rBuffer);
+            _gl.renderbufferStorage(_gl.RENDERBUFFER, _gl.DEPTH24_STENCIL8, this.W, this.H);
+            _gl.bindRenderbuffer(_gl.RENDERBUFFER, null);
+            return rBuffer;
+        }).bind(this);
+
+        this.fBuffer = _gl.createFramebuffer();
+        this.renderBuffer = createWebGLRenderBuffer();
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBuffer);
+        _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_STENCIL_ATTACHMENT, _gl.RENDERBUFFER, this.renderBuffer);
+
+        this.fBufferTemp = _gl.createFramebuffer();
+        this.renderBufferTemp = createWebGLRenderBuffer();
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBufferTemp);
+        _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_STENCIL_ATTACHMENT, _gl.RENDERBUFFER, this.renderBufferTemp);
+    };
+
     /**
      * Write WebGLTexture buffer
      * @param {Array|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} array
@@ -51,20 +72,17 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
         var writeTexNow = (function(arr) {
             if(arr instanceof HTMLImageElement)  {
                 //texImage2D(target, level, internalformat, format, type, TexImageSource);
-                if(this.type == 'FLOAT4') {
-                    if(_oldW != this.W)
-                        _gl.texImage2D(	_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, this._supportFormat, arr);
-                    else
-                        _gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, this.W, this.H, _gl.RGBA, this._supportFormat, arr);
-                }/* else if(this.type == 'INT4') {
-                    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, arr);
-                 }*/
+                //if(this.type == 'FLOAT4') {
+                    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA8, arr.width, arr.height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, arr);
+                //} else if(this.type == 'INT4') {
+                 //   _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, arr);
+                 //}
             } else {
                 //texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
-                if(_oldW != this.W)
-                    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, this.W, this.H, 0, _gl.RGBA, this._supportFormat, arr);
-                else
-                    _gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, this.W, this.H, _gl.RGBA, this._supportFormat, arr);
+                _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA32F, this.W, this.H, 0, _gl.RGBA, this._supportFormat, arr, 0);
+
+                //_gl.texStorage2D(_gl.TEXTURE_2D, 1, _gl.RGBA32F, this.W, this.H);
+                //_gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, this.W, this.H, _gl.RGBA, this._supportFormat, arr);
             }
         }).bind(this);
 
@@ -110,10 +128,15 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
     this.writeBuffer = function(arr, flip, overrideDimensions) {
         var prepareArr = (function(arr) {
             if(!(arr instanceof HTMLImageElement))  {
-                this.W = Math.ceil(Math.sqrt(this.length));
-                if(new WebCLGLUtils().isPowerOfTwo(this.W) == false)
-                    this.W = new WebCLGLUtils().nextHighestPowerOfTwo(this.W);
-                this.H = this.W;
+                if(this.length.constructor === Array) {
+                    this.length = this.length[0]*this.length[1];
+                    this.W = this.length[0];
+                    this.H = this.length[1];
+                } else {
+                    this.length = this.length;
+                    this.W = Math.ceil(Math.sqrt(this.length));
+                    this.H = this.W;
+                }
 
                 if(this.type == 'FLOAT4') {
                     arr = (arr instanceof Float32Array) ? arr : new Float32Array(arr);
@@ -163,6 +186,8 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
             _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.vertexData0);
             _gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arr), _gl.STATIC_DRAW);
         }
+
+        this.createFramebufferAndRenderbuffer();
     };
 
     /**
@@ -177,4 +202,6 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
             _gl.deleteBuffer(this.vertexData0);
         }
     };
+
+
 };

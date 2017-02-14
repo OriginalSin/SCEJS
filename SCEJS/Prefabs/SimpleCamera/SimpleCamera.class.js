@@ -50,9 +50,15 @@ SimpleCamera = function(sce, jsonIn) {
                                             '',
                                             // source
                                             'vec4 color = RGB[n];\n'+
-                                            'return color;\n']});
-    comp_screenEffects.onPostProcessKernels((function() {
-        //comp_screenEffects.clearArg("RGB", [0.0, 0.0, 0.0, 1.0]);
+                                            'return color;\n'],
+                                "drawMode": 4,
+                                "depthTest": false,
+                                "blend": false,
+                                "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                "blendSrcMode": Constants.BLENDING_MODES.ONE,
+                                "blendDstMode": Constants.BLENDING_MODES.ZERO});
+    comp_screenEffects.gpufG.onPostProcessKernel(0, (function() {
+        //comp_screenEffects.gpufG.fillPointerArg("RGB", [0.0, 0.0, 0.0, 1.0]);
     }).bind(this));
     //comp_screenEffects.setArg("RGB", (function() {return new Float32Array(_sce.getCanvas().width*_sce.getCanvas().width*4);}).bind(this));
 

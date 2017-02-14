@@ -7,15 +7,17 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
     "use strict";
     
 	var _gl = gl;
-	var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
-	var _precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
+	//var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
+	var _precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
 
-    var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
-    var _maxDrawBuffers = null;
-    if(_glDrawBuff_ext != null)
-        _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
+    //var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
+    var _maxDrawBuffers = 8;
+    //if(_glDrawBuff_ext != null)
+    //    _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
 
 	var _utils = new WebCLGLUtils();
+
+    var _showSource = true;
 
 	this.in_vertex_values = {};
 	this.in_fragment_values = {};
@@ -35,12 +37,13 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
     this.fBufferLength = 0;
     this.fBufferCount = 0;
 
-    var _enableDebug = false;
+    this.drawMode = 4;
 
 
     /** @private **/
     var compileVertexFragmentSource = (function() {
         var sourceVertex = 	""+
+            _precision+
             'uniform float uOffset;\n'+
             'uniform float uBufferWidth;'+
 
@@ -59,27 +62,28 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
             '}\n';
         //console.log(sourceVertex);
-        var sourceFragment = '#extension GL_EXT_draw_buffers : require\n'+
+        var sourceFragment = ''+
             _precision+
 
             _utils.lines_fragment_attrs(this.in_fragment_values)+
 
             _fragmentHead+
 
+            _utils.lines_drawBuffersWriteInit(8)+
             'void main(void) {\n'+
-                _utils.lines_drawBuffersInit(_maxDrawBuffers)+
+                _utils.lines_drawBuffersInit(8)+
 
                 _fragmentSource+
 
-                _utils.lines_drawBuffersWrite(_maxDrawBuffers)+
+                _utils.lines_drawBuffersWrite(8)+
             '}\n';
         //console.log(sourceFragment);
 
+        //this.fBuffer = _gl.createFramebuffer();
+        //this.fBufferTemp = _gl.createFramebuffer();
+
         this.vertexFragmentProgram = _gl.createProgram();
         var result = _utils.createShader(_gl, "WEBCLGL VERTEX FRAGMENT PROGRAM", sourceVertex, sourceFragment, this.vertexFragmentProgram);
-        if(result == true && _enableDebug == true)
-            console.log("WEBCLGL VERTEX FRAGMENT PROGRAM\n "+sourceVertex+"\n "+sourceFragment);
-
 
         this.uOffset = _gl.getUniformLocation(this.vertexFragmentProgram, "uOffset");
         this.uBufferWidth = _gl.getUniformLocation(this.vertexFragmentProgram, "uBufferWidth");
@@ -94,7 +98,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                                 'mat4': "UNIFORM"}[this.in_vertex_values[key].type];
 
             _utils.checkArgNameInitialization(this.in_vertex_values, key);
-            var loc = (expectedMode == "ATTRIBUTE") ? gl.getAttribLocation(this.vertexFragmentProgram, key) : gl.getUniformLocation(this.vertexFragmentProgram, key);
+            var loc = (expectedMode == "ATTRIBUTE") ? _gl.getAttribLocation(this.vertexFragmentProgram, key) : _gl.getUniformLocation(this.vertexFragmentProgram, key);
             this.in_vertex_values[key].location = [loc];
             this.in_vertex_values[key].expectedMode = expectedMode;
         }
@@ -112,7 +116,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         }
 
 
-        return true;
+        return "VERTEX PROGRAM\n"+sourceVertex+"\n FRAGMENT PROGRAM\n"+sourceFragment;
     }).bind(this);
 
     /**
@@ -161,15 +165,22 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         _vertexHead = _utils.parseSource(_vertexHead, this.in_vertex_values);
 
         // parse source
-        //console.log('original source: '+vertexSource);
         _vertexSource = vertexSource.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _vertexSource = _vertexSource.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
         //console.log('minified source: '+_vertexSource);
         _vertexSource = _utils.parseSource(_vertexSource, this.in_vertex_values);
 
         _vertexP_ready = true;
-        if(_fragmentP_ready == true)
-            compileVertexFragmentSource();
+        if(_fragmentP_ready == true) {
+            var ts = compileVertexFragmentSource();
+
+            if(_showSource == true)
+                console.log('%c VFP', 'font-size: 20px; color: green'),
+                console.log('%c WEBCLGL --------------------------------', 'color: gray'),
+                console.log('%c '+vertexHeader+vertexSource, 'color: gray'),
+                console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray');
+                console.log('%c '+ts, 'color: darkgray');
+        }
     };
     if(vertexSource != undefined)
         this.setVertexSource(vertexSource, vertexHeader);
@@ -214,15 +225,25 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         _fragmentHead = _utils.parseSource(_fragmentHead, this.in_fragment_values);
 
         // parse source
-        //console.log('original source: '+source);
+        if(_showSource == true)
+
         _fragmentSource = fragmentSource.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _fragmentSource = _fragmentSource.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
         //console.log('minified source: '+_fragmentSource);
         _fragmentSource = _utils.parseSource(_fragmentSource, this.in_fragment_values);
 
+
         _fragmentP_ready = true;
-        if(_vertexP_ready == true)
-            compileVertexFragmentSource();
+        if(_vertexP_ready == true) {
+            var ts = compileVertexFragmentSource();
+
+            if(_showSource == true)
+                console.log('%c VFP', 'font-size: 20px; color: green'),
+                console.log('%c WEBCLGL --------------------------------', 'color: gray'),
+                console.log('%c '+fragmentHeader+fragmentSource, 'color: gray'),
+                console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray');
+                console.log('%c '+ts, 'color: darkgray');
+        }
     };
     if(fragmentSource != undefined)
         this.setFragmentSource(fragmentSource, fragmentHeader);
@@ -254,7 +275,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_vertex_values)[argument];
         this.in_vertex_values[arg].value = data;
 
-        new WebCLGLUtils().checkUpdateFBs(_gl, _glDrawBuff_ext, _maxDrawBuffers, this, argument, data, buffers);
+        //new WebCLGLUtils().checkUpdateFBs(_gl, _maxDrawBuffers, this, argument, data, buffers);
     };
 
     /**
@@ -267,16 +288,16 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_fragment_values)[argument];
         this.in_fragment_values[arg].value = data;
 
-        new WebCLGLUtils().checkUpdateFBs(_gl, _glDrawBuff_ext, _maxDrawBuffers, this, argument, data, buffers);
+        //new WebCLGLUtils().checkUpdateFBs(_gl, _maxDrawBuffers, this, argument, data, buffers);
     };
 
     /**
      * clearArg
      */
-    this.clearArg = function(webCLGL, buff, clearColor, buffers) {
+    /*this.clearArg = function(webCLGL, buff, clearColor, buffers) {
         webCLGL.fillBuffer(buff.textureData, clearColor, this.fBuffer);
         webCLGL.fillBuffer(buff.textureDataTemp, clearColor, this.fBufferTemp);
-    };
+    };*/
 };
 
 

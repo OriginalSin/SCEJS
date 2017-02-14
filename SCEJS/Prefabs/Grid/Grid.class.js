@@ -116,8 +116,30 @@ Grid = function(sce) {
 
                                 // GRAPHIC PROGRAM
                                 {"type": "GRAPHIC",
-                                "config": new VFP_GRID().getSrc()});
-        comp_renderer.setGraphicDrawMode(1);
+                                "config": [["RGB"],
+                                    // vertex head
+                                    'out vec4 vVC;\n',
+
+                                    // vertex source
+                                    'vec4 vp = vertexPos[];\n'+
+                                    'vec4 vc = vertexColor[];\n'+
+
+                                    'vVC = vc;'+
+
+                                    'gl_Position = PMatrix * cameraWMatrix * nodeWMatrix * vp;\n',
+
+                                    // fragment head
+                                    'in vec4 vVC;\n',
+
+                                    // fragment source
+                                    'return [vVC];\n'
+                                ],
+                                "drawMode": 1,
+                                "depthTest": true,
+                                "blend": true,
+                                "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
+                                "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
         comp_renderer.setArgUpdatable("PMatrix", true);
         comp_renderer.setArgUpdatable("cameraWMatrix", true);
         comp_renderer.setArgUpdatable("nodeWMatrix", true);
