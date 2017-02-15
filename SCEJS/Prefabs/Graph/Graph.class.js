@@ -26,7 +26,7 @@ Graph = function(sce) {
     var _enableHover = false;
     var _enableAutoLink = true;
     var _enabledForceLayout = false;
-    var _MAX_ADJ_MATRIX_WIDTH = 4096;
+    var _MAX_ADJ_MATRIX_WIDTH = 2048;
 
     var _playAnimation = false;
     var _loop = false;

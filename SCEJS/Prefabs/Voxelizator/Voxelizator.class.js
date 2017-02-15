@@ -60,10 +60,10 @@ Voxelizator = function(sce) {
                                 {"type": "GRAPHIC",
                                 "config": [ undefined,
                                     // vertex head
-                                    'out vec4 vVPos;\n'+
-                                     'out vec4 vVN;\n'+
-                                    'out vec4 vVT;\n'+
-                                    'out float vVTU;\n'+
+                                    'varying vec4 vVPos;\n'+
+                                     'varying vec4 vVN;\n'+
+                                    'varying vec4 vVT;\n'+
+                                    'varying float vVTU;\n'+
                                     'mat4 lookAt(vec3 eye, vec3 center, vec3 up) {'+
                                          'vec3 zaxis = normalize(center - eye);'+
                                          'vec3 xaxis = normalize(cross(up, zaxis));'+
@@ -92,13 +92,14 @@ Voxelizator = function(sce) {
                                          'matrix[3][3] = 1.0;'+
 
                                          'return matrix;'+
-                                     '}',
-                                    /*'mat4 transpose(mat4 m) {'+
-                                      'return mat4(  m[0][0], m[1][0], m[2][0], m[3][0],'+
-                                                    'm[0][1], m[1][1], m[2][1], m[3][1],'+
-                                                    'm[0][2], m[1][2], m[2][2], m[3][2],'+
-                                                    'm[0][3], m[1][3], m[2][3], m[3][3]);'+
-                                     '}'*/
+                                     '}'+
+                                    'mat4 transpose(mat4 m) {'+
+                                        'return mat4(  m[0][0], m[1][0], m[2][0], m[3][0],'+
+                                        'm[0][1], m[1][1], m[2][1], m[3][1],'+
+                                        'm[0][2], m[1][2], m[2][2], m[3][2],'+
+                                        'm[0][3], m[1][3], m[2][3], m[3][3]);'+
+                                    '}',
+
 
                                     // vertex source
                                     'float gridSize = uGridsize;'+
@@ -136,10 +137,10 @@ Voxelizator = function(sce) {
                                     'vVTU = vertexTextureUnit[];\n',
 
                                     // fragment head
-                                    'in vec4 vVPos;\n'+
-                                     'in vec4 vVN;\n'+
-                                     'in vec4 vVT;\n'+
-                                     'in float vVTU;\n'+
+                                    'varying vec4 vVPos;\n'+
+                                     'varying vec4 vVN;\n'+
+                                     'varying vec4 vVT;\n'+
+                                     'varying float vVTU;\n'+
                                     new Utils().packGLSLFunctionString(),
 
                                     // fragment source

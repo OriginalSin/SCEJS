@@ -9,16 +9,16 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             //╚██╗ ██╔╝██╔══╝  ██╔══██╗   ██║   ██╔══╝   ██╔██╗     ██╔══██║██╔══╝  ██╔══██║██║  ██║
             // ╚████╔╝ ███████╗██║  ██║   ██║   ███████╗██╔╝ ██╗    ██║  ██║███████╗██║  ██║██████╔╝
             //  ╚═══╝  ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝
-       		'out vec4 vVertexColor;\n'+
-       		'out vec2 vVertexUV;\n'+
-       		'out float vUseTex;\n'+
-       		'out vec4 vWNMatrix;\n'+
-       		'out float vDist;\n'+
-            'out float vVisibility;\n'+
-       		'out float vIsSelected;\n'+
-            'out float vIsHover;\n'+
-       		'out float vUseCrosshair;\n'+
-       		'out float vIstarget;\n'+
+       		'varying vec4 vVertexColor;\n'+
+       		'varying vec2 vVertexUV;\n'+
+       		'varying float vUseTex;\n'+
+       		'varying vec4 vWNMatrix;\n'+
+       		'varying float vDist;\n'+
+            'varying float vVisibility;\n'+
+       		'varying float vIsSelected;\n'+
+            'varying float vIsHover;\n'+
+       		'varying float vUseCrosshair;\n'+
+       		'varying float vIstarget;\n'+
        		
        		'vec2 get2Dfrom1D(float idx, float columns) {'+
        			'float n = idx/columns;'+
@@ -57,12 +57,12 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
 
        		     'return matrix;'+
        		 '}'+
-       		 /*'mat4 transpose(mat4 m) {'+
+       		 'mat4 transpose(mat4 m) {'+
        			  'return mat4(  m[0][0], m[1][0], m[2][0], m[3][0],'+
        			                'm[0][1], m[1][1], m[2][1], m[3][1],'+
        			  				'm[0][2], m[1][2], m[2][2], m[3][2],'+
        			  				'm[0][3], m[1][3], m[2][3], m[3][3]);'+
-       		'}'+*/
+       		'}'+
        		'mat4 rotationMatrix(vec3 axis, float angle) {'+
        			'axis = normalize(axis);'+
        			'float s = sin(angle);'+
@@ -334,16 +334,16 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             //██╔══╝  ██╔══██╗██╔══██║██║   ██║██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║       ██╔══██║██╔══╝  ██╔══██║██║  ██║
             //██║     ██║  ██║██║  ██║╚██████╔╝██║ ╚═╝ ██║███████╗██║ ╚████║   ██║       ██║  ██║███████╗██║  ██║██████╔╝
             //╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝       ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝
-       		'in vec4 vVertexColor;\n'+
-       		'in vec2 vVertexUV;\n'+
-       		'in float vUseTex;\n'+
-       		'in vec4 vWNMatrix;\n'+
-       		'in float vDist;\n'+
-            'in float vVisibility;\n'+
-       		'in float vIsSelected;\n'+
-            'in float vIsHover;\n'+
-       		'in float vUseCrosshair;\n'+
-       		'in float vIstarget;\n',
+       		'varying vec4 vVertexColor;\n'+
+       		'varying vec2 vVertexUV;\n'+
+       		'varying float vUseTex;\n'+
+       		'varying vec4 vWNMatrix;\n'+
+       		'varying float vDist;\n'+
+            'varying float vVisibility;\n'+
+       		'varying float vIsSelected;\n'+
+            'varying float vIsHover;\n'+
+       		'varying float vUseCrosshair;\n'+
+       		'varying float vIstarget;\n',
 
             //███████╗██████╗  █████╗  ██████╗ ███╗   ███╗███████╗███╗   ██╗████████╗    ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
             //██╔════╝██╔══██╗██╔══██╗██╔════╝ ████╗ ████║██╔════╝████╗  ██║╚══██╔══╝    ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝

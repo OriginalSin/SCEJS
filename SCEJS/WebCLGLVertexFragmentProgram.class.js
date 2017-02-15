@@ -7,13 +7,13 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
     "use strict";
     
 	var _gl = gl;
-	//var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
-	var _precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
+    var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
+    var _precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
 
-    //var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
-    var _maxDrawBuffers = 8;
-    //if(_glDrawBuff_ext != null)
-    //    _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
+    var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
+    var _maxDrawBuffers = null;
+    if(_glDrawBuff_ext != null)
+        _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
 
 	var _utils = new WebCLGLUtils();
 
@@ -62,14 +62,14 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
             '}\n';
         //console.log(sourceVertex);
-        var sourceFragment = ''+
+        var sourceFragment = '#extension GL_EXT_draw_buffers : require\n'+
             _precision+
 
             _utils.lines_fragment_attrs(this.in_fragment_values)+
 
             _fragmentHead+
 
-            _utils.lines_drawBuffersWriteInit(8)+
+            //_utils.lines_drawBuffersWriteInit(8)+
             'void main(void) {\n'+
                 _utils.lines_drawBuffersInit(8)+
 

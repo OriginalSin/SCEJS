@@ -55,7 +55,7 @@ WebCLGLUtils = function() {
     /** @private **/
     this.getWebGLContextFromCanvas = function(canvas, ctxOpt) {
         var gl;
-        try {
+        /*try {
             if(ctxOpt == undefined) gl = canvas.getContext("webgl2");
             else gl = canvas.getContext("webgl2", ctxOpt);
 
@@ -72,7 +72,7 @@ WebCLGLUtils = function() {
             } catch(e) {
                 gl = null;
             }
-        }
+        }*/
         if(gl == null) {
             try {
                 if(ctxOpt == undefined) gl = canvas.getContext("webgl");
@@ -399,8 +399,8 @@ WebCLGLUtils = function() {
                         var name = varMatches[nB].split('[')[0];
                         var vari = varMatches[nB].split('[')[1].split(']')[0];
 
-                        var map = { 'float4_fromSampler': source.replace(name+"["+vari+"]", 'texture('+name+','+vari+')'),
-                            'float_fromSampler': source.replace(name+"["+vari+"]", 'texture('+name+','+vari+').x'),
+                        var map = { 'float4_fromSampler': source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+')'),
+                            'float_fromSampler': source.replace(name+"["+vari+"]", 'texture2D('+name+','+vari+').x'),
                             'float4_fromAttr': source.replace(name+"["+vari+"]", name),
                             'float_fromAttr': source.replace(name+"["+vari+"]", name)};
                         source = map[values[key].type];
@@ -423,8 +423,8 @@ WebCLGLUtils = function() {
         for(var key in values) {
             str += {'float4_fromSampler': 'uniform sampler2D '+key+';',
                     'float_fromSampler': 'uniform sampler2D '+key+';',
-                    'float4_fromAttr': 'in vec4 '+key+';',
-                    'float_fromAttr': 'in float '+key+';',
+                    'float4_fromAttr': 'attribute vec4 '+key+';',
+                    'float_fromAttr': 'attribute float '+key+';',
                     'float': 'uniform float '+key+';',
                     'float4': 'uniform vec4 '+key+';',
                     'mat4': 'uniform mat4 '+key+';'}[values[key].type]+'\n';
@@ -477,8 +477,8 @@ WebCLGLUtils = function() {
         var str = '';
         for(var n= 0, fn=maxDrawBuffers; n < fn; n++) {
             str += ''+
-            'if(out'+n+'_float != -999.99989) outCol'+n+' = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
-            ' else outCol'+n+' = out'+n+'_float4;\n';
+            'if(out'+n+'_float != -999.99989) gl_FragData['+n+'] = vec4(out'+n+'_float,0.0,0.0,1.0);\n'+
+            ' else gl_FragData['+n+'] = out'+n+'_float4;\n';
         }
         return str;
     };

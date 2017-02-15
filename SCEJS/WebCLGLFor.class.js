@@ -575,7 +575,7 @@ var gpufor = function() {
         _webCLGL = new WebCLGL(_gl);
         this.offset = window.gpufor_precision|1000;
         iniG(arguments);
-    } else if(arguments[0] instanceof WebGL2RenderingContext) {
+    } else if(arguments[0] instanceof WebGLRenderingContext) {
         var _gl = arguments[0];
         _webCLGL = new WebCLGL(_gl);
         this.offset = window.gpufor_precision|1000;

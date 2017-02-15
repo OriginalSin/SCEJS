@@ -118,7 +118,7 @@ Grid = function(sce) {
                                 {"type": "GRAPHIC",
                                 "config": [["RGB"],
                                     // vertex head
-                                    'out vec4 vVC;\n',
+                                    'varying vec4 vVC;\n',
 
                                     // vertex source
                                     'vec4 vp = vertexPos[];\n'+
@@ -129,7 +129,7 @@ Grid = function(sce) {
                                     'gl_Position = PMatrix * cameraWMatrix * nodeWMatrix * vp;\n',
 
                                     // fragment head
-                                    'in vec4 vVC;\n',
+                                    'varying vec4 vVC;\n',
 
                                     // fragment source
                                     'return [vVC];\n'

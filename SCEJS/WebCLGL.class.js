@@ -55,21 +55,22 @@ var WebCLGL = function(webglcontext) {
 		_gl = this.utils.getWebGLContextFromCanvas(this.e, {antialias: false});
 	} else _gl = webglcontext;
 
-    var _arrExt = {"EXT_color_buffer_float":null,"OES_texture_float_linear":null};
+    var _arrExt = {"OES_texture_float":null, "OES_texture_float_linear":null, "OES_element_index_uint":null, "WEBGL_draw_buffers":null};
     for(var key in _arrExt) {
         _arrExt[key] = _gl.getExtension(key);
         if(_arrExt[key] == null)
             console.error("extension "+key+" not available");
     }
-    var _maxDrawBuffers = 8;
-    /*if(_arrExt.hasOwnProperty("WEBGL_draw_buffers") && _arrExt["WEBGL_draw_buffers"] != null) {
+    var _maxDrawBuffers = null;
+    if(_arrExt.hasOwnProperty("WEBGL_draw_buffers") && _arrExt["WEBGL_draw_buffers"] != null) {
         _maxDrawBuffers = _gl.getParameter(_arrExt["WEBGL_draw_buffers"].MAX_DRAW_BUFFERS_WEBGL);
         console.log("Max draw buffers: "+_maxDrawBuffers);
     } else
-        console.log("Max draw buffers: 1");*/
+        console.log("Max draw buffers: 1");
 
-	//var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
-	this.precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
+    var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
+    this.precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
+	//this.precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
     var _currentTextureUnit;
     var _bufferWidth = 0;
 
@@ -90,9 +91,9 @@ var WebCLGL = function(webglcontext) {
 
 	// SHADER READPIXELS
 	var sourceVertex = 	this.precision+
-			'in vec3 aVertexPosition;\n'+
-        'in vec2 aTextureCoord;\n'+
-			'out vec2 vCoord;\n'+
+			'attribute vec3 aVertexPosition;\n'+
+        'attribute vec2 aTextureCoord;\n'+
+			'varying vec2 vCoord;\n'+
 
 			'void main(void) {\n'+
 				'gl_Position = vec4(aVertexPosition, 1.0);\n'+
@@ -104,25 +105,25 @@ var WebCLGL = function(webglcontext) {
 			'uniform int u_vectorValue;\n'+
 			'uniform int u_offset;\n'+
 
-			'in vec2 vCoord;\n'+
+			'varying vec2 vCoord;\n'+
 
 			this.utils.packGLSLFunctionString()+
 
-            'out vec4 fragmentColor;'+
+            //'out vec4 fragmentColor;'+
 
 			'void main(void) {\n'+
-				'vec4 tex = texture(sampler_buffer, vCoord);'+
+				'vec4 tex = texture2D(sampler_buffer, vCoord);'+
 				'if(u_offset > 0) {'+
 					'float offset = float(u_offset);'+
-					'if(u_vectorValue == 0) fragmentColor = pack((tex.r+offset)/(offset*2.0));\n'+
-					'if(u_vectorValue == 1) fragmentColor = pack((tex.g+offset)/(offset*2.0));\n'+
-					'if(u_vectorValue == 2) fragmentColor = pack((tex.b+offset)/(offset*2.0));\n'+
-					'if(u_vectorValue == 3) fragmentColor = pack((tex.a+offset)/(offset*2.0));\n'+
+					'if(u_vectorValue == 0) gl_FragColor = pack((tex.r+offset)/(offset*2.0));\n'+
+					'if(u_vectorValue == 1) gl_FragColor = pack((tex.g+offset)/(offset*2.0));\n'+
+					'if(u_vectorValue == 2) gl_FragColor = pack((tex.b+offset)/(offset*2.0));\n'+
+					'if(u_vectorValue == 3) gl_FragColor = pack((tex.a+offset)/(offset*2.0));\n'+
 				'} else {'+
-					'if(u_vectorValue == 0) fragmentColor = pack(tex.r);\n'+
-					'if(u_vectorValue == 1) fragmentColor = pack(tex.g);\n'+
-					'if(u_vectorValue == 2) fragmentColor = pack(tex.b);\n'+
-					'if(u_vectorValue == 3) fragmentColor = pack(tex.a);\n'+
+					'if(u_vectorValue == 0) gl_FragColor = pack(tex.r);\n'+
+					'if(u_vectorValue == 1) gl_FragColor = pack(tex.g);\n'+
+					'if(u_vectorValue == 2) gl_FragColor = pack(tex.b);\n'+
+					'if(u_vectorValue == 3) gl_FragColor = pack(tex.a);\n'+
 				'}'+
 			'}\n';
 
@@ -139,6 +140,9 @@ var WebCLGL = function(webglcontext) {
     // END SHADER READPIXELS
 
     // SHADER COPYTEXTURE
+    var lines_drawBuffersEnable = (function() {
+        return ((_maxDrawBuffers != null) ? '#extension GL_EXT_draw_buffers : require\n' : "");
+    }).bind(this);
     var lines_drawBuffersWriteInit = (function() {
         var str = '';
         for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
@@ -149,28 +153,28 @@ var WebCLGL = function(webglcontext) {
     var lines_drawBuffersWrite = (function() {
         var str = '';
         for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
-            str += 'outCol'+n+' = texture(uArrayCT['+n+'], vCoord);\n';
+            str += 'gl_FragData['+n+'] = texture2D(uArrayCT['+n+'], vCoord);\n';
 
         return str;
     }).bind(this);
 	var sourceVertex = 	""+
         this.precision+
-		'in vec3 aVertexPosition;\n'+
-        'in vec2 aTextureCoord;\n'+
-		'out vec2 vCoord;\n'+
+		'attribute vec3 aVertexPosition;\n'+
+        'attribute vec2 aTextureCoord;\n'+
+		'varying vec2 vCoord;\n'+
 
 		'void main(void) {\n'+
 			'gl_Position = vec4(aVertexPosition, 1.0);\n'+
 			'vCoord = aTextureCoord;\n'+
 		'}';
-	var sourceFragment = ""+
+	var sourceFragment = lines_drawBuffersEnable()+
 	    this.precision+
 
         'uniform sampler2D uArrayCT['+_maxDrawBuffers+'];\n'+
 
-		'in vec2 vCoord;\n'+
+		'varying vec2 vCoord;\n'+
 
-        lines_drawBuffersWriteInit()+
+        //lines_drawBuffersWriteInit()+
 		'void main(void) {\n'+
             lines_drawBuffersWrite()+
 		'}';
@@ -213,10 +217,10 @@ var WebCLGL = function(webglcontext) {
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffers[0].fBuffer);
                 var arrDBuff = [];
                 for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
-                    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl['COLOR_ATTACHMENT'+n], _gl.TEXTURE_2D, webCLGLBuffers[n].textureData, 0);
-                    arrDBuff[n] = _gl['COLOR_ATTACHMENT'+n]; //gl_FragData[n]
+                    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, webCLGLBuffers[n].textureData, 0);
+                    arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
                 }
-                _gl.drawBuffers(arrDBuff);
+                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
                 _gl.useProgram(this.shader_copyTexture);
 
@@ -290,19 +294,19 @@ var WebCLGL = function(webglcontext) {
      */
     this.fillBuffer = function(texture, clearColor, fBuffer) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, fBuffer);
-        _gl.framebufferTexture2D(_gl.DRAW_FRAMEBUFFER, _gl['COLOR_ATTACHMENT0'], _gl.TEXTURE_2D, texture, 0);
+        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'], _gl.TEXTURE_2D, texture, 0);
 
-        var arrDBuff = [_gl['COLOR_ATTACHMENT0']];
-        _gl.drawBuffers(arrDBuff);
-        _gl.clearBufferfv(_gl.COLOR, 0, clearColor);
+        var arrDBuff = [_arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL']];
+        _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+        //_gl.clearBufferfv(_gl.COLOR, 0, clearColor);
 
         /*var arrDBuff = [_gl['NONE']];
         _gl.drawBuffers(arrDBuff);
         _gl.clearBufferfv(_gl.DEPTH, 0, clearColor);*/
 
-        /*if(clearColor != undefined)
+        if(clearColor != undefined)
             _gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-        _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);*/
+        _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
     };
 
     /**
@@ -400,14 +404,14 @@ var WebCLGL = function(webglcontext) {
             if(webCLGLBuffers[0] != null) {
                 _gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
 
-                _gl.bindFramebuffer(_gl.DRAW_FRAMEBUFFER, ((outputToTemp == true) ? webCLGLBuffers[0].fBufferTemp:webCLGLBuffers[0].fBuffer));
+                _gl.bindFramebuffer(_gl.FRAMEBUFFER, ((outputToTemp == true) ? webCLGLBuffers[0].fBufferTemp:webCLGLBuffers[0].fBuffer));
                 var arrDBuff = [];
                 for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
                     var o = (outputToTemp == true) ? webCLGLBuffers[n].textureDataTemp : webCLGLBuffers[n].textureData;
-                    _gl.framebufferTexture2D(_gl.DRAW_FRAMEBUFFER, _gl['COLOR_ATTACHMENT'+n], _gl.TEXTURE_2D, o, 0);
-                    arrDBuff[n] = _gl['COLOR_ATTACHMENT'+n]; //gl_FragData[n]
+                    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, o, 0);
+                    arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL']; //gl_FragData[n]
                 }
-                _gl.drawBuffers(arrDBuff);
+                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
             } else {
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
             }

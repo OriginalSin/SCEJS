@@ -7,13 +7,13 @@ WebCLGLKernel = function(gl, source, header) {
     "use strict";
 
 	var _gl = gl;
-	//var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
-	var _precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
+    var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
+    var _precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
 
-    //var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
-    var _maxDrawBuffers = 8;
-    //if(_glDrawBuff_ext != null)
-    //    _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
+    var _glDrawBuff_ext = _gl.getExtension("WEBGL_draw_buffers");
+    var _maxDrawBuffers = null;
+    if(_glDrawBuff_ext != null)
+        _maxDrawBuffers = _gl.getParameter(_glDrawBuff_ext.MAX_DRAW_BUFFERS_WEBGL);
 
     var _utils = new WebCLGLUtils();
 
@@ -39,20 +39,20 @@ WebCLGLKernel = function(gl, source, header) {
         var compile = (function() {
             var sourceVertex = 	""+
                 _precision+
-                'in vec3 aVertexPosition;\n'+
-                'in vec2 aTextureCoord;\n'+
-                'out vec2 global_id;\n'+
+                'attribute vec3 aVertexPosition;\n'+
+                'attribute vec2 aTextureCoord;\n'+
+                'varying vec2 global_id;\n'+
 
                 'void main(void) {\n'+
                     'gl_Position = vec4(aVertexPosition, 1.0);\n'+
                     'global_id = aTextureCoord;\n'+
                 '}\n';
-            var sourceFragment = ''+
+            var sourceFragment = '#extension GL_EXT_draw_buffers : require\n'+
                 _precision+
 
                 _utils.lines_fragment_attrs(this.in_values)+
 
-                'in vec2 global_id;\n'+
+                'varying vec2 global_id;\n'+
                 'uniform float uBufferWidth;'+
 
                 'vec2 get_global_id() {\n'+
@@ -64,7 +64,7 @@ WebCLGLKernel = function(gl, source, header) {
 
                 _head+
 
-                _utils.lines_drawBuffersWriteInit(8)+
+                //_utils.lines_drawBuffersWriteInit(8)+
                 'void main(void) {\n'+
                     _utils.lines_drawBuffersInit(8)+
 

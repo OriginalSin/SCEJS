@@ -72,9 +72,9 @@ GI = function(sce) {
                                     {"type": "GRAPHIC",
                                     "config": [["sampler_screenColor","sampler_screenPos","sampler_screenNormal","sampler_GIVoxel"],
                                         // vertex head
-                                        'out vec4 vposition;\n'+
-                                        'out vec4 vnormal;\n'+
-                                        'out vec4 vposScreen;\n'+
+                                        'varying vec4 vposition;\n'+
+                                        'varying vec4 vnormal;\n'+
+                                        'varying vec4 vposScreen;\n'+
                                         'const mat4 ScaleMatrix = mat4(0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0);',
 
                                         // vertex source
@@ -89,9 +89,9 @@ GI = function(sce) {
 
 
                                         // fragment head
-                                        'in vec4 vposition;\n'+
-                                        'in vec4 vnormal;\n'+
-                                        'in vec4 vposScreen;\n'+
+                                        'varying vec4 vposition;\n'+
+                                        'varying vec4 vnormal;\n'+
+                                        'varying vec4 vposScreen;\n'+
 
                                         new Utils().degToRadGLSLFunctionString()+
                                         new Utils().radToDegGLSLFunctionString()+

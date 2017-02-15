@@ -103,8 +103,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
 
         'if(nodeId < widthAdjMatrix) {\n'+
 
-            'for(int n=0; n < 4096; n++) {\n'+
-                'if(n==4096) break;'+
+            'for(int n=0; n < 2048; n++) {\n'+
                 'if(float(n) >= nodesCount) break;\n'+
                 'if(float(n) != nodeId) {'+
                     'vec2 xAdjMat = get_global_id(vec2(nodeId, float(n)), widthAdjMatrix);'+
@@ -190,8 +189,7 @@ var adjMatrix_Autolink_GLSLFunctionString = function(geometryLength) {
 
         'if(nodeId < widthAdjMatrix) {\n'+
 
-            'for(int n=0; n < 4096; n++) {\n'+
-                'if(n==4096) break;'+
+            'for(int n=0; n < 2048; n++) {\n'+
                 'if(float(n) >= nodesCount) break;\n'+
                 'if(float(n) != nodeId) {'+
                     'vec2 xAdjMat = get_global_id(vec2(nodeId, float(n)), widthAdjMatrix);'+
@@ -208,8 +206,7 @@ var adjMatrix_Autolink_GLSLFunctionString = function(geometryLength) {
 
                         'if(nodeId < widthAdjMatrix) {\n'+
 
-                            'for(int nB=0; nB < 4096; nB++) {\n'+
-                                'if(nB==4096) break;'+
+                            'for(int nB=0; nB < 2048; nB++) {\n'+
                                 'if(float(nB) >= nodesCount) break;\n'+
                                 'if(float(nB) != float(n) && float(nB) != nodeId) {'+
                                     'vec2 xAdjMatB = get_global_id(vec2(nodeId, float(nB)), widthAdjMatrix);'+
