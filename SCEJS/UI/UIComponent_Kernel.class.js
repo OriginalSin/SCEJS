@@ -15,7 +15,7 @@ UIComponent_Kernel = function(targetElement, selectedNode, comp, args) {
 		// fragment programs
 		var str = "<div id='"+targetElement.id+"_"+kernelKey+"_kernels' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
 			"<div style='height:250px;'>"+
-				"<div>KERNEL NAME: "+kernelKey+"</div>"+
+				"<div>KERNEL NAME: "+kernel.name+"</div>"+
 				"<div>ARG DESTINATION: "+kernel.output+"</div>"+
 				
 				"<div><input type='checkbox' id='ENABLE_"+kernelKey+"' style='font-size:10px;'></div>"+

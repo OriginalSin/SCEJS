@@ -39,12 +39,14 @@ SimpleCamera = function(sce, jsonIn) {
 	camera.addComponent(comp_controllerTransformTarget);
 	
 	// ComponentScreenEffects
-	var comp_screenEffects = new ComponentScreenEffects();
+	var comp_screenEffects = new Component_GPU();
 	camera.addComponent(comp_screenEffects);
 
     comp_screenEffects.setGPUFor( comp_screenEffects.gl,
                                 {"float4* RGB": (function(){return new Float32Array(_sce.getCanvas().width*_sce.getCanvas().width*4);}).bind(this)},
                                 {"type": "KERNEL",
+                                "name": "CAMERA_RGB_KERNEL",
+                                "viewSource": false,
                                 "config": [ "n", undefined,
                                             // head
                                             '',

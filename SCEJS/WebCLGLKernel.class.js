@@ -17,7 +17,8 @@ WebCLGLKernel = function(gl, source, header) {
 
     var _utils = new WebCLGLUtils();
 
-    var _showSource = true;
+    this.name = "";
+    this.viewSource = false;
 
 	this.in_values = {};
 
@@ -40,12 +41,11 @@ WebCLGLKernel = function(gl, source, header) {
             var sourceVertex = 	""+
                 _precision+
                 'attribute vec3 aVertexPosition;\n'+
-                'attribute vec2 aTextureCoord;\n'+
                 'varying vec2 global_id;\n'+
 
                 'void main(void) {\n'+
                     'gl_Position = vec4(aVertexPosition, 1.0);\n'+
-                    'global_id = aTextureCoord;\n'+
+                    'global_id = aVertexPosition.xy*0.5+0.5;\n'+
                 '}\n';
             var sourceFragment = '#extension GL_EXT_draw_buffers : require\n'+
                 _precision+
@@ -73,17 +73,10 @@ WebCLGLKernel = function(gl, source, header) {
                     _utils.lines_drawBuffersWrite(8)+
                 '}\n';
 
-
-            //this.kernelPrograms = [	new WebCLGLKernelProgram(_gl, sourceVertex, sourceFrag, this.in_values) ];
-
-            //this.fBuffer = _gl.createFramebuffer();
-            //this.fBufferTemp = _gl.createFramebuffer();
-
             this.kernel = _gl.createProgram();
             var result = new WebCLGLUtils().createShader(_gl, "WEBCLGL", sourceVertex, sourceFragment, this.kernel);
 
             this.attr_VertexPos = _gl.getAttribLocation(this.kernel, "aVertexPosition");
-            this.attr_TextureCoord = _gl.getAttribLocation(this.kernel, "aTextureCoord");
 
             this.uBufferWidth = _gl.getUniformLocation(this.kernel, "uBufferWidth");
 
@@ -104,7 +97,7 @@ WebCLGLKernel = function(gl, source, header) {
 
 
         var argumentsSource = source.split(')')[0].split('(')[1].split(','); // "float* A", "float* B", "float C", "float4* D"
-        //console.log(argumentsSource);
+
         for(var n = 0, f = argumentsSource.length; n < f; n++) {
             if(argumentsSource[n].match(/\*/gm) != null) {
                 var argName = argumentsSource[n].split('*')[1].trim();
@@ -126,7 +119,6 @@ WebCLGLKernel = function(gl, source, header) {
                     this.in_values[argName].type = 'mat4';
             }
         }
-        //console.log(this.in_values);
 
         // parse header
         var _head =(header!=undefined)?header:'';
@@ -136,44 +128,20 @@ WebCLGLKernel = function(gl, source, header) {
         // parse source
         var _source = source.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _source = _source.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
-        //console.log('minified source: '+_source);
         _source = _utils.parseSource(_source, this.in_values);
 
         var ts = compile();
 
-        if(_showSource == true)
-            console.log('%c KERNEL', 'font-size: 20px; color: blue'),
+        if(this.viewSource == true)
+            console.log('%c KERNEL: '+this.name, 'font-size: 20px; color: blue'),
             console.log('%c WEBCLGL --------------------------------', 'color: gray'),
             console.log('%c '+header+source, 'color: gray'),
-            console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray');
+            console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray'),
             console.log('%c '+ts, 'color: darkgray');
     };
     if(source != undefined)
         this.setKernelSource(source, header);
 
-
-
-    /**
-     * Bind float or a WebCLGLBuffer to a kernel argument
-     * @type Void
-     * @param {Int|String} argument Id of argument or name of this
-     * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} data
-     * @param {Object} buffers
-     */
-    this.setKernelArg = function(argument, data, buffers) {
-		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_values)[argument];
-        this.in_values[arg].value = data;
-
-        //new WebCLGLUtils().checkUpdateFBs(_gl, _maxDrawBuffers, this, argument, data, buffers);
-    };
-
-    /**
-     * clearArg
-     */
-    /*this.clearArg = function(webCLGL, buff, clearColor, buffers) {
-        webCLGL.fillBuffer(buff.textureData, clearColor, this.fBuffer);
-        webCLGL.fillBuffer(buff.textureDataTemp, clearColor, this.fBufferTemp);
-    };*/
 };
 
 

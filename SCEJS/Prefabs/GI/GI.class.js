@@ -18,8 +18,8 @@ GI = function(sce) {
 	var comp_transform = new ComponentTransform();
 	nodes.addComponent(comp_transform);
 
-	// ComponentRenderer
-	var comp_renderer_node = new ComponentRenderer();
+	// Component_GPU
+	var comp_renderer_node = new Component_GPU();
 	nodes.addComponent(comp_renderer_node);
 	
 	
@@ -62,6 +62,8 @@ GI = function(sce) {
                                     'float uGridsize': (function(){return null;}).bind(this),
                                     'float uResolution': (function(){return null;}).bind(this)},
                                     {"type": "GRAPHIC",
+                                    "name": "GI_VFP_RGB",
+                                    "viewSource": false,
                                     "config": new VFP_RGB(1).getSrc(),
                                     "drawMode": 4,
                                     "depthTest": true,
@@ -70,6 +72,8 @@ GI = function(sce) {
                                     "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
                                     "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA},
                                     {"type": "GRAPHIC",
+                                    "name": "GI_CALC",
+                                    "viewSource": false,
                                     "config": [["sampler_screenColor","sampler_screenPos","sampler_screenNormal","sampler_GIVoxel"],
                                         // vertex head
                                         'varying vec4 vposition;\n'+
@@ -108,7 +112,7 @@ GI = function(sce) {
                                         'vec3 pixelCoord = vposScreen.xyz / vposScreen.w;'+
 
                                         'float maxang=0.7;'+
-                                        'float maxB = 3.0;'+
+                                        'float maxBounds = 1.0;'+
 
                                         'vec4 texScreenColor = sampler_screenColor[vec2(pixelCoord.x,pixelCoord.y)];\n'+
                                         'vec4 texScreenPos = sampler_screenPos[vec2(pixelCoord.x,pixelCoord.y)];\n'+
@@ -134,28 +138,34 @@ GI = function(sce) {
                                             //'rd = reflect(normalize(ro),rd);'+
 
                                             'vec3 vectorRandom = getVector(rd, maxang, vec2(randX1,randY1));'+
-                                            'rayT = rayTraversal(ro+(rd*(cs+cs)), vectorRandom);\n'+
+                                            'rayT = rayTraversal(ro+(rd*(cs)), vectorRandom);\n'+
                                         '}'+
 
-                                        'if(rayT.voxelColor.a > 0.0 && f_sampler_screenPos.a < 8.0) {'+ // hit in solid
-                                            'float rx = abs((randX1-0.5)*2.0);'+
-                                            'float ry = abs((randY1-0.5)*2.0);'+
-
+                                        'if(rayT.voxelColor.a > 0.0) {'+ // hit in solid
                                             'vec4 rtColor = rayT.voxelColor;'+
                                             'vec4 rtPos = rayT.voxelPos;'+
                                             'vec4 rtNormal = rayT.voxelNormal;'+
+
                                             'f_sampler_screenColor = vec4(texScreenColor.r*rtColor.r,texScreenColor.g*rtColor.g,texScreenColor.b*rtColor.b, texScreenColor.a+(rtColor.a/uGridsize));\n'+ // -(rtColor.a/uGridsize)
-                                            'f_sampler_screenPos = vec4(rtPos.r,rtPos.g,rtPos.b, texScreenPos.a+1.0);\n'+
-                                            'f_sampler_screenNormal = vec4(rtNormal.r,rtNormal.g,rtNormal.b, 1.0);\n'+
+
+                                            'float aum = (texScreenNormal.a == 0.0) ? 1.0 : texScreenPos.a+1.0;'+
+                                            'f_sampler_screenPos = vec4(rtPos.r,rtPos.g,rtPos.b, aum);\n'+
+
+                                            'float proc = (aum == maxBounds) ? 0.0 : 1.0;'+
+                                            'f_sampler_screenNormal = vec4(rtNormal.r,rtNormal.g,rtNormal.b, proc);\n'+
                                         '} else {'+ // hit in light
                                             'f_sampler_screenColor = vec4(texScreenColor.r,texScreenColor.g,texScreenColor.b, texScreenColor.a);\n'+
-                                            'f_sampler_screenPos = vec4(1.0,1.0,1.0, texScreenPos.a);\n'+
+
+                                            'float aum = (texScreenNormal.a == 0.0) ? 0.0 : texScreenPos.a+1.0;'+
+                                            'f_sampler_screenPos = vec4(1.0,1.0,1.0, aum);\n'+
+
                                             'f_sampler_screenNormal = vec4(1.0,1.0,1.0, 0.0);\n'+ // (make process and return to origin alpha 0.0).
                                         '}'+
 
 
-                                        'if(f_sampler_screenNormal.a == 0.0) {'+ //  hit in light. make process
-                                            'f_sampler_GIVoxel = vec4(f_sampler_screenPos.a, f_sampler_screenPos.a, f_sampler_screenPos.a, texScreenGIVoxel.a+1.0);'+
+                                        'if(f_sampler_screenNormal.a == 0.0) {'+ // make process
+                                            'float cum = texScreenGIVoxel.r+(1.0-(f_sampler_screenPos.a/maxBounds));'+
+                                            'f_sampler_GIVoxel = vec4(cum, cum, cum, texScreenGIVoxel.a+1.0);'+
                                         '} else {'+ // hit in solid. do nothing
                                             'f_sampler_GIVoxel = texScreenGIVoxel;'+
                                         '}'+
@@ -168,7 +178,7 @@ GI = function(sce) {
                                     "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
                                     "blendSrcMode": Constants.BLENDING_MODES.ONE,
                                     "blendDstMode": Constants.BLENDING_MODES.ZERO});
-        comp_renderer_node.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer_node.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
         comp_renderer_node.gpufG.onPreProcessGraphic(0, (function() {
             //comp_screenEffects.gl.clear(comp_screenEffects.gl.COLOR_BUFFER_BIT | comp_screenEffects.gl.DEPTH_BUFFER_BIT);
             //comp_renderer_node.gl.blendFunc(comp_renderer_node.gl[Constants.BLENDING_MODES.SRC_ALPHA], comp_renderer_node.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA]);
@@ -251,10 +261,12 @@ GI = function(sce) {
 	this.runGI = function() {
 //        comp_renderer_node.addArgument("float4* sampler_GIVoxel", (function(){return null;}).bind(this), null ,"FLOAT4");
 
-        var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+        var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
         comp_screenEffects.getComponentBufferArg("sampler_GIVoxel", comp_renderer_node);
         comp_screenEffects.gpufG.addKernel({
             "type": "KERNEL",
+            "name": "GIsum",
+            "viewSource": false,
             "config": ["x", undefined,
                 // head
                 '',
@@ -263,7 +275,7 @@ GI = function(sce) {
                 'vec4 textureFBGIVoxel = sampler_GIVoxel[x];\n'+
                 'vec3 GIweight = vec3((textureFBGIVoxel.r/textureFBGIVoxel.a), (textureFBGIVoxel.g/textureFBGIVoxel.a), (textureFBGIVoxel.b/textureFBGIVoxel.a));'+
 
-                'return vec4(1.0-(GIweight/8.0), 1.0);'+
+                'return vec4(GIweight, 1.0);'+
 
                 //'return vec4(textureFBGIVoxel.xyz, 1.0);'+
                 ''],
@@ -305,7 +317,7 @@ GI = function(sce) {
 	* stop
 	*/
 	this.stop = function() {
-		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
 	};
 	
 	/**
@@ -318,6 +330,6 @@ GI = function(sce) {
         comp_renderer_node.gpufG.fillPointerArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
 
 		
-		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
 	};
 };

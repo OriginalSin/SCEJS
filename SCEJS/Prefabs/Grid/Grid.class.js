@@ -19,8 +19,8 @@ Grid = function(sce) {
 	var comp_transform = new ComponentTransform();
 	node.addComponent(comp_transform);
 	
-	// ComponentRenderer
-	var comp_renderer = new ComponentRenderer();
+	// Component_GPU
+	var comp_renderer = new Component_GPU();
 	node.addComponent(comp_renderer);
 	
 	this.gridColor = $V3([0.3,0.3,0.3]);
@@ -143,6 +143,6 @@ Grid = function(sce) {
         comp_renderer.setArgUpdatable("PMatrix", true);
         comp_renderer.setArgUpdatable("cameraWMatrix", true);
         comp_renderer.setArgUpdatable("nodeWMatrix", true);
-        comp_renderer.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
 	};
 };

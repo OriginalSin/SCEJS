@@ -17,7 +17,8 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
 	var _utils = new WebCLGLUtils();
 
-    var _showSource = true;
+    this.name = "";
+    this.viewSource = false;
 
 	this.in_vertex_values = {};
 	this.in_fragment_values = {};
@@ -34,8 +35,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
     this.outputTempModes = null;
     this.fBuffer = null;
     this.fBufferTemp = null;
-    this.fBufferLength = 0;
-    this.fBufferCount = 0;
 
     this.drawMode = 4;
 
@@ -61,7 +60,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
             _vertexSource+
 
             '}\n';
-        //console.log(sourceVertex);
         var sourceFragment = '#extension GL_EXT_draw_buffers : require\n'+
             _precision+
 
@@ -77,10 +75,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
 
                 _utils.lines_drawBuffersWrite(8)+
             '}\n';
-        //console.log(sourceFragment);
-
-        //this.fBuffer = _gl.createFramebuffer();
-        //this.fBufferTemp = _gl.createFramebuffer();
 
         this.vertexFragmentProgram = _gl.createProgram();
         var result = _utils.createShader(_gl, "WEBCLGL VERTEX FRAGMENT PROGRAM", sourceVertex, sourceFragment, this.vertexFragmentProgram);
@@ -127,7 +121,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      */
     this.setVertexSource = function(vertexSource, vertexHeader) {
         var argumentsSource = vertexSource.split(')')[0].split('(')[1].split(','); // "float* A", "float* B", "float C", "float4* D"
-        //console.log(argumentsSource);
+
         for(var n = 0, f = argumentsSource.length; n < f; n++) {
             if(argumentsSource[n].match(/\*attr/gm) != null) {
                 var argName = argumentsSource[n].split('*attr')[1].trim();
@@ -157,7 +151,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                     this.in_vertex_values[argName].type = 'mat4';
             }
         }
-        //console.log(this.in_vertex_values);
 
         // parse header
         _vertexHead =(vertexHeader!=undefined)?vertexHeader:'';
@@ -167,18 +160,17 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         // parse source
         _vertexSource = vertexSource.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _vertexSource = _vertexSource.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
-        //console.log('minified source: '+_vertexSource);
         _vertexSource = _utils.parseSource(_vertexSource, this.in_vertex_values);
 
         _vertexP_ready = true;
         if(_fragmentP_ready == true) {
             var ts = compileVertexFragmentSource();
 
-            if(_showSource == true)
-                console.log('%c VFP', 'font-size: 20px; color: green'),
+            if(this.viewSource == true)
+                console.log('%c VFP: '+this.name, 'font-size: 20px; color: green'),
                 console.log('%c WEBCLGL --------------------------------', 'color: gray'),
                 console.log('%c '+vertexHeader+vertexSource, 'color: gray'),
-                console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray');
+                console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray'),
                 console.log('%c '+ts, 'color: darkgray');
         }
     };
@@ -195,7 +187,7 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
      */
     this.setFragmentSource = function(fragmentSource, fragmentHeader) {
         var argumentsSource = fragmentSource.split(')')[0].split('(')[1].split(','); // "float* A", "float* B", "float C", "float4* D"
-        //console.log(argumentsSource);
+
         for(var n = 0, f = argumentsSource.length; n < f; n++) {
             if(argumentsSource[n].match(/\*/gm) != null) {
                 var argName = argumentsSource[n].split('*')[1].trim();
@@ -217,7 +209,6 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
                     this.in_fragment_values[argName].type = 'mat4';
             }
         }
-        //console.log(this.in_fragment_values);
 
         // parse header
         _fragmentHead =(fragmentHeader!=undefined)?fragmentHeader:'';
@@ -225,11 +216,8 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         _fragmentHead = _utils.parseSource(_fragmentHead, this.in_fragment_values);
 
         // parse source
-        if(_showSource == true)
-
         _fragmentSource = fragmentSource.replace(/\r\n/gi, '').replace(/\r/gi, '').replace(/\n/gi, '');
         _fragmentSource = _fragmentSource.replace(/^\w* \w*\([\w\s\*,]*\) {/gi, '').replace(/}(\s|\t)*$/gi, '');
-        //console.log('minified source: '+_fragmentSource);
         _fragmentSource = _utils.parseSource(_fragmentSource, this.in_fragment_values);
 
 
@@ -237,67 +225,17 @@ WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragment
         if(_vertexP_ready == true) {
             var ts = compileVertexFragmentSource();
 
-            if(_showSource == true)
-                console.log('%c VFP', 'font-size: 20px; color: green'),
+            if(this.viewSource == true)
+                console.log('%c VFP: ', 'font-size: 20px; color: green'),
                 console.log('%c WEBCLGL --------------------------------', 'color: gray'),
                 console.log('%c '+fragmentHeader+fragmentSource, 'color: gray'),
-                console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray');
+                console.log('%c TRANSLATED WEBGL ------------------------------', 'color: darkgray'),
                 console.log('%c '+ts, 'color: darkgray');
         }
     };
     if(fragmentSource != undefined)
         this.setFragmentSource(fragmentSource, fragmentHeader);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Bind float, mat4 or a WebCLGLBuffer to a vertex argument
-     * @param {Int|String} argument Id of argument or name of this
-     * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} data
-     * @param {Object} buffers
-     */
-    this.setVertexArg = function(argument, data, buffers) {
-		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_vertex_values)[argument];
-        this.in_vertex_values[arg].value = data;
-
-        //new WebCLGLUtils().checkUpdateFBs(_gl, _maxDrawBuffers, this, argument, data, buffers);
-    };
-
-    /**
-     * Bind float or a WebCLGLBuffer to a fragment argument
-     * @param {Int|String} argument Id of argument or name of this
-     * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} data
-     * @param {Object} buffers
-     */
-    this.setFragmentArg = function(argument, data, buffers) {
-		var arg = (typeof argument == "string") ? argument : Object.keys(this.in_fragment_values)[argument];
-        this.in_fragment_values[arg].value = data;
-
-        //new WebCLGLUtils().checkUpdateFBs(_gl, _maxDrawBuffers, this, argument, data, buffers);
-    };
-
-    /**
-     * clearArg
-     */
-    /*this.clearArg = function(webCLGL, buff, clearColor, buffers) {
-        webCLGL.fillBuffer(buff.textureData, clearColor, this.fBuffer);
-        webCLGL.fillBuffer(buff.textureDataTemp, clearColor, this.fBufferTemp);
-    };*/
 };
 
 

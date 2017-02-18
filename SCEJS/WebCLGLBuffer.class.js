@@ -127,7 +127,6 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
                     this.W = this.length[0];
                     this.H = this.length[1];
                 } else {
-                    this.length = this.length;
                     this.W = Math.ceil(Math.sqrt(this.length));
                     this.H = this.W;
                 }
@@ -144,8 +143,8 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
                         arr = arrt;
                     }
                 } else if(this.type == 'FLOAT') {
-                    var arrayTemp = new Float32Array(this.W*this.H*4);
-
+                    var l = (this.W*this.H*4);
+                    var arrayTemp = new Float32Array(l);
                     for(var n = 0, f = this.W*this.H; n < f; n++) {
                         var idd = n*4;
                         arrayTemp[idd] = (arr[n] != null) ? arr[n] : 0.0;

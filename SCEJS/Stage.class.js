@@ -147,24 +147,28 @@ Stage = function() {
             //gl.cullFace(gl.BACK);
 			gl.depthFunc(gl.LEQUAL);
 
-			var comp_screen_effects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS); 
-			if(comp_screen_effects != undefined)
-				comp_screen_effects.gpufG.fillPointerArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
+			var comp_camera_gpu = activeCamera.getComponent(Constants.COMPONENT_TYPES.GPU);
+			if(comp_camera_gpu != undefined)
+                comp_camera_gpu.gpufG.fillPointerArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
 
 			for(var n=0, fn = nodes.length; n < fn; n++) {
-				for(var key in nodes[n].getComponents()) {
-					var component = nodes[n].getComponent(key);
+			    if(nodes[n] != activeCamera) {
+                    for(var key in nodes[n].getComponents()) {
+                        var component = nodes[n].getComponent(key);
 
-					if(component.tick != null && component.type != Constants.COMPONENT_TYPES.SCREEN_EFFECTS)
-						component.tick(activeCamera);
-				}
+                        if(component.tick != null)
+                            component.tick();
+                    }
 
-				if(nodes[n].onTick != null)  nodes[n].onTick();
+                    if(nodes[n].onTick != null)  nodes[n].onTick();
+                }
 			}
+            for(var key in activeCamera.getComponents()) {
+                var component = activeCamera.getComponent(key);
 
-			if(comp_screen_effects != undefined) {
-				comp_screen_effects.tick();
-			}
+                if(component.tick != null)
+                    component.tick();
+            }
 		}
 		if(paused == false) window.requestAnimFrame(tick);
 	}).bind(this);

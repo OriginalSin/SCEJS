@@ -300,85 +300,6 @@ WebCLGLUtils = function() {
         return outputBuff;
     };
 
-
-
-    /**
-     * updateFB
-     */
-    /*this.createFBs = function(gl, maxDrawBuffers, pgr, buffers, width, height) {
-        var createWebGLFrameBuffer = (function(webCLGLBuffers, gl, pgr, width, height) {
-            var fBuffer = gl.createFramebuffer();
-
-            if(webCLGLBuffers[0] != null) {
-                for(var n=0; n < webCLGLBuffers.length; n++) {
-                    var rBuffer = gl.createRenderbuffer();
-                    gl.bindRenderbuffer(gl.RENDERBUFFER, rBuffer);
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rBuffer);
-                }
-            } else
-                pgr.fBufferCount = 0;
-
-            return fBuffer;
-        }).bind(this);
-
-        var updateFBnow = (function(webCLGLBuffers, t, fBuffer, gl) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fBuffer);
-
-            var arrDBuff = [];
-            for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
-                if(webCLGLBuffers[n] != null) {
-                    var o = (t == true) ? webCLGLBuffers[n].textureDataTemp : webCLGLBuffers[n].textureData;
-                    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl['COLOR_ATTACHMENT'+n], gl.TEXTURE_2D, o, 0);
-                    arrDBuff[n] = gl['COLOR_ATTACHMENT'+n];
-                }
-            }
-            gl.drawBuffers(arrDBuff);
-
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        }).bind(this);
-
-
-        var WH = width*height;
-        var outputsCount = pgr.output.length;
-
-        if(pgr.fBufferCount != outputsCount || pgr.fBufferLength != WH) {
-            pgr.fBufferCount = outputsCount;
-            pgr.fBufferLength = WH;
-
-            if(pgr.fBufferCount > 0) {
-                var webCLGLBuffers = this.getOutputBuffers(pgr, buffers);
-                if(webCLGLBuffers != null && webCLGLBuffers[0] != null) {
-                    if(webCLGLBuffers.length > maxDrawBuffers)
-                        console.log("Exceded maxDrawBuffers of "+maxDrawBuffers);
-
-                    pgr.fBuffer = createWebGLFrameBuffer(webCLGLBuffers, gl, pgr, width, height);
-                    pgr.fBufferTemp = createWebGLFrameBuffer(webCLGLBuffers, gl, pgr, width, height);
-
-                    updateFBnow(webCLGLBuffers, true, pgr.fBufferTemp, gl);
-                    updateFBnow(webCLGLBuffers, false, pgr.fBuffer, gl);
-                } else
-                    pgr.fBufferCount = 0;
-            }
-        }
-    };*/
-
-    /**
-     * checkUpdateFBs
-     */
-    /*this.checkUpdateFBs = function(gl, maxDrawBuffers, pgr, argument, data, buffers) {
-        if(buffers != undefined) {
-            if(pgr.output != undefined && pgr.output.indexOf(argument) > -1)
-                this.createFBs(gl, maxDrawBuffers, pgr, buffers, data.W, data.H);
-        }
-    };*/
-
-
-
-
     /**
      * parseSource
      * @param {String} source
@@ -386,8 +307,7 @@ WebCLGLUtils = function() {
      * @returns {String}
      */
     this.parseSource = function(source, values) {
-        //console.log(source);
-        for(var key in values) { // for each in_vertex_values (in argument)
+        for(var key in values) {
             var regexp = new RegExp(key+"\\[.*?\\]","gm");
             var varMatches = source.match(regexp);// "Search current "argName" in source and store in array varMatches
             //console.log(varMatches);
@@ -409,7 +329,6 @@ WebCLGLUtils = function() {
             }
         }
         source = source.replace(/```(\s|\t)*gl/gi, "").replace(/```/gi, "").replace(/;/gi, ";\n").replace(/}/gi, "}\n").replace(/{/gi, "{\n");
-        //console.log('%c translated source:'+source, "background-color:#000;color:#FFF");
         return source;
     };
 
@@ -514,20 +433,45 @@ WebCLGLUtils = function() {
             'float ts = 1.0/(bufferWidth-1.0);'+
 
             'return vec2(column*ts, row*ts);'+
-        '}\n';
+            '}\n';
     };
     /**
      * get_global_id2_GLSLFunctionString
      */
     this.get_global_id2_GLSLFunctionString = function() {
         return ''+
-        'vec2 get_global_id(vec2 id, float bufferWidth) {\n'+
+            'vec2 get_global_id(vec2 id, float bufferWidth) {\n'+
             'float column = id.x;'+
             'float row = id.y;'+
 
             'float ts = 1.0/(bufferWidth-1.0);'+
 
             'return vec2(column*ts, row*ts);'+
-        '}\n';
+            '}\n';
     };
+
+    /*
+    this.get_global_id3_GLSLFunctionString = function() {
+        return ''+
+            'vec2 get_global_id(float id, float bufferWidth, float geometryLength) {\n'+
+            'float num = (id*geometryLength);'+
+            'float column = mod(num,bufferWidth);'+
+            'float row = num/bufferWidth;'+
+
+            'float ts = 1.0/bufferWidth;'+
+
+            'return vec2(column*ts, row*ts);'+
+            '}\n';
+    };
+    this.get_global_id2_GLSLFunctionString = function() {
+        return ''+
+            'vec2 get_global_id(vec2 id, float bufferWidth) {\n'+
+            'float column = id.x;'+
+            'float row = id.y;'+
+
+            'float ts = 1.0/bufferWidth;'+
+
+            'return vec2(column*ts, row*ts);'+
+            '}\n';
+    };*/
 };

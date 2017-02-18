@@ -178,8 +178,8 @@ Graph = function(sce) {
 	var comp_transform = new ComponentTransform();
 	nodes.addComponent(comp_transform);
 
-	// ComponentRenderer
-	var comp_renderer_nodes = new ComponentRenderer();
+	// Component_GPU
+	var comp_renderer_nodes = new Component_GPU();
 	nodes.addComponent(comp_renderer_nodes);
 
 	// ComponentMouseEvents
@@ -190,7 +190,7 @@ Graph = function(sce) {
 		if(_enableHover == false) {
 		    readPixel = true;
 
-		    comp_renderer_nodes.enableGraphic(1);
+		    comp_renderer_nodes.gpufG.enableGraphic(1);
         }
 	}).bind(this));
 	comp_mouseEvents.onmouseup((function(evt) {
@@ -216,7 +216,7 @@ Graph = function(sce) {
         if(_enableHover == true) {
             readPixel = true;
 
-            comp_renderer_nodes.enableGraphic(1);
+            comp_renderer_nodes.gpufG.enableGraphic(1);
         }
 
 	}).bind(this));
@@ -237,8 +237,8 @@ Graph = function(sce) {
     var comp_transform = new ComponentTransform();
     links.addComponent(comp_transform);
 
-    // ComponentRenderer
-    var comp_renderer_links = new ComponentRenderer();
+    // Component_GPU
+    var comp_renderer_links = new Component_GPU();
     links.addComponent(comp_renderer_links);
 
     //**************************************************
@@ -252,8 +252,8 @@ Graph = function(sce) {
     var comp_transform = new ComponentTransform();
     arrows.addComponent(comp_transform);
 
-    // ComponentRenderer
-    var comp_renderer_arrows = new ComponentRenderer();
+    // Component_GPU
+    var comp_renderer_arrows = new Component_GPU();
     arrows.addComponent(comp_renderer_arrows);
 
     //**************************************************
@@ -267,8 +267,8 @@ Graph = function(sce) {
     var comp_transform = new ComponentTransform();
     nodesText.addComponent(comp_transform);
 
-    // ComponentRenderer
-    var comp_renderer_nodesText = new ComponentRenderer();
+    // Component_GPU
+    var comp_renderer_nodesText = new Component_GPU();
     nodesText.addComponent(comp_renderer_nodesText);
 
     /**
@@ -564,7 +564,7 @@ Graph = function(sce) {
     this.enableHover = function() {
         _enableHover = true;
         readPixel = true;
-        comp_renderer_nodes.enableGraphic(1);
+        comp_renderer_nodes.gpufG.enableGraphic(1);
     };
 
     /**
@@ -1046,6 +1046,8 @@ Graph = function(sce) {
         comp_renderer_links.setGPUFor(  comp_renderer_links.gl,
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
+                                        "name": "LINKS_VFP_NODE",
+                                        "viewSource": false,
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
                                         "drawMode": 1,
                                         "depthTest": true,
@@ -1053,7 +1055,7 @@ Graph = function(sce) {
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
                                         "blendSrcMode": Constants.BLENDING_MODES.ONE,
                                         "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
-        comp_renderer_links.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer_links.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          ARROWS
@@ -1061,6 +1063,8 @@ Graph = function(sce) {
         comp_renderer_arrows.setGPUFor( comp_renderer_arrows.gl,
                                         Object.create(varDef_VFPNode),
                                         {"type": "GRAPHIC",
+                                        "name": "ARROWS_VFP_NODE",
+                                        "viewSource": false,
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
                                         "drawMode": 4,
                                         "depthTest": true,
@@ -1068,7 +1072,7 @@ Graph = function(sce) {
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
                                         "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
                                         "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
-        comp_renderer_arrows.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer_arrows.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          NODES
@@ -1083,22 +1087,28 @@ Graph = function(sce) {
         comp_renderer_nodes.setGPUFor(  comp_renderer_nodes.gl,
                                         nodesVarDef,
                                         {"type": "KERNEL",
+                                        "name": "NODES_KERNEL_DIR",
+                                        "viewSource": false,
                                         "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc(),
                                         "drawMode": 4,
                                         "depthTest": true,
-                                        "blend": true,
+                                        "blend": false,
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
                                         "blendSrcMode": Constants.BLENDING_MODES.ONE,
                                         "blendDstMode": Constants.BLENDING_MODES.ONE},
                                         {"type": "KERNEL",
+                                        "name": "NODES_KERNEL_ADJMATRIX_UPDATE",
+                                        "viewSource": false,
                                         "config": new KERNEL_ADJMATRIX_UPDATE(_geometryLength).getSrc(),
                                         "drawMode": 4,
                                         "depthTest": true,
-                                        "blend": true,
+                                        "blend": false,
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
                                         "blendSrcMode": Constants.BLENDING_MODES.ONE,
                                         "blendDstMode": Constants.BLENDING_MODES.ONE},
                                         {"type": "GRAPHIC",
+                                        "name": "NODES_VFP_NODE",
+                                        "viewSource": false,
                                         "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
                                         "drawMode": 4,
                                         "depthTest": true,
@@ -1107,6 +1117,8 @@ Graph = function(sce) {
                                         "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
                                         "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA},
                                         {"type": "GRAPHIC",
+                                        "name": "NODES_VFP_NODEPICKDRAG",
+                                        "viewSource": false,
                                         "config": new VFP_NODEPICKDRAG(_geometryLength).getSrc(),
                                         "drawMode": 4,
                                         "depthTest": true,
@@ -1114,7 +1126,7 @@ Graph = function(sce) {
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
                                         "blendSrcMode": Constants.BLENDING_MODES.ONE,
                                         "blendDstMode": Constants.BLENDING_MODES.ZERO});
-        var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+        var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
         comp_renderer_nodes.getComponentBufferArg("RGB", comp_screenEffects);
         // KERNEL_DIR
         comp_renderer_nodes.gpufG.onPreProcessKernel(0, (function() {
@@ -1160,7 +1172,7 @@ Graph = function(sce) {
 
         // KERNEL_ADJMATRIX_UPDATE
         comp_renderer_nodes.gpufG.onPostProcessKernel(1, (function() {
-            comp_renderer_nodes.disableKernel(1);
+            comp_renderer_nodes.gpufG.disableKernel(1);
         }).bind(this));
         comp_renderer_nodes.gpufG.disableKernel(1);
 
@@ -1208,6 +1220,8 @@ Graph = function(sce) {
             comp_renderer_nodesText.setGPUFor(  comp_renderer_nodesText.gl,
                                                 Object.create(varDef_VFPNode),
                                                 {"type": "GRAPHIC",
+                                                "name": "NODESTEXT_VFP_NODE",
+                                                "viewSource": false,
                                                 "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
                                                 "drawMode": 4,
                                                 "depthTest": true,
@@ -1215,7 +1229,7 @@ Graph = function(sce) {
                                                 "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
                                                 "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
                                                 "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
-            comp_renderer_nodesText.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+            comp_renderer_nodesText.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
         }
 
         enableHov(-1);
@@ -1386,7 +1400,7 @@ Graph = function(sce) {
             comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
             comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this));
         }
-        comp_renderer_nodes.enableKernel(1);
+        comp_renderer_nodes.gpufG.enableKernel(1);
     };
 
     this.makeNetworkStep = function() {

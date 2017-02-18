@@ -10,98 +10,11 @@ var gpufor = function() {
 
 	this.kernels = {};
 	this.vertexFragmentPrograms = {};
-	this.buffers = {};
-
-	var kernelPr;
-	var vPr;
-	var fPr;
-	var type; // FLOAT or FLOAT4
-	var isBuffer;
-	var usedInVertex;
-	var usedInFragment;
-
-    var _alerted = false;
-
+    this._args;
+    this._argsValues = {};
+    this.calledArgs = {};
 
     var _webCLGL;
-    var _args;
-
-    /** @private  */
-    var checkArg = (function(argument, value, kernels, vfps) {
-        kernelPr = [];
-        vPr = [];
-        fPr = [];
-        isBuffer = false;
-        usedInVertex = false;
-        usedInFragment = false;
-
-        for(var key in kernels) {
-            for(var keyB in kernels[key].in_values) {
-                var inValues = kernels[key].in_values[keyB];
-                if(keyB == argument) {
-                    if(inValues.type == "float4_fromSampler") {
-                        type = "FLOAT4";
-                        isBuffer = true;
-                    } else if(inValues.type == "float_fromSampler") {
-                        type = "FLOAT";
-                        isBuffer = true;
-                    }
-
-                    kernelPr.push(kernels[key]);
-                    break;
-                }
-            }
-
-        }
-
-
-        for(var key in vfps) {
-            for(var keyB in vfps[key].in_vertex_values) {
-                var inValues = vfps[key].in_vertex_values[keyB];
-                if(keyB == argument) {
-                    if(inValues.type == "float4_fromSampler" || inValues.type == "float4_fromAttr") {
-                        type = "FLOAT4";
-                        isBuffer = true;
-                    } else if(inValues.type == "float_fromSampler" || inValues.type == "float_fromAttr") {
-                        type = "FLOAT";
-                        isBuffer = true;
-                    }
-
-                    vPr.push(vfps[key]);
-                    usedInVertex = true;
-                    break;
-                }
-            }
-
-            for(var keyB in vfps[key].in_fragment_values) {
-                var inValues = vfps[key].in_fragment_values[keyB];
-                if(keyB == argument) {
-                    if(inValues.type == "float4_fromSampler") {
-                        type = "FLOAT4";
-                        isBuffer = true;
-                    } else if(inValues.type == "float_fromSampler") {
-                        type = "FLOAT";
-                        isBuffer = true;
-                    }
-
-                    fPr.push(vfps[key]);
-                    usedInFragment = true;
-                    break;
-                }
-            }
-        }
-
-        if(kernelPr.length == 0 && usedInVertex == false && usedInFragment == false &&
-            (value instanceof Array || value instanceof Float32Array || value instanceof Uint8Array || value instanceof HTMLImageElement))
-            isBuffer = true;
-
-            return {
-                "isBuffer": isBuffer,
-                "type": type,
-                "kernelPr": kernelPr,
-                "vPr": vPr,
-                "fPr": fPr};
-    }).bind(this);
 
     /** @private */
     var defineOutputTempModes = (function(output, args) {
@@ -158,7 +71,7 @@ var gpufor = function() {
         for(var n = 0; n < outArg.length; n++) {
             // set output type float|float4
             var found = false;
-            for(var key in _args) {
+            for(var key in this._args) {
                 if(key != "indices") {
                     var expl = key.split(" ");
 
@@ -178,7 +91,7 @@ var gpufor = function() {
     }).bind(this);
 
     /**
-     * addKernel
+     * Add one WebCLGLKernel to the work
      * @param {Object} kernelJson
      */
     this.addKernel = function(kernelJson) {
@@ -188,33 +101,44 @@ var gpufor = function() {
         var kH = conf[2];
         var kS = conf[3];
 
-        var argsInThisKernel = [];
 
+        var kernel = _webCLGL.createKernel();
 
-
-        for(var key in _args) {
+        var strArgs = "", sep="";
+        for(var key in this._args) {
             var expl = key.split(" ");
             var argName = expl[1];
 
             // search arguments in use
             var matches = (kH+kS).match(new RegExp(argName, "gm"));
-            if(key != "indices" && matches != null && matches.length > 0)
-                argsInThisKernel.push(key.replace("*attr ", "* ")); // make replace for ensure no *attr in KERNEL
+            if(key != "indices" && matches != null && matches.length > 0) {
+                strArgs += sep+key.replace("*attr ", "* "); // make replace for ensure no *attr in KERNEL
+                kernel.in_values[argName] = {};
+
+                sep=",";
+            }
         }
-
-
-        var strArgs = "", sep="";
-        for(var n=0; n < argsInThisKernel.length; n++)
-            strArgs += sep+argsInThisKernel[n], sep=",";
-
 
         kS = 'void main('+strArgs+') {'+
             'vec2 '+idx+' = get_global_id();'+
             kS.replace(/return.*$/gm, prepareReturnCode(kS, outArg))+
             '}';
-        var kernel = _webCLGL.createKernel();
+
+        kernel.name = kernelJson.name;
+        kernel.viewSource = (kernelJson.viewSource != null) ? kernelJson.viewSource : false;
         kernel.setKernelSource(kS, kH);
-        addK(kernel, outArg, _args, kernelJson.drawMode, kernelJson.depthTest, kernelJson.blend, kernelJson.blendEquation, kernelJson.blendSrcMode, kernelJson.blendDstMode);
+
+        kernel.output = outArg;
+        kernel.outputTempModes = defineOutputTempModes(outArg, this._args);
+        kernel.enabled = true;
+        kernel.drawMode = (kernelJson.drawMode != null) ? kernelJson.drawMode : 4;
+        kernel.depthTest = (kernelJson.depthTest != null) ? kernelJson.depthTest : true;
+        kernel.blend = (kernelJson.blend != null) ? kernelJson.blend : false;
+        kernel.blendEquation = (kernelJson.blendEquation != null) ? kernelJson.blendEquation : "FUNC_ADD";
+        kernel.blendSrcMode = (kernelJson.blendSrcMode != null) ? kernelJson.blendSrcMode : "SRC_ALPHA";
+        kernel.blendDstMode = (kernelJson.blendDstMode != null) ? kernelJson.blendDstMode : "ONE_MINUS_SRC_ALPHA";
+
+        this.kernels[Object.keys(this.kernels).length.toString()] = kernel;
     };
 
     /**
@@ -242,28 +166,38 @@ var gpufor = function() {
         }
 
 
-        var argsInThisVFP_v = [];
+        var vfprogram = _webCLGL.createVertexFragmentProgram();
+
         var strArgs_v = "", sep="";
-        for(var key in _args) {
+        for(var key in this._args) {
+            var expl = key.split(" ");
+            var argName = expl[1];
+
             // search arguments in use
-            var matches = (VFP_vertexH+VFP_vertexS).match(new RegExp(key.split(" ")[1], "gm"));
-            if(key != "indices" && matches != null && matches.length > 0)
-                argsInThisVFP_v.push(key);
-        }
-        for(var n=0; n < argsInThisVFP_v.length; n++)
-            strArgs_v += sep+argsInThisVFP_v[n], sep=",";
+            var matches = (VFP_vertexH+VFP_vertexS).match(new RegExp(argName, "gm"));
+            if(key != "indices" && matches != null && matches.length > 0) {
+                strArgs_v += sep+key;
+                vfprogram.in_vertex_values[argName] = {};
+
+                sep=",";
+            }
+        };
 
 
-        var argsInThisVFP_f = [];
         var strArgs_f = "", sep="";
-        for(var key in _args) {
+        for(var key in this._args) {
+            var expl = key.split(" ");
+            var argName = expl[1];
+
             // search arguments in use
-            matches = (VFP_fragmentH+VFP_fragmentS).match(new RegExp(key.split(" ")[1], "gm"));
-            if(key != "indices" && matches != null && matches.length > 0)
-                argsInThisVFP_f.push(key);
+            matches = (VFP_fragmentH+VFP_fragmentS).match(new RegExp(argName, "gm"));
+            if(key != "indices" && matches != null && matches.length > 0) {
+                strArgs_f += sep+key;
+                vfprogram.in_fragment_values[argName] = {};
+
+                sep=",";
+            }
         }
-        for(var n=0; n < argsInThisVFP_f.length; n++)
-            strArgs_f += sep+argsInThisVFP_f[n], sep=",";
 
 
         VFP_vertexS = 'void main('+strArgs_v+') {'+
@@ -272,10 +206,82 @@ var gpufor = function() {
         VFP_fragmentS = 'void main('+strArgs_f+') {'+
             VFP_fragmentS.replace(/return.*$/gm, prepareReturnCode(VFP_fragmentS, outArg))+
             '}';
-        var vfprogram = _webCLGL.createVertexFragmentProgram();
+
+        vfprogram.name = graphicJson.name;
+        vfprogram.viewSource = (graphicJson.viewSource != null) ? graphicJson.viewSource : false;
         vfprogram.setVertexSource(VFP_vertexS, VFP_vertexH);
         vfprogram.setFragmentSource(VFP_fragmentS, VFP_fragmentH);
-        addVertexFragmentProgram(vfprogram, outArg, _args, graphicJson.drawMode, graphicJson.depthTest, graphicJson.blend, graphicJson.blendEquation, graphicJson.blendSrcMode, graphicJson.blendDstMode);
+
+        vfprogram.output = outArg;
+        vfprogram.outputTempModes = defineOutputTempModes(outArg, this._args);
+        vfprogram.enabled = true;
+        vfprogram.drawMode = (graphicJson.drawMode != null) ? graphicJson.drawMode : 4;
+        vfprogram.depthTest = (graphicJson.depthTest != null) ? graphicJson.depthTest : true;
+        vfprogram.blend = (graphicJson.blend != null) ? graphicJson.blend : true;
+        vfprogram.blendEquation = (graphicJson.blendEquation != null) ? graphicJson.blendEquation : "FUNC_ADD";
+        vfprogram.blendSrcMode = (graphicJson.blendSrcMode != null) ? graphicJson.blendSrcMode : "SRC_ALPHA";
+        vfprogram.blendDstMode = (graphicJson.blendDstMode != null) ? graphicJson.blendDstMode : "ONE_MINUS_SRC_ALPHA";
+
+        this.vertexFragmentPrograms[Object.keys(this.vertexFragmentPrograms).length.toString()] = vfprogram;
+    };
+
+    /** @private  */
+    var checkArg = (function(argument, value, kernels, vfps) {
+        var kernelPr = [];
+        var usedInVertex = false;
+        var usedInFragment = false;
+
+        for(var key in kernels) {
+            for(var keyB in kernels[key].in_values) {
+                var inValues = kernels[key].in_values[keyB];
+                if(keyB == argument) {
+                    kernelPr.push(kernels[key]);
+                    break;
+                }
+            }
+
+        }
+
+        for(var key in vfps) {
+            for(var keyB in vfps[key].in_vertex_values) {
+                var inValues = vfps[key].in_vertex_values[keyB];
+                if(keyB == argument) {
+                    usedInVertex = true;
+                    break;
+                }
+            }
+
+            for(var keyB in vfps[key].in_fragment_values) {
+                var inValues = vfps[key].in_fragment_values[keyB];
+                if(keyB == argument) {
+                    usedInFragment = true;
+                    break;
+                }
+            }
+        }
+
+        return {
+            "usedInVertex": usedInVertex,
+            "usedInFragment": usedInFragment,
+            "kernelPr": kernelPr};
+    }).bind(this);
+
+    /**
+     * fillPointerArg
+     * @param {String} argName
+     * @param {Array<Float>} clearColor
+     */
+    this.fillPointerArg = function(argName, clearColor) {
+        _webCLGL.fillBuffer(this._argsValues[argName].textureData, clearColor, this._argsValues[argName].fBuffer),
+        _webCLGL.fillBuffer(this._argsValues[argName].textureDataTemp, clearColor, this._argsValues[argName].fBufferTemp);
+    };
+
+    /**
+     * Get all arguments existing in passed kernels & vertexFragmentPrograms
+     * @returns {Object}
+     */
+    this.getAllArgs = function() {
+        return this._argsValues;
     };
 
     /**
@@ -284,69 +290,35 @@ var gpufor = function() {
      * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
      */
     this.addArgument = function(arg, value) {
-        var key = arg;
+        this._args[arg] = value;
 
-        _args[key] = value;
-
-        var argVal = _args[key];
-        this.setArg(key.split(" ")[1], argVal);
+        this.setArg(arg.split(" ")[1], this._args[arg]);
     };
 
     /**
-     * Add one WebCLGLKernel to the work
-     * @param {WebCLGLKernel} kernel
-     * @param {String|Array<String>} output - Used for to write and update ARG name with the result in out_float4/out_float
-     * @param {Object} args
-     * @param {Object} [drawMode=4] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
-     * @param {Bool} [depthTest=true]
-     * @param {Bool} [blend=false]
-     * @param {String} [blendEquation="FUNC_ADD"]
-     * @param {String} [blendSrcMode="SRC_ALPHA"]
-     * @param {String} [blendDstMode="ONE_MINUS_SRC_ALPHA"]
+     * Get argument from other gpufor (instead of addArgument)
+     * @param {String} argument Argument to set
+     * @param {gpufor} gpufor
      */
-    var addK = (function(kernel, output, args, drawMode, depthTest, blend, blendEquation, blendSrcMode, blendDstMode) {
-        kernel.output = output;
-        kernel.outputTempModes = defineOutputTempModes(output, args);
+    this.getGPUForPointerArg = function(argument, gpufor) {
+        if(this.calledArgs.hasOwnProperty(argument) == false)
+            this.calledArgs[argument] = [];
+        this.calledArgs[argument].push(gpufor);
 
-        var name = Object.keys(this.kernels).length.toString();
+        if(gpufor.calledArgs.hasOwnProperty(argument) == false)
+            gpufor.calledArgs[argument] = [];
+        gpufor.calledArgs[argument].push(this);
 
-        this.kernels[name] = kernel;
-        this.kernels[name].enabled = true;
-        this.kernels[name].drawMode = (drawMode != null) ? drawMode : 4;
-        this.kernels[name].depthTest = (depthTest != null) ? depthTest : true;
-        this.kernels[name].blend = (blend != null) ? blend : false;
-        this.kernels[name].blendEquation = (blendEquation != null) ? blendEquation : "FUNC_ADD";
-        this.kernels[name].blendSrcMode = (blendSrcMode != null) ? blendSrcMode : "SRC_ALPHA";
-        this.kernels[name].blendDstMode = (blendDstMode != null) ? blendDstMode : "ONE_MINUS_SRC_ALPHA";
-    }).bind(this);
 
-    /**
-     * Add one WebCLGLVertexFragmentProgram to the work
-     * @param {WebCLGLVertexFragmentProgram} vertexFragmentProgram
-     * @param {String|Array<String>} output - Used for to write and update ARG name with the result in out_float4/out_float
-     * @param {Object} args
-     * @param {Object} [drawMode=4] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
-     * @param {Bool} [depthTest=true]
-     * @param {Bool} [blend=true]
-     * @param {String} [blendEquation="FUNC_ADD"]
-     * @param {String} [blendSrcMode="SRC_ALPHA"]
-     * @param {String} [blendDstMode="ONE_MINUS_SRC_ALPHA"]
-     */
-    var addVertexFragmentProgram = (function(vertexFragmentProgram, output, args, drawMode, depthTest, blend, blendEquation, blendSrcMode, blendDstMode) {
-        vertexFragmentProgram.output = output;
-        vertexFragmentProgram.outputTempModes = defineOutputTempModes(output, args);
-
-        var name = Object.keys(this.vertexFragmentPrograms).length.toString();
-
-        this.vertexFragmentPrograms[name] = vertexFragmentProgram;
-        this.vertexFragmentPrograms[name].enabled = true;
-        this.vertexFragmentPrograms[name].drawMode = (drawMode != null) ? drawMode : 4;
-        this.vertexFragmentPrograms[name].depthTest = (depthTest != null) ? depthTest : true;
-        this.vertexFragmentPrograms[name].blend = (blend != null) ? blend : true;
-        this.vertexFragmentPrograms[name].blendEquation = (blendEquation != null) ? blendEquation : "FUNC_ADD";
-        this.vertexFragmentPrograms[name].blendSrcMode = (blendSrcMode != null) ? blendSrcMode : "SRC_ALPHA";
-        this.vertexFragmentPrograms[name].blendDstMode = (blendDstMode != null) ? blendDstMode : "ONE_MINUS_SRC_ALPHA";
-    }).bind(this);
+        for(var key in gpufor._args) {
+            var argName = key.split(" ")[1];
+            if(argName == argument) {
+                this._args[key] = gpufor._args[key];
+                this._argsValues[argName] = gpufor._argsValues[argName];
+                break;
+            }
+        }
+    };
 
     /**
      * Assign value of a argument for all added Kernels and vertexFragmentPrograms
@@ -360,123 +332,56 @@ var gpufor = function() {
         if(argument == "indices") {
             this.setIndices(value);
         } else {
-            var checkResult = checkArg(argument, value, this.kernels, this.vertexFragmentPrograms);
+            for(var key in this._args) {
+                if(key.split(" ")[1] == argument) {
+                    var updateCalledArg = false;
+                    if(key.match(/\*/gm) != null) {
+                        // buffer
+                        var checkResult = checkArg(argument, value, this.kernels, this.vertexFragmentPrograms);
 
-            if(overrideType != undefined)
-                checkResult.type = overrideType;
+                        var mode = "SAMPLER"; // ATTRIBUTE or SAMPLER
+                        if(checkResult.usedInVertex == true) {
+                            if(checkResult.kernelPr.length == 0 && checkResult.usedInFragment == false)
+                                mode = "ATTRIBUTE";
+                        }
 
-            if(checkResult.isBuffer == true) {
-                var mode = "SAMPLER"; // "ATTRIBUTE", "SAMPLER", "UNIFORM"
-                if(usedInVertex == true) {
-                    if(checkResult.kernelPr.length == 0 && usedInFragment == false) {
-                        mode = "ATTRIBUTE";
+                        var type = key.split("*")[0].toUpperCase();
+                        if(overrideType != undefined)
+                            type = overrideType;
+
+
+                        if(value != undefined && value != null) {
+                            if(this._argsValues.hasOwnProperty(argument) == false ||
+                                (this._argsValues.hasOwnProperty(argument) == true && this._argsValues[argument] == null)) {
+                                this._argsValues[argument] = _webCLGL.createBuffer(type, this.offset, false, mode);
+                                this._argsValues[argument].argument = argument;
+
+                                updateCalledArg = true;
+                            }
+                            this._argsValues[argument].writeBuffer(value, false, overrideDimensions);
+                        } else {
+                            this._argsValues[argument] = null;
+                        }
+                    } else {
+                        // UNIFORM
+                        if(value != undefined && value != null)
+                            this._argsValues[argument] = value;
+
+                        updateCalledArg = true;
                     }
+
+                    if(updateCalledArg == true && this.calledArgs.hasOwnProperty(argument) == true) {
+                        for(var n=0; n < this.calledArgs[argument].length; n++) {
+                            var gpufor = this.calledArgs[argument][n];
+                            gpufor._argsValues[argument] = this._argsValues[argument];
+                        }
+                    }
+                    break;
                 }
-
-                if(value != undefined && value != null) {
-                    if(this.buffers.hasOwnProperty(argument) == false ||
-                        (this.buffers.hasOwnProperty(argument) == true && this.buffers[argument] == null)) {
-                        this.buffers[argument] = _webCLGL.createBuffer(checkResult.type, this.offset, false, mode);
-                    }
-                    this.buffers[argument].writeBuffer(value, false, overrideDimensions);
-
-                    for(var n=0; n < checkResult.kernelPr.length; n++)
-                        checkResult.kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
-
-                    for(var n=0; n < checkResult.vPr.length; n++)
-                        checkResult.vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
-
-                    for(var n=0; n < checkResult.fPr.length; n++)
-                        checkResult.fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
-                } else {
-                    //this.buffers[argument] = null;
-                    if(this.buffers.hasOwnProperty(argument) == false ||
-                        (this.buffers.hasOwnProperty(argument) == true && this.buffers[argument] == null)) {
-                        this.buffers[argument] = _webCLGL.createBuffer(checkResult.type, this.offset, false, mode);
-                    }
-                    this.buffers[argument].writeBuffer(new Float32Array(512*512*4), false, overrideDimensions);
-
-                    for(var n=0; n < checkResult.kernelPr.length; n++)
-                        checkResult.kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
-
-                    for(var n=0; n < checkResult.vPr.length; n++)
-                        checkResult.vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
-
-                    for(var n=0; n < checkResult.fPr.length; n++)
-                        checkResult.fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
-                }
-            } else {
-                for(var n=0; n < checkResult.kernelPr.length; n++)
-                    checkResult.kernelPr[n].setKernelArg(argument, value);
-
-                for(var n=0; n < checkResult.vPr.length; n++)
-                    checkResult.vPr[n].setVertexArg(argument, value);
-
-                for(var n=0; n < checkResult.fPr.length; n++)
-                    checkResult.fPr[n].setFragmentArg(argument, value);
-
-                return value;
             }
         }
 
-        /*if(this.calledArgs.hasOwnProperty(argument) == true) {
-            for(var n=0; n < this.calledArgs[argument].length; n++) {
-                var work = this.calledArgs[argument][n];
-                work.getGPUForPointerArg(argument, this, false);
-            }
-        }*/
-    };
-
-    this.getOriginalArgs = function() {
-        return _args;
-    };
-
-    /**
-     * Get argument from other gpufor
-     * @param {String} argument Argument to set
-     * @param {gpufor} gpufor
-     * @param {Bool} [makeAdd=true]
-     */
-    this.getGPUForPointerArg = function(argument, gpufor, makeAdd) {
-        var gpufGArgs = gpufor.getOriginalArgs();
-        var argValue = null;
-        for(var key in gpufGArgs) {
-            if(key.split(" ")[1] == argument) {
-                argValue = gpufGArgs[key];
-                _args[key] = argValue;
-                break;
-            }
-        }
-        var checkResult = checkArg(argument, argValue, this.kernels, this.vertexFragmentPrograms);
-        var checkResultOther = checkArg(argument, argValue, gpufor.kernels, gpufor.vertexFragmentPrograms);
-
-        if(checkResultOther.isBuffer == true) {
-            this.buffers[argument] = gpufor.buffers[argument];
-
-            for(var n=0; n < checkResult.kernelPr.length; n++)
-                checkResult.kernelPr[n].setKernelArg(argument, this.buffers[argument], this.buffers);
-
-            for(var n=0; n < checkResult.vPr.length; n++)
-                checkResult.vPr[n].setVertexArg(argument, this.buffers[argument], this.buffers);
-
-            for(var n=0; n < checkResult.fPr.length; n++)
-                checkResult.fPr[n].setFragmentArg(argument, this.buffers[argument], this.buffers);
-        } else {
-            for(var n=0; n < checkResult.kernelPr.length; n++)
-                checkResult.kernelPr[n].setKernelArg(argument, argValue);
-
-            for(var n=0; n < checkResult.vPr.length; n++)
-                checkResult.vPr[n].setVertexArg(argument, argValue);
-
-            for(var n=0; n < checkResult.fPr.length; n++)
-                checkResult.fPr[n].setFragmentArg(argument, argValue);
-        }
-
-        /*if(gpufor.calledArgs.hasOwnProperty(argument) == false)
-            gpufor.calledArgs[argument] = [];
-
-        if(makeAdd == undefined || makeAdd == true)
-            gpufor.calledArgs[argument].push(this);*/
+        return value;
     };
 
     /**
@@ -517,7 +422,18 @@ var gpufor = function() {
             '}';
         var kernel = _webCLGL.createKernel();
         kernel.setKernelSource(ksrc);
-        addK(kernel, ["result"]);
+
+        kernel.output = ["result"];
+        kernel.outputTempModes = defineOutputTempModes(["result"], this._args);
+        kernel.enabled = true;
+        kernel.drawMode = 4;
+        kernel.depthTest = true;
+        kernel.blend = false;
+        kernel.blendEquation = "FUNC_ADD";
+        kernel.blendSrcMode = "SRC_ALPHA";
+        kernel.blendDstMode = "ONE_MINUS_SRC_ALPHA";
+
+        this.kernels[Object.keys(this.kernels).length.toString()] = kernel;
 
 
         var buffLength = 0;
@@ -537,20 +453,20 @@ var gpufor = function() {
         //this.processKernels("result", this.buffers_TEMP["result"]);
         //_webCLGL.copy(this.buffers_TEMP["result"], this.buffers["result"]);
 
-        var fbs = new WebCLGLUtils().createFBs(_webCLGL.getContext(), _webCLGL.getDrawBufferExt(), _webCLGL.getMaxDrawBuffers(), this.getKernel("0"), this.buffers, this.buffers[Object.keys(this.buffers)[0]].W, this.buffers[Object.keys(this.buffers)[0]].H);
+        //var fbs = new WebCLGLUtils().createFBs(_webCLGL.getContext(), _webCLGL.getDrawBufferExt(), _webCLGL.getMaxDrawBuffers(), this.getKernel("0"), this._argsValues, this.buffers[Object.keys(this.buffers)[0]].W, this.buffers[Object.keys(this.buffers)[0]].H);
 
         this.processKernels(false);
 
         if(typOut=="FLOAT")
-            return _webCLGL.enqueueReadBuffer_Float(this.buffers["result"]);
+            return _webCLGL.enqueueReadBuffer_Float(this._argsValues["result"]);
         else
-            return _webCLGL.enqueueReadBuffer_Float4(this.buffers["result"]);
+            return _webCLGL.enqueueReadBuffer_Float4(this._argsValues["result"]);
     }).bind(this);
 
     /** @private  */
     var iniG = (function() {
         var argumentss = arguments[0]; // override
-        _args = argumentss[1]; // first is context or canvas
+        this._args = argumentss[1]; // first is context or canvas
 
         for(var i = 2; i < argumentss.length; i++) {
             if(argumentss[i].type == "KERNEL")
@@ -560,8 +476,8 @@ var gpufor = function() {
         }
 
         // args
-        for(var key in _args) {
-            var argVal = _args[key];
+        for(var key in this._args) {
+            var argVal = this._args[key];
 
             if(key == "indices") {
                 if(argVal != null)
@@ -727,47 +643,6 @@ var gpufor = function() {
         return this.vertexFragmentPrograms;
     };
 
-
-
-    /**
-     * fillPointerArg
-     * @param {String} argName
-     * @param {Array<Float>} clearColor
-     */
-    this.fillPointerArg = function(argName, clearColor) {
-        _webCLGL.fillBuffer(this.buffers[argName].textureData, clearColor, this.buffers[argName].fBuffer),
-        _webCLGL.fillBuffer(this.buffers[argName].textureDataTemp, clearColor, this.buffers[argName].fBufferTemp);
-    };
-
-    /**
-     * Get all arguments existing in passed kernels & vertexFragmentPrograms
-     * @returns {Object}
-     */
-    this.getAllArgs = function() {
-        var args = {};
-        for(var key in this.kernels) {
-            for(var keyB in this.kernels[key].in_values) {
-                var inValues = this.kernels[key].in_values[keyB];
-                args[keyB] = inValues;
-            }
-        }
-
-
-        for(var key in this.vertexFragmentPrograms) {
-            for(var keyB in this.vertexFragmentPrograms[key].in_vertex_values) {
-                var inValues = this.vertexFragmentPrograms[key].in_vertex_values[keyB];
-                args[keyB] = inValues;
-            }
-
-            for(var keyB in this.vertexFragmentPrograms[key].in_fragment_values) {
-                var inValues = this.vertexFragmentPrograms[key].in_fragment_values[keyB];
-                args[keyB] = inValues;
-            }
-        }
-
-        return args;
-    };
-
     /**
      * Process kernels
      * @param {Bool} outputToTemp - (when no graphic mode)
@@ -808,13 +683,13 @@ var gpufor = function() {
                     }
 
                     if(tempsFound == true) {
-                        _webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this.buffers), true, this.buffers);
+                        _webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this._argsValues), true, this._argsValues);
                         arrMakeCopy.push(kernel);
                     } else {
-                        _webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this.buffers), false, this.buffers);
+                        _webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this._argsValues), false, this._argsValues);
                     }
                 } else
-                    _webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this.buffers), false, this.buffers);
+                    _webCLGL.enqueueNDRangeKernel(kernel, new WebCLGLUtils().getOutputBuffers(kernel, this._argsValues), false, this._argsValues);
 
                 if(kernel.onpost != undefined)
                     kernel.onpost();
@@ -825,7 +700,7 @@ var gpufor = function() {
         }
 
         for(var n=0; n < arrMakeCopy.length; n++)
-            _webCLGL.copy(arrMakeCopy[n], new WebCLGLUtils().getOutputBuffers(arrMakeCopy[n], this.buffers));
+            _webCLGL.copy(arrMakeCopy[n], new WebCLGLUtils().getOutputBuffers(arrMakeCopy[n], this._argsValues));
     };
 
     /**
@@ -838,7 +713,7 @@ var gpufor = function() {
             var vfp = this.vertexFragmentPrograms[key];
 
             if(vfp.enabled == true) {
-                var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this.buffers[argumentInd];
+                var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this._argsValues[argumentInd];
 
                 if(buff != undefined && buff.length > 0) {
                     if(vfp.depthTest == true) {
@@ -869,10 +744,10 @@ var gpufor = function() {
                     }
 
                     if(tempsFound == true) {
-                        _webCLGL.enqueueVertexFragmentProgram(vfp, buff, vfp.drawMode, new WebCLGLUtils().getOutputBuffers(vfp, this.buffers), true, this.buffers);
+                        _webCLGL.enqueueVertexFragmentProgram(vfp, buff, vfp.drawMode, new WebCLGLUtils().getOutputBuffers(vfp, this._argsValues), true, this._argsValues);
                         arrMakeCopy.push(vfp);
                     } else {
-                        _webCLGL.enqueueVertexFragmentProgram(vfp, buff, vfp.drawMode, new WebCLGLUtils().getOutputBuffers(vfp, this.buffers), false, this.buffers);
+                        _webCLGL.enqueueVertexFragmentProgram(vfp, buff, vfp.drawMode, new WebCLGLUtils().getOutputBuffers(vfp, this._argsValues), false, this._argsValues);
                     }
 
                     if(vfp.onpost != undefined)
@@ -885,7 +760,7 @@ var gpufor = function() {
         }
 
         for(var n=0; n < arrMakeCopy.length; n++)
-            _webCLGL.copy(arrMakeCopy[n], new WebCLGLUtils().getOutputBuffers(arrMakeCopy[n], this.buffers));
+            _webCLGL.copy(arrMakeCopy[n], new WebCLGLUtils().getOutputBuffers(arrMakeCopy[n], this._argsValues));
     };
 };
 

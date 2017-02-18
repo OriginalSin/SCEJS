@@ -15,7 +15,7 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 		// vertex programs
 		var str = "<div id='"+targetElement.id+"_"+vfpKey+"_vps' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
 			"<div style='height:250px;'>"+
-				"<div>VFP NAME: "+vfpKey+"</div>"+
+				"<div>VFP NAME: "+vfp.name+"</div>"+
 				"<div>SE ARG destination: "+vfp.output+"</div>"+
 	
 				"<div><input type='checkbox' id='ENABLE_"+vfpKey+"' style='font-size:10px;'></div>"+

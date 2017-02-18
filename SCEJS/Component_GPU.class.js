@@ -2,12 +2,44 @@
  * @class
  * @constructor
  */
-Component_GPU = function() {
+Component_GPU = function() { Component.call(this);
     "use strict";
+
+    this.type = Constants.COMPONENT_TYPES.GPU;
+    this.node = null;
+    this.gl;
 
     this.gpufG = null;
     this.args = {};
 
+
+
+    /**
+     * initialize
+     * @param {Node} nod
+     * @param {WebGLRenderingContext} glCtx.
+     * @override
+     * @private
+     */
+    this.initialize = function(nod, glCtx) {
+        node = nod;
+        this.gl = glCtx;
+    };
+
+    /**
+     * tick
+     * @override
+     * @private
+     */
+    this.tick = function() {
+        this.tickArguments();
+
+        if(this.gpufG != null)
+            this.gpufG.processKernels();
+
+        if(this.gpufG != null)
+            this.gpufG.processGraphic(undefined);
+    };
 
     /**
      * setGPUFor
@@ -82,10 +114,10 @@ Component_GPU = function() {
     /**
      * getComponentBufferArg
      * @param {String} argument Argument to set
-     * @param {ComponentRenderer} comp_renderer
+     * @param {Component_GPU} comp_gpu
      */
-    this.getComponentBufferArg = function(argument, comp_renderer) {
-        this.gpufG.getGPUForPointerArg(argument, comp_renderer.gpufG);
+    this.getComponentBufferArg = function(argument, comp_gpu) {
+        this.gpufG.getGPUForPointerArg(argument, comp_gpu.gpufG);
         this.args[argument] = {	"fnvalue": null,
             "updatable": null,
             "splits": null,
@@ -113,7 +145,7 @@ Component_GPU = function() {
      * @returns {Array<WebCLGLBuffer>}
      */
     this.getBuffers = function() {
-        return this.gpufG.buffers;
+        return this.gpufG._argsValues;
     };
 
     /**
@@ -138,3 +170,4 @@ Component_GPU = function() {
     };
 
 };
+Component_GPU.prototype.constructor = Component_GPU;

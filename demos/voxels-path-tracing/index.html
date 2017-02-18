@@ -50,6 +50,7 @@
                 comp_screenEffects.addArgument("float4 posCamTarget", (function(){return [comp_cam_tranf_target.getPositionTarget().e[0], comp_cam_tranf_target.getPositionTarget().e[1], comp_cam_tranf_target.getPositionTarget().e[2], 1.0];}).bind(this));
                 comp_screenEffects.addArgument("float viewportWidth", (function(){return sce.getCanvas().width;}).bind(this));
                 comp_screenEffects.addArgument("float viewportHeight", (function(){return sce.getCanvas().height;}).bind(this));
+                comp_screenEffects.addArgument("float uviewvolumechannel", (function(){return 1.0;}).bind(this));
                 comp_screenEffects.getComponentBufferArg("uResolution", gi.getComponentRendererNode());
                 comp_screenEffects.getComponentBufferArg("uGridsize", gi.getComponentRendererNode());
                 comp_screenEffects.getComponentBufferArg("sampler_voxelColor", gi.getComponentRendererNode());
@@ -57,6 +58,8 @@
                 comp_screenEffects.getComponentBufferArg("sampler_voxelNormal", gi.getComponentRendererNode());
 				comp_screenEffects.gpufG.addKernel({
                     "type": "KERNEL",
+                    "name": "VOLUME_VIEW",
+                    "viewSource": false,
                     "config": ["x", undefined,
                         // head
                         new Utils().degToRadGLSLFunctionString()+
@@ -99,7 +102,12 @@
 
                         'vec4 outC;'+
                         'if(rayT.voxelColor.a > 0.0) {'+ // hit in solid
-                            'outC = vec4(rayT.voxelColor.rgb, 1.0);'+
+                            'if(uviewvolumechannel == 1.0)'+
+                                'outC = vec4(rayT.voxelColor.rgb, 1.0);'+
+                            'else if(uviewvolumechannel == 2.0)'+
+                                'outC = vec4(rayT.voxelPos.rgb, 1.0);'+
+                            'else '+
+                                'outC = vec4(rayT.voxelNormal.rgb, 1.0);'+
                         '} else {'+ // hit in light
                             'outC = vec4(0.0,0.0,0.0, 1.0);'+
                         '}'+
@@ -143,7 +151,7 @@
 			// CAMERA
 			var simpleCamera = new SimpleCamera(sce, {	"onmousedown": (function() {
 															if(gi.isRunned() == true) {
-																gi.stop();
+																//gi.stop();
 															}
 														}).bind(this), "onmouseup": (function() {
 															if(gi.isRunned() == true) {
@@ -154,7 +162,7 @@
                                                                 gi.resume();
                                                             }
                                                         }).bind(this)});
-			var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+			var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
 			
 			// GRID
 			//var grid = new Grid(sce);
@@ -228,12 +236,22 @@
 		<img id="img_normal" src="../_RESOURCES/cornellbox_normal.png" />-->
 		
 		<div id="DIVID_checkboxViewVolume"></div>
+		color: <input type='radio' name='el_radio_viewchannel' value='1.0' checked=true/> </br >
+        position: <input type='radio' name='el_radio_viewchannel' value='2.0' /> </br >
+        normal: <input type='radio' name='el_radio_viewchannel' value='3.0' />
 				
 		<div id="DIVID_status" style="font-size:16px;font-weight:bold"></div>
 		
 		<script>
 			var _status = document.getElementById("DIVID_status");
 
+            var l = document.querySelectorAll('input[name="el_radio_viewchannel"]');
+            for(var n=0; n<l.length; n++) {
+                l[n].addEventListener("click", (function() {
+                    var val = document.querySelector('input[name="el_radio_viewchannel"]:checked').value;
+                    comp_screenEffects.setArg("uviewvolumechannel", (function(){return val;}).bind(this));
+                }).bind(this));
+            }
 
 			// SELECT OBJ
 			var select = document.getElementById("select_obj");
@@ -330,13 +348,13 @@
 											gi.runGI();
 
 											// volume view
-                                            //initializeVolumeView();
-                                            //comp_screenEffects.gpufG.disableKernel("sampler_volume");
-											//setVolumeView_samplers(voxelizator.getGeneratedArrays().albedo, voxelizator.getGeneratedArrays().position, voxelizator.getGeneratedArrays().normal);
+                                            initializeVolumeView();
+                                            comp_screenEffects.gpufG.disableKernel(2);
+											setVolumeView_samplers(voxelizator.getGeneratedArrays().albedo, voxelizator.getGeneratedArrays().position, voxelizator.getGeneratedArrays().normal);
 
 
 											if(_viewVolume == true) {
-												comp_screenEffects.gpufG.enableKernel("sampler_volume");
+												comp_screenEffects.gpufG.enableKernel(2);
 											}
 
 											_status.innerHTML = "";
@@ -371,10 +389,10 @@
 			var e = document.getElementById("DIVID_checkboxViewVolume");
 			new ActionHelpers().add_checkbox(e, "View_generated_voxels", false, (function() {
 				_viewVolume = true;
-				comp_screenEffects.gpufG.enableKernel("sampler_volume");
+				comp_screenEffects.gpufG.enableKernel(2);
 			}).bind(this), (function() {
 				_viewVolume = false;
-				comp_screenEffects.gpufG.disableKernel("sampler_volume");
+				comp_screenEffects.gpufG.disableKernel(2);
 			}).bind(this));
 			document.getElementById("INPUTID_View_generated_voxels").disabled = true;
 			document.getElementById("DIVID_checkboxViewVolume").style.color = "rgba(0,0,0,0.3)";

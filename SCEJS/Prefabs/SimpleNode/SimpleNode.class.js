@@ -16,8 +16,8 @@ SimpleNode = function(sce) {
 	var comp_transform = new ComponentTransform();
 	node.addComponent(comp_transform);
 
-	// ComponentRenderer
-	var comp_renderer = new ComponentRenderer();
+	// Component_GPU
+	var comp_renderer = new Component_GPU();
 	node.addComponent(comp_renderer);
 
 
@@ -51,7 +51,7 @@ SimpleNode = function(sce) {
         comp_renderer.setArgUpdatable("PMatrix", true);
         comp_renderer.setArgUpdatable("cameraWMatrix", true);
         comp_renderer.setArgUpdatable("nodeWMatrix", true);
-        comp_renderer.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS));
+        comp_renderer.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
         comp_renderer.gpufG.onPreProcessGraphic(0, (function() {
             //comp_renderer.gl.clear(comp_renderer.gl.COLOR_BUFFER_BIT | comp_renderer.gl.DEPTH_BUFFER_BIT);
         }).bind(this));

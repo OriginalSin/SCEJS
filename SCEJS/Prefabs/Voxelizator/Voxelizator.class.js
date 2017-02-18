@@ -33,8 +33,8 @@ Voxelizator = function(sce) {
 	var comp_transform = new ComponentTransform();
 	nodes.addComponent(comp_transform);
 
-	// ComponentRenderer
-	var comp_renderer_node = new ComponentRenderer();
+	// Component_GPU
+	var comp_renderer_node = new Component_GPU();
 	nodes.addComponent(comp_renderer_node);
 
 
@@ -58,6 +58,8 @@ Voxelizator = function(sce) {
 
                                 'float4* texAlbedo': (function(){return null;}).bind(this)},
                                 {"type": "GRAPHIC",
+                                "name": "VOXELIZATOR",
+                                "viewSource": false,
                                 "config": [ undefined,
                                     // vertex head
                                     'varying vec4 vVPos;\n'+
@@ -128,11 +130,10 @@ Voxelizator = function(sce) {
                                     'if(currOffs == 6) vp = vp+vec3(lengthOffs,	0.0,	0.0);'+
                                     'if(currOffs == 7) vp = vp+vec3(-lengthOffs,	0.0,	0.0);'+
 
-                                    'vVPos = vec4(vp*vec3(-1.0, -1.0, -1.0), 1.0);'+
                                     'gl_Position = PMatrix * mCam * nodeWMatrix * vec4(vp, 1.0);\n'+
 
-
-                                    'vVN = vertexNormal[]*vec4(-1.0, -1.0, -1.0, 1.0);\n'+
+                                    'vVPos = vec4(vertexPos[].xyz*vec3(1.0, 1.0, 1.0), 1.0);'+
+                                    'vVN = vertexNormal[]*vec4(1.0, 1.0, 1.0, 1.0);\n'+
                                     'vVT = vertexTexture[];\n'+
                                     'vVTU = vertexTextureUnit[];\n',
 
@@ -172,7 +173,7 @@ Voxelizator = function(sce) {
                                 "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
                                 "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
     comp_renderer_node.gpufG.onPreProcessGraphic(0, (function() {
-        var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+        var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
         //comp_screenEffects.gl.blendFunc(comp_renderer_node.gl[Constants.BLENDING_MODES.ONE_MINUS_SRC_COLOR], comp_renderer_node.gl[Constants.BLENDING_MODES.SRC_COLOR]);
 
         if(_makeVoxels == true) {
