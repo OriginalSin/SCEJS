@@ -3,18 +3,19 @@
  * @class
  * @constructor
  */
-var gpufor = function() {
+var WebCLGLFor = function() {
     "use strict";
 
 	this.offset = null;
 
 	this.kernels = {};
 	this.vertexFragmentPrograms = {};
-    this._args;
+    this._args = {};
     this._argsValues = {};
     this.calledArgs = {};
 
-    var _webCLGL;
+    var _webCLGL = null;
+    var _gl = null;
 
     /** @private */
     var defineOutputTempModes = (function(output, args) {
@@ -287,12 +288,9 @@ var gpufor = function() {
     /**
      * addArgument
      * @param {String} arg
-     * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
      */
-    this.addArgument = function(arg, value) {
-        this._args[arg] = value;
-
-        this.setArg(arg.split(" ")[1], this._args[arg]);
+    this.addArgument = function(arg) {
+        this._args[arg] = null;
     };
 
     /**
@@ -394,26 +392,30 @@ var gpufor = function() {
     };
 
     /** @private  */
-    var ini = (function() {
+    this.ini = (function() {
+        if(_gl != undefined)
+            _webCLGL = new WebCLGL(_gl);
+        else
+            _webCLGL = new WebCLGL();
+
         var argumentss = arguments[0];
-        var args;
         var idx;
         var typOut;
         var code;
         if(argumentss.length > 3) {
-            args = argumentss[0];
+            this._args = argumentss[0];
             idx = argumentss[1];
             typOut = argumentss[2];
             code = argumentss[3];
         } else {
-            args = argumentss[0];
+            this._args = argumentss[0];
             idx = argumentss[1];
             typOut = "FLOAT";
             code = argumentss[2];
         }
 
         var strArgs = "", sep="";
-        for(var key in args)
+        for(var key in this._args)
             strArgs += sep+key, sep=",";
 
         var ksrc =   'void main('+strArgs+') {'+
@@ -437,8 +439,8 @@ var gpufor = function() {
 
 
         var buffLength = 0;
-        for(var key in args) {
-            var argVal = args[key];
+        for(var key in this._args) {
+            var argVal = this._args[key];
 
             this.setArg(key.split(" ")[1], argVal);
 
@@ -446,7 +448,7 @@ var gpufor = function() {
                 (argVal instanceof Array || argVal instanceof Float32Array || argVal instanceof Uint8Array || argVal instanceof HTMLImageElement))
                 buffLength = argVal.length;
         }
-
+        this.addArgument("float* result");
         this.setArg("result", new Float32Array(buffLength), null, typOut);
 
 
@@ -464,7 +466,12 @@ var gpufor = function() {
     }).bind(this);
 
     /** @private  */
-    var iniG = (function() {
+    this.iniG = (function() {
+        if(_gl != undefined)
+            _webCLGL = new WebCLGL(_gl);
+        else
+            _webCLGL = new WebCLGL();
+
         var argumentss = arguments[0]; // override
         this._args = argumentss[1]; // first is context or canvas
 
@@ -486,27 +493,16 @@ var gpufor = function() {
                 this.setArg(key.split(" ")[1], argVal);
         }
     }).bind(this);
-    if(arguments[0] instanceof HTMLCanvasElement) {
-        var _gl = new WebCLGLUtils().getWebGLContextFromCanvas(arguments[0]);
-        _webCLGL = new WebCLGL(_gl);
-        this.offset = window.gpufor_precision|1000;
-        iniG(arguments);
-    } else if(arguments[0] instanceof WebGLRenderingContext) {
-        var _gl = arguments[0];
-        _webCLGL = new WebCLGL(_gl);
-        this.offset = window.gpufor_precision|1000;
-        iniG(arguments);
-    } else {
-        _webCLGL = new WebCLGL();
-        this.offset = window.gpufor_precision|0;
-        return ini(arguments);
-    }
 
     /**
      * getCtx
      */
     this.getCtx = function() {
         return _gl;
+    };
+
+    this.setCtx = function(gl) {
+        _gl = gl;
     };
 
     /**
@@ -763,5 +759,35 @@ var gpufor = function() {
             _webCLGL.copy(arrMakeCopy[n], new WebCLGLUtils().getOutputBuffers(arrMakeCopy[n], this._argsValues));
     };
 };
+/**
+ * gpufor
+ * @class
+ * @constructor
+ */
+var gpufor = function() {
+    "use strict";
+    var clglFor = new WebCLGLFor();
 
+    if(arguments[0] instanceof HTMLCanvasElement) {
+        var _gl = new WebCLGLUtils().getWebGLContextFromCanvas(arguments[0]);
+        clglFor.setCtx(_gl);
+        clglFor.offset = window.gpufor_precision|1000;
+        clglFor.iniG(arguments);
+        return clglFor;
+    } else if(arguments[0] instanceof WebGLRenderingContext) {
+        var _gl = arguments[0];
+        clglFor.setCtx(_gl);
+        clglFor.offset = window.gpufor_precision|1000;
+        clglFor.iniG(arguments);
+        return clglFor;
+    } else {
+        var e = document.createElement('canvas');
+        e.width = 32;
+        e.height = 32;
+        var _gl = new WebCLGLUtils().getWebGLContextFromCanvas(e, {antialias: false});
+        clglFor.setCtx(_gl);
+        clglFor.offset = window.gpufor_precision|0;
+        return clglFor.ini(arguments);
+    }
+};
 

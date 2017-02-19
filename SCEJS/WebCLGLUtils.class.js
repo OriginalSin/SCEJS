@@ -449,29 +449,5 @@ WebCLGLUtils = function() {
             'return vec2(column*ts, row*ts);'+
             '}\n';
     };
-
-    /*
-    this.get_global_id3_GLSLFunctionString = function() {
-        return ''+
-            'vec2 get_global_id(float id, float bufferWidth, float geometryLength) {\n'+
-            'float num = (id*geometryLength);'+
-            'float column = mod(num,bufferWidth);'+
-            'float row = num/bufferWidth;'+
-
-            'float ts = 1.0/bufferWidth;'+
-
-            'return vec2(column*ts, row*ts);'+
-            '}\n';
-    };
-    this.get_global_id2_GLSLFunctionString = function() {
-        return ''+
-            'vec2 get_global_id(vec2 id, float bufferWidth) {\n'+
-            'float column = id.x;'+
-            'float row = id.y;'+
-
-            'float ts = 1.0/bufferWidth;'+
-
-            'return vec2(column*ts, row*ts);'+
-            '}\n';
-    };*/
+    
 };
