@@ -4,9 +4,9 @@
 */
 Node = function() {
 	"use strict";
-	
-	var _components = {};
-	var _name = null;
+
+    this._components = {};
+	this._name = null;
 	var _gl = null;
 	
 	var _enabled = true;
@@ -22,10 +22,10 @@ Node = function() {
 	 * @param {Component} component
 	 */
 	this.addComponent = function(component) {
-		_components[component.type] = component;
+        this._components[component.type] = component;
 		
-		if(_components[component.type].initialize != null)
-			_components[component.type].initialize(this, _gl);
+		if(this._components[component.type].initialize != null)
+            this._components[component.type].initialize(this, _gl);
 	};
 	
 	/**
@@ -34,7 +34,7 @@ Node = function() {
 	 * @returns {Component}
 	 */
 	this.getComponent = function(type) {
-		return _components[type];
+		return this._components[type];
 	};
 	
 	/**
@@ -42,7 +42,7 @@ Node = function() {
 	 * @returns {Object}
 	 */
 	this.getComponents = function() {
-		return _components;
+		return this._components;
 	};
 	
 	/**
@@ -66,7 +66,7 @@ Node = function() {
 	* @param {String} name.
 	*/
 	this.setName = function(name) {
-		_name = name;
+        this._name = name;
 	};
 	
 	/**
@@ -74,7 +74,7 @@ Node = function() {
 	* @returns {String}
 	*/
 	this.getName = function() {
-		return _name;
+        return this._name;
 	};
 	
 	/**
@@ -84,7 +84,7 @@ Node = function() {
 	* @private
 	*/
 	this.initialize = function(name, glCtx) {
-		_name = name;
+        this._name = name;
 		_gl = glCtx;
 	};
 };

@@ -7,17 +7,12 @@
 
 		<script src="../../SCEJS/Prefabs/SimpleCamera/SimpleCamera.class.js"></script>
 
-	    <script src="../../SCEJS/Prefabs/Grid/VFP_GRID.class.js"></script>
 	    <script src="../../SCEJS/Prefabs/Grid/Grid.class.js"></script>
 	
-	
-	    <script src="../../SCEJS/Prefabs/Voxelizator/VFP_VOXELIZATOR.class.js"></script>
+
 	    <script src="../../SCEJS/Prefabs/Voxelizator/Voxelizator.class.js"></script>
-	    
-	    <script src="../../SCEJS/Prefabs/GI/VFP_GI.class.js"></script>
+
 	    <script src="../../SCEJS/Prefabs/GI/GI.class.js"></script>
-	    
-	    <script src="../../SCEJS/Prefabs/VolumeView/SE_VolumeView.class.js"></script>	 
 
 
 <style>
@@ -50,28 +45,84 @@
 
 		<script>
 			var initializeVolumeView = (function() {
-				comp_screenEffects.addKernel({	"name": "sampler_volume",
-												"kernel": new SE_VolumeView(_resolution),			
-												"width": sce.getCanvas().width, 
-												"height": sce.getCanvas().height,
-												"enableDepthTest": false,
-												"enableBlend": false, 
-												"blendSrc": Constants.BLENDING_MODES.ONE_MINUS_DST_ALPHA,
-												"blendDst": Constants.BLENDING_MODES.SRC_COLOR,
-												"onPostTick": (function() {						
-													
-												}).bind(this)});
-				
-				
-				var comp_cam_tranf_target = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
-				comp_screenEffects.setArg("posCamGoal", (function(){return [comp_cam_tranf_target.getPositionGoal().e[0], comp_cam_tranf_target.getPositionGoal().e[1], comp_cam_tranf_target.getPositionGoal().e[2], 1.0];}).bind(this));
+                var comp_cam_tranf_target = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET);
+                comp_screenEffects.addArgument("float4 posCamGoal", (function(){return [comp_cam_tranf_target.getPositionGoal().e[0], comp_cam_tranf_target.getPositionGoal().e[1], comp_cam_tranf_target.getPositionGoal().e[2], 1.0];}).bind(this));
+                comp_screenEffects.addArgument("float4 posCamTarget", (function(){return [comp_cam_tranf_target.getPositionTarget().e[0], comp_cam_tranf_target.getPositionTarget().e[1], comp_cam_tranf_target.getPositionTarget().e[2], 1.0];}).bind(this));
+                comp_screenEffects.addArgument("float viewportWidth", (function(){return sce.getCanvas().width;}).bind(this));
+                comp_screenEffects.addArgument("float viewportHeight", (function(){return sce.getCanvas().height;}).bind(this));
+                comp_screenEffects.addArgument("float uviewvolumechannel", (function(){return 1.0;}).bind(this));
+                comp_screenEffects.getComponentBufferArg("uResolution", gi.getComponentRendererNode());
+                comp_screenEffects.getComponentBufferArg("uGridsize", gi.getComponentRendererNode());
+                comp_screenEffects.getComponentBufferArg("sampler_voxelColor", gi.getComponentRendererNode());
+                comp_screenEffects.getComponentBufferArg("sampler_voxelPos", gi.getComponentRendererNode());
+                comp_screenEffects.getComponentBufferArg("sampler_voxelNormal", gi.getComponentRendererNode());
+				comp_screenEffects.gpufG.addKernel({
+                    "type": "KERNEL",
+                    "name": "VOLUME_VIEW",
+                    "viewSource": false,
+                    "config": ["x", undefined,
+                        // head
+                        new Utils().degToRadGLSLFunctionString()+
+                        new Utils().radToDegGLSLFunctionString()+
+                        new Utils().cartesianToSphericalGLSLFunctionString()+
+                        new Utils().sphericalToCartesianGLSLFunctionString()+
+                        new Utils().getVectorGLSLFunctionString()+
+
+                        new Utils().unpackGLSLFunctionString()+
+
+                        new Utils().rayTraversalInitSTR()+
+                        new Utils().rayTraversalSTR(_resolution),
+
+                        // source
+                        'vec3 posCamera = posCamGoal.xyz;\n'+
+                        'vec3 posCameraPivot = posCamTarget.xyz;\n'+
+
+                        'vec3 vecView = normalize(posCameraPivot-posCamera);\n'+
+
+                        'vec3 centroPlanoProyeccion = posCamera+(vecView*0.5);\n'+
+
+                        'vec3 vecXPlanoProyeccion = normalize(cross(vec3(0.0,1.0,0.0), vecView));\n'+
+                        'vec3 vecYPlanoProyeccion = normalize(cross(vecView, vecXPlanoProyeccion));\n'+
+
+                        'float widthPixel = 1.0/viewportWidth;\n'+
+                        'float heightPixel = 1.0/viewportWidth;\n'+
+
+                        'vec3 locFirstX = vecXPlanoProyeccion*((viewportWidth/2.0)*widthPixel);\n'+
+                        'vec3 locFirstY = vecYPlanoProyeccion*((viewportHeight/2.0)*heightPixel);\n'+
+                        'vec3 pixelOrigin = centroPlanoProyeccion+locFirstX;\n'+
+                        'pixelOrigin += locFirstY;\n'+
+
+
+                        'vec3 pixelPos = pixelOrigin+(-vecXPlanoProyeccion*(gl_FragCoord.x*widthPixel));\n'+
+                        'pixelPos += -vecYPlanoProyeccion*((viewportHeight-gl_FragCoord.y)*heightPixel);\n'+
+
+                        'vec3 currentPixelDir = normalize(pixelPos-posCamera);\n'+
+
+                        'RayTraversalResponse rayT = rayTraversal(posCamera, currentPixelDir);\n'+
+
+                        'vec4 outC;'+
+                        'if(rayT.voxelColor.a > 0.0) {'+ // hit in solid
+                            'if(uviewvolumechannel == 1.0)'+
+                                'outC = vec4(rayT.voxelColor.rgb, 1.0);'+
+                            'else if(uviewvolumechannel == 2.0)'+
+                                'outC = vec4(rayT.voxelPos.rgb, 1.0);'+
+                            'else '+
+                                'outC = vec4(rayT.voxelNormal.rgb, 1.0);'+
+                        '} else {'+ // hit in light
+                            'outC = vec4(0.0,0.0,0.0, 1.0);'+
+                        '}'+
+
+                        'return outC;'+
+                        ''],
+                    "drawMode": 4,
+                    "depthTest": false,
+                    "blend": false,
+                    "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                    "blendSrcMode": Constants.BLENDING_MODES.ONE_MINUS_DST_ALPHA,
+                    "blendDstMode": Constants.BLENDING_MODES.SRC_COLOR});
+
 				comp_screenEffects.setArgUpdatable("posCamGoal", true);
-				
-				comp_screenEffects.setArg("posCamTarget", (function(){return [comp_cam_tranf_target.getPositionTarget().e[0], comp_cam_tranf_target.getPositionTarget().e[1], comp_cam_tranf_target.getPositionTarget().e[2], 1.0];}).bind(this));
 				comp_screenEffects.setArgUpdatable("posCamTarget", true);
-				
-				comp_screenEffects.setArg("viewportWidth", (function(){return sce.getCanvas().width;}).bind(this));
-				comp_screenEffects.setArg("viewportHeight", (function(){return sce.getCanvas().height;}).bind(this));
 			}).bind(this);
 			
 			var setVolumeView_samplers = (function(albedo, position, normal) {
@@ -111,43 +162,38 @@
                                                                 gi.resume();
                                                             }
                                                         }).bind(this)});
-			var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+			var comp_screenEffects = project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
 			
 			// GRID
-			var grid = new Grid(sce);
-			grid.generate(100.0, 1.0);
+			//var grid = new Grid(sce);
+			//grid.generate(100.0, 1.0);
 
 
 			// GI
-			var _gridSize = 9.1, _resolution = 128; 
+			var _gridSize = 9.1, _resolution = 128;
 			var OFFSET = 1000.0;
-						
+
 			var gi = new GI(sce);
 			gi.setResolution(_resolution);
 			gi.setGridSize(_gridSize);
-			
-			var voxelizator = new Voxelizator(sce);
-			
+
+
 			var _mesh;
 			var loadObj = (function(url, onload) {
 				if(gi.isRunned() == true) gi.stop();
 				new Mesh().loadObj(url, (function(onload, mesh, textures) {
 					_mesh = mesh;
-					
+
 					gi.setMesh(_mesh);
 					gi.setImage("../_RESOURCES/UV.jpg");
-					
-					voxelizator.setMesh(_mesh);  
-					voxelizator.setImage("../_RESOURCES/UV.jpg");
-					
+
 					if(onload != undefined) onload();
 				}).bind(this, onload));
 			}).bind(this);
 			loadObj("../_RESOURCES/testGI.obj");
-			
+
 			var _viewVolume = false;
-			//initializeVolumeView();
-			//comp_screenEffects.disableKernel("sampler_volume");
+
 
 
 			//*********
@@ -190,26 +236,36 @@
 		<img id="img_normal" src="../_RESOURCES/cornellbox_normal.png" />-->
 		
 		<div id="DIVID_checkboxViewVolume"></div>
+		color: <input type='radio' name='el_radio_viewchannel' value='1.0' checked=true/> </br >
+        position: <input type='radio' name='el_radio_viewchannel' value='2.0' /> </br >
+        normal: <input type='radio' name='el_radio_viewchannel' value='3.0' />
 				
 		<div id="DIVID_status" style="font-size:16px;font-weight:bold"></div>
 		
 		<script>
 			var _status = document.getElementById("DIVID_status");
-			
-			
+
+            var l = document.querySelectorAll('input[name="el_radio_viewchannel"]');
+            for(var n=0; n<l.length; n++) {
+                l[n].addEventListener("click", (function() {
+                    var val = document.querySelector('input[name="el_radio_viewchannel"]:checked').value;
+                    comp_screenEffects.setArg("uviewvolumechannel", (function(){return val;}).bind(this));
+                }).bind(this));
+            }
+
 			// SELECT OBJ
 			var select = document.getElementById("select_obj");
 			select.addEventListener("change", (function() {
 				_status.innerHTML = "Loading obj...";
-				
+
 				loadObj("../_RESOURCES/"+select.options[select.selectedIndex].value, (function() {
 					_status.innerHTML = "";
-					
-					document.getElementById("INPUTID_GRID_SIZEX").disabled = false;					
+
+					document.getElementById("INPUTID_GRID_SIZEX").disabled = false;
 					document.getElementById("INPUTID_GRID_SIZEX_slider").disabled = false;
 					document.getElementById("DIVID_sliderGridSize").style.color = "rgba(0,0,0,1.0)";
-					
-					document.getElementById("INPUTID_GRID_RESOLUTIONX").disabled = false;					
+
+					document.getElementById("INPUTID_GRID_RESOLUTIONX").disabled = false;
 					document.getElementById("INPUTID_GRID_RESOLUTIONX_slider").disabled = false;
 					if(_resolution <= 128) {
 						e.style.color = "green";
@@ -223,21 +279,21 @@
 					}
 				}).bind(this));
 			}).bind(this));
-			
-			
+
+
 			// SLIDER GRID SIZE
 			var e = document.getElementById("DIVID_sliderGridSize");
 			new ActionHelpers().add_slider(e, "GRID_SIZE", _gridSize, 1, 200, 1, (function(value) {
 				_gridSize = value;
 			}).bind(this));
-			document.getElementById("INPUTID_GRID_SIZEX").readOnly = true; 
-			
-			
+			document.getElementById("INPUTID_GRID_SIZEX").readOnly = true;
+
+
 			// SLIDER RESOLUTION
 			var e = document.getElementById("DIVID_sliderResolution");
 			new ActionHelpers().add_slider(e, "GRID_RESOLUTION", _resolution, 32, 256, 32, (function(e, value) {
 				_resolution = value;
-				
+
 				if(_resolution <= 128) {
 					e.style.color = "green";
 					document.getElementById("INPUTID_GRID_RESOLUTIONX_slider").style.backgroundColor = "green";
@@ -252,26 +308,31 @@
 			document.getElementById("INPUTID_GRID_RESOLUTIONX").readOnly = true;
 			e.style.color = "green";
 			document.getElementById("INPUTID_GRID_RESOLUTIONX_slider").style.backgroundColor = "green";
-			
+
 			// BTN voxelizate & make path tracing
 			document.getElementById("BTNID_makeVoxels").addEventListener("click", (function() {
 				_status.innerHTML = "Voxelizating...";
-				
+
 				document.getElementById("INPUTID_GRID_SIZEX").disabled = true;
 				document.getElementById("INPUTID_GRID_SIZEX_slider").disabled = true;
 				document.getElementById("DIVID_sliderGridSize").style.color = "rgba(0,0,0,0.3)";
-				
-				document.getElementById("INPUTID_GRID_RESOLUTIONX").disabled = true;				
+
+				document.getElementById("INPUTID_GRID_RESOLUTIONX").disabled = true;
 				document.getElementById("INPUTID_GRID_RESOLUTIONX_slider").disabled = true;
 				document.getElementById("DIVID_sliderResolution").style.color = "rgba(0,0,0,0.3)";
-				
-				
-				
+
+
+
 				gi.setResolution(_resolution);
-				gi.setGridSize(_gridSize);	
+				gi.setGridSize(_gridSize);
 				gi.setMesh(_mesh);
 				gi.setImage("../_RESOURCES/UV.jpg");
-				
+
+                var voxelizator = new Voxelizator(sce);
+
+                voxelizator.setMesh(_mesh);
+                voxelizator.setImage("../_RESOURCES/UV.jpg");
+
 				voxelizator.generate({	"size": _gridSize,
 										"resolution": _resolution,
 										"fillmode": ["albedo","position","normal"],
@@ -280,53 +341,58 @@
 											for(var key in images) {
 												document.body.appendChild(images[key]);
 											}
-											
+
+
 											// GI
-											gi.setVoxelsArrays(voxelizator.getGeneratedArrays());											
+											gi.setVoxelsArrays(voxelizator.getGeneratedArrays());
 											gi.runGI();
-											
+
 											// volume view
-											//setVolumeView_samplers(voxelizator.getGeneratedArrays().albedo, voxelizator.getGeneratedArrays().position, voxelizator.getGeneratedArrays().normal);
-											
-											
+                                            initializeVolumeView();
+                                            comp_screenEffects.gpufG.disableKernel(2);
+											setVolumeView_samplers(voxelizator.getGeneratedArrays().albedo, voxelizator.getGeneratedArrays().position, voxelizator.getGeneratedArrays().normal);
+
+
 											if(_viewVolume == true) {
-												comp_screenEffects.enableKernel("sampler_volume");
+												comp_screenEffects.gpufG.enableKernel(2);
 											}
 
 											_status.innerHTML = "";
-											
+
 											document.getElementById("INPUTID_View_generated_voxels").disabled = false;
 											document.getElementById("DIVID_checkboxViewVolume").style.color = "rgba(0,0,0,1.0)";
+
+                                            voxelizator.disable();
 										}
 									});
 			}).bind(this));
-			
-			
+
+
 			// BTN LOAD FROM IMAGE
 			/*document.getElementById("BTNID_loadimage").addEventListener("click", (function() {
 				// GI
 				gi.setVoxelsArrays({"albedo": document.getElementById("img_albedo"),
 									"position": document.getElementById("img_position"),
-									"normal": document.getElementById("img_normal")});											
+									"normal": document.getElementById("img_normal")});
 				gi.runGI();
-				
+
 				// volume view
 				setVolumeView_samplers(document.getElementById("img_albedo"), document.getElementById("img_position"), document.getElementById("img_normal"));
-				
+
 				if(_viewVolume == true) {
 					comp_screenEffects.enableKernel("sampler_volume");
 				}
 			}).bind(this));*/
-			
-			
+
+
 			// CHECKBOX VIEW VOLUME
 			var e = document.getElementById("DIVID_checkboxViewVolume");
 			new ActionHelpers().add_checkbox(e, "View_generated_voxels", false, (function() {
 				_viewVolume = true;
-				comp_screenEffects.enableKernel("sampler_volume");
+				comp_screenEffects.gpufG.enableKernel(2);
 			}).bind(this), (function() {
 				_viewVolume = false;
-				comp_screenEffects.disableKernel("sampler_volume");
+				comp_screenEffects.gpufG.disableKernel(2);
 			}).bind(this));
 			document.getElementById("INPUTID_View_generated_voxels").disabled = true;
 			document.getElementById("DIVID_checkboxViewVolume").style.color = "rgba(0,0,0,0.3)";

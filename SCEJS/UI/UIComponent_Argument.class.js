@@ -17,19 +17,16 @@ UIComponent_Argument = function(targetElement, selectedNode, comp, args) {
 		for(var argKey in args) {
 			var arg = args[argKey];
 	
-			str += "<div id='DIVID_"+argKey+"_args'><span style='font-weight:bold;color:rgba(200,200,255,0.5)'>"+arg.type+"</span> "+argKey+" <input type='checkbox' id='CHECKBOX_UPDATE_"+argKey+"' title='update on tick' style='width:8px;height:8px;margin:0px;vertical-align:middle' />";
-			if(arg.value != undefined) {
-				if(arg.value instanceof WebCLGLBuffer) {
-					var strItems = "", sep = "";
-					for(var j=0; j < arg.value.items.length; j++) {
-						strItems += sep+"<span>"+arg.value.items[j].length+"</span>"; // arg.value.items[j].inData
-						sep = ",";
-					}
-					str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+strItems+"}</span>";
-				} else if(arg.value instanceof Float32Array || arg.value instanceof Array) {
-					str += " <span style='color:rgb(150, 255, 150)'> {"+arg.value.constructor.name+" <span>"+arg.value.length+"</span>}</span>"; // arg.value
+			str +=  "<div id='DIVID_"+argKey+"_args' title='"+arg+"'>"+
+			            argKey+
+                    " <input type='checkbox' id='CHECKBOX_UPDATE_"+argKey+"' title='update on tick' style='width:8px;height:8px;margin:0px;vertical-align:middle' />";
+			if(arg != undefined) {
+				if(arg instanceof WebCLGLBuffer) {
+					str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+arg.length+"}</span>";
+				} else if(arg instanceof Float32Array || arg instanceof Array) {
+					str += " <span style='color:rgb(150, 255, 150)'> {"+arg.constructor.name+" "+arg.length+"}</span>"; // arg.value
 				} else {
-					str += " <span style='color:rgb(150, 255, 150)'> {<span>"+arg.value.constructor.name+"</span>}</span>"; // arg.value
+					str += " <span style='color:rgb(150, 255, 150)'> {<span>"+arg.constructor.name+" "+arg+"}</span>"; // arg.value
 				}
 			}
 			str += "</div>";

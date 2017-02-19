@@ -42,10 +42,8 @@ PanelNode = function() {
 									"</div>";						
 						$('#DIVID_StormEditNode_edits').append(str);
 						
-						if(nodeCompKey == Constants.COMPONENT_TYPES.RENDERER) {
-							new UIComponentRenderer(compTypeKey, selectedNode);							
-						} else if(nodeCompKey == Constants.COMPONENT_TYPES.SCREEN_EFFECTS) {
-							new UIComponentScreenEffects(compTypeKey, selectedNode);	
+						if(nodeCompKey == Constants.COMPONENT_TYPES.GPU) {
+							new UIComponentGPU(compTypeKey, selectedNode);
 						} else if(nodeCompKey == Constants.COMPONENT_TYPES.PROJECTION) {
 							
 						}

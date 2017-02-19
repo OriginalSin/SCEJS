@@ -9,14 +9,14 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 
 
 	// VFPS
-	for(var vfpKey in comp.getVFPs()) {
-		var vfp = comp.getVFPs()[vfpKey];
+	for(var vfpKey in comp.gpufG.getAllVertexFragmentProgram()) {
+		var vfp = comp.gpufG.getAllVertexFragmentProgram()[vfpKey];
 
 		// vertex programs
 		var str = "<div id='"+targetElement.id+"_"+vfpKey+"_vps' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
 			"<div style='height:250px;'>"+
-				"<div>VFP NAME: "+vfpKey+"</div>"+
-				"<div>SE ARG destination: "+vfp.name+"</div>"+
+				"<div>VFP NAME: "+vfp.name+"</div>"+
+				"<div>SE ARG destination: "+vfp.output+"</div>"+
 	
 				"<div><input type='checkbox' id='ENABLE_"+vfpKey+"' style='font-size:10px;'></div>"+
 	
@@ -45,8 +45,8 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 				var arg = args[argKey];
 	
 				var exists = false;
-				for(var n=0, fn=vfp.vfp.in_vertex_values.length; n < fn; n++) {
-					var vv = vfp.vfp.in_vertex_values[n];
+				for(var n=0, fn=vfp.in_vertex_values.length; n < fn; n++) {
+					var vv = vfp.in_vertex_values[n];
 					if(vv.name == argKey) {
 						var bg = (vv.value != undefined) ? "rgba(255,150,150,1.0)" : "rgba(255,150,150,0.3)";
 						var isFromKernel = (arg.type == "buffer_float4_fromKernel") ? "<div style='display:inline-block;background-color:rgba(50,50,150,1.0);color:rgba(0,0,0,0);width:20px;margin:0px auto 0px 0px'>-</div>" : "";
@@ -63,13 +63,9 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 
 		var e = document.getElementById("ENABLE_"+vfpKey);
 		e.checked = (vfp.enabled == true) ? true : false;
-		e.addEventListener("click", (function(comp, vfpKey, e) {
-			if(e.checked == false) {
-				comp.disableVfp(vfpKey);
-			} else {
-				comp.enableVfp(vfpKey);
-			}
-		}).bind(this, comp, vfpKey, e));
+		e.addEventListener("click", (function(vfp, e) {
+            vfp.enabled = (e.checked == false) ? false : true;
+		}).bind(this, vfp, e));
 
 
 		var e = document.getElementById("DRAW_"+vfpKey);
@@ -80,30 +76,22 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 			}
 		e.addEventListener("change", (function(comp, vfpKey, e) {
 			console.log(e.options[e.selectedIndex].value);
-			comp.setVfpDrawMode(vfpKey, parseInt(e.options[e.selectedIndex].value));
+            vfp.drawMode = parseInt(e.options[e.selectedIndex].value);
 		}).bind(this, comp, vfpKey, e));
 
 
 		var e = document.getElementById("ENABLE_DEPTHTEST_"+vfpKey);
-		e.checked = (vfp.enableDepthTest == true) ? true : false;
-		e.addEventListener("click", (function(comp, vfpKey, e) {
-			if(e.checked == false) {
-				comp.setVfpEnableDepthTest(vfpKey, false);
-			} else {
-				comp.setVfpEnableDepthTest(vfpKey, true);
-			}
-		}).bind(this, comp, vfpKey, e));
+		e.checked = (vfp.depthTest == true) ? true : false;
+		e.addEventListener("click", (function(vfp, e) {
+            vfp.depthTest = (e.checked == false) ? false : true;
+		}).bind(this, vfp, e));
 
 
 		var e = document.getElementById("ENABLE_BLEND_"+vfpKey);
-		e.checked = (vfp.enableBlend == true) ? true : false;
-		e.addEventListener("click", (function(comp, vfpKey, e) {
-			if(e.checked == false) {
-				comp.setVfpEnableBlend(vfpKey, false);
-			} else {
-				comp.setVfpEnableBlend(vfpKey, true);
-			}
-		}).bind(this, comp, vfpKey, e));
+		e.checked = (vfp.blend == true) ? true : false;
+		e.addEventListener("click", (function(vfp, e) {
+            vfp.blend = (e.checked == false) ? false : true;
+		}).bind(this, vfp, e));
 
 
 		var e = document.getElementById("BLEND_EQUATION_"+vfpKey);
@@ -112,31 +100,31 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, vfpKey, e) {
-			comp.setVfpBlendEquation(vfpKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, vfpKey, e));
+		e.addEventListener("change", (function(vfp, e) {
+            vfp.blendEquation = e.options[e.selectedIndex].value;
+		}).bind(this, vfp, e));
 
 
 		var e = document.getElementById("BLEND_source_"+vfpKey);
 		for(var n=0; n < e.options.length; n++)
-			if(e.options[n].value == vfp.blendSrc) {
+			if(e.options[n].value == vfp.blendSrcMode) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, vfpKey, e) {
-			comp.setVfpBlendSrc(vfpKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, vfpKey, e));
+		e.addEventListener("change", (function(vfp, e) {
+            vfp.blendSrcMode = e.options[e.selectedIndex].value;
+		}).bind(this, vfp, e));
 
 
 		var e = document.getElementById("BLEND_destination_"+vfpKey);
 		for(var n=0; n < e.options.length; n++)
-			if(e.options[n].value == vfp.blendDst) {
+			if(e.options[n].value == vfp.blendDstMode) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, vfpKey, e) {
-			comp.setVfpBlendDst(vfpKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, vfpKey, e));
+		e.addEventListener("change", (function(vfp, e) {
+            vfp.blendDstMode = e.options[e.selectedIndex].value;
+		}).bind(this, vfp, e));
 
 
 
@@ -149,8 +137,8 @@ UIComponent_Vfp = function(targetElement, selectedNode, comp, args) {
 				var arg = args[argKey];
 	
 				var exists = false;
-				for(var n=0, fn=vfp.vfp.in_fragment_values.length; n < fn; n++) {
-					var fv = vfp.vfp.in_fragment_values[n];
+				for(var n=0, fn=vfp.in_fragment_values.length; n < fn; n++) {
+					var fv = vfp.in_fragment_values[n];
 					if(fv.name == argKey) {
 						var bg = (fv.value != undefined) ? "rgba(150,150,255,1.0)" : "rgba(150,150,255,0.3)";
 						str += 	"<div style='height:11px;background:"+bg+";color:rgba(0,0,0,0)'>-----</div>";

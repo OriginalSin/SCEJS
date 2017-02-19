@@ -30,7 +30,6 @@ var includesF = ['/WebCLGLUtils.class.js',
     '/WebCLGLBuffer.class.js',
     '/WebCLGLKernel.class.js',
     '/WebCLGLVertexFragmentProgram.class.js',
-    '/WebCLGLWork.class.js',
     '/WebCLGLFor.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+webCLGLDirectory+includesF[n]+'"></script>');
 
@@ -44,7 +43,6 @@ var WebCLGL = function(webglcontext) {
     "use strict";
 
 	this.utils = new WebCLGLUtils();
-    var _webCLGLWorks = [];
 
 	// WEBGL CONTEXT
 	var _gl;
@@ -56,7 +54,6 @@ var WebCLGL = function(webglcontext) {
 		_gl = this.utils.getWebGLContextFromCanvas(this.e, {antialias: false});
 	} else _gl = webglcontext;
 
-    // required extensions: OES_texture_float && OES_texture_float_linear
     var _arrExt = {"OES_texture_float":null, "OES_texture_float_linear":null, "OES_element_index_uint":null, "WEBGL_draw_buffers":null};
     for(var key in _arrExt) {
         _arrExt[key] = _gl.getExtension(key);
@@ -70,8 +67,9 @@ var WebCLGL = function(webglcontext) {
     } else
         console.log("Max draw buffers: 1");
 
-	var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
-	this.precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
+    var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
+    this.precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
+	//this.precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
     var _currentTextureUnit;
     var _bufferWidth = 0;
 
@@ -80,6 +78,9 @@ var WebCLGL = function(webglcontext) {
 	this.vertexBuffer_QUAD = _gl.createBuffer();
 	_gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
 	_gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(mesh.vertexArray), _gl.STATIC_DRAW);
+    this.textureBuffer_QUAD = _gl.createBuffer();
+    _gl.bindBuffer(_gl.ARRAY_BUFFER, this.textureBuffer_QUAD);
+    _gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(mesh.textureArray), _gl.STATIC_DRAW);
 	this.indexBuffer_QUAD = _gl.createBuffer();
 	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
 	_gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indexArray), _gl.STATIC_DRAW);
@@ -88,7 +89,7 @@ var WebCLGL = function(webglcontext) {
     var arrayCopyTex = [];
 
 	// SHADER READPIXELS
-	var sourceVertex = 	""+
+	var sourceVertex = 	this.precision+
 			'attribute vec3 aVertexPosition;\n'+
 			'varying vec2 vCoord;\n'+
 
@@ -105,6 +106,8 @@ var WebCLGL = function(webglcontext) {
 			'varying vec2 vCoord;\n'+
 
 			this.utils.packGLSLFunctionString()+
+
+            //'out vec4 fragmentColor;'+
 
 			'void main(void) {\n'+
 				'vec4 tex = texture2D(sampler_buffer, vCoord);'+
@@ -137,6 +140,13 @@ var WebCLGL = function(webglcontext) {
     var lines_drawBuffersEnable = (function() {
         return ((_maxDrawBuffers != null) ? '#extension GL_EXT_draw_buffers : require\n' : "");
     }).bind(this);
+    var lines_drawBuffersWriteInit = (function() {
+        var str = '';
+        for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
+            str += 'layout(location = '+n+') out vec4 outCol'+n+';\n';
+
+        return str;
+    }).bind(this);
     var lines_drawBuffersWrite = (function() {
         var str = '';
         for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
@@ -145,6 +155,7 @@ var WebCLGL = function(webglcontext) {
         return str;
     }).bind(this);
 	var sourceVertex = 	""+
+        this.precision+
 		'attribute vec3 aVertexPosition;\n'+
 		'varying vec2 vCoord;\n'+
 
@@ -159,6 +170,7 @@ var WebCLGL = function(webglcontext) {
 
 		'varying vec2 vCoord;\n'+
 
+        //lines_drawBuffersWriteInit()+
 		'void main(void) {\n'+
             lines_drawBuffersWrite()+
 		'}';
@@ -171,6 +183,15 @@ var WebCLGL = function(webglcontext) {
         arrayCopyTex[n] = _gl.getUniformLocation(this.shader_copyTexture, "uArrayCT["+n+"]");
     // END SHADER COPYTEXTURE
 
+    this.textureDataAux = _gl.createTexture();
+    _gl.bindTexture(_gl.TEXTURE_2D, this.textureDataAux);
+    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, 2, 2, 0, _gl.RGBA, _gl.FLOAT, new Float32Array([1,0,0,1, 0,1,0,1, 0,0,1,1, 1,1,1,1]));
+    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
+    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
+    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
+    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
+    _gl.bindTexture(_gl.TEXTURE_2D, null);
+
     /**
      * getContext
      * @returns {WebGLRenderingContext}
@@ -178,15 +199,6 @@ var WebCLGL = function(webglcontext) {
     this.getContext = function() {
         return _gl;
     };
-
-    /**
-     * getContext
-     * @returns {WebGLRenderingContext}
-     */
-    this.getDrawBufferExt = function() {
-        return _arrExt["WEBGL_draw_buffers"];
-    };
-
 
     /**
      * getMaxDrawBuffers
@@ -205,13 +217,26 @@ var WebCLGL = function(webglcontext) {
         if(webCLGLBuffers != null) {
             if(webCLGLBuffers[0] != null) {
                 _gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
-                _gl.bindFramebuffer(_gl.FRAMEBUFFER, pgr.fBuffer);
+
+                _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffers[0].fBuffer);
+                var arrDBuff = [];
+                for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+                    if(webCLGLBuffers[n] != null) {
+                        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, webCLGLBuffers[n].textureData, 0);
+                        arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'];
+                    } else
+                        arrDBuff[n] = _gl['NONE'];
+                }
+                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
                 _gl.useProgram(this.shader_copyTexture);
 
                 for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
                     _gl.activeTexture(_gl["TEXTURE"+n]);
-                    _gl.bindTexture(_gl.TEXTURE_2D, webCLGLBuffers[n].textureDataTemp);
+                    if(webCLGLBuffers[n] != null)
+                        _gl.bindTexture(_gl.TEXTURE_2D, webCLGLBuffers[n].textureDataTemp);
+                    else
+                        _gl.bindTexture(_gl.TEXTURE_2D, this.textureDataAux);
                     _gl.uniform1i(arrayCopyTex[n], n);
                 }
 
@@ -250,8 +275,7 @@ var WebCLGL = function(webglcontext) {
      * @param {String} [header=undefined] Additional functions
      */
     this.createKernel = function(source, header) {
-        var webclglKernel = new WebCLGLKernel(_gl, source, header);
-        return webclglKernel;
+        return new WebCLGLKernel(_gl, source, header);
     };
 
     /**
@@ -263,40 +287,30 @@ var WebCLGL = function(webglcontext) {
      * @param {String} [fragmentHeader=undefined]
      */
     this.createVertexFragmentProgram = function(vertexSource, vertexHeader, fragmentSource, fragmentHeader) {
-        var webclglVertexFragmentProgram = new WebCLGLVertexFragmentProgram(_gl, vertexSource, vertexHeader, fragmentSource, fragmentHeader);
-        return webclglVertexFragmentProgram;
-    };
-
-    /**
-     * Create work
-     * @returns {WebCLGLWork}
-     */
-    this.createWork = function(offset) {
-        var webclglWork = new WebCLGLWork(this, offset);
-        _webCLGLWorks.push(webclglWork);
-        return webclglWork;
-    };
-
-    /**
-     * getWorks
-     * @returns {Array<WebCLGLWork>}
-     */
-    this.getWorks = function() {
-        return _webCLGLWorks;
+        return new WebCLGLVertexFragmentProgram(_gl, vertexSource, vertexHeader, fragmentSource, fragmentHeader);
     };
 
     /**
      * fillBuffer with color
-     * @param {WebCLGLBuffer} buffer
+     * @param {WebGLTexture} texture
      * @param {Array<Float>} clearColor
+     * @param {WebGLFramebuffer} fBuffer
      */
-    this.fillBuffer = function(buffer, clearColor, fBuffer) {
+    this.fillBuffer = function(texture, clearColor, fBuffer) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, fBuffer);
+        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'], _gl.TEXTURE_2D, texture, 0);
 
+        var arrDBuff = [_arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL']];
+        _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+        //_gl.clearBufferfv(_gl.COLOR, 0, clearColor);
+
+        /*var arrDBuff = [_gl['NONE']];
+        _gl.drawBuffers(arrDBuff);
+        _gl.clearBufferfv(_gl.DEPTH, 0, clearColor);*/
 
         if(clearColor != undefined)
             _gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-        _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
+        _gl.clear(_gl.COLOR_BUFFER_BIT);
     };
 
     /**
@@ -305,15 +319,15 @@ var WebCLGL = function(webglcontext) {
      * @param {Object} inValue
      * @private
      */
-    var bindAttributeValue = (function(webCLGLProgram, inValue) {
-        if(inValue.value != undefined && inValue.value != null) {
+    var bindAttributeValue = (function(inValue, buff) {
+        if(buff != null) {
             if(inValue.type == 'float4_fromAttr') {
                 _gl.enableVertexAttribArray(inValue.location[0]);
-                _gl.bindBuffer(_gl.ARRAY_BUFFER, inValue.value.vertexData0);
+                _gl.bindBuffer(_gl.ARRAY_BUFFER, buff.vertexData0);
                 _gl.vertexAttribPointer(inValue.location[0], 4, _gl.FLOAT, false, 0, 0);
             } else if(inValue.type == 'float_fromAttr') {
                 _gl.enableVertexAttribArray(inValue.location[0]);
-                _gl.bindBuffer(_gl.ARRAY_BUFFER, inValue.value.vertexData0);
+                _gl.bindBuffer(_gl.ARRAY_BUFFER, buff.vertexData0);
                 _gl.vertexAttribPointer(inValue.location[0], 1, _gl.FLOAT, false, 0, 0);
             }
         } else
@@ -322,26 +336,26 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * bindSamplerValue
-     * @pram {WebCLGLKernel|WebCLGLVertexFragmentProgram}
+     * @pram {WebGLLocation}
      * @param {Object} inValue
      * @private
      */
-    var bindSamplerValue = (function(webCLGLProgram, inValue) {
+    var bindSamplerValue = (function(uBufferWidth, inValue, buff) {
         if(_currentTextureUnit < 16)
             _gl.activeTexture(_gl["TEXTURE"+_currentTextureUnit]);
         else
             _gl.activeTexture(_gl["TEXTURE16"]);
 
-        if(inValue.value != undefined && inValue.value != null) {
-            _gl.bindTexture(_gl.TEXTURE_2D, inValue.value.textureData);
-            _gl.uniform1i(inValue.location[0], _currentTextureUnit);
+        if(buff != null) {
+            _gl.bindTexture(_gl.TEXTURE_2D, buff.textureData);
 
             if(_bufferWidth == 0) {
-                _bufferWidth = inValue.value.W;
-                _gl.uniform1f(webCLGLProgram.uBufferWidth, _bufferWidth);
+                _bufferWidth = buff.W;
+                _gl.uniform1f(uBufferWidth, _bufferWidth);
             }
         } else
-            _gl.bindTexture(_gl.TEXTURE_2D, null);
+            _gl.bindTexture(_gl.TEXTURE_2D, this.textureDataAux);
+        _gl.uniform1i(inValue.location[0], _currentTextureUnit);
 
         _currentTextureUnit++;
     }).bind(this);
@@ -351,14 +365,14 @@ var WebCLGL = function(webglcontext) {
      * @param {Object} inValue
      * @private
      */
-    var bindUniformValue = (function(inValue) {
-        if(inValue.value != undefined && inValue.value != null) {
+    var bindUniformValue = (function(inValue, buff) {
+        if(buff != null) {
             if(inValue.type == 'float')
-                _gl.uniform1f(inValue.location[0], inValue.value);
+                _gl.uniform1f(inValue.location[0], buff);
             else if(inValue.type == 'float4')
-                _gl.uniform4f(inValue.location[0], inValue.value[0], inValue.value[1], inValue.value[2], inValue.value[3]);
+                _gl.uniform4f(inValue.location[0], buff[0], buff[1], buff[2], buff[3]);
             else if(inValue.type == 'mat4')
-                _gl.uniformMatrix4fv(inValue.location[0], false, inValue.value);
+                _gl.uniformMatrix4fv(inValue.location[0], false, buff);
         }
     }).bind(this);
 
@@ -368,16 +382,16 @@ var WebCLGL = function(webglcontext) {
      * @param {Object} inValue
      * @private
      */
-    var bindValue = (function(webCLGLProgram, inValue) {
+    var bindValue = (function(webCLGLProgram, inValue, argValue) {
         switch(inValue.expectedMode) {
             case "ATTRIBUTE":
-                bindAttributeValue(webCLGLProgram, inValue);
+                bindAttributeValue(inValue, argValue);
                 break;
             case "SAMPLER":
-                bindSamplerValue(webCLGLProgram, inValue);
+                bindSamplerValue(webCLGLProgram.uBufferWidth, inValue, argValue);
                 break;
             case "UNIFORM":
-                bindUniformValue(inValue);
+                bindUniformValue(inValue, argValue);
                 break;
         }
     }).bind(this);
@@ -393,7 +407,30 @@ var WebCLGL = function(webglcontext) {
         if(webCLGLBuffers != null) {
             if(webCLGLBuffers[0] != null) {
                 _gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
-                _gl.bindFramebuffer(_gl.FRAMEBUFFER, ((outputToTemp == true)?pgr.fBufferTemp:pgr.fBuffer));
+
+                _gl.bindFramebuffer(_gl.FRAMEBUFFER, ((outputToTemp == true) ? webCLGLBuffers[0].fBufferTemp:webCLGLBuffers[0].fBuffer));
+                var arrDBuff = [];
+                for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+                    if(webCLGLBuffers[n] != null) {
+                        var o = (outputToTemp == true) ? webCLGLBuffers[n].textureDataTemp : webCLGLBuffers[n].textureData;
+                        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, o, 0);
+                        arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'];
+                    } else
+                        arrDBuff[n] = _gl['NONE'];
+                }
+                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+
+                // checkFramebufferStatus
+                var sta = _gl.checkFramebufferStatus(_gl.FRAMEBUFFER);
+                var ferrors = {};
+                ferrors[_gl.FRAMEBUFFER_COMPLETE] = true;
+                ferrors[_gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_ATTACHMENT: The attachment types are mismatched or not all framebuffer attachment points are framebuffer attachment complete";
+                ferrors[_gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: There is no attachment";
+                ferrors[_gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS] = "FRAMEBUFFER_INCOMPLETE_DIMENSIONS: Height and width of the attachment are not the same";
+                ferrors[_gl.FRAMEBUFFER_UNSUPPORTED] = "FRAMEBUFFER_UNSUPPORTED: The format of the attachment is not supported or if depth and stencil attachments are not the same renderbuffer";
+                if(ferrors[sta] != true) {
+                    console.log(ferrors[sta]); debugger;
+                }
             } else {
                 _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
             }
@@ -407,7 +444,7 @@ var WebCLGL = function(webglcontext) {
      * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [webCLGLBuffer=null]
      * @param {Bool} outputToTemp
      */
-    this.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffer, outputToTemp) {
+    this.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffer, outputToTemp, argValues) {
         _bufferWidth = 0;
 
         _gl.useProgram(webCLGLKernel.kernel);
@@ -416,7 +453,7 @@ var WebCLGL = function(webglcontext) {
 
         _currentTextureUnit = 0;
         for(var key in webCLGLKernel.in_values)
-            bindValue(webCLGLKernel, webCLGLKernel.in_values[key]);
+            bindValue(webCLGLKernel, webCLGLKernel.in_values[key], argValues[key]);
 
         _gl.enableVertexAttribArray(webCLGLKernel.attr_VertexPos);
         _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
@@ -436,7 +473,7 @@ var WebCLGL = function(webglcontext) {
      * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [webCLGLBuffer=null]
      * @param {Bool} outputToTemp
      */
-    this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, bufferInd, drawMode, webCLGLBuffer, outputToTemp) {
+    this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, bufferInd, drawMode, webCLGLBuffer, outputToTemp, argValues) {
         _bufferWidth = 0;
 
         _gl.useProgram(webCLGLVertexFragmentProgram.vertexFragmentProgram);
@@ -452,10 +489,10 @@ var WebCLGL = function(webglcontext) {
 
             _currentTextureUnit = 0;
             for(var key in webCLGLVertexFragmentProgram.in_vertex_values)
-                bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_vertex_values[key]);
+                bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_vertex_values[key], argValues[key]);
 
             for(var key in webCLGLVertexFragmentProgram.in_fragment_values)
-                bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_fragment_values[key]);
+                 bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_fragment_values[key], argValues[key]);
 
             if(bufferInd.mode == "VERTEX_INDEX") {
                 _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, bufferIndex.vertexData0);

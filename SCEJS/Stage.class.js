@@ -142,28 +142,33 @@ Stage = function() {
 
 			gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 			gl.clearDepth(1.0);
-			gl.enable(gl.DEPTH_TEST);
+			//gl.enable(gl.DEPTH_TEST);
+            //gl.enable(gl.CULL_FACE);
+            //gl.cullFace(gl.BACK);
 			gl.depthFunc(gl.LEQUAL);
-			
-			var comp_screen_effects = activeCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS); 
-			if(comp_screen_effects != undefined)
-				comp_screen_effects.clearArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
-			
+
+			var comp_camera_gpu = activeCamera.getComponent(Constants.COMPONENT_TYPES.GPU);
+			if(comp_camera_gpu != undefined)
+                comp_camera_gpu.gpufG.fillPointerArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
+
 			for(var n=0, fn = nodes.length; n < fn; n++) {
-				for(var key in nodes[n].getComponents()) {
-					var component = nodes[n].getComponent(key);
+			    if(nodes[n] != activeCamera) {
+                    for(var key in nodes[n].getComponents()) {
+                        var component = nodes[n].getComponent(key);
 
-					if(component.tick != null && component.type != Constants.COMPONENT_TYPES.SCREEN_EFFECTS)
-						component.tick(activeCamera);
-				}
-				
-				if(nodes[n].onTick != null)  nodes[n].onTick();
-			}
+                        if(component.tick != null)
+                            component.tick();
+                    }
 
-			if(comp_screen_effects != undefined) {
-				//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				comp_screen_effects.tick();
+                    if(nodes[n].onTick != null)  nodes[n].onTick();
+                }
 			}
+            for(var key in activeCamera.getComponents()) {
+                var component = activeCamera.getComponent(key);
+
+                if(component.tick != null)
+                    component.tick();
+            }
 		}
 		if(paused == false) window.requestAnimFrame(tick);
 	}).bind(this);

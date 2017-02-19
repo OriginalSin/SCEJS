@@ -413,21 +413,20 @@ Utils.prototype.unpackGLSLFunctionString = function() {
 /** @private  */
 Utils.prototype.rayTraversalInitSTR = function() {  
 	return ''+
-	'float wh = ceil(sqrt(uResolution*uResolution*uResolution));\n'+  	
-	'float cs = uGridsize/uResolution;\n'+ // cell size 
-	'float chs = cs/2.0;\n'+ // cell size 
+	'float wh = ceil(sqrt(uResolution*uResolution*uResolution));\n'+
+	'float cs = uGridsize/uResolution;\n'+ // cell size
+	'float chs = cs/2.0;\n'+ // cell size
 	'float texelSize = 1.0/(wh-1.0);\n'+  // 1.0/(wh-1.0)??
 	
 	// Fast Voxel Traversal Algorithm for Ray Tracing. John Amanatides & Andrew Woo.
 	// http://www.cse.chalmers.se/edu/course/TDA361/grid.pdf
 	// More info:
-	// http://www.researchgate.net/publication/228770849_Ray_tracing_on_GPU/file/79e415105577b914fd.pdf
 	// http://www.clockworkcoders.com/oglsl/rt/gpurt3.htm
-	// http://www.gamerendering.com/2009/07/20/grid-traversal/
-	'vec3 gl = vec3(-(uGridsize/2.0), -(uGridsize/2.0), -(uGridsize/2.0));\n'+    
+	'vec3 gl = vec3(-(uGridsize/2.0), -(uGridsize/2.0), -(uGridsize/2.0));\n'+
 	'vec3 _r = vec3(uGridsize, uGridsize, uGridsize);\n'+
 	'vec3 _rRes = vec3(uResolution, uResolution, uResolution);\n'+
-	'vec3 _len = _r/_rRes;\n'+  
+	'vec3 _len = _r/_rRes;\n'+
+
 	'vec3 worldToVoxel(vec3 world) {\n'+
 		'vec3 ijk = (world - gl) / _len;\n'+ // (1.0-(-1.0)) / (2/64) = 64 
 		'ijk = vec3(floor(ijk.x), floor(ijk.y), floor(ijk.z));\n'+
@@ -461,11 +460,8 @@ Utils.prototype.rayTraversalSTR = function(resolution) {
         'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
 
         'vec4 texture = sampler_voxelPos[vec2(texVec.x, texVec.y)];\n'+
-        'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
-            'vec4 texVoxelPosX = sampler_voxelPos[vec2(texVec.x,texVec.y)]/255.0;\n'+
-
-            'rgba = vec4( (texVoxelPosX.xyz*uGridsize)-(uGridsize/2.0), 1.0);\n'+
-        '}\n'+
+        //distance(vec3(voxelToWorldX(voxel.x), voxelToWorldX(voxel.y), voxelToWorldX(voxel.z)),RayOrigin)
+        'rgba = vec4( ((texture.xyz/255.0)*uGridsize)-(uGridsize/2.0), 1.0);\n'+
 
         'return rgba;\n'+
     '}\n'+
@@ -473,9 +469,7 @@ Utils.prototype.rayTraversalSTR = function(resolution) {
         'vec4 rgba = vec4(0.0,0.0,0.0,0.0);\n'+
 
         'vec4 texture = sampler_voxelNormal[vec2(texVec.x, texVec.y)];\n'+
-        'if(texture.a/255.0 > 0.5) {\n'+ // existen triángulos dentro?
-            'rgba = vec4(((texture.rgb/255.0)*2.0)-1.0,1.0);\n'+
-        '}\n'+
+        'rgba = vec4(((texture.rgb/255.0)*2.0)-1.0, 1.0);\n'+
 
         'return rgba;\n'+
     '}\n'+
@@ -489,29 +483,31 @@ Utils.prototype.rayTraversalSTR = function(resolution) {
         'vec4 fvoxelPos = vec4(0.0, 0.0, 0.0, 0.0);'+
         'vec4 fvoxelNormal = vec4(0.0, 0.0, 0.0, 0.0);'+
 
-		'vec3 voxel = worldToVoxel(RayOrigin);'+   
-		'vec3 _dir = normalize(RayDir);'+   
-		'vec3 tMax;'+  
-		'if(RayDir.x < 0.0) tMax.x = (voxelToWorldX(voxel.x)-RayOrigin.x)/RayDir.x;'+ 	      
+		'vec3 voxel = worldToVoxel(RayOrigin);'+
+		'vec3 _dir = normalize(RayDir);'+
+		'vec3 tMax;'+
+		'if(RayDir.x < 0.0) tMax.x = (voxelToWorldX(voxel.x)-RayOrigin.x)/RayDir.x;'+
 		'if(RayDir.x > 0.0) tMax.x = (voxelToWorldX(voxel.x+1.0)-RayOrigin.x)/RayDir.x;'+
 		'if(RayDir.y < 0.0) tMax.y = (voxelToWorldY(voxel.y)-RayOrigin.y)/RayDir.y;'+
 		'if(RayDir.y < 0.0) tMax.y = (voxelToWorldY(voxel.y+1.0)-RayOrigin.y)/RayDir.y;'+
 		'if(RayDir.z < 0.0) tMax.z = (voxelToWorldZ(voxel.z)-RayOrigin.z)/RayDir.z;'+
 		'if(RayDir.z < 0.0) tMax.z = (voxelToWorldZ(voxel.z+1.0)-RayOrigin.z)/RayDir.z;'+
-		 
+
 		'float tDeltaX = _r.x/abs(RayDir.x);'+// hasta qué punto se debe avanzar en la dirección del rayo antes de que nos encontramos con un nuevo voxel en la dirección x
 		'float tDeltaY = _r.y/abs(RayDir.y);'+
-		'float tDeltaZ = _r.z/abs(RayDir.z);'+   
+		'float tDeltaZ = _r.z/abs(RayDir.z);'+
 
 		'float stepX = 1.0; float stepY = 1.0; float stepZ = 1.0;\n'+
 		'float outX = _r.x; float outY = _r.y; float outZ = _r.z;\n'+
 		'if(RayDir.x < 0.0) {stepX = -1.0; outX = -1.0;}'+
 		'if(RayDir.y < 0.0) {stepY = -1.0; outY = -1.0;}'+
-		'if(RayDir.z < 0.0) {stepZ = -1.0; outZ = -1.0;}'+ 
-			
+		'if(RayDir.z < 0.0) {stepZ = -1.0; outZ = -1.0;}'+
+
 		'vec4 color = vec4(0.0,0.0,0.0,0.0);\n'+
 		'bool c1; bool c2; bool c3; bool isOut;'+
-		'for(int c = 0; c < ('+resolution+'*2); c++) {\n'+      
+
+        'vec2 vid;'+
+		'for(int c = 0; c < '+resolution+'*2; c++) {\n'+
 			'c1 = bool(tMax.x < tMax.y);'+
 			'c2 = bool(tMax.x < tMax.z);'+
 			'c3 = bool(tMax.y < tMax.z);'+
@@ -528,23 +524,23 @@ Utils.prototype.rayTraversalSTR = function(resolution) {
 				'voxel.y += stepY;'+
 				'if(voxel.y==outY) isOut=true;'+
 				'tMax.y += tDeltaY;'+
-			'}'+       
-			'if(isOut == true) break;\n'+  
+			'}'+
+			'if(isOut == true) break;\n'+
 			'else {'+
 				'if((voxel.x >= 0.0 && voxel.x <= _rRes.x && voxel.y >= 0.0 && voxel.y <= _rRes.y && voxel.z >= 0.0 && voxel.z <= _rRes.z)) {;\n'+
 
-                    'vec2 vid = getId(voxel);'+
+                    'vid = getId(voxel);'+
                     'vec4 vcc = getVoxel_Color(vid, voxel, RayOrigin);'+
                     'if(vcc.a != 0.0) {'+
                         'fvoxelColor = vcc;'+
-                        'fvoxelPos = getVoxel_Pos(vid);'+
-                        'fvoxelNormal = getVoxel_Normal(vid);'+
                         'break;\n'+
                     '}'+
 
-				'}'+ 
+				'}'+
 			'}'+
 		'}'+
+        'fvoxelPos = getVoxel_Pos(vid);'+
+        'fvoxelNormal = getVoxel_Normal(vid);'+
 		'return RayTraversalResponse(fvoxelColor, fvoxelPos, fvoxelNormal);'+
 	'}\n';
 };

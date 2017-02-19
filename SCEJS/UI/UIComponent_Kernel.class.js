@@ -9,14 +9,14 @@ UIComponent_Kernel = function(targetElement, selectedNode, comp, args) {
 
 
 	//KERNELS
-	for(var kernelKey in comp.getKernels()) {
-		var kernel = comp.getKernels()[kernelKey];
+	for(var kernelKey in comp.gpufG.getAllKernels()) {
+		var kernel = comp.gpufG.getAllKernels()[kernelKey];
 
 		// fragment programs
 		var str = "<div id='"+targetElement.id+"_"+kernelKey+"_kernels' style='display:table-cell;vertical-align:top;min-width:100px;max-width:100px;border:1px solid #333;'>"+
 			"<div style='height:250px;'>"+
-				"<div>KERNEL NAME: "+kernelKey+"</div>"+
-				"<div>ARG DESTINATION: "+kernel.name+"</div>"+ 
+				"<div>KERNEL NAME: "+kernel.name+"</div>"+
+				"<div>ARG DESTINATION: "+kernel.output+"</div>"+
 				
 				"<div><input type='checkbox' id='ENABLE_"+kernelKey+"' style='font-size:10px;'></div>"+
 				
@@ -41,8 +41,8 @@ UIComponent_Kernel = function(targetElement, selectedNode, comp, args) {
 				var arg = args[argKey];
 	
 				var exists = false;
-				for(var n=0, fn=kernel.kernel.in_values.length; n < fn; n++) {
-					var fv = kernel.kernel.in_values[n];
+				for(var n=0, fn=kernel.in_values.length; n < fn; n++) {
+					var fv = kernel.in_values[n];
 					if(fv.name == argKey) {
 						var bg = (fv.value != undefined) ? "rgba(150,150,255,1.0)" : "rgba(150,150,255,0.3)";
 						var isDest = (kernel.name == argKey) ? "<div style='display:inline-block;background-color:rgba(50,50,150,1.0);color:rgba(0,0,0,0);width:20px;margin:0px auto 0px auto'>-</div>" : "";
@@ -59,35 +59,23 @@ UIComponent_Kernel = function(targetElement, selectedNode, comp, args) {
 		
 		var e = document.getElementById("ENABLE_"+kernelKey);
 		e.checked = (kernel.enabled == true) ? true : false;
-		e.addEventListener("click", (function(comp, kernelKey, e) {
-			if(e.checked == false) {
-				comp.disableKernel(kernelKey);
-			} else {
-				comp.enableKernel(kernelKey);
-			}
-		}).bind(this, comp, kernelKey, e));
+		e.addEventListener("click", (function(kernel, e) {
+            kernel.enabled = (e.checked == false) ? false : true;
+		}).bind(this, kernel, e));
 
 
 		var e = document.getElementById("ENABLE_DEPTHTEST_"+kernelKey);
-		e.checked = (kernel.enableDepthTest == true) ? true : false;
-		e.addEventListener("click", (function(comp, kernelKey, e) {
-			if(e.checked == false) {
-				comp.setKernelEnableDepthTest(kernelKey, false);
-			} else {
-				comp.setKernelEnableDepthTest(kernelKey, true);
-			}
-		}).bind(this, comp, kernelKey, e));
+		e.checked = (kernel.depthTest == true) ? true : false;
+		e.addEventListener("click", (function(kernel, e) {
+            kernel.depthTest = (e.checked == false) ? false : true;
+		}).bind(this, kernel, e));
 
 
 		var e = document.getElementById("ENABLE_BLEND_"+kernelKey);
-		e.checked = (kernel.enableBlend == true) ? true : false;
-		e.addEventListener("click", (function(comp, kernelKey, e) {
-			if(e.checked == false) {
-				comp.setKernelEnableBlend(kernelKey, false);
-			} else {
-				comp.setKernelEnableBlend(kernelKey, true);
-			}
-		}).bind(this, comp, kernelKey, e));
+		e.checked = (kernel.blend == true) ? true : false;
+		e.addEventListener("click", (function(kernel, e) {
+            kernel.blend = (e.checked == false) ? false : true;
+		}).bind(this, kernel, e));
 
 
 		var e = document.getElementById("BLEND_EQUATION_"+kernelKey);
@@ -96,31 +84,31 @@ UIComponent_Kernel = function(targetElement, selectedNode, comp, args) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, kernelKey, e) {
-			comp.setKernelBlendEquation(kernelKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, kernelKey, e));
+		e.addEventListener("change", (function(kernel, e) {
+            kernel.blendEquation = e.options[e.selectedIndex].value;
+		}).bind(this, kernel, e));
 
 
 		var e = document.getElementById("BLEND_source_"+kernelKey);
 		for(var n=0; n < e.options.length; n++)
-			if(e.options[n].value == kernel.blendSrc) {
+			if(e.options[n].value == kernel.blendSrcMode) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, kernelKey, e) {
-			comp.setKernelBlendSrc(kernelKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, kernelKey, e));
+		e.addEventListener("change", (function(kernel, e) {
+            kernel.blendSrcMode = e.options[e.selectedIndex].value;
+		}).bind(this, kernel, e));
 
 
 		var e = document.getElementById("BLEND_destination_"+kernelKey);
 		for(var n=0; n < e.options.length; n++)
-			if(e.options[n].value == kernel.blendDst) {
+			if(e.options[n].value == kernel.blendDstMode) {
 				e.selectedIndex = n;
 				break;
 			}
-		e.addEventListener("change", (function(comp, kernelKey, e) {
-			comp.setKernelBlendDst(kernelKey, e.options[e.selectedIndex].value);
-		}).bind(this, comp, kernelKey, e));
+		e.addEventListener("change", (function(kernel, e) {
+            kernel.blendDstMode = e.options[e.selectedIndex].value;
+		}).bind(this, kernel, e));
 	}
 	
 };

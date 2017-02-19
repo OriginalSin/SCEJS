@@ -39,20 +39,14 @@ var includesF = ['/StormMath.class.js',
                 '/Mesh.class.js',
                 '/Constants.js',
                 '/SystemEvents.class.js',
-                
-                
-                '/Component.class.js',
 
+                '/Component.class.js',
 				'/Component_GPU.class.js',
-				'/ComponentRenderer.class.js',
-				'/ComponentScreenEffects.class.js',
-				
 				'/ComponentTransform.class.js',
 				'/ComponentTransformTarget.class.js',
 				'/ComponentControllerTransformTarget.class.js',
 				'/ComponentProjection.class.js',
-				
-				
+
 				'/ComponentKeyboardEvents.class.js',
 				'/ComponentMouseEvents.class.js',
 				'/Node.class.js',
@@ -62,8 +56,7 @@ var includesF = ['/StormMath.class.js',
 				'/UI/PanelStage.class.js',
 				'/UI/PanelNode.class.js',
 				'/UI/PanelNumberGenerator.class.js',
-				'/UI/UIComponentRenderer.class.js',
-				'/UI/UIComponentScreenEffects.class.js',
+				'/UI/UIComponentGPU.class.js',
 				'/UI/UIComponent_Indices.class.js',
 				'/UI/UIComponent_Argument.class.js',
 				'/UI/UIComponent_Kernel.class.js',
@@ -191,7 +184,7 @@ SCE = function() {
                 var actCamera = project.getActiveStage().getActiveCamera();
 		        if(actCamera != null) {
                     var comp_proj = actCamera.getComponent(Constants.COMPONENT_TYPES.PROJECTION);
-                    var comp_screenEffects = actCamera.getComponent(Constants.COMPONENT_TYPES.SCREEN_EFFECTS);
+                    var comp_screenEffects = actCamera.getComponent(Constants.COMPONENT_TYPES.GPU);
 
                     comp_proj.setResolution(dimensions.width, dimensions.width);
                     comp_screenEffects.setArg("RGB", (function() {return new Float32Array(dimensions.width*dimensions.width*4);}).bind(this));
