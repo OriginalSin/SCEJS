@@ -52,7 +52,11 @@ WebCLGLUtils = function() {
 
         return meshObject;
     };
-    /** @private **/
+    /**
+     * getWebGLContextFromCanvas
+     * @param {HTMLCanvasElement} canvas
+     * @param {Object} ctxOpt
+     */
     this.getWebGLContextFromCanvas = function(canvas, ctxOpt) {
         var gl;
         /*try {

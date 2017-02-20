@@ -1,8 +1,11 @@
 /** 
 * WebCLGLBuffer Object 
 * @class
-* @constructor
-* @property {Float} length
+ * @param {WebGLRenderingContext} gl
+ * @param {String} type
+ * @param {Float} offset
+ * @param {boolean} linear
+ * @param {String} mode
 */
 WebCLGLBuffer = function(gl, type, offset, linear, mode) {
     "use strict";
@@ -13,7 +16,7 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
     this._supportFormat = _gl.FLOAT;
 
     this.offset = (offset != undefined) ? offset : 0;
-    this.linear = (linear != undefined && linear == true) ? true : false;
+    this.linear = (linear != undefined && linear == true);
     this.mode = (mode != undefined) ? mode : "SAMPLER"; // "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
 
     this.textureData = null;
@@ -32,7 +35,7 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
 
 
 
-    this.createFramebufferAndRenderbuffer = function() {
+    var createFramebufferAndRenderbuffer = (function() {
         var createWebGLRenderBuffer = (function() {
             var rBuffer = _gl.createRenderbuffer();
             _gl.bindRenderbuffer(_gl.RENDERBUFFER, rBuffer);
@@ -50,12 +53,12 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
         this.renderBufferTemp = createWebGLRenderBuffer();
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBufferTemp);
         _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, this.renderBufferTemp);
-    };
+    }).bind(this);
 
     /**
      * Write WebGLTexture buffer
-     * @param {Array|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} array
-     * @param {Bool} [flip=false]
+     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} arr
+     * @param {boolean} [flip=false]
      * @private
      */
     var writeWebGLTextureBuffer = (function(arr, flip) {
@@ -114,9 +117,8 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
 
     /**
      * Write on buffer
-     * @type Void
-     * @param {Array|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} array
-     * @param {Bool} [flip=false]
+     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} arr
+     * @param {boolean} [flip=false]
      * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
      */
     this.writeBuffer = function(arr, flip, overrideDimensions) {
@@ -180,7 +182,7 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
             _gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arr), _gl.STATIC_DRAW);
         }
 
-        this.createFramebufferAndRenderbuffer();
+        createFramebufferAndRenderbuffer();
     };
 
     /**

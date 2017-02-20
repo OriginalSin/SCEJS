@@ -1,7 +1,6 @@
 /**
 * WebCLGLVertexFragmentProgram Object
 * @class
-* @constructor
 */
 WebCLGLVertexFragmentProgram = function(gl, vertexSource, vertexHeader, fragmentSource, fragmentHeader) {
     "use strict";

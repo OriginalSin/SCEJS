@@ -34,9 +34,8 @@ var includesF = ['/WebCLGLUtils.class.js',
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+webCLGLDirectory+includesF[n]+'"></script>');
 
 /**
-* Class for parallelization of calculations using the WebGL context similarly to webcl. This library use floating point texture capabilities (OES_texture_float)
+* Class for parallelization of calculations using the WebGL context similarly to webcl
 * @class
-* @constructor
 * @param {WebGLRenderingContext} [webglcontext=undefined] your WebGLRenderingContext
 */
 var WebCLGL = function(webglcontext) {
@@ -78,9 +77,6 @@ var WebCLGL = function(webglcontext) {
 	this.vertexBuffer_QUAD = _gl.createBuffer();
 	_gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
 	_gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(mesh.vertexArray), _gl.STATIC_DRAW);
-    this.textureBuffer_QUAD = _gl.createBuffer();
-    _gl.bindBuffer(_gl.ARRAY_BUFFER, this.textureBuffer_QUAD);
-    _gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(mesh.textureArray), _gl.STATIC_DRAW);
 	this.indexBuffer_QUAD = _gl.createBuffer();
 	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
 	_gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indexArray), _gl.STATIC_DRAW);
@@ -202,7 +198,7 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * getMaxDrawBuffers
-     * @returns {Int}
+     * @returns {int}
      */
     this.getMaxDrawBuffers = function() {
         return _maxDrawBuffers;
@@ -210,7 +206,7 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * copy
-     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram}
+     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} pgr
      * @param {Array<WebCLGLBuffer>} [webCLGLBuffers=null]
      */
     this.copy = function(pgr, webCLGLBuffers) {
@@ -259,8 +255,8 @@ var WebCLGL = function(webglcontext) {
     /**
      * Create a empty WebCLGLBuffer
      * @param {String} [type="FLOAT"] type FLOAT4 OR FLOAT
-     * @param {Int} [offset=0] If 0 the range is from 0.0 to 1.0 else if >0 then the range is from -offset.0 to offset.0
-     * @param {Bool} [linear=false] linear texParameteri type for the WebGLTexture
+     * @param {int} [offset=0] If 0 the range is from 0.0 to 1.0 else if >0 then the range is from -offset.0 to offset.0
+     * @param {boolean} [linear=false] linear texParameteri type for the WebGLTexture
      * @param {String} [mode="SAMPLER"] Mode for this buffer. "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
      * @returns {WebCLGLBuffer}
      */
@@ -315,8 +311,8 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * bindAttributeValue
-     * @pram {WebCLGLVertexFragmentProgram}
      * @param {Object} inValue
+     * @param {WebCLGLBuffer} buff
      * @private
      */
     var bindAttributeValue = (function(inValue, buff) {
@@ -336,8 +332,9 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * bindSamplerValue
-     * @pram {WebGLLocation}
+     * @pram {WebGLLocation} uBufferWidth
      * @param {Object} inValue
+     * @param {WebCLGLBuffer} buff
      * @private
      */
     var bindSamplerValue = (function(uBufferWidth, inValue, buff) {
@@ -363,6 +360,7 @@ var WebCLGL = function(webglcontext) {
     /**
      * bindUniformValue
      * @param {Object} inValue
+     * @param {WebCLGLBuffer} buff
      * @private
      */
     var bindUniformValue = (function(inValue, buff) {
@@ -378,8 +376,9 @@ var WebCLGL = function(webglcontext) {
 
     /**
      * bindValue
-     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram}
+     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} webCLGLProgram
      * @param {Object} inValue
+     * @param {WebCLGLBuffer|Float|Array<Float>|Float32Array|Uint8Array} argValue
      * @private
      */
     var bindValue = (function(webCLGLProgram, inValue, argValue) {
@@ -399,8 +398,8 @@ var WebCLGL = function(webglcontext) {
     /**
      * bindFB
      * @param {Array<WebCLGLBuffer>} [webCLGLBuffers=null]
-     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram}
-     * @param {Bool} outputToTemp
+     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} pgr
+     * @param {boolean} outputToTemp
      * @private
      */
     var bindFB = (function(webCLGLBuffers, pgr, outputToTemp) {
@@ -442,7 +441,8 @@ var WebCLGL = function(webglcontext) {
      * Perform calculation and save the result on a WebCLGLBuffer
      * @param {WebCLGLKernel} webCLGLKernel
      * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [webCLGLBuffer=null]
-     * @param {Bool} outputToTemp
+     * @param {boolean} outputToTemp
+     * @param {Object} argValues
      */
     this.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffer, outputToTemp, argValues) {
         _bufferWidth = 0;
@@ -469,9 +469,10 @@ var WebCLGL = function(webglcontext) {
      * Perform WebGL graphical representation
      * @param {WebCLGLVertexFragmentProgram} webCLGLVertexFragmentProgram
      * @param {WebCLGLBuffer} bufferInd Buffer to draw type (type indices or vertex)
-     * @param {Int} [drawMode=4] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
+     * @param {int} [drawMode=4] 0=POINTS, 3=LINE_STRIP, 2=LINE_LOOP, 1=LINES, 5=TRIANGLE_STRIP, 6=TRIANGLE_FAN and 4=TRIANGLES
      * @param {WebCLGLBuffer|Array<WebCLGLBuffer>} [webCLGLBuffer=null]
-     * @param {Bool} outputToTemp
+     * @param {boolean} outputToTemp
+     * @param {Object} argValues
      */
     this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, bufferInd, drawMode, webCLGLBuffer, outputToTemp, argValues) {
         _bufferWidth = 0;
@@ -515,7 +516,7 @@ var WebCLGL = function(webglcontext) {
      * Get RGBAUint8Array array from a WebCLGLBuffer <br>
      * Read buffer in a specifics WebGL 32bit channel and return the data in one array of packets RGBA_Uint8Array <br>
      * @param {WebCLGLBuffer} buffer
-     * @param {Int} channel Channel to read
+     * @param {int} channel Channel to read
      * @returns {Uint8Array}
      **/
     var enqueueReadBuffer = (function(buffer, item) {
