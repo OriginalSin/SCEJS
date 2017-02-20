@@ -1,7 +1,6 @@
 /**
 * WebCLGLKernel Object
 * @class
-* @constructor
 */
 WebCLGLKernel = function(gl, source, header) {
     "use strict";

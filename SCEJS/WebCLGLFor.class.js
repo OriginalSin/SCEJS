@@ -1,7 +1,6 @@
 /**
- * gpufor
+ * WebCLGLFor
  * @class
- * @constructor
  */
 var WebCLGLFor = function() {
     "use strict";
@@ -294,9 +293,9 @@ var WebCLGLFor = function() {
     };
 
     /**
-     * Get argument from other gpufor (instead of addArgument)
+     * Get argument from other gpufor (instead of addArgument & setArg)
      * @param {String} argument Argument to set
-     * @param {gpufor} gpufor
+     * @param {WebCLGLFor} gpufor
      */
     this.getGPUForPointerArg = function(argument, gpufor) {
         if(this.calledArgs.hasOwnProperty(argument) == false)
@@ -324,7 +323,7 @@ var WebCLGLFor = function() {
      * @param {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} value
      * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
      * @param {String} [overrideType="FLOAT4"] - force "FLOAT4" or "FLOAT" (for no graphic program)
-     * @returns {WebCLGLBuffer}
+     * @returns {Float|Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement}
      */
     this.setArg = function(argument, value, overrideDimensions, overrideType) {
         if(argument == "indices") {
@@ -384,14 +383,16 @@ var WebCLGLFor = function() {
 
     /**
      * Set indices for the geometry passed in vertexFragmentProgram
-     * @param {Array<Float>} array
+     * @param {Array<Float>} arr
      */
     this.setIndices = function(arr) {
         this.CLGL_bufferIndices = _webCLGL.createBuffer("FLOAT", this.offset, false, "VERTEX_INDEX");
         this.CLGL_bufferIndices.writeBuffer(arr);
     };
 
-    /** @private  */
+    /**
+     * initialize
+     */
     this.ini = (function() {
         if(_gl != undefined)
             _webCLGL = new WebCLGL(_gl);
@@ -465,12 +466,17 @@ var WebCLGLFor = function() {
             return _webCLGL.enqueueReadBuffer_Float4(this._argsValues["result"]);
     }).bind(this);
 
-    /** @private  */
+    /**
+     * initialize Graphic
+     */
     this.iniG = (function() {
         if(_gl != undefined)
             _webCLGL = new WebCLGL(_gl);
         else
             _webCLGL = new WebCLGL();
+
+        _webCLGL.getContext().depthFunc(_webCLGL.getContext().LEQUAL);
+        _webCLGL.getContext().clearDepth(1.0);
 
         var argumentss = arguments[0]; // override
         this._args = argumentss[1]; // first is context or canvas
@@ -496,17 +502,23 @@ var WebCLGLFor = function() {
 
     /**
      * getCtx
+     * returns {WebGLRenderingContext}
      */
     this.getCtx = function() {
-        return _gl;
+        return _webCLGL.getContext();
     };
 
+    /**
+     * setCtx
+     * @param {WebGLRenderingContext} gl
+     */
     this.setCtx = function(gl) {
         _gl = gl;
     };
 
     /**
      * getWebCLGL
+     * returns {WebCLGL}
      */
     this.getWebCLGL = function() {
         return _webCLGL;
@@ -514,8 +526,8 @@ var WebCLGLFor = function() {
 
     /**
      * onPreProcessKernel
-     * @param {Int} [kernelNum=0]
-     * @param {Callback} fn
+     * @param {int} [kernelNum=0]
+     * @param {Function} fn
      */
     this.onPreProcessKernel = function(kernelNum, fn) {
         var fnc = (kernelNum instanceof Function) ? kernelNum : fn;
@@ -525,8 +537,8 @@ var WebCLGLFor = function() {
 
     /**
      * onPostProcessKernel
-     * @param {Int} [kernelNum=0]
-     * @param {Callback} fn
+     * @param {int} [kernelNum=0]
+     * @param {Function} fn
      */
     this.onPostProcessKernel = function(kernelNum, fn) {
         var fnc = (kernelNum instanceof Function) ? kernelNum : fn;
@@ -543,7 +555,7 @@ var WebCLGLFor = function() {
 
     /**
      * enableKernel
-     * @param {Int} [kernelNum=0]
+     * @param {int} [kernelNum=0]
      */
     this.enableKernel = function(kernelNum) {
         this.kernels[kernelNum.toString()|"0"].enabled = true;
@@ -551,7 +563,7 @@ var WebCLGLFor = function() {
 
     /**
      * disableKernel
-     * @param {Int} [kernelNum=0]
+     * @param {int} [kernelNum=0]
      */
     this.disableKernel = function(kernelNum) {
         this.kernels[kernelNum.toString()|"0"].enabled = false;
@@ -564,11 +576,11 @@ var WebCLGLFor = function() {
      */
     this.getKernel = function(name) {
         for(var key in this.kernels) {
-            if(key == name) {
+            if(key == name)
                 return this.kernels[key];
-                break;
-            }
         }
+
+        return null;
     };
 
     /**
@@ -581,8 +593,8 @@ var WebCLGLFor = function() {
 
     /**
      * onPreProcessGraphic
-     * @param {Int} [graphicNum=0]
-     * @param {Callback} fn
+     * @param {int} [graphicNum=0]
+     * @param {Function} fn
      */
     this.onPreProcessGraphic = function(graphicNum, fn) {
         var fnc = (graphicNum instanceof Function) ? graphicNum : fn;
@@ -592,8 +604,8 @@ var WebCLGLFor = function() {
 
     /**
      * onPostProcessGraphic
-     * @param {Int} [graphicNum=0]
-     * @param {Callback} fn
+     * @param {int} [graphicNum=0]
+     * @param {Function} fn
      */
     this.onPostProcessGraphic = function(graphicNum, fn) {
         var fnc = (graphicNum instanceof Function) ? graphicNum : fn;
@@ -603,7 +615,7 @@ var WebCLGLFor = function() {
 
     /**
      * enableGraphic
-     * @param {Int} [graphicNum=0]
+     * @param {int} [graphicNum=0]
      */
     this.enableGraphic = function(graphicNum) {
         this.vertexFragmentPrograms[graphicNum.toString()|"0"].enabled = true;
@@ -611,7 +623,7 @@ var WebCLGLFor = function() {
 
     /**
      * disableGraphic
-     * @param {Int} [graphicNum=0]
+     * @param {int} [graphicNum=0]
      */
     this.disableGraphic = function(graphicNum) {
         this.vertexFragmentPrograms[graphicNum.toString()|"0"].enabled = false;
@@ -624,11 +636,11 @@ var WebCLGLFor = function() {
      */
     this.getVertexFragmentProgram = function(name) {
         for(var key in this.vertexFragmentPrograms) {
-            if(key == name) {
+            if(key == name)
                 return this.vertexFragmentPrograms[key];
-                break;
-            }
         }
+
+        return null;
     };
 
     /**
@@ -641,7 +653,7 @@ var WebCLGLFor = function() {
 
     /**
      * Process kernels
-     * @param {Bool} outputToTemp - (when no graphic mode)
+     * @param {boolean} outputToTemp - (when no graphic mode)
      */
     this.processKernels = function(outputToTemp) {
         var arrMakeCopy = [];
@@ -761,21 +773,20 @@ var WebCLGLFor = function() {
 };
 /**
  * gpufor
- * @class
- * @constructor
+ * @returns {WebCLGLFor|Array<Float>}
  */
 var gpufor = function() {
     "use strict";
     var clglFor = new WebCLGLFor();
-
+    var _gl;
     if(arguments[0] instanceof HTMLCanvasElement) {
-        var _gl = new WebCLGLUtils().getWebGLContextFromCanvas(arguments[0]);
+        _gl = new WebCLGLUtils().getWebGLContextFromCanvas(arguments[0]);
         clglFor.setCtx(_gl);
         clglFor.offset = window.gpufor_precision|1000;
         clglFor.iniG(arguments);
         return clglFor;
     } else if(arguments[0] instanceof WebGLRenderingContext) {
-        var _gl = arguments[0];
+        _gl = arguments[0];
         clglFor.setCtx(_gl);
         clglFor.offset = window.gpufor_precision|1000;
         clglFor.iniG(arguments);
@@ -784,7 +795,7 @@ var gpufor = function() {
         var e = document.createElement('canvas');
         e.width = 32;
         e.height = 32;
-        var _gl = new WebCLGLUtils().getWebGLContextFromCanvas(e, {antialias: false});
+        _gl = new WebCLGLUtils().getWebGLContextFromCanvas(e, {antialias: false});
         clglFor.setCtx(_gl);
         clglFor.offset = window.gpufor_precision|0;
         return clglFor.ini(arguments);
