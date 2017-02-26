@@ -1,7 +1,7 @@
 /** @private **/
-function VFP_RGB(textureUnitCount) { VFP.call(this);
+function VFP_RGB(textureUnitCount) {
 	this.getSrc = function() {
-		var str_vfp = [["RGB"],
+        return [["RGB"],
 		    // vertex head
 			'varying vec4 vVN;\n'+
 			 'varying vec4 vVT;\n'+
@@ -28,9 +28,5 @@ function VFP_RGB(textureUnitCount) { VFP.call(this);
             'vec4 textureColor = texture2D(texAlbedo, vVT.xy);\n'+
             // diffuse
             'return [textureColor];\n'];
-		
-		return str_vfp;
 	};
-};
-VFP_RGB.prototype = Object.create(VFP.prototype);
-VFP_RGB.prototype.constructor = VFP_RGB;
+}

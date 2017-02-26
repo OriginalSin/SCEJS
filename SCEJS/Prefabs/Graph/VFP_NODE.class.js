@@ -1,7 +1,7 @@
 /** @private **/
-function VFP_NODE(customCode, geometryLength) { VFP.call(this);
+function VFP_NODE(customCode, geometryLength) {
 	this.getSrc = function() {
-		var str_vfp = [["RGB"],
+        return [["RGB"],
 
             //██╗   ██╗███████╗██████╗ ████████╗███████╗██╗  ██╗    ██╗  ██╗███████╗ █████╗ ██████╗
             //██║   ██║██╔════╝██╔══██╗╚══██╔══╝██╔════╝╚██╗██╔╝    ██║  ██║██╔════╝██╔══██╗██╔══██╗
@@ -433,9 +433,5 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
 
             'return [fcolor];'
         ];
-
-       	return str_vfp;
 	};
-};
-VFP_NODE.prototype = Object.create(VFP.prototype);
-VFP_NODE.prototype.constructor = VFP_NODE;
+}
