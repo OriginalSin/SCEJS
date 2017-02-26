@@ -3,11 +3,10 @@
 * @class
  * @param {WebGLRenderingContext} gl
  * @param {String} type
- * @param {Float} offset
  * @param {boolean} linear
  * @param {String} mode
 */
-WebCLGLBuffer = function(gl, type, offset, linear, mode) {
+WebCLGLBuffer = function(gl, type, linear, mode) {
     "use strict";
 
     var _gl = gl;
@@ -15,7 +14,6 @@ WebCLGLBuffer = function(gl, type, offset, linear, mode) {
     this.type = (type != undefined) ? type : 'FLOAT';
     this._supportFormat = _gl.FLOAT;
 
-    this.offset = (offset != undefined) ? offset : 0;
     this.linear = (linear != undefined && linear == true);
     this.mode = (mode != undefined) ? mode : "SAMPLER"; // "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
 
