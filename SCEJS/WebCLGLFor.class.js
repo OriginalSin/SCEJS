@@ -449,7 +449,10 @@ var WebCLGLFor = function() {
                 (argVal instanceof Array || argVal instanceof Float32Array || argVal instanceof Uint8Array || argVal instanceof HTMLImageElement))
                 buffLength = argVal.length;
         }
-        this.addArgument("float* result");
+        if(typOut=="FLOAT")
+            this.addArgument("float* result");
+        else
+            this.addArgument("float4* result");
         this.setArg("result", new Float32Array(buffLength), null, typOut);
 
 
@@ -458,12 +461,9 @@ var WebCLGLFor = function() {
 
         //var fbs = new WebCLGLUtils().createFBs(_webCLGL.getContext(), _webCLGL.getDrawBufferExt(), _webCLGL.getMaxDrawBuffers(), this.getKernel("0"), this._argsValues, this.buffers[Object.keys(this.buffers)[0]].W, this.buffers[Object.keys(this.buffers)[0]].H);
 
-        this.processKernels(false);
+        this.processKernels();
 
-        if(typOut=="FLOAT")
-            return _webCLGL.enqueueReadBuffer_Float(this._argsValues["result"]);
-        else
-            return _webCLGL.enqueueReadBuffer_Float4(this._argsValues["result"]);
+        return _webCLGL.readBuffer(this._argsValues["result"]);
     }).bind(this);
 
     /**

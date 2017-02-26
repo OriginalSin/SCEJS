@@ -957,11 +957,10 @@ Graph = function(sce) {
                     _onClickNode(node);
 
 
-                var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getBuffers()["posXYZW"]);
-                var x = arr4Uint8_XYZW[0][_nodesById[selectedId].itemStart];
-                var y = arr4Uint8_XYZW[1][_nodesById[selectedId].itemStart];
-                var z = arr4Uint8_XYZW[2][_nodesById[selectedId].itemStart];
-                var w = arr4Uint8_XYZW[3][_nodesById[selectedId].itemStart];
+                var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().readBuffer(comp_renderer_nodes.getBuffers()["posXYZW"]);
+                var x = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)];
+                var y = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+1];
+                var z = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+2];
                 _initialPosDrag = $V3([x,y,z]);
 
                 makeDrag(undefined, $V3([0.0, 0.0, 0.0]));
@@ -1435,10 +1434,10 @@ Graph = function(sce) {
     };
 
     this.getNeuronOutput = function(neuronName) {
-        var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getBuffers()["dataB"]);
+        var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().readBuffer(comp_renderer_nodes.getBuffers()["dataB"]);
 
-        var n = _nodesByName[neuronName].itemStart;
-        return [arr4Uint8_XYZW[0][n], arr4Uint8_XYZW[1][n], arr4Uint8_XYZW[2][n], arr4Uint8_XYZW[3][n]];
+        var n = (_nodesByName[neuronName].itemStart*4);
+        return [arr4Uint8_XYZW[n], arr4Uint8_XYZW[n+1], arr4Uint8_XYZW[n+2], arr4Uint8_XYZW[n+3]];
     };
 
     this.makeNetworkStep = function() {
@@ -2432,18 +2431,8 @@ Graph = function(sce) {
         comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
         comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this));
 
-		if(comp_renderer_nodes.getBuffers()["posXYZW"] != undefined) {
-			var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getBuffers()["posXYZW"]);
-			//var arr4Uint8_XYZW = this.clglLayout_nodes.CLGL_bufferPosXYZW.Float4;
-			for(var n = 0, f = arr4Uint8_XYZW[0].length; n < f; n++) {
-				var idx = n*4;
-				this.arrayNodePosXYZW[idx] = arr4Uint8_XYZW[0][n];
-				this.arrayNodePosXYZW[idx+1] = arr4Uint8_XYZW[1][n];
-				this.arrayNodePosXYZW[idx+2] = arr4Uint8_XYZW[2][n];
-				this.arrayNodePosXYZW[idx+3] = arr4Uint8_XYZW[3][n];
-			}
-
-		}
+		if(comp_renderer_nodes.getBuffers()["posXYZW"] != undefined)
+            this.arrayNodePosXYZW = comp_renderer_nodes.getWebCLGL().readBuffer(comp_renderer_nodes.getBuffers()["posXYZW"]);
 		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this));
 
 		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this));
