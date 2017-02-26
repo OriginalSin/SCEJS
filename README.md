@@ -18,7 +18,7 @@ Multipurpose Javascript 3D graphic library<br />
 		<a href="http://stormcolour.appspot.com/js/libs/SCEJS/demos/graph-custom-layout/index.html">- Graph Custom</a><br />
 		<a href="http://stormcolour.appspot.com/js/libs/SCEJS/demos/graph-custom-layout/index.html"><img src="demos/graph-custom-layout/capture.jpg" style="width:150px"/></a> <br />
 <br />
-        <a href="http://stormcolour.appspot.com/js/libs/SCEJS/demos/graph-neuronal-network/index.html">- Graph Custom</a><br />
+        <a href="http://stormcolour.appspot.com/js/libs/SCEJS/demos/graph-neuronal-network/index.html">- Graph Neuronal network</a><br />
         <a href="http://stormcolour.appspot.com/js/libs/SCEJS/demos/graph-neuronal-network/index.html"><img src="demos/graph-neuronal-network/capture.jpg" style="width:150px"/></a> <br />
 <br />
 		<a href="http://stormcolour.appspot.com/js/libs/SCEJS/demos/voxels-path-tracing/index.html">- Voxels Path-Tracing</a><br />
