@@ -1,7 +1,7 @@
 /** @private **/
-function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
+function VFP_NODEPICKDRAG(geometryLength) {
 	this.getSrc = function() {
-		var str_vfp = [[undefined],
+        return [[undefined],
        	    // vertex head
        		'varying vec4 vColor;\n'+
 			//'uniform sampler2D posXYZW;\n'+
@@ -62,9 +62,5 @@ function VFP_NODEPICKDRAG(geometryLength) { VFP.call(this);
 
             'return [vColor];\n'
         ];
-
-       	return str_vfp;
 	};
-};
-VFP_NODEPICKDRAG.prototype = Object.create(VFP.prototype);
-VFP_NODEPICKDRAG.prototype.constructor = VFP_NODEPICKDRAG;
+}

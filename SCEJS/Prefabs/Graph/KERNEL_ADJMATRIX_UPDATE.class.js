@@ -38,4 +38,3 @@ function KERNEL_ADJMATRIX_UPDATE(geometryLength) {
             ''];
     };
 }
-KERNEL_ADJMATRIX_UPDATE.prototype.constructor = KERNEL_ADJMATRIX_UPDATE;

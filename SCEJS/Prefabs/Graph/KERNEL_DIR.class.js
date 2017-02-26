@@ -1,5 +1,5 @@
 /** @private **/
-function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.call(this);
+function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) {
     var outputArr;
     var returnStr;
     if(_enableNeuronalNetwork == true) {
@@ -11,7 +11,7 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.ca
     }
 
     this.getSrc = function() {
-        var str_vfp = ["x", outputArr,
+        return ["x", outputArr,
                         // head
                         adjMatrix_ForceLayout_GLSLFunctionString(geometryLength),
 
@@ -60,9 +60,5 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) { VFP.ca
 
 
                         returnStr];
-
-        return str_vfp;
     };
-};
-KERNEL_DIR.prototype = Object.create(VFP.prototype);
-KERNEL_DIR.prototype.constructor = KERNEL_DIR;
+}
