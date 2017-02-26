@@ -255,7 +255,7 @@ var WebCLGL = function(webglcontext) {
     /**
      * Create a empty WebCLGLBuffer
      * @param {String} [type="FLOAT"] type FLOAT4 OR FLOAT
-     * @param {int} [offset=0] If 0 the range is from 0.0 to 1.0 else if >0 then the range is from -offset.0 to offset.0
+     * @param {Float} [offset=0.0] If 0 the range is from 0.0 to 1.0 else if >0 then the range is from -offset.0 to offset.0
      * @param {boolean} [linear=false] linear texParameteri type for the WebGLTexture
      * @param {String} [mode="SAMPLER"] Mode for this buffer. "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
      * @returns {WebCLGLBuffer}
@@ -484,9 +484,7 @@ var WebCLGL = function(webglcontext) {
         bindFB(webCLGLBuffer, webCLGLVertexFragmentProgram, outputToTemp);
 
         if(bufferInd != undefined) {
-            var bufferIndex = bufferInd;
-
-            _gl.uniform1f(webCLGLVertexFragmentProgram.uOffset, bufferIndex.offset);
+            _gl.uniform1f(webCLGLVertexFragmentProgram.uOffset, bufferInd.offset);
 
             _currentTextureUnit = 0;
             for(var key in webCLGLVertexFragmentProgram.in_vertex_values)
@@ -496,11 +494,10 @@ var WebCLGL = function(webglcontext) {
                  bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_fragment_values[key], argValues[key]);
 
             if(bufferInd.mode == "VERTEX_INDEX") {
-                _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, bufferIndex.vertexData0);
-                _gl.drawElements(Dmode, bufferIndex.length, _gl.UNSIGNED_SHORT, 0);
-            } else {
-                _gl.drawArrays(Dmode, 0, bufferIndex.length);
-            }
+                _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, bufferInd.vertexData0);
+                _gl.drawElements(Dmode, bufferInd.length, _gl.UNSIGNED_SHORT, 0);
+            } else
+                _gl.drawArrays(Dmode, 0, bufferInd.length);
         }
     };
 

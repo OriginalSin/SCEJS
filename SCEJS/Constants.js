@@ -18,7 +18,7 @@ var Constants = {
 	},
 	"PROJECTION_TYPES": {
 		"PERSPECTIVE": 0,
-		"ORTHO": 1,
+		"ORTHO": 1
 	},
 	"VIEW_TYPES": {
 		"LEFT": 0,
@@ -26,7 +26,7 @@ var Constants = {
 		"FRONT": 2,
 		"BACK": 3,
 		"TOP": 4,
-		"BOTTOM": 5,
+		"BOTTOM": 5
 	},
 	"BLENDING_MODES": {
 		"ZERO": "ZERO",
