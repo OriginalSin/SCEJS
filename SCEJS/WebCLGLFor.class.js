@@ -5,8 +5,6 @@
 var WebCLGLFor = function() {
     "use strict";
 
-	this.offset = null;
-
 	this.kernels = {};
 	this.vertexFragmentPrograms = {};
     this._args = {};
@@ -350,7 +348,7 @@ var WebCLGLFor = function() {
                         if(value != undefined && value != null) {
                             if(this._argsValues.hasOwnProperty(argument) == false ||
                                 (this._argsValues.hasOwnProperty(argument) == true && this._argsValues[argument] == null)) {
-                                this._argsValues[argument] = _webCLGL.createBuffer(type, this.offset, false, mode);
+                                this._argsValues[argument] = _webCLGL.createBuffer(type, false, mode);
                                 this._argsValues[argument].argument = argument;
 
                                 updateCalledArg = true;
@@ -395,7 +393,7 @@ var WebCLGLFor = function() {
      * @param {Array<Float>} arr
      */
     this.setIndices = function(arr) {
-        this.CLGL_bufferIndices = _webCLGL.createBuffer("FLOAT", this.offset, false, "VERTEX_INDEX");
+        this.CLGL_bufferIndices = _webCLGL.createBuffer("FLOAT", false, "VERTEX_INDEX");
         this.CLGL_bufferIndices.writeBuffer(arr);
     };
 
@@ -459,9 +457,9 @@ var WebCLGLFor = function() {
                 buffLength = argVal.length;
         }
         if(typOut=="FLOAT")
-            this.addArgument("float* result");
+            this.addArg("float* result");
         else
-            this.addArgument("float4* result");
+            this.addArg("float4* result");
         this.setArg("result", new Float32Array(buffLength), null, typOut);
 
 
@@ -791,13 +789,11 @@ var gpufor = function() {
     if(arguments[0] instanceof HTMLCanvasElement) {
         _gl = new WebCLGLUtils().getWebGLContextFromCanvas(arguments[0]);
         clglFor.setCtx(_gl);
-        clglFor.offset = window.gpufor_precision|1000;
         clglFor.iniG(arguments);
         return clglFor;
     } else if(arguments[0] instanceof WebGLRenderingContext) {
         _gl = arguments[0];
         clglFor.setCtx(_gl);
-        clglFor.offset = window.gpufor_precision|1000;
         clglFor.iniG(arguments);
         return clglFor;
     } else {
@@ -806,7 +802,6 @@ var gpufor = function() {
         e.height = 32;
         _gl = new WebCLGLUtils().getWebGLContextFromCanvas(e, {antialias: false});
         clglFor.setCtx(_gl);
-        clglFor.offset = window.gpufor_precision|0;
         return clglFor.ini(arguments);
     }
 };
