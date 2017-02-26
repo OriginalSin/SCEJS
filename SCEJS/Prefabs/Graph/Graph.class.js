@@ -957,7 +957,7 @@ Graph = function(sce) {
                     _onClickNode(node);
 
 
-                var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().readBuffer(comp_renderer_nodes.getBuffers()["posXYZW"]);
+                var arr4Uint8_XYZW = comp_renderer_nodes.gpufG.readArg("posXYZW");
                 var x = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)];
                 var y = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+1];
                 var z = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+2];
@@ -1434,7 +1434,7 @@ Graph = function(sce) {
     };
 
     this.getNeuronOutput = function(neuronName) {
-        var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().readBuffer(comp_renderer_nodes.getBuffers()["dataB"]);
+        var arr4Uint8_XYZW = comp_renderer_nodes.gpufG.readArg("dataB");
 
         var n = (_nodesByName[neuronName].itemStart*4);
         return [arr4Uint8_XYZW[n], arr4Uint8_XYZW[n+1], arr4Uint8_XYZW[n+2], arr4Uint8_XYZW[n+3]];
@@ -2432,7 +2432,7 @@ Graph = function(sce) {
         comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this));
 
 		if(comp_renderer_nodes.getBuffers()["posXYZW"] != undefined)
-            this.arrayNodePosXYZW = comp_renderer_nodes.getWebCLGL().readBuffer(comp_renderer_nodes.getBuffers()["posXYZW"]);
+            this.arrayNodePosXYZW = comp_renderer_nodes.gpufG.readArg("posXYZW");
 		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this));
 
 		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this));
