@@ -91,7 +91,7 @@ Component_GPU = function() { Component.call(this);
             "splits": null,
             "overrideDimensions": null};
 
-        this.gpufG.addArgument(arg, value());
+        this.gpufG.addArg(arg);
     };
 
     /**
@@ -117,7 +117,7 @@ Component_GPU = function() { Component.call(this);
      * @param {Component_GPU} comp_gpu
      */
     this.getComponentBufferArg = function(argument, comp_gpu) {
-        this.gpufG.getGPUForPointerArg(argument, comp_gpu.gpufG);
+        this.gpufG.getGPUForArg(argument, comp_gpu.gpufG);
         this.args[argument] = {	"fnvalue": null,
             "updatable": null,
             "splits": null,

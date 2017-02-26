@@ -149,7 +149,7 @@ Stage = function() {
 
 			var comp_camera_gpu = activeCamera.getComponent(Constants.COMPONENT_TYPES.GPU);
 			if(comp_camera_gpu != undefined)
-                comp_camera_gpu.gpufG.fillPointerArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
+                comp_camera_gpu.gpufG.fillArg("RGB", [backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]]);
 
 			for(var n=0, fn = nodes.length; n < fn; n++) {
 			    if(nodes[n] != activeCamera) {

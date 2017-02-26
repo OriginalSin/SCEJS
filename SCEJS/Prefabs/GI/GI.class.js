@@ -292,10 +292,10 @@ GI = function(sce) {
         comp_renderer_node.setArg("sampler_screenNormal", (function() {return arr;}).bind(this));
         comp_renderer_node.setArg("sampler_GIVoxel", (function() {return arr;}).bind(this));
 
-		comp_renderer_node.gpufG.fillPointerArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
-        comp_renderer_node.gpufG.fillPointerArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
-        comp_renderer_node.gpufG.fillPointerArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-        comp_renderer_node.gpufG.fillPointerArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
+		comp_renderer_node.gpufG.fillArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.gpufG.fillArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.gpufG.fillArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
+        comp_renderer_node.gpufG.fillArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
 
         comp_renderer_node.gpufG.enableGraphic(1);
 		_runGI = true;
@@ -324,10 +324,10 @@ GI = function(sce) {
 	* resume
 	*/
 	this.resume = function() {
-        comp_renderer_node.gpufG.fillPointerArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
-        comp_renderer_node.gpufG.fillPointerArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
-        comp_renderer_node.gpufG.fillPointerArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
-        comp_renderer_node.gpufG.fillPointerArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.gpufG.fillArg("sampler_screenColor", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.gpufG.fillArg("sampler_screenPos", [1.0, 1.0, 1.0, 1.0]);
+        comp_renderer_node.gpufG.fillArg("sampler_screenNormal", [1.0, 1.0, 1.0, 0.0]);
+        comp_renderer_node.gpufG.fillArg("sampler_GIVoxel", [1.0, 1.0, 1.0, 1.0]);
 
 		
 		var comp_screenEffects = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU);
