@@ -109,9 +109,9 @@
                 var g = Math.random();
                 var b = Math.random();
                 graph.setAfferentData({
-                    "R": r,
-                    "G": g,
-                    "B": b}); // and wait to propagation
+                    "R": (r*2.0)-1.0,
+                    "G": (g*2.0)-1.0,
+                    "B": (b*2.0)-1.0}); // and wait to propagation
                 elem_bgColor.style.backgroundColor = "rgb("+parseInt(r*255)+", "+parseInt(g*255)+", "+parseInt(b*255)+")";
                 console.log("input: "+r+", "+g+", "+b);
 
@@ -119,7 +119,7 @@
                     var output = graph.getNeuronOutput("color");
                     console.log("output: "+output[2]);
                     console.log("");
-                    if(output[2] < 0.5)
+                    if(output[2] < 0.0)
                         elem_fgColor.style.color = "rgb(0, 0, 0)";
                     else
                         elem_fgColor.style.color = "rgb(255, 255, 255)";
@@ -127,7 +127,7 @@
             }).bind(this));
 
             document.getElementById("BTNID_EFFERENCEDATA0").addEventListener("click", (function() {
-                graph.setEfferentData({"color": 0.0}); // and wait to error backpropagation
+                graph.setEfferentData({"color": -1.0}); // and wait to error backpropagation
                 elem_fgColor.style.color = "rgb(0, 0, 0)";
 
                 setTimeout((function() {

@@ -73,7 +73,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
                         'atraction += dirToBN*-10.0;\n'+
                         'acumAtraction += 1.0;\n'+
                     '} else {'+
-                        'atraction += dirToBN*dist*0.5*ww;\n'+
+                        'atraction += dirToBN*dist*0.0*ww;\n'+
                         'atraction += dirToBN*-0.0;\n'+
                         'acumAtraction += 1.0;\n'+
 
@@ -113,6 +113,9 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
         'float tmp = exp(val);'+
         'float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);'+
         'return tanH;'+
+    '}'+
+    'float sigm(float val) {'+
+        'return ((1.0 / (1.0 + exp(-val)))*2.0)-1.0;'+
     '}'+
     'idAdjMatrixResponse idAdjMatrix_ForceLayout(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections, float currentTimestamp, float bornDate, float dieDate, float enableNeuronalNetwork) {\n'+
         // INIT VARS
@@ -186,21 +189,15 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
             'if(enableNeuronalNetwork == 1.0) {'+
                 'float outp;'+
                 'if(efferentNode == nodeId) {'+
-                    'outp = dataB[xGeom_adjCol].z;'+
-                    'float transfer_derivative = outp*(1.0-outp);'+
-
-                    'netError = efferentData-outp;'+ // error-output'+
+                    'netError = (efferentData-outp)*sigm(netProc);'+ // error-output'+
                 '} else if(netError != 0.0) {'+
-                    'outp = dataB[xGeom_adjCol].z;'+
-                    'float transfer_derivative = outp*(1.0-outp);'+
-
-                    //'netError *= transfer_derivative;'+ // error-output'+
+                    'netError *= sigm(netProc);'+ // error-output'+
                 '}'+
             '}'+
         '}'+
 
 
-        'return idAdjMatrixResponse(vec3(force), collisionExists, tanh(netProc), netError);'+
+        'return idAdjMatrixResponse(vec3(force), collisionExists, sigm(netProc), netError);'+
     '}';
 
     return str;
