@@ -106,19 +106,7 @@ var WebCLGL = function(webglcontext) {
             //'out vec4 fragmentColor;'+
 
 			'void main(void) {\n'+
-				'vec4 tex = texture2D(sampler_buffer, vCoord);'+
-				'if(u_offset > 0) {'+
-					'float offset = float(u_offset);'+
-					'if(u_vectorValue == 0) gl_FragColor = pack((tex.r+offset)/(offset*2.0));\n'+
-					'if(u_vectorValue == 1) gl_FragColor = pack((tex.g+offset)/(offset*2.0));\n'+
-					'if(u_vectorValue == 2) gl_FragColor = pack((tex.b+offset)/(offset*2.0));\n'+
-					'if(u_vectorValue == 3) gl_FragColor = pack((tex.a+offset)/(offset*2.0));\n'+
-				'} else {'+
-					'if(u_vectorValue == 0) gl_FragColor = pack(tex.r);\n'+
-					'if(u_vectorValue == 1) gl_FragColor = pack(tex.g);\n'+
-					'if(u_vectorValue == 2) gl_FragColor = pack(tex.b);\n'+
-					'if(u_vectorValue == 3) gl_FragColor = pack(tex.a);\n'+
-				'}'+
+				'gl_FragColor = texture2D(sampler_buffer, vCoord);'+
 			'}\n';
 
 	this.shader_readpixels = _gl.createProgram();
@@ -509,13 +497,7 @@ var WebCLGL = function(webglcontext) {
         return buffer.textureData;
     };
 
-    /**
-     * Get RGBAUint8Array array from a WebCLGLBuffer <br>
-     * Read buffer in a specifics WebGL 32bit channel and return the data in one array of packets RGBA_Uint8Array <br>
-     * @param {WebCLGLBuffer} buffer
-     * @param {int} channel Channel to read
-     * @returns {Uint8Array}
-     **/
+    /** @private **/
     var enqueueReadBuffer = (function(buffer, item) {
         _gl.uniform1i(this.u_vectorValue, item);
 
@@ -534,37 +516,25 @@ var WebCLGL = function(webglcontext) {
         _gl.drawElements(_gl.TRIANGLES, 6, _gl.UNSIGNED_SHORT, 0);
 
         var arrLength = buffer.W*buffer.H*4;
-        if(item == 0) {
-            if(buffer.outArray4Uint8ArrayX == undefined) {
-                buffer.outArray4Uint8ArrayX = new Uint8Array((buffer.W*buffer.H)*4);
-            }
-            _gl.readPixels(0, 0, buffer.W, buffer.H, _gl.RGBA, _gl.UNSIGNED_BYTE, buffer.outArray4Uint8ArrayX);
-            return buffer.outArray4Uint8ArrayX.slice(0, arrLength);
-        } else if(item == 1) {
-            if(buffer.outArray4Uint8ArrayY == undefined) {
-                buffer.outArray4Uint8ArrayY = new Uint8Array((buffer.W*buffer.H)*4);
-            }
-            _gl.readPixels(0, 0, buffer.W, buffer.H, _gl.RGBA, _gl.UNSIGNED_BYTE, buffer.outArray4Uint8ArrayY);
-            return buffer.outArray4Uint8ArrayY.slice(0, arrLength);
-        } else if(item == 2) {
-            if(buffer.outArray4Uint8ArrayZ == undefined) {
-                buffer.outArray4Uint8ArrayZ = new Uint8Array((buffer.W*buffer.H)*4);
-            }
-            _gl.readPixels(0, 0, buffer.W, buffer.H, _gl.RGBA, _gl.UNSIGNED_BYTE, buffer.outArray4Uint8ArrayZ);
-            return buffer.outArray4Uint8ArrayZ.slice(0, arrLength);
-        } else if(item == 3) {
-            if(buffer.outArray4Uint8ArrayW == undefined) {
-                buffer.outArray4Uint8ArrayW = new Uint8Array((buffer.W*buffer.H)*4);
-            }
-            _gl.readPixels(0, 0, buffer.W, buffer.H, _gl.RGBA, _gl.UNSIGNED_BYTE, buffer.outArray4Uint8ArrayW);
-            return buffer.outArray4Uint8ArrayW.slice(0, arrLength);
-        }
+        if(buffer.outArrayFloat == undefined)
+            buffer.outArrayFloat = new Float32Array((buffer.W*buffer.H)*4);
+        _gl.readPixels(0, 0, buffer.W, buffer.H, _gl.RGBA, _gl.FLOAT, buffer.outArrayFloat);
+
+        return buffer.outArrayFloat;
     }).bind(this);
 
     /** @private **/
     var prepareViewportForBufferRead = (function(buffer) {
         _gl.viewport(0, 0, buffer.W, buffer.H);
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, buffer.fBufferTemp);
+
+        var arrDBuff = [];
+        var o = buffer.textureDataTemp;
+        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'], _gl.TEXTURE_2D, o, 0);
+        arrDBuff[0] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'];
+        _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+
+        //_gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, nTexture, 0);
         if(this.e != undefined) {
             this.e.width = buffer.W;
             this.e.height = buffer.H;
@@ -572,138 +542,23 @@ var WebCLGL = function(webglcontext) {
     }).bind(this);
 
     /**
-     * Get 4 RGBAUint8Array arrays from a WebCLGLBuffer type FLOAT4 <br>
-     * Internally performs four calls to enqueueReadBuffer and return the data in one array of four packets RGBA_Uint8Array
+     * Get Float32Array array from a WebCLGLBuffer
      * @param {WebCLGLBuffer} buffer
-     **/
-    this.enqueueReadBuffer_Packet4Uint8Array_Float4 = function(buffer) {
-        if(buffer.type == "FLOAT4") {
-            prepareViewportForBufferRead(buffer);
-            _gl.useProgram(this.shader_readpixels);
-
-            buffer.Packet4Uint8Array_Float4 = [	enqueueReadBuffer(buffer, 0),
-                                                enqueueReadBuffer(buffer, 1),
-                                                enqueueReadBuffer(buffer, 2),
-                                                enqueueReadBuffer(buffer, 3)];
-        }
-    };
-
-    /**
-     * Get 4 Float32Array arrays from a WebCLGLBuffer type FLOAT4 <br>
-     * Internally performs one calls to enqueueReadBuffer and return the data in one array of four Float32Array
-     * @param {WebCLGLBuffer} buffer
-     * @returns {Array<Array>}
+     * @returns {Float32Array}
      */
-    this.enqueueReadBuffer_Float4 = function(buffer) {
-        var Float4_Un = [[],[],[],[]];
-        if(buffer.type == "FLOAT4") {
-            prepareViewportForBufferRead(buffer);
-            _gl.useProgram(this.shader_readpixels);
+    this.readBuffer = function(buffer) {
+        prepareViewportForBufferRead(buffer);
+        _gl.useProgram(this.shader_readpixels);
+        var arr = enqueueReadBuffer(buffer, 0, f);
 
-            buffer.Packet4Uint8Array_Float4 = [	enqueueReadBuffer(buffer, 0),
-                                                enqueueReadBuffer(buffer, 1),
-                                                enqueueReadBuffer(buffer, 2),
-                                                enqueueReadBuffer(buffer, 3)];
-            buffer.Float4 = [];
-
-            for(var n=0, fn= 4; n < fn; n++) {
-                var arr = buffer.Packet4Uint8Array_Float4[n];
-
-                var outArrayFloat32Array = new Float32Array((buffer.W*buffer.H));
-                for(var nb = 0, fnb = arr.length/4; nb < fnb; nb++) {
-                    var idd = nb*4;
-                    if(buffer.offset>0) outArrayFloat32Array[nb] = (this.utils.unpack([arr[idd+0]/255,
-                            arr[idd+1]/255,
-                            arr[idd+2]/255,
-                            arr[idd+3]/255])*(buffer.offset*2))-buffer.offset;
-                    else outArrayFloat32Array[nb] = (this.utils.unpack([	arr[idd+0]/255,
-                        arr[idd+1]/255,
-                        arr[idd+2]/255,
-                        arr[idd+3]/255]));
-                    Float4_Un[n].push(outArrayFloat32Array[nb]);
-                }
-
-                buffer.Float4.push(outArrayFloat32Array.slice(0, buffer.length));
-            }
-        }
-
-        return Float4_Un;
-    };
-
-    /**
-     * Get 1 RGBAUint8Array array from a WebCLGLBuffer type FLOAT <br>
-     * Internally performs one call to enqueueReadBuffer and return the data in one array of one packets RGBA_Uint8Array
-     * @param {WebCLGLBuffer} buffer
-     *
-     * @example
-     * // Unpack in your shader to float with:
-     * float unpack (vec4 4Uint8Array) {
-    *	const vec4 bitShifts = vec4(1.0,1.0 / 255.0, 1.0 / (255.0 * 255.0), 1.0 / (255.0 * 255.0 * 255.0));
-    * 	return dot(4Uint8Array, bitShifts);
-    * }
-     * float offset = "OFFSET OF BUFFER";
-     * vec4 4Uint8Array = atributeFloatInPacket4Uint8Array; // IF UNPACK IN VERTEX PROGRAM
-     * vec4 4Uint8Array = texture2D(samplerFloatInPacket4Uint8Array, vTextureScreenCoord); // IF UNPACK IN FRAGMENT PROGRAM
-     * float value = (offset > 0.0) ? (unpack(4Uint8Array)*(offset*2.0))-offset : unpack(4Uint8Array);
-     *
-     * // JAVASCRIPT IF UNPACK IN VERTEX PROGRAM
-     * attr_FloatInPacket4Uint8Array = gl.getAttribLocation(shaderProgram, "atributeFloatInPacket4Uint8Array");
-     * gl.bindBuffer(gl.ARRAY_BUFFER, webGLBufferObject);
-     * gl.bufferSubData(gl.ARRAY_BUFFER, 0, webCLGL.enqueueReadBuffer_Packet4Uint8Array_Float(buffer_XX)[0]);
-     * gl.vertexAttribPointer(attr_FloatInPacket4Uint8Array, 4, gl.UNSIGNED_BYTE, true, 0, 0); // true for normalize
-     *
-     * // JAVASCRIPT IF UNPACK IN FRAGMENT PROGRAM
-     * sampler_FloatInPacket4Uint8Array = gl.getUniformLocation(shaderProgram, "samplerFloatInPacket4Uint8Array");
-     * gl.activeTexture(gl.TEXTURE0);
-     * gl.bindTexture(gl.TEXTURE_2D, webGLTextureObject);
-     * gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, viewportWidth,viewportHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, webCLGL.enqueueReadBuffer_Packet4Uint8Array_Float(buffer_XX)[0]);
-     * gl.uniform1i(sampler_FloatInPacket4Uint8Array, 0);
-     */
-    this.enqueueReadBuffer_Packet4Uint8Array_Float = function(buffer) {
         if(buffer.type == "FLOAT") {
-            prepareViewportForBufferRead(buffer);
-            _gl.useProgram(this.shader_readpixels);
+            var Float_Un = new Float32Array(arr.length/4);
+            for(var n=0, fn= arr.length/4; n < fn; n++)
+                Float_Un[n] = arr[n*4];
 
-            buffer.Packet4Uint8Array_Float = [enqueueReadBuffer(buffer, 0)];
-        }
-    };
-
-    /**
-     * Get 1 Float32Array array from a WebCLGLBuffer type FLOAT <br>
-     * Internally performs one calls to enqueueReadBuffer and return the data in one array of one Float32Array
-     * @param {WebCLGLBuffer} buffer
-     * @returns {Array<Array>}
-     */
-    this.enqueueReadBuffer_Float = function(buffer) {
-        var Float_Un = [[]];
-        if(buffer.type == "FLOAT") {
-            prepareViewportForBufferRead(buffer);
-            _gl.useProgram(this.shader_readpixels);
-
-            buffer.Packet4Uint8Array_Float = [enqueueReadBuffer(buffer, 0)];
-            buffer.Float = [];
-
-            for(var n=0, fn= 1; n < fn; n++) {
-                var arr = buffer.Packet4Uint8Array_Float[n];
-
-                var outArrayFloat32Array = new Float32Array((buffer.W*buffer.H));
-                for(var nb = 0, fnb = arr.length/4; nb < fnb; nb++) {
-                    var idd = nb*4;
-                    if(buffer.offset>0) outArrayFloat32Array[nb] = (this.utils.unpack([arr[idd+0]/255,
-                            arr[idd+1]/255,
-                            arr[idd+2]/255,
-                            arr[idd+3]/255])*(buffer.offset*2))-buffer.offset;
-                    else outArrayFloat32Array[nb] = (this.utils.unpack([	arr[idd+0]/255,
-                        arr[idd+1]/255,
-                        arr[idd+2]/255,
-                        arr[idd+3]/255]));
-                    Float_Un[n].push(outArrayFloat32Array[nb]);
-                }
-
-                buffer.Float.push(outArrayFloat32Array.slice(0, buffer.length));
-            }
+            arr = Float_Un;
         }
 
-        return Float_Un;
+        return arr;
     };
 };
