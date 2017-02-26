@@ -143,19 +143,50 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             'float nodeId = data[].x;'+
             'float nodeIdOpposite = data[].y;'+
 
-            'vec2 xGeometry = get_global_id(nodeId, uBufferWidth, '+geometryLength.toFixed(1)+');'+
-            'vec2 xGeometry_opposite = get_global_id(nodeIdOpposite, uBufferWidth, '+geometryLength.toFixed(1)+');'+
+            'vec2 xGeometryNode = get_global_id(nodeId, bufferNodesWidth, 4.0);'+ // bufferWidth6, geometryLength
+            'vec2 xGeometryNode_opposite = get_global_id(nodeIdOpposite, bufferNodesWidth, 4.0);'+
 
-            'vec4 nodePosition = posXYZW[xGeometry];\n'+
-            'float bornDate = dataB[xGeometry].x;'+
-            'float dieDate = dataB[xGeometry].y;'+
-            'float networkProcData = dataB[xGeometry].w;'+
+            'vec2 xGeometryLinks = get_global_id(nodeId, bufferLinksWidth, 2.0);'+ // bufferWidth, geometryLength
+            'vec2 xGeometryLinks_opposite = get_global_id(nodeIdOpposite, bufferLinksWidth, 2.0);'+
+
+            'vec2 xGeometryArrows = get_global_id(nodeId, bufferArrowsWidth, 3.0);'+ // bufferWidth, geometryLength
+            'vec2 xGeometryArrows_opposite = get_global_id(nodeIdOpposite, bufferArrowsWidth, 3.0);'+
+
+            'vec2 xGeometryText = get_global_id(nodeId, bufferTextsWidth, 4.0*12.0);'+ // bufferWidth, geometryLength
+            'vec2 xGeometryText_opposite = get_global_id(nodeIdOpposite, bufferTextsWidth, 4.0*12.0);'+
+
+
+            /*'vec2 xGeometryCurrent;'+
+            'vec2 xGeometryCurrent_opposite;'+
+            'if(isNode == 1.0) {'+
+                'xGeometryCurrent = xGeometryNode;'+
+                'xGeometryCurrent_opposite = xGeometryNode_opposite;'+
+            '}'+
+            'if(isLink == 1.0) {'+
+                'xGeometryCurrent = xGeometryLinks;'+
+                'xGeometryCurrent_opposite = xGeometryLinks_opposite;'+
+            '}'+
+            'if(isArrow == 1.0) {'+
+                'xGeometryCurrent = xGeometryArrows;'+
+                'xGeometryCurrent_opposite = xGeometryArrows_opposite;'+
+            '}'+
+            'if(isNodeText == 1.0) {'+
+                'xGeometryCurrent = xGeometryText;'+
+                'xGeometryCurrent_opposite = xGeometryText_opposite;'+
+            '}'+*/
+
+            'vec4 nodePosition = posXYZW[xGeometryNode];\n'+
+            'vec3 XYZW_opposite = posXYZW[xGeometryNode_opposite].xyz;\n'+
+
             'float linkBornDate = dataC[].x;'+
-            'float linkDieDate = dataC[].y;'+
+            'float bornDate = dataB[xGeometryNode].x;'+
+            'float bornDateOpposite = dataB[xGeometryNode_opposite].x;'+
 
-            'vec3 XYZW_opposite = posXYZW[xGeometry_opposite].xyz;\n'+
-            'float bornDateOpposite = dataB[xGeometry_opposite].x;'+
-            'float dieDateOpposite = dataB[xGeometry_opposite].y;'+
+            'float linkDieDate = dataC[].y;'+
+            'float dieDate = dataB[xGeometryNode].y;'+
+            'float dieDateOpposite = dataB[xGeometryNode_opposite].y;'+
+
+            'float networkProcData = dataB[xGeometryNode].z;'+
 
 
 
@@ -219,7 +250,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
                 '}'+
             '}'+
             'if(isLink == 1.0) {'+
-                'if(xGeometry != xGeometry_opposite) {'+
+                'if(xGeometryLinks != xGeometryLinks_opposite) {'+
                     // displacing from center to first point
                     'nodePosition += vec4(dirN*(lineIncrements*currentLineVertex), 1.0);'+
 
@@ -250,7 +281,7 @@ function VFP_NODE(customCode, geometryLength) { VFP.call(this);
             '}'+
             'if(isArrow == 1.0) {'+
                 'vec3 nodePositionTMP;'+
-                'if(xGeometry != xGeometry_opposite) {'+
+                'if(xGeometryArrows != xGeometryArrows_opposite) {'+
                     // displacing from center to first point
                     'float currentLineVertexU = vertexCount-1.0;'+
                     'nodePositionTMP = XYZW_opposite+((dirN*-1.0)*(lineIncrements*currentLineVertexU));'+

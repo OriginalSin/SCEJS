@@ -19,9 +19,10 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
         'vec3 repulsion;'+
         'float collisionExists;'+
         'float netProc;'+
+        'float netError;'+
     '};'+
 
-    'CalculationResponse calculate(vec4 itColRow, vec4 itRowCol, vec2 xGeom_adjCol, vec2 xGeom_adjRow, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion, float netProc) {'+
+    'CalculationResponse calculate(float nodeId, vec4 itColRow, vec4 itRowCol, vec2 xGeom_adjCol, vec2 xGeom_adjRow, vec4 itBColRow, vec3 currentPos, vec3 currentDir, vec3 atraction, float acumAtraction, vec3 repulsion, float netProc, float netError, float enableNeuronalNetwork) {'+
         'float bornDateB = dataB[xGeom_adjRow].x;'+
         'float dieDateB = dataB[xGeom_adjRow].y;'+
 
@@ -34,8 +35,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
 
 
         'float disabVal = -2.0;'+
-        'float childNetworkWaitData = (itColRow.w == 1.0) ? dataB[xGeom_adjRow].z : disabVal;'+
-        'float ww = itColRow.z;'+
+        'float ww = (itColRow.z != disabVal) ? itColRow.z : itRowCol.z;'+
         'float exCon = itColRow.x;'+
 
 
@@ -68,28 +68,53 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
                 '}'+
 
                 'if(pass == 1) {'+
-                    'atraction += dirToBN*dist*0.5*ww;\n'+
-                    'atraction += dirToBN*-10.0;\n'+
+                    'if(enableNeuronalNetwork == 0.0) {'+
+                        'atraction += dirToBN*dist*0.5*ww;\n'+
+                        'atraction += dirToBN*-10.0;\n'+
+                        'acumAtraction += 1.0;\n'+
+                    '} else {'+
+                        'atraction += dirToBN*dist*0.5*ww;\n'+
+                        'atraction += dirToBN*-0.0;\n'+
+                        'acumAtraction += 1.0;\n'+
 
-                    'acumAtraction += 1.0;\n'+
+                        'if(itColRow.w == 0.0) {'+ // parent. get data to be proccess
+                            'float linkMultiplier = itBColRow.x;'+
+                            'float activationFunc = itBColRow.y;'+
 
+                            'float childNetData = dataB[xGeom_adjRow].z;'+
 
-                    'if(childNetworkWaitData != disabVal) '+
-                        'netProc += childNetworkWaitData*ww;'+ // data*weight
+                            'if(activationFunc == 0.0) '+
+                                'netProc += childNetData*ww*max(0.0,linkMultiplier);'+ // data*weight
+                            'else if(activationFunc == 1.0) '+
+                                'netProc += childNetData*max(0.0,linkMultiplier);'+ // data*weight
+                        '}'+
+
+                        'if(itColRow.w == 1.0) {'+ // children. get error of parent
+                            'float parentErrorData = dataB[xGeom_adjRow].w;'+
+
+                            'netError += (parentErrorData*ww);'+ // error*weight
+                        '}'+
+                    '}'+
                 '}'+
             '} else {'+
                 'if(enableForceLayoutRepulsion == 1.0) \n'+
                     'repulsion += dirToBN*-(1000.0);\n'+
             '}'+
         '}'+
-        'return CalculationResponse(atraction, acumAtraction, repulsion, collisionExists, netProc);'+
+        'return CalculationResponse(atraction, acumAtraction, repulsion, collisionExists, netProc, netError);'+
     '}'+
     'struct idAdjMatrixResponse {'+
         'vec3 force;'+
         'float collisionExists;'+
         'float netProcData;'+
+        'float netErrorData;'+
     '};'+
-    'idAdjMatrixResponse idAdjMatrix_ForceLayout(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections, float currentTimestamp, float bornDate, float dieDate) {\n'+
+    'float tanh(float val) {'+
+        'float tmp = exp(val);'+
+        'float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);'+
+        'return tanH;'+
+    '}'+
+    'idAdjMatrixResponse idAdjMatrix_ForceLayout(float nodeId, vec3 currentPos, vec3 currentDir, float numOfConnections, float currentTimestamp, float bornDate, float dieDate, float enableNeuronalNetwork) {\n'+
         // INIT VARS
         'vec3 atraction = vec3(0.0, 0.0, 0.0);'+
         'float acumAtraction = 1.0;'+
@@ -99,27 +124,34 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
         'vec3 force = vec3(0.0, 0.0, 0.0);\n'+
 
         'float netProc = 0.0;'+
+        'float netError = 0.0;'+
+
         // END INIT VARS
 
         'if(nodeId < widthAdjMatrix) {\n'+
 
-            'for(int n=0; n < 2048; n++) {\n'+
+            'vec2 xGeom_adjCol = get_global_id(nodeId, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
+
+            'for(int n=0; n < 4096; n++) {\n'+
                 'if(float(n) >= nodesCount) break;\n'+
                 'if(float(n) != nodeId) {'+
                     'vec2 xAdjMat = get_global_id(vec2(nodeId, float(n)), widthAdjMatrix);'+
                     'vec4 itColRow = adjacencyMatrix[xAdjMat];\n'+
+                    'vec4 itBColRow = adjacencyMatrixB[xAdjMat];\n'+
+
                     'vec2 xAdjMatS = get_global_id(vec2(float(n), nodeId), widthAdjMatrix);'+
                     'vec4 itRowCol = adjacencyMatrix[xAdjMatS];\n'+
 
-                    // RELATION FOUND
-                    'vec2 xGeom_adjCol = get_global_id(nodeId, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
+
                     'vec2 xGeom_adjRow = get_global_id(float(n), uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
 
-                    'CalculationResponse calcResponse = calculate(itColRow, itRowCol, xGeom_adjCol, xGeom_adjRow, currentPos, currentDir, atraction, acumAtraction, repulsion, netProc);'+
+
+                    'CalculationResponse calcResponse = calculate(nodeId, itColRow, itRowCol, xGeom_adjCol, xGeom_adjRow, itBColRow, currentPos, currentDir, atraction, acumAtraction, repulsion, netProc, netError, enableNeuronalNetwork);'+
                     'atraction = calcResponse.atraction;'+
                     'acumAtraction = calcResponse.acumAtraction;'+
                     'repulsion = calcResponse.repulsion;'+
                     'netProc = calcResponse.netProc;'+
+                    'netError = calcResponse.netError;'+
 
                     'if(calcResponse.collisionExists == 1.0) {'+
                         'collisionExists = 1.0;'+
@@ -151,9 +183,24 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
             '}'+
             // END SUMMATION
 
+            'if(enableNeuronalNetwork == 1.0) {'+
+                'float outp;'+
+                'if(efferentNode == nodeId) {'+
+                    'outp = dataB[xGeom_adjCol].z;'+
+                    'float transfer_derivative = outp*(1.0-outp);'+
+
+                    'netError = efferentData-outp;'+ // error-output'+
+                '} else if(netError != 0.0) {'+
+                    'outp = dataB[xGeom_adjCol].z;'+
+                    'float transfer_derivative = outp*(1.0-outp);'+
+
+                    //'netError *= transfer_derivative;'+ // error-output'+
+                '}'+
+            '}'+
         '}'+
 
-        'return idAdjMatrixResponse(vec3(force), collisionExists, netProc);'+
+
+        'return idAdjMatrixResponse(vec3(force), collisionExists, tanh(netProc), netError);'+
     '}';
 
     return str;
@@ -189,7 +236,7 @@ var adjMatrix_Autolink_GLSLFunctionString = function(geometryLength) {
 
         'if(nodeId < widthAdjMatrix) {\n'+
 
-            'for(int n=0; n < 2048; n++) {\n'+
+            'for(int n=0; n < 4096; n++) {\n'+
                 'if(float(n) >= nodesCount) break;\n'+
                 'if(float(n) != nodeId) {'+
                     'vec2 xAdjMat = get_global_id(vec2(nodeId, float(n)), widthAdjMatrix);'+
@@ -206,7 +253,7 @@ var adjMatrix_Autolink_GLSLFunctionString = function(geometryLength) {
 
                         'if(nodeId < widthAdjMatrix) {\n'+
 
-                            'for(int nB=0; nB < 2048; nB++) {\n'+
+                            'for(int nB=0; nB < 4096; nB++) {\n'+
                                 'if(float(nB) >= nodesCount) break;\n'+
                                 'if(float(nB) != float(n) && float(nB) != nodeId) {'+
                                     'vec2 xAdjMatB = get_global_id(vec2(nodeId, float(nB)), widthAdjMatrix);'+

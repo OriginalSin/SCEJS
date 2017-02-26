@@ -721,7 +721,7 @@ var WebCLGLFor = function() {
             var vfp = this.vertexFragmentPrograms[key];
 
             if(vfp.enabled == true) {
-                var buff = (this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this._argsValues[argumentInd];
+                var buff = (argumentInd == undefined && this.CLGL_bufferIndices != undefined) ? this.CLGL_bufferIndices : this._argsValues[argumentInd];
 
                 if(buff != undefined && buff.length > 0) {
                     if(vfp.depthTest == true) {

@@ -56,13 +56,20 @@
             graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
 
 
-            graph.addNeuron("color"); // efferent neuron (actuator)
-            graph.addNeuron("R"); // afferent neuron (sensor)
-            graph.addNeuron("G"); // afferent neuron
-            graph.addNeuron("B"); // afferent neuron
-            graph.addSinapsis("R", "color");
-            graph.addSinapsis("G", "color");
-            graph.addSinapsis("B", "color");
+            graph.addNeuron("R", [-20.0, 0.0, -10.0, 1.0]); // afferent neuron (sensor)
+            graph.addNeuron("G", [-20.0, 0.0, 0.0, 1.0]); // afferent neuron
+            graph.addNeuron("B", [-20.0, 0.0, 10.0, 1.0]); // afferent neuron
+            var neuronLayer1 = graph.createNeuronLayer(1, 3, [0.0, 0.0, 0.0, 1.0]);
+            var neuronLayer2 = graph.createNeuronLayer(1, 2, [10.0, 0.0, 0.0, 1.0]);
+            graph.addNeuron("color", [20.0, 0.0, 0, 1.0]); // efferent neuron (actuator)
+
+            graph.connectNeuronWithNeuronLayer("R", neuronLayer1);
+            graph.connectNeuronWithNeuronLayer("G", neuronLayer1);
+            graph.connectNeuronWithNeuronLayer("B", neuronLayer1);
+            graph.connectNeuronLayerWithNeuronLayer(neuronLayer1, neuronLayer2);
+            graph.connectNeuronLayerWithNeuron(neuronLayer2, "color");
+
+
             graph.updateNodes();
             graph.updateLinks();
 
@@ -76,34 +83,81 @@
 				//sce.setDimensions(512, 128);
 		    }).bind(this);
 		</script>
-		
-		T for top view<br />
+
+        T for top view<br />
 		Alt+LeftMouse for Orbit<br />
 		Alt+MiddleMouse for Pan<br />		
 		P for perspective view<br />
 		WASD for to move<br />
+        <br />
 
-        <button id="BTNID_AFFERENCEDATA">random afference data</button> Input data<br />
-        <button id="BTNID_EFFERENCEDATA0">efference data 0</button> Train output from current afference data updating link weights<br />
-        <button id="BTNID_EFFERENCEDATA1">efference data 1</button> Train output from current afference data updating link weights<br />
-        <button id="BTNID_NETWORKSTEP">network step</button> <br />
+        [0.0,1.0] = [0,255] <br />
+        <div id='elem_bgColor' style='width:150px;height:150px;border:2px solid #333;text-align: center;'>
+            <div id='elem_fgColor' style='margin-top:60px;'>SCEJS</div>
+        </div>
+
+        <button id="BTNID_AFFERENCEDATA">random input data</button> <br />
+        <button id="BTNID_EFFERENCEDATA0">train black</button> <br />
+        <button id="BTNID_EFFERENCEDATA1">train white</button> <br />
+        <!--<button id="BTNID_NETWORKSTEP">network step</button> <br />-->
 		<script>
+		    var elem_bgColor = document.getElementById("elem_bgColor");
+            var elem_fgColor = document.getElementById("elem_fgColor");
+
             document.getElementById("BTNID_AFFERENCEDATA").addEventListener("click", (function() {
-                var vv = parseFloat(((Math.random()*2.0)-1.0).toFixed(1));
-                console.log(vv)
-                graph.setAfferentData({ "R": vv});
+                var r = Math.random();
+                var g = Math.random();
+                var b = Math.random();
+                graph.setAfferentData({
+                    "R": r,
+                    "G": g,
+                    "B": b}); // and wait to propagation
+                elem_bgColor.style.backgroundColor = "rgb("+parseInt(r*255)+", "+parseInt(g*255)+", "+parseInt(b*255)+")";
+                console.log("input: "+r+", "+g+", "+b);
+
+                setTimeout((function() {
+                    var output = graph.getNeuronOutput("color");
+                    console.log("output: "+output[2]);
+                    console.log("");
+                    if(output[2] < 0.5)
+                        elem_fgColor.style.color = "rgb(0, 0, 0)";
+                    else
+                        elem_fgColor.style.color = "rgb(255, 255, 255)";
+                }).bind(this), 500);
             }).bind(this));
 
             document.getElementById("BTNID_EFFERENCEDATA0").addEventListener("click", (function() {
-                graph.setEfferentData({"color": 0.0});
+                graph.setEfferentData({"color": 0.0}); // and wait to error backpropagation
+                elem_fgColor.style.color = "rgb(0, 0, 0)";
+
+                setTimeout((function() {
+                    graph.train();
+                    setTimeout((function() {
+                        var output = graph.getNeuronOutput("color");
+                        console.log("error: "+output[3]);
+                        console.log("");
+                    }).bind(this), 500);
+                }).bind(this), 500);
             }).bind(this));
             document.getElementById("BTNID_EFFERENCEDATA1").addEventListener("click", (function() {
-                graph.setEfferentData({"color": 1.0});
+                graph.setEfferentData({"color": 1.0}); // and wait to error backpropagation
+                elem_fgColor.style.color = "rgb(255, 255, 255)";
+
+                setTimeout((function() {
+                    graph.train();
+                    setTimeout((function() {
+                        var output = graph.getNeuronOutput("color");
+                        console.log("error: "+output[3]);
+                        console.log("");
+                    }).bind(this), 500);
+                }).bind(this), 500);
             }).bind(this));
 
-            document.getElementById("BTNID_NETWORKSTEP").addEventListener("click", (function() {
+            /*document.getElementById("BTNID_NETWORKSTEP").addEventListener("click", (function() {
                 graph.makeNetworkStep();
-            }).bind(this));
+            }).bind(this));*/
+
+            document.getElementById("BTNID_AFFERENCEDATA").click();
 		</script>
 	</body>
 </html>

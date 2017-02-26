@@ -22,11 +22,11 @@ Graph = function(sce) {
 	var NODE_IMG_SPRITE_WIDTH = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
 	var OFFSET = 1000.0;
 
-    var _enableFont = false;
+    var _enableFont = true;
     var _enableHover = false;
     var _enableAutoLink = true;
     var _enabledForceLayout = false;
-    var _MAX_ADJ_MATRIX_WIDTH = 2048;
+    var _MAX_ADJ_MATRIX_WIDTH = 4096;
 
     var _playAnimation = false;
     var _loop = false;
@@ -50,6 +50,8 @@ Graph = function(sce) {
 
 
     var arrAdjMatrix = null; // linkBornDate, linkDieDate, linkWeight, columnAsParent
+    var arrAdjMatrixB = null; // linkMultiplier
+
     var _ADJ_MATRIX_WIDTH;
 
     var _initTimestamp;
@@ -603,6 +605,13 @@ Graph = function(sce) {
     };
 
     /**
+     * disableFonts
+     */
+    this.disableFonts = function() {
+        _enableFont = false;
+    };
+
+    /**
      * setNodeMesh
      * @param {Mesh} mesh
      */
@@ -994,6 +1003,7 @@ Graph = function(sce) {
             'float*attr nodeImgId': (function(){return null;}).bind(this),
             'indices': (function(){return null;}).bind(this),
             "float4* adjacencyMatrix": (function(){return null;}).bind(this),
+            "float4* adjacencyMatrixB": (function(){return null;}).bind(this),
             "float widthAdjMatrix": (function(){return null;}).bind(this),
             'float nodesCount': (function(){return null;}).bind(this),
             "float currentTimestamp": (function(){return null;}).bind(this),
@@ -1004,8 +1014,14 @@ Graph = function(sce) {
             'float isLink': (function(){return null;}).bind(this),
             'float isArrow': (function(){return null;}).bind(this),
             'float isNodeText': (function(){return null;}).bind(this),
+            'float bufferNodesWidth': (function(){return null;}).bind(this),
+            'float bufferLinksWidth': (function(){return null;}).bind(this),
+            'float bufferArrowsWidth': (function(){return null;}).bind(this),
+            'float bufferTextsWidth': (function(){return null;}).bind(this),
             'float idToDrag': (function(){return null;}).bind(this),
             'float idToHover': (function(){return null;}).bind(this),
+            'float efferentNode': (function(){return null;}).bind(this),
+            'float efferentData': (function(){return null;}).bind(this),
             'float enableNeuronalNetwork': (function(){return null;}).bind(this),
             'float makeNetworkStep': (function(){return null;}).bind(this),
             'float nodeImgColumns': (function(){return null;}).bind(this),
@@ -1294,21 +1310,34 @@ Graph = function(sce) {
         this.disableAutoLink();
 
         // APPLY THIS LAYOUT
-        this.applyLayout({	// OBJECT
-            // [x], vec4 nodeVertexColor, vec4 nodeVertexPosition, vec4 XYZW_opposite
-            // float isNode, float isLink, float isArrow, float isNodeText, float isTarget
+        this.applyLayout({
+            // DIRECTION
+            "argsDirection":
+                // destination
+                "float4* dest,float* enableDestination",
+            "codeDirection":
+                // destination
+                'if(enableDestination[x] == 1.0) {\n'+
+                    'vec3 destinationPos = dest[x].xyz;\n'+
+                    'vec3 dirDestination = normalize(destinationPos-currentPos);\n'+
+                    'float distan = abs(distance(currentPos,destinationPos));\n'+
+                    'float dirDestWeight = sqrt(distan);\n'+
+                    'currentDir = (currentDir+(dirDestination*dirDestWeight))*dirDestWeight*0.1;\n'+
+                '}\n',
+
+            // OBJECT
             "argsObject":
-            // nodeColor
+                // nodeColor
                 "float4*attr nodeColor",
             "codeObject":
-            // nodeColor
-            //'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
-            //'if(isLink == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
+                // nodeColor
+                //'if(isNode == 1.0) nodeVertexColor = nodeColor[x];'+
+                //'if(isLink == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.0, 1.0, 0.0, 1.0);'+ // this is isTarget for arrows
 
-            //'float degr = (currentLineVertex/vertexCount)/2.0;'+
-            'if(isLink == 1.0) nodeVertexColor = vec4(0.3, 0.2, 0.2, 1.0);'+ // this is isTarget for arrows
-            'if(isArrow == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.3, 0.2, 0.2, 1.0);'+ // this is isTarget for arrows
-            'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
+                //'float degr = (currentLineVertex/vertexCount)/2.0;'+
+                'if(isLink == 1.0) nodeVertexColor = vec4(0.3, 0.2, 0.2, 1.0);'+ // this is isTarget for arrows
+                'if(isArrow == 1.0 && currentLineVertex == 1.0) nodeVertexColor = vec4(0.3, 0.2, 0.2, 1.0);'+ // this is isTarget for arrows
+                'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
 
         });
         this.enableForceLayout();
@@ -1324,16 +1353,24 @@ Graph = function(sce) {
     /**
      * addNeuron
      * @param {String} neuronName
+     * @param {Array<Float4>} [destination=[0.0, 0.0, 0.0, 1.0]]
      */
-    this.addNeuron = function(neuronName) {
+    this.addNeuron = function(neuronName, destination) {
         var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
+        var dest = (destination != undefined) ? destination : [0.0, 0.0, 0.0, 1.0];
+        var enableDest = (destination != undefined) ? 1.0 : 0.0;
 
         graph.addNode({
             "name": neuronName,
             "data": neuronName,
+            "label": neuronName.toString(),
             "position": pos,
             "color": "../_RESOURCES/white.jpg",
-            "layoutNodeArgumentData": {"nodeColor": [1.0, 1.0, 1.0, 1.0]},
+            "layoutNodeArgumentData": {
+                "nodeColor": [1.0, 1.0, 1.0, 1.0],
+                "enableDestination": enableDest,
+                "dest": dest
+            },
             "onmouseup": (function(nodeData) {
 
             }).bind(this)});
@@ -1343,12 +1380,19 @@ Graph = function(sce) {
      * addSinapsis
      * @param {String} neuronNameA
      * @param {String} neuronNameB
+     * @param {Float} [linkMultiplier=1.0]
+     * @param {Float} [activationFunc=0.0] 0.0=linkWeight*data*multiplier 1.0=data*multiplier
      */
-    this.addSinapsis = function(neuronNameA, neuronNameB) {
-        graph.addLink({	"origin": neuronNameA,
+    this.addSinapsis = function(neuronNameA, neuronNameB, linkMultiplier, activationFunc) {
+        var _linkMultiplier = (linkMultiplier != undefined) ? linkMultiplier : 1.0;
+        var _activationFunc = (activationFunc != undefined) ? activationFunc : 0.0;
+        graph.addLink({
+        	"origin": neuronNameA,
             "target": neuronNameB,
             "directed": true,
-            "weight": "RANDOM"});
+            "weight": 0.5,
+            "linkMultiplier": _linkMultiplier,
+            "activationFunc": _activationFunc});
     };
 
     /**
@@ -1367,12 +1411,8 @@ Graph = function(sce) {
             for(var n=0; n < (this.arrayNodeData.length/4); n++) {
                 var id = n*4;
                 if(this.arrayNodeData[n*4] == node.nodeId) {
-                    // (ts.bornDate, ts.dieDate, disabVal, 0.5); // bornDate, dieDate, networkWaitData, networkProcData
+                    // (ts.bornDate, ts.dieDate, disabVal, 0.5); // bornDate, dieDate, networkWaitData, networkProcData(error)
                     this.arrayNodeDataB[id+2] = jsonIn[neuronName];
-                    this.arrayNodeDataB[id+3] = jsonIn[neuronName];
-                } else {
-
-                    //this.arrayNodeDataB[id+2] = disabVal;
                 }
             }
         }
@@ -1385,26 +1425,90 @@ Graph = function(sce) {
      */
     this.setEfferentData = function(jsonIn) {
         for(var neuronName in jsonIn) {
-            var node = _nodesByName[neuronName];
-
-            for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-                var id = n*4;
-                if(this.arrayNodeData[n*4] == node.nodeId) {
-                    // (disabVal, 0.0, 0.0, 0.0); // efferenceData, null, null, null
-                    this.arrayNodeDataF[id] = jsonIn[neuronName];
-                    this.arrayNodeDataB[id+3] = jsonIn[neuronName];
-                } else {
-                    this.arrayNodeDataF[id] = disabVal;
-                }
-            }
-            comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
-            comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this));
+            comp_renderer_nodes.setArg("efferentNode", (function() {return _nodesByName[neuronName].nodeId;}).bind(this));
+            comp_renderer_nodes.setArg("efferentData", (function() {return jsonIn[neuronName];}).bind(this));
         }
+    };
+
+    this.train = function() {
         comp_renderer_nodes.gpufG.enableKernel(1);
+    };
+
+    this.getNeuronOutput = function(neuronName) {
+        var arr4Uint8_XYZW = comp_renderer_nodes.getWebCLGL().enqueueReadBuffer_Float4(comp_renderer_nodes.getBuffers()["dataB"]);
+
+        var n = _nodesByName[neuronName].itemStart;
+        return [arr4Uint8_XYZW[0][n], arr4Uint8_XYZW[1][n], arr4Uint8_XYZW[2][n], arr4Uint8_XYZW[3][n]];
     };
 
     this.makeNetworkStep = function() {
         _makeNetworkStep = true;
+    };
+
+    var currHiddenNeuron = 0;
+    var nodSep = 5.0;
+    this.createNeuronLayer = function(numX, numY, pos) {
+        var arr = [];
+        for(var x=0; x < numX; x++) {
+            for(var y=0; y < numY; y++) {
+                var position = [pos[0]+((x-(numX/2))*nodSep), pos[1], pos[2]+((y-(numY/2))*nodSep), pos[3]];
+
+                this.addNeuron(currHiddenNeuron, position);
+                arr.push(currHiddenNeuron);
+                currHiddenNeuron++;
+            }
+        }
+
+        return arr;
+    };
+    this.connectNeuronWithNeuronLayer = function(neuron, neuronLayer) {
+        for(var n=0; n < neuronLayer.length; n++)
+            this.addSinapsis(neuron, neuronLayer[n]);
+    };
+    this.connectNeuronLayerWithNeuron = function(neuronLayer, neuron) {
+        for(var n=0; n < neuronLayer.length; n++)
+            this.addSinapsis(neuronLayer[n], neuron);
+    };
+    this.connectNeuronLayerWithNeuronLayer = function(neuronLayerOrigin, neuronLayerTarget) {
+        for(var n=0; n < neuronLayerOrigin.length; n++) {
+            var neuronOrigin = neuronLayerOrigin[n];
+            this.connectNeuronWithNeuronLayer(neuronOrigin, neuronLayerTarget);
+        }
+    };
+
+    this.createConvXYNeuronsFromXYNeurons = function(pos, w, h, idOrigin, idTarget, convMatrix) {
+        var arr = [];
+        for(var x=0; x < w-2; x++) {
+            for(var y=0; y < h-2; y++) {
+                var position = [pos[0]+((y-(w/2))*nodSep), pos[1], pos[2]+((x-(h/2))*nodSep), pos[3]];
+
+                this.addNeuron(idTarget+x+"_"+y, position);
+                arr.push(idTarget+x+"_"+y);
+
+                var idConvM = 0;
+                for(var xa=x; xa < x+3; xa++) {
+                    for(var ya=y; ya < y+3; ya++) {
+                        this.addSinapsis(idOrigin+xa+"_"+ya, idTarget+x+"_"+y, convMatrix[idConvM]);
+                        idConvM++;
+                    }
+                }
+            }
+        }
+
+        return arr;
+    };
+    this.createXYNeuronsFromImage = function(id, pos, w, h) {
+        var arr = [];
+        for(var x=0; x < w; x++) {
+            for(var y=0; y < h; y++) {
+                var position = [pos[0]+((y-(w/2))*nodSep), pos[1], pos[2]+((x-(h/2))*nodSep), pos[3]];
+
+                this.addNeuron(id+x+"_"+y, position);
+                arr.push(id+x+"_"+y);
+            }
+        }
+
+        return arr;
     };
 
     /**
@@ -1413,6 +1517,7 @@ Graph = function(sce) {
      * @param {String} [jsonIn.nodeName=undefined] - If undefined then value is setted in all nodes
      * @param {String} jsonIn.argName
      * @param {Float|Array<Float4>} jsonIn.value
+     * @param {boolean} jsonIn.update
      */
     this.setLayoutNodeArgumentData = function(jsonIn) {
         var node = _nodesByName[jsonIn.nodeName];
@@ -1446,7 +1551,7 @@ Graph = function(sce) {
                 setVal(type, jsonIn.argName, "nodes_array_value", n, jsonIn.value);
             else {
                 var id = (type == "float") ? n : n*4;
-                if(_customArgs[jsonIn.argName]["nodes_array_value"][id] == undefined) {
+                if(_customArgs[jsonIn.argName]["nodes_array_value"][id] == undefined && jsonIn.update == false) {
                     if(type == "float")
                         setVal(type, jsonIn.argName, "nodes_array_value", n, 0.0);
                     else
@@ -1462,7 +1567,7 @@ Graph = function(sce) {
                 setVal(type, jsonIn.argName, "links_array_value", n, jsonIn.value);
             else {
                 var id = (type == "float") ? n : n*4;
-                if(_customArgs[jsonIn.argName]["links_array_value"][id] == undefined) {
+                if(_customArgs[jsonIn.argName]["links_array_value"][id] == undefined && jsonIn.update == false) {
                     if(type == "float")
                         setVal(type, jsonIn.argName, "links_array_value", n, 0.0);
                     else
@@ -1478,7 +1583,7 @@ Graph = function(sce) {
                 setVal(type, jsonIn.argName, "arrows_array_value", n, jsonIn.value);
             else {
                 var id = (type == "float") ? n : n*4;
-                if(_customArgs[jsonIn.argName]["arrows_array_value"][id] == undefined) {
+                if(_customArgs[jsonIn.argName]["arrows_array_value"][id] == undefined && jsonIn.update == false) {
                     if(type == "float")
                         setVal(type, jsonIn.argName, "arrows_array_value", n, 0.0);
                     else
@@ -1496,7 +1601,7 @@ Graph = function(sce) {
                     setVal(type, jsonIn.argName, "nodestext_array_value", n, jsonIn.value);
                 else {
                     var id = (type == "float") ? n : n*4;
-                    if(_customArgs[jsonIn.argName]["nodestext_array_value"][id] == undefined) {
+                    if(_customArgs[jsonIn.argName]["nodestext_array_value"][id] == undefined && jsonIn.update == false) {
                         if(type == "float")
                             setVal(type, jsonIn.argName, "nodestext_array_value", n, 0.0);
                         else
@@ -1712,7 +1817,7 @@ Graph = function(sce) {
 
     /**
      * enableHov
-     * @param {Int} selectedId
+     * @param {int} selectedId
      * @private
      */
     var enableHov = function(selectedId) {
@@ -1830,7 +1935,7 @@ Graph = function(sce) {
 
             var ts = getBornDieTS(jsonIn.bornDate, jsonIn.dieDate);
             this.arrayNodeData.push(this.currentNodeId, 0.0, ts.bornDate, ts.dieDate);
-            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, disabVal, 0.0); // bornDate, dieDate, networkWaitData, networkProcData
+            this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, disabVal, disabVal); // bornDate, dieDate, networkWaitData, networkProcData
             this.arrayNodeDataF.push(disabVal, 0.0, 0.0, 0.0); // efferenceData, null, null, null
             this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
             this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
@@ -1864,11 +1969,9 @@ Graph = function(sce) {
             var idxIndex = n;
 
             this.arrayNodeIndices.push(this.startIndexId+mesh_nodes.indexArray[idxIndex]);
-            //console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
 
-            if(mesh_nodes.indexArray[idxIndex] > maxNodeIndexId) {
+            if(mesh_nodes.indexArray[idxIndex] > maxNodeIndexId)
                 maxNodeIndexId = mesh_nodes.indexArray[idxIndex];
-            }
         }
         this.startIndexId += (maxNodeIndexId+1);
 
@@ -1894,9 +1997,9 @@ Graph = function(sce) {
         };
 
         for(var i = 0; i < nodesTextPlanes; i++) {
-            var letterId;
+            var letterId = null;
             if(jsonIn.label != undefined && jsonIn.label[i] != undefined)
-                letterId = getLetterId(jsonIn.label[i]);
+                letterId = getLetterId(jsonIn.label[i].toUpperCase());
             if(letterId == undefined)
                 letterId = getLetterId(" ");
 
@@ -1905,7 +2008,7 @@ Graph = function(sce) {
 
                 this.arrayNodeTextData.push(jsonIn.nodeId, 0.0, 0.0, 0.0);
                 this.arrayNodeTextPosXYZW.push(0.0, 0.0, 0.0, 1.0);
-                this.arrayNodeTextVertexPos.push(mesh_nodesText.vertexArray[idxVertex]+(i*0.5), mesh_nodesText.vertexArray[idxVertex+1], mesh_nodesText.vertexArray[idxVertex+2], 1.0);
+                this.arrayNodeTextVertexPos.push(mesh_nodesText.vertexArray[idxVertex]+(i*5), mesh_nodesText.vertexArray[idxVertex+1], mesh_nodesText.vertexArray[idxVertex+2], 1.0);
                 this.arrayNodeTextVertexNormal.push(mesh_nodesText.normalArray[idxVertex], mesh_nodesText.normalArray[idxVertex+1], mesh_nodesText.normalArray[idxVertex+2], 1.0);
                 this.arrayNodeTextVertexTexture.push(mesh_nodesText.textureArray[idxVertex], mesh_nodesText.textureArray[idxVertex+1], mesh_nodesText.textureArray[idxVertex+2], 1.0);
 
@@ -1931,19 +2034,24 @@ Graph = function(sce) {
                         }
                     }
                 }
-            }
 
-            var maxNodeIndexId = 0;
+                this.nodeTextArrayItemStart++;
+            }
+        }
+        var maxNodeIndexId = 0;
+        for(var i = 0; i < nodesTextPlanes; i++) {
             for(var n=0; n < mesh_nodesText.indexArray.length; n++) {
                 var idxIndex = n;
 
-                this.arrayNodeTextIndices.push(this.startIndexId_nodestext+mesh_nodesText.indexArray[idxIndex]);
-                //console.log(this.startIndexId+bo.nodeMeshIndexArray[idxIndex]);
+                var b = (i*4); // 4 = indices length of quad (0, 1, 2, 0, 2, 3)
+                var ii = (mesh_nodesText.indexArray[idxIndex]+b);
 
-                if(mesh_nodesText.indexArray[idxIndex] > maxNodeIndexId) {
-                    maxNodeIndexId = mesh_nodesText.indexArray[idxIndex];
-                }
+                this.arrayNodeTextIndices.push(this.startIndexId_nodestext+ii);
+
+                if(ii > maxNodeIndexId)
+                    maxNodeIndexId = ii;
             }
+
         }
         this.startIndexId_nodestext += (maxNodeIndexId+1);
 
@@ -2061,8 +2169,10 @@ Graph = function(sce) {
      * @param {Object} jsonIn
      * @param {String} jsonIn.origin - NodeName Origin for this link
      * @param {String} jsonIn.target - NodeName Target for this link
-     * @param {Bool} [jsonIn.directed=false] - Default false=bidir
+     * @param {boolean} [jsonIn.directed=false] - Default false=bidir
      * @param {Float|String} [jsonIn.weight=1.0] - Float weight or "RANDOM"
+     * @param {Float} [jsonIn.linkMultiplier=1.0]
+     * @param {Float} [jsonIn.activationFunc=0.0] 0.0=linkWeight*data*multiplier 1.0=data*multiplier
      * @param {Float|String|Datetime} [jsonIn.bornDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
      * @param {Float|String|Datetime} [jsonIn.dieDate=undefined] - Float timestamp, "RANDOM" or "24-Nov-2009 17:57:35"
      */
@@ -2095,6 +2205,8 @@ Graph = function(sce) {
             jsonIn.dieDate = ts.dieDate;
 
             jsonIn.weight = (jsonIn.weight != undefined && jsonIn.weight.constructor===String) ? Math.random() : (jsonIn.weight||1.0);
+            jsonIn.linkMultiplier = (jsonIn.linkMultiplier != null) ? jsonIn.linkMultiplier : 1.0;
+            jsonIn.activationFunc = (jsonIn.activationFunc != null) ? jsonIn.activationFunc : 0.0;
 
             var repeatId = 1;
             while(true) {
@@ -2308,6 +2420,10 @@ Graph = function(sce) {
         comp_renderer_links.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
         comp_renderer_arrows.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
 
+        comp_renderer_nodes.setArg("adjacencyMatrixB", (function() {return new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);}).bind(this));
+        comp_renderer_links.getComponentBufferArg("adjacencyMatrixB", comp_renderer_nodes);
+        comp_renderer_arrows.getComponentBufferArg("adjacencyMatrixB", comp_renderer_nodes);
+
         comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
         comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
         comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
@@ -2350,8 +2466,9 @@ Graph = function(sce) {
 		comp_renderer_nodes.setArgUpdatable("cameraWMatrix", true);
 		comp_renderer_nodes.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
 		comp_renderer_nodes.setArgUpdatable("nodeWMatrix", true);
-
+        comp_renderer_nodes.setArg("efferentNode", (function() {return -1.0;}).bind(this));
 		comp_renderer_nodes.setArg("isNode", (function() {return 1;}).bind(this));
+        comp_renderer_nodes.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
 
 		for(var argNameKey in _customArgs) {
 			var expl = _customArgs[argNameKey].arg.split("*");
@@ -2385,6 +2502,8 @@ Graph = function(sce) {
         comp_renderer_nodesText.setArgUpdatable("nodeWMatrix", true);
 
         comp_renderer_nodesText.setArg("isNodeText", (function() {return 1;}).bind(this));
+        comp_renderer_nodesText.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
+        comp_renderer_nodesText.setArg("bufferTextsWidth", (function() {return comp_renderer_nodesText.getBuffers()["data"].W;}).bind(this));
 
         for(var argNameKey in _customArgs) {
             var expl = _customArgs[argNameKey].arg.split("*");
@@ -2424,6 +2543,8 @@ Graph = function(sce) {
 		comp_renderer_links.setArgUpdatable("nodeWMatrix", true);
 
 		comp_renderer_links.setArg("isLink", (function() {return 1;}).bind(this));
+        comp_renderer_links.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
+        comp_renderer_links.setArg("bufferLinksWidth", (function() {return comp_renderer_links.getBuffers()["data"].W;}).bind(this));
 
 		for(var argNameKey in _customArgs) {
 			var expl = _customArgs[argNameKey].arg.split("*");
@@ -2458,6 +2579,8 @@ Graph = function(sce) {
         comp_renderer_arrows.setArgUpdatable("nodeWMatrix", true);
 
         comp_renderer_arrows.setArg("isArrow", (function() {return 1.0;}).bind(this));
+        comp_renderer_arrows.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
+        comp_renderer_arrows.setArg("bufferArrowsWidth", (function() {return comp_renderer_arrows.getBuffers()["data"].W;}).bind(this));
 
         for(var argNameKey in _customArgs) {
             var expl = _customArgs[argNameKey].arg.split("*");
@@ -2469,25 +2592,30 @@ Graph = function(sce) {
 
     /** @private */
     var updateAdjMat = (function() {
-        var setAdjMat = (function(id, columnAsParent, bornDate, dieDate, weight) {
+        var setAdjMat = (function(id, columnAsParent, bornDate, dieDate, weight, linkMultiplier, activationFunc) {
             var idx = id*4;
 
             arrAdjMatrix[idx] = bornDate;
             arrAdjMatrix[idx+1] = dieDate;
-            arrAdjMatrix[idx+2] = weight;
+            arrAdjMatrix[idx+2] = ((columnAsParent==true)?weight:disabVal);
             arrAdjMatrix[idx+3] = ((columnAsParent==true)?1.0:0.0); // columnAsParent=1.0;
+
+            arrAdjMatrixB[idx] = linkMultiplier;
+            arrAdjMatrixB[idx+1] = activationFunc;
         }).bind(this);
 
         arrAdjMatrix = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
+        arrAdjMatrixB = new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);
         for(var key in _links) {
             var origin = _links[key].origin_nodeId;
             var target = _links[key].target_nodeId;
 
-            setAdjMat((origin*_ADJ_MATRIX_WIDTH)+(target), true, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // (columns=parent;rows=child)
-            setAdjMat((target*_ADJ_MATRIX_WIDTH)+(origin), false, _links[key].bornDate, _links[key].dieDate, _links[key].weight); // (columns=child;rows=parent)
+            setAdjMat((origin*_ADJ_MATRIX_WIDTH)+(target), false, _links[key].bornDate, _links[key].dieDate, _links[key].weight, _links[key].linkMultiplier, _links[key].activationFunc); // (columns=parent;rows=child)
+            setAdjMat((target*_ADJ_MATRIX_WIDTH)+(origin), true, _links[key].bornDate, _links[key].dieDate, _links[key].weight, _links[key].linkMultiplier, _links[key].activationFunc); // (columns=child;rows=parent)
         }
 
         comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return arrAdjMatrix;}).bind(this));
+        comp_renderer_nodes.setArg("adjacencyMatrixB", (function() {return arrAdjMatrixB;}).bind(this));
 
         /*
         this.adjacencyMatrixToImage(arrAdjMatrix, _ADJ_MATRIX_WIDTH, (function(img) {
