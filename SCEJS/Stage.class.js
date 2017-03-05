@@ -109,7 +109,6 @@ Stage = function() {
 	*/
 	this.setBackgroundColor = function(color) {
 		backgroundColor = color;
-		gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 	};
 	
 	/**
@@ -163,6 +162,29 @@ Stage = function() {
                     if(nodes[n].onTick != null)  nodes[n].onTick();
                 }
 			}
+
+            for(var n=0, fn = nodes.length; n < fn; n++) {
+                if(nodes[n] != activeCamera) {
+                    for(var key in nodes[n].getComponents()) {
+                        var component = nodes[n].getComponent(key);
+
+                        if(component.gpufG != null) {
+                            for(var keyB in component.gpufG.vertexFragmentPrograms) {
+                                var vfp = component.gpufG.vertexFragmentPrograms[keyB];
+
+                                var ob = new WebCLGLUtils().getOutputBuffers(vfp, component.gpufG._argsValues);
+                                if(vfp.enabled == true && ob != null) {
+                                    component.gpufG._gl.bindFramebuffer(component.gpufG._gl.FRAMEBUFFER, ob[0].fBuffer);
+                                    component.gpufG._gl.clear(component.gpufG._gl.DEPTH_BUFFER_BIT);
+                                    component.gpufG._gl.bindFramebuffer(component.gpufG._gl.FRAMEBUFFER, ob[0].fBufferTemp);
+                                    component.gpufG._gl.clear(component.gpufG._gl.DEPTH_BUFFER_BIT);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             for(var key in activeCamera.getComponents()) {
                 var component = activeCamera.getComponent(key);
 

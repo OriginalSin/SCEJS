@@ -57,7 +57,8 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) {
                         '}\n'+
 
                         'currentPos += currentDir;\n'+
-
+                        'if(only2d == 1.0) '+
+                            'currentPos.y = 0.0;'+
 
                         returnStr];
     };

@@ -211,9 +211,6 @@ function VFP_NODE(customCode, geometryLength) {
             'currentLineVertexSQRT = sqrt(1.0-currentLineVertexSQRT);'+
 
             'vVertexUV = vec2(-1.0, -1.0);'+
-            'vVisibility = 1.0;'+
-            'vIsSelected = (idToDrag == data[].x || idToDrag == data[].y) ? 1.0 : 0.0;'+
-            'vIsHover = (idToHover == data[].x || idToHover == data[].y) ? 1.0 : 0.0;'+
             'vDist = max(0.3, 1.0-(distance(nodePosition.xyz, XYZW_opposite)*0.01));\n'+ // dist/acum
 
             'mat4 nodepos = nodeWMatrix;'+
@@ -248,6 +245,10 @@ function VFP_NODE(customCode, geometryLength) {
 
 
                 '}'+
+
+                'vVisibility = 1.0;'+
+                'vIsSelected = (idToDrag == data[].x) ? 1.0 : 0.0;'+
+                'vIsHover = (idToHover == data[].x) ? 1.0 : 0.0;'+
             '}'+
             'if(isLink == 1.0) {'+
                 'if(xGeometryLinks != xGeometryLinks_opposite) {'+
@@ -278,6 +279,8 @@ function VFP_NODE(customCode, geometryLength) {
                 '}'+
 
                 'vVisibility = checkLinkArrowVisibility(currentTimestamp, bornDate, dieDate, bornDateOpposite, dieDateOpposite, linkBornDate, linkDieDate);'+
+                'vIsSelected = (idToDrag == data[].x || idToDrag == data[].y) ? 1.0 : 0.0;'+
+                'vIsHover = (idToHover == data[].x || idToHover == data[].y) ? 1.0 : 0.0;'+
             '}'+
             'if(isArrow == 1.0) {'+
                 'vec3 nodePositionTMP;'+
@@ -331,6 +334,8 @@ function VFP_NODE(customCode, geometryLength) {
                 'nodePosition += vec4(normalize(dir),1.0)*2.0;'+
 
                 'vVisibility = checkLinkArrowVisibility(currentTimestamp, bornDate, dieDate, bornDateOpposite, dieDateOpposite, linkBornDate, linkDieDate);'+
+                'vIsSelected = (idToDrag == data[].x || idToDrag == data[].y) ? 1.0 : 0.0;'+
+                'vIsHover = (idToHover == data[].x || idToHover == data[].y) ? 1.0 : 0.0;'+
             '}'+
             'if(isNodeText == 1.0) {'+
                 'float letId = letterId[];\n'+
@@ -339,6 +344,11 @@ function VFP_NODE(customCode, geometryLength) {
 
                 'vVertexUV = get2Dfrom1D(letId, fontImgColumns)+vec2(nodeVertexTexture.x/fontImgColumns,nodeVertexTexture.y/fontImgColumns);'+
                 'nodeVertexPosition = vec4(nodeVertexPosition.x*0.1, nodeVertexPosition.y*0.1, nodeVertexPosition.z*0.1, 1.0);'+
+                'nodePosition.z += 2.5;'+
+
+                'vVisibility = 1.0;'+
+                'vIsSelected = (idToDrag == data[].x) ? 1.0 : 0.0;'+
+                'vIsHover = (idToHover == data[].x) ? 1.0 : 0.0;'+
             '}'+
             'nodepos[3][0] = nodePosition.x;'+
             'nodepos[3][1] = nodePosition.y;'+

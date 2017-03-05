@@ -1,97 +1,103 @@
 /** 
-* WebCLGLBuffer Object 
+* WebCLGLBuffer
 * @class
  * @param {WebGLRenderingContext} gl
- * @param {String} type
- * @param {boolean} linear
- * @param {String} mode
+ * @param {String} [type="FLOAT"]
+ * @param {boolean} [linear=true]
+ * @param {String} [mode="SAMPLER"] "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
 */
-WebCLGLBuffer = function(gl, type, linear, mode) {
-    "use strict";
-
-    var _gl = gl;
+var WebCLGLBuffer = function(gl, type, linear, mode) {
+    this._gl = gl;
 
     this.type = (type != undefined) ? type : 'FLOAT';
-    this._supportFormat = _gl.FLOAT;
+    this._supportFormat = this._gl.FLOAT;
 
-    this.linear = (linear != undefined && linear == true);
-    this.mode = (mode != undefined) ? mode : "SAMPLER"; // "SAMPLER", "ATTRIBUTE", "VERTEX_INDEX"
+    this.linear = (linear != undefined) ? linear : true;
+    this.mode = (mode != undefined) ? mode : "SAMPLER";
+
+    this.W = null;
+    this.H = null;
 
     this.textureData = null;
     this.textureDataTemp = null;
     this.vertexData0 = null;
 
-    var _oldW = 0;
+    this.fBuffer = null;
+    this.renderBuffer = null;
+    this.fBufferTemp = null;
+    this.renderBufferTemp = null;
+
+    this._oldW = 0;
 
     if(this.mode == "SAMPLER") {
-        this.textureData = _gl.createTexture();
-        this.textureDataTemp = _gl.createTexture();
+        this.textureData = this._gl.createTexture();
+        this.textureDataTemp = this._gl.createTexture();
     }
     if(this.mode == "SAMPLER" || this.mode == "ATTRIBUTE" || this.mode == "VERTEX_INDEX") {
-        this.vertexData0 = _gl.createBuffer();
+        this.vertexData0 = this._gl.createBuffer();
     }
 
-
-
-    var createFramebufferAndRenderbuffer = (function() {
+    /**
+     * createFramebufferAndRenderbuffer
+     */
+    this.createFramebufferAndRenderbuffer = function() {
         var createWebGLRenderBuffer = (function() {
-            var rBuffer = _gl.createRenderbuffer();
-            _gl.bindRenderbuffer(_gl.RENDERBUFFER, rBuffer);
-            _gl.renderbufferStorage(_gl.RENDERBUFFER, _gl.DEPTH_COMPONENT16, this.W, this.H);
-            _gl.bindRenderbuffer(_gl.RENDERBUFFER, null);
+            var rBuffer = this._gl.createRenderbuffer();
+            this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, rBuffer);
+            this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_COMPONENT16, this.W, this.H);
+            this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, null);
             return rBuffer;
         }).bind(this);
 
-        this.fBuffer = _gl.createFramebuffer();
+        this.fBuffer = this._gl.createFramebuffer();
         this.renderBuffer = createWebGLRenderBuffer();
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBuffer);
-        _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, this.renderBuffer);
+        this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this.fBuffer);
+        this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_ATTACHMENT, this._gl.RENDERBUFFER, this.renderBuffer);
 
-        this.fBufferTemp = _gl.createFramebuffer();
+        this.fBufferTemp = this._gl.createFramebuffer();
         this.renderBufferTemp = createWebGLRenderBuffer();
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, this.fBufferTemp);
-        _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.RENDERBUFFER, this.renderBufferTemp);
-    }).bind(this);
+        this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this.fBufferTemp);
+        this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_ATTACHMENT, this._gl.RENDERBUFFER, this.renderBufferTemp);
+    };
 
     /**
      * Write WebGLTexture buffer
-     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} arr
+     * @param {Array<float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} arr
      * @param {boolean} [flip=false]
-     * @private
      */
-    var writeWebGLTextureBuffer = (function(arr, flip) {
+    this.writeWebGLTextureBuffer = function(arr, flip) {
         var ps = (function(tex, flip) {
             if(flip == false || flip == undefined)
-                _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, false);
+                this._gl.pixelStorei(this._gl.UNPACK_FLIP_Y_WEBGL, false);
             else
-                _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
+                this._gl.pixelStorei(this._gl.UNPACK_FLIP_Y_WEBGL, true);
 
-            _gl.pixelStorei(_gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-            _gl.bindTexture(_gl.TEXTURE_2D, tex);
+            this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+            this._gl.bindTexture(this._gl.TEXTURE_2D, tex);
         }).bind(this);
 
         var writeTexNow = (function(arr) {
             if(arr instanceof HTMLImageElement)  {
-                //_gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, arr.width, arr.height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, arr);
+                //this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, arr.width, arr.height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, arr);
                 if(this.type == 'FLOAT4')
-                    _gl.texImage2D(	_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, this._supportFormat, arr);
+                    this._gl.texImage2D(	this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.RGBA, this._supportFormat, arr);
             } else {
-                //_gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, this.W, this.H, 0, _gl.RGBA, this._supportFormat, arr, 0);
-                _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, this.W, this.H, 0, _gl.RGBA, this._supportFormat, arr);
+                //this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this.W, this.H, 0, this._gl.RGBA, this._supportFormat, arr, 0);
+                this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this.W, this.H, 0, this._gl.RGBA, this._supportFormat, arr);
             }
         }).bind(this);
 
         var tp = (function() {
-            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
-            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
-            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
-            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
+            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
+            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
+            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
 
-            /*_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
-             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR_MIPMAP_NEAREST);
-             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
-             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
-             _gl.generateMipmap(_gl.TEXTURE_2D);*/
+            /*this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
+             this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR_MIPMAP_NEAREST);
+             this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+             this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
+             this._gl.generateMipmap(this._gl.TEXTURE_2D);*/
         }).bind(this);
 
 
@@ -108,14 +114,14 @@ WebCLGLBuffer = function(gl, type, linear, mode) {
             tp();
         }
 
-        _oldW = this.W;
+        this._oldW = this.W;
 
-        _gl.bindTexture(_gl.TEXTURE_2D, null);
-    }).bind(this);
+        this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+    };
 
     /**
      * Write on buffer
-     * @param {Array<Float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} arr
+     * @param {Array<float>|Float32Array|Uint8Array|WebGLTexture|HTMLImageElement} arr
      * @param {boolean} [flip=false]
      * @param {Array<Float2>} [overrideDimensions=new Array(){Math.sqrt(value.length), Math.sqrt(value.length)}]
      */
@@ -169,18 +175,18 @@ WebCLGLBuffer = function(gl, type, linear, mode) {
 
 
         if(this.mode == "SAMPLER") {
-            writeWebGLTextureBuffer(prepareArr(arr), flip);
+            this.writeWebGLTextureBuffer(prepareArr(arr), flip);
         }
         if(this.mode == "SAMPLER" || this.mode == "ATTRIBUTE") {
-            _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexData0);
-            _gl.bufferData(_gl.ARRAY_BUFFER, ((arr instanceof Float32Array) ? arr : new Float32Array(arr)), _gl.STATIC_DRAW);
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.vertexData0);
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, ((arr instanceof Float32Array) ? arr : new Float32Array(arr)), this._gl.STATIC_DRAW);
         }
         if(this.mode == "VERTEX_INDEX") {
-            _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.vertexData0);
-            _gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arr), _gl.STATIC_DRAW);
+            this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this.vertexData0);
+            this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arr), this._gl.STATIC_DRAW);
         }
 
-        createFramebufferAndRenderbuffer();
+        this.createFramebufferAndRenderbuffer();
     };
 
     /**
@@ -188,13 +194,12 @@ WebCLGLBuffer = function(gl, type, linear, mode) {
      */
     this.remove = function() {
         if(this.mode == "SAMPLER") {
-            _gl.deleteTexture(this.textureData);
-            _gl.deleteTexture(this.textureDataTemp);
+            this._gl.deleteTexture(this.textureData);
+            this._gl.deleteTexture(this.textureDataTemp);
         }
         if(this.mode == "SAMPLER" || this.mode == "ATTRIBUTE" || this.mode == "VERTEX_INDEX") {
-            _gl.deleteBuffer(this.vertexData0);
+            this._gl.deleteBuffer(this.vertexData0);
         }
     };
-
 
 };

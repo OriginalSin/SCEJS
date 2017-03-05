@@ -31,7 +31,7 @@ Graph = function(sce) {
     var _playAnimation = false;
     var _loop = false;
     var _animationFrames = 500;
-    
+
     var _geometryLength = 4;
     var circleSegments = 12;
     var nodesTextPlanes = 12;
@@ -39,6 +39,7 @@ Graph = function(sce) {
     var lineVertexCount = 4;
 
     var _enableNeuronalNetwork = false;
+    var _only2d = false;
     var _makeNetworkStep = false;
 
 
@@ -1022,6 +1023,7 @@ Graph = function(sce) {
             'float efferentNode': (function(){return null;}).bind(this),
             'float efferentData': (function(){return null;}).bind(this),
             'float enableNeuronalNetwork': (function(){return null;}).bind(this),
+            'float only2d': (function(){return null;}).bind(this),
             'float makeNetworkStep': (function(){return null;}).bind(this),
             'float nodeImgColumns': (function(){return null;}).bind(this),
             'float fontImgColumns': (function(){return null;}).bind(this),
@@ -1180,6 +1182,7 @@ Graph = function(sce) {
             }
 
             comp_renderer_nodes.setArg("enableNeuronalNetwork", (function() {return _enableNeuronalNetwork;}).bind(this));
+            comp_renderer_nodes.setArg("only2d", (function() {return ((_only2d==true)?1.0:0.0);}).bind(this));
         }).bind(this));
         comp_renderer_nodes.gpufG.onPostProcessKernel(0, (function() {
             comp_renderer_nodes.setArg("makeNetworkStep", (function() {return 0.0;}).bind(this));
@@ -1347,6 +1350,14 @@ Graph = function(sce) {
      */
     this.disableNeuronalNetwork = function() {
         _enableNeuronalNetwork = false;
+    };
+
+    /**
+     *  only2d
+     *  @param {boolean} mode2d
+     */
+    this.only2d = function(mode2d) {
+        _only2d = mode2d;
     };
 
     /**
@@ -2066,7 +2077,7 @@ Graph = function(sce) {
     var setNodesImage = (function(url, locationIdx) {
         var get2Dfrom1D = function(/*Int*/ idx, /*Int*/ columns) {
             var n = idx/columns;
-            var row = parseFloat(Math.round(n));
+            var row = parseFloat(parseInt(n));
             var col = new Utils().fract(n)*columns;
 
             return {"col": col,
@@ -2075,14 +2086,14 @@ Graph = function(sce) {
 
         if(nodesImgMaskLoaded == false) {
             nodesImgMask = new Image();
-            nodesImgMask.onload = (function() {
+            nodesImgMask.onload = (function(url, locationIdx) {
                 nodesImgMaskLoaded = true;
                 setNodesImage(url, locationIdx);
             }).bind(this, url, locationIdx);
             nodesImgMask.src = sceDirectory+"/Prefabs/Graph/nodesImgMask.png";
         } else if(nodesImgCrosshairLoaded == false) {
             nodesImgCrosshair = new Image();
-            nodesImgCrosshair.onload = (function() {
+            nodesImgCrosshair.onload = (function(url, locationIdx) {
                 nodesImgCrosshairLoaded = true;
                 setNodesImage(url, locationIdx);
             }).bind(this, url, locationIdx);
@@ -2092,14 +2103,14 @@ Graph = function(sce) {
                 _makingNodesImg = true;
 
                 var image = new Image();
-                image.onload = (function(nodesImgMask, nodesImgCrosshair) {
+                image.onload = (function(nodesImgMask, nodesImgCrosshair, locationIdx) {
                     // draw userImg on temporal canvas reducing the thumb size
                     ctxNodeImgTMP.clearRect(0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
                     var quarter = NODE_IMG_SPRITE_WIDTH/4;
                     ctxNodeImgTMP.drawImage(image, 0, 0, image.width, image.height, quarter, quarter, NODE_IMG_SPRITE_WIDTH/2, NODE_IMG_SPRITE_WIDTH/2);
 
                     // apply mask to thumb image
-                    new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(img) {
+                    new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(nodesImgMask, nodesImgCrosshair, locationIdx, img) {
                         var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( img );
 
 
@@ -2108,7 +2119,7 @@ Graph = function(sce) {
                             var idx = n*4;
                             if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
                         }
-                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
+                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(locationIdx, imgB) {
                             // draw thumb image on atlas & update the 'nodesImg' argument
                             var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
                             ctxNodeImg.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
@@ -2116,7 +2127,7 @@ Graph = function(sce) {
                             new Utils().getImageFromCanvas(canvasNodeImg, (function(imgAtlas) {
                                 comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
                             }).bind(this));
-                        }).bind(this));
+                        }).bind(this, locationIdx));
 
 
                         var datCrosshair = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgCrosshair);
@@ -2128,7 +2139,7 @@ Graph = function(sce) {
                             newImgData[idx+2] = ((datCrosshair[idx+2]*datCrosshair[idx+3]) + (newImgData[idx+2]*(255-datCrosshair[idx+3])))/255;
                             newImgData[idx+3] = ((datCrosshair[idx+3]*datCrosshair[idx+3]) + (newImgData[idx+3]*(255-datCrosshair[idx+3])))/255;
                         }
-                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(imgB) {
+                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(locationIdx, imgB) {
                             // draw thumb image on atlas & update the 'nodesImg' argument
                             var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
                             ctxNodeImgCrosshair.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
@@ -2144,11 +2155,11 @@ Graph = function(sce) {
                                     setNodesImage(urlT, locIdx);
                                 }
                             }).bind(this));
-                        }).bind(this));
+                        }).bind(this, locationIdx));
 
-                    }).bind(this));
+                    }).bind(this, nodesImgMask, nodesImgCrosshair, locationIdx));
 
-                }).bind(this, nodesImgMask, nodesImgCrosshair);
+                }).bind(this, nodesImgMask, nodesImgCrosshair, locationIdx);
                 image.src = url;
             } else {
                 _stackNodesImg.push({	"url": url,
