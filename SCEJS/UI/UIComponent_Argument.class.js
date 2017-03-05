@@ -9,27 +9,33 @@ UIComponent_Argument = function(targetElement, selectedNode, comp, args) {
 
 
 	// ARGS
-	var str = "<div id='"+targetElement.id+"_args' style='display:table-cell;vertical-align:top;'>"+
-		"<div style='height:250px;'>"+
+	var str = "<div id='"+targetElement.id+"_args' style='width:inherit;display:table-cell;vertical-align:top;'>"+
+		"<div style='height:251px;'>"+
 			"<div>ARGUMENTS</div>"+
 		"</div>";
-	
+
+	    var b = false;
 		for(var argKey in args) {
 			var arg = args[argKey];
 	
-			str +=  "<div id='DIVID_"+argKey+"_args' title='"+arg+"'>"+
+			str +=  "<div id='DIVID_"+argKey+"_args' title='"+arg+"' style='background-color:"+((b==true)?"rgba(0,0,0,0.0)":"rgba(0,0,0,0.07)")+"'>"+
 			            argKey+
                     " <input type='checkbox' id='CHECKBOX_UPDATE_"+argKey+"' title='update on tick' style='width:8px;height:8px;margin:0px;vertical-align:middle' />";
-			if(arg != undefined) {
-				if(arg instanceof WebCLGLBuffer) {
-					str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+arg.length+"}</span>";
-				} else if(arg instanceof Float32Array || arg instanceof Array) {
-					str += " <span style='color:rgb(150, 255, 150)'> {"+arg.constructor.name+" "+arg.length+"}</span>"; // arg.value
-				} else {
-					str += " <span style='color:rgb(150, 255, 150)'> {<span>"+arg.constructor.name+" "+arg+"}</span>"; // arg.value
-				}
-			}
+
+                    if(arg != undefined) {
+                        if(arg instanceof WebCLGLBuffer) {
+                            str += " <span style='color:rgb(150, 255, 150)'> {WebCLGLBuffer "+arg.length+"}</span>";
+                        } else if(arg instanceof Float32Array || arg instanceof Array) {
+                            str += " <span style='color:rgb(150, 255, 150)'> {"+arg.constructor.name+" "+arg.length+"}</span>"; // arg.value
+                        } else {
+                            str += " <span style='color:rgb(150, 255, 150)'> {<span>"+arg.constructor.name+" "+arg+"}</span>"; // arg.value
+                        }
+                    }
+
 			str += "</div>";
+
+
+            b=!b;
 		}
 	str += "</div>";
 	ah.appendStringChild(str, targetElement);

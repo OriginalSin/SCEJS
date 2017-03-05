@@ -14,8 +14,8 @@ UIComponentGPU = function(compTypeKey, selectedNode) {
 
     var str = ""+
         "<div id='DIVID_"+compTypeKey+"' class='component_section'>"+
-        "<div id='DIVID_"+compTypeKey+"_args' style='width:50%;display:inline-block;float:left;'></div>"+
-        "<div id='DIVID_"+compTypeKey+"_kernelsvfps' style='width:50%;display:inline-block;overflow-x:auto;'></div>"+
+            "<div id='DIVID_"+compTypeKey+"_args' style='width:300px;display:inline-block;float:left;'></div>"+
+            "<div id='DIVID_"+compTypeKey+"_kernelsvfps' style='display:inline-block;overflow-x:auto;'></div>"+
         "</div>";
     ah.appendStringChild(str, document.getElementById('DIVID_component_'+compTypeKey));
 

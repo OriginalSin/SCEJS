@@ -98,7 +98,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
                 '}'+
             '} else {'+
                 'if(enableForceLayoutRepulsion == 1.0) \n'+
-                    'repulsion += dirToBN*-(1000.0);\n'+
+                    'repulsion += dirToBN*-(10.0);\n'+
             '}'+
         '}'+
         'return CalculationResponse(atraction, acumAtraction, repulsion, collisionExists, netProc, netError);'+
@@ -178,7 +178,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
                     'force += cA;'+
 
                     'vec3 cR = repulsion/(widthAdjMatrix-acumAtraction);'+
-                    'force += cR*sqrt( max(0.0, 1.0-length(cA)) );'+
+                    'force += cR*(1.0-length(cA))*10.0;'+
                 '} else {'+
                     'vec3 cA = atraction/acumAtraction;'+
                     'force += cA;'+

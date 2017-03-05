@@ -3,24 +3,9 @@
 * @class
 * @constructor
 */
-WebCLGLUtils = function() {
-    "use strict";
-
-    /** @private  */
-    this.isPowerOfTwo = function(x) {
-        return (x & (x - 1)) == 0;
-    };
-    /** @private  */
-    this.nextHighestPowerOfTwo = function(x) {
-        --x;
-        for (var i = 1; i < 32; i <<= 1) {
-            x = x | x >> i;
-        }
-        return x + 1;
-    };
-
+var WebCLGLUtils = function() {
     /**
-     * @private
+     * loadQuad
      */
     this.loadQuad = function(node, length, height) {
         var l=(length==undefined)?0.5:length;
@@ -37,21 +22,14 @@ WebCLGLUtils = function() {
 
         this.indexArray = [0, 1, 2,      0, 2, 3];
 
-        var meshObject = new Object;
+        var meshObject = {};
         meshObject.vertexArray = this.vertexArray;
-        meshObject.vertexItemSize = this.vertexItemSize;
-        meshObject.vertexNumItems = this.vertexNumItems;
-
         meshObject.textureArray = this.textureArray;
-        meshObject.textureItemSize = this.textureItemSize;
-        meshObject.textureNumItems = this.textureNumItems;
-
         meshObject.indexArray = this.indexArray;
-        meshObject.indexItemSize = this.indexItemSize;
-        meshObject.indexNumItems = this.indexNumItems;
 
         return meshObject;
     };
+
     /**
      * getWebGLContextFromCanvas
      * @param {HTMLCanvasElement} canvas
@@ -100,8 +78,9 @@ WebCLGLUtils = function() {
         if(gl == null) gl = false;
         return gl;
     };
+
     /**
-     * @private
+     * createShader
      */
     this.createShader = function(gl, name, sourceVertex, sourceFragment, shaderProgram) {
         var _sv = false, _sf = false;
@@ -143,8 +122,6 @@ WebCLGLUtils = function() {
         gl.shaderSource(shaderVertex, sourceVertex);
         gl.compileShader(shaderVertex);
         if (!gl.getShaderParameter(shaderVertex, gl.COMPILE_STATUS)) {
-            alert(name+' ERROR (vertex program). See console.');
-
             var infoLog = gl.getShaderInfoLog(shaderVertex);
             console.log("%c"+name+' ERROR (vertex program)', "color:red");
 
@@ -159,8 +136,6 @@ WebCLGLUtils = function() {
         gl.shaderSource(shaderFragment, sourceFragment);
         gl.compileShader(shaderFragment);
         if (!gl.getShaderParameter(shaderFragment, gl.COMPILE_STATUS)) {
-            alert(name+' ERROR (fragment program). See console.');
-
             var infoLog = gl.getShaderInfoLog(shaderFragment);
             console.log("%c"+name+' ERROR (fragment program)', "color:red");
 
@@ -177,7 +152,6 @@ WebCLGLUtils = function() {
             if(success) {
                 return true;
             } else {
-                alert('Error in shader '+name);
                 console.log('Error shader program '+name+':\n ');
                 var log = gl.getProgramInfoLog(shaderProgram);
                 if(log != undefined)
@@ -188,7 +162,6 @@ WebCLGLUtils = function() {
             return false;
         }
     };
-
 
     /**
      * Get Uint8Array from HTMLImageElement
@@ -205,23 +178,23 @@ WebCLGLUtils = function() {
 
         return arrayTex.data;
     };
+
     /**
      * Dot product vector4float
-     * @private
      */
     this.dot4 = function(vector4A,vector4B) {
         return vector4A[0]*vector4B[0] + vector4A[1]*vector4B[1] + vector4A[2]*vector4B[2] + vector4A[3]*vector4B[3];
     };
+
     /**
      * Compute the fractional part of the argument. fract(pi)=0.14159265...
-     * @private
      */
     this.fract = function(number) {
         return number - Math.floor(number);
     };
+
     /**
      * Pack 1float (0.0-1.0) to 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0)
-     * @private
      */
     this.pack = function(v) {
         var bias = [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0];
@@ -236,14 +209,15 @@ WebCLGLUtils = function() {
 
         return [colour[0]-dd[0],colour[1]-dd[1],colour[2]-dd[2],colour[3]-dd[3] ];
     };
+
     /**
      * Unpack 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0) to 1float (0.0-1.0)
-     * @private
      */
     this.unpack = function(colour) {
         var bitShifts = [1.0, 1.0/255.0, 1.0/(255.0*255.0), 1.0/(255.0*255.0*255.0)];
         return this.dot4(colour, bitShifts);
     };
+
     /**
      * Get pack GLSL function string
      * @returns {String}
@@ -264,6 +238,7 @@ WebCLGLUtils = function() {
             'return colour - (colour.yzww * bias);\n'+
             '}\n';
     };
+
     /**
      * Get unpack GLSL function string
      * @returns {String}
@@ -277,9 +252,6 @@ WebCLGLUtils = function() {
             'return dot(colour, bitShifts);\n'+
             '}\n';
     };
-
-
-
 
     /**
      * getOutputBuffers
@@ -336,7 +308,6 @@ WebCLGLUtils = function() {
         return source;
     };
 
-
     /**
      * lines_vertex_attrs
      * @param {Object} values
@@ -354,6 +325,7 @@ WebCLGLUtils = function() {
         }
         return str;
     };
+
     /**
      * lines_fragment_attrs
      * @param {Object} values
@@ -370,10 +342,9 @@ WebCLGLUtils = function() {
         return str;
     };
 
-
     /**
      * lines_drawBuffersInit
-     * @param {Int} maxDrawBuffers
+     * @param {int} maxDrawBuffers
      */
     this.lines_drawBuffersInit = function(maxDrawBuffers) {
         var str = '';
@@ -384,6 +355,7 @@ WebCLGLUtils = function() {
         }
         return str;
     };
+
     this.lines_drawBuffersWriteInit = function(maxDrawBuffers) {
         var str = '';
         for(var n= 0, fn=maxDrawBuffers; n < fn; n++) {
@@ -392,9 +364,10 @@ WebCLGLUtils = function() {
         }
         return str;
     };
+
     /**
      * lines_drawBuffersWrite
-     * @param {Int} maxDrawBuffers
+     * @param {int} maxDrawBuffers
      */
     this.lines_drawBuffersWrite = function(maxDrawBuffers) {
         var str = '';
@@ -406,23 +379,19 @@ WebCLGLUtils = function() {
         return str;
     };
 
-
     /**
      * checkArgNameInitialization
      * @param {Object} inValues
      * @param {String} argName
-     * @private
      */
     this.checkArgNameInitialization = function(inValues, argName) {
         if(inValues.hasOwnProperty(argName) == false) {
-            var inValue = { "type": null, //
+            inValues[argName] = {
+                "type": null,
                 "expectedMode": null, // "ATTRIBUTE", "SAMPLER", "UNIFORM"
-                "value": null, // Float|Int|Array<Float4>|Array<Mat4>|WebCLGLBuffer
                 "location": null};
-            inValues[argName] = inValue;
         }
     };
-
 
     /**
      * get_global_id3_GLSLFunctionString
@@ -439,6 +408,7 @@ WebCLGLUtils = function() {
             'return vec2(column*ts, row*ts);'+
             '}\n';
     };
+
     /**
      * get_global_id2_GLSLFunctionString
      */

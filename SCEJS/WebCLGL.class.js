@@ -22,155 +22,144 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  */
 
-var webCLGLDirectory = document.querySelector('script[src$="WebCLGL.class.js"]').getAttribute('src');
-var page = webCLGLDirectory.split('/').pop();
-webCLGLDirectory = webCLGLDirectory.replace('/'+page,"");
-
-var includesF = ['/WebCLGLUtils.class.js',
-    '/WebCLGLBuffer.class.js',
-    '/WebCLGLKernel.class.js',
-    '/WebCLGLVertexFragmentProgram.class.js',
-    '/WebCLGLFor.class.js'];
-for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+webCLGLDirectory+includesF[n]+'"></script>');
-
 /**
 * Class for parallelization of calculations using the WebGL context similarly to webcl
 * @class
-* @param {WebGLRenderingContext} [webglcontext=undefined] your WebGLRenderingContext
+* @param {WebGLRenderingContext} [webglcontext=null]
 */
 var WebCLGL = function(webglcontext) {
     "use strict";
 
-	this.utils = new WebCLGLUtils();
+    this.utils = new WebCLGLUtils();
 
-	// WEBGL CONTEXT
-	var _gl;
-	this.e = undefined;
-	if(webglcontext == undefined) {
-		this.e = document.createElement('canvas');
-		this.e.width = 32;
-		this.e.height = 32;
-		_gl = this.utils.getWebGLContextFromCanvas(this.e, {antialias: false});
-	} else _gl = webglcontext;
+    this._gl = null;
+    this.e = undefined;
+    if(webglcontext == undefined) {
+        this.e = document.createElement('canvas');
+        this.e.width = 32;
+        this.e.height = 32;
+        this._gl = this.utils.getWebGLContextFromCanvas(this.e, {antialias: false});
+    } else this._gl = webglcontext;
 
-    var _arrExt = {"OES_texture_float":null, "OES_texture_float_linear":null, "OES_element_index_uint":null, "WEBGL_draw_buffers":null};
-    for(var key in _arrExt) {
-        _arrExt[key] = _gl.getExtension(key);
-        if(_arrExt[key] == null)
+    this._arrExt = {"OES_texture_float":null, "OES_texture_float_linear":null, "OES_element_index_uint":null, "WEBGL_draw_buffers":null};
+    for(var key in this._arrExt) {
+        this._arrExt[key] = this._gl.getExtension(key);
+        if(this._arrExt[key] == null)
             console.error("extension "+key+" not available");
     }
-    var _maxDrawBuffers = null;
-    if(_arrExt.hasOwnProperty("WEBGL_draw_buffers") && _arrExt["WEBGL_draw_buffers"] != null) {
-        _maxDrawBuffers = _gl.getParameter(_arrExt["WEBGL_draw_buffers"].MAX_DRAW_BUFFERS_WEBGL);
-        console.log("Max draw buffers: "+_maxDrawBuffers);
+    this._maxDrawBuffers = null;
+    if(this._arrExt.hasOwnProperty("WEBGL_draw_buffers") && this._arrExt["WEBGL_draw_buffers"] != null) {
+        this._maxDrawBuffers = this._gl.getParameter(this._arrExt["WEBGL_draw_buffers"].MAX_DRAW_BUFFERS_WEBGL);
+        console.log("Max draw buffers: "+this._maxDrawBuffers);
     } else
         console.log("Max draw buffers: 1");
 
-    var highPrecisionSupport = _gl.getShaderPrecisionFormat(_gl.FRAGMENT_SHADER, _gl.HIGH_FLOAT);
+    var highPrecisionSupport = this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT);
     this.precision = (highPrecisionSupport.precision != 0) ? 'precision highp float;\n\nprecision highp int;\n\n' : 'precision lowp float;\n\nprecision lowp int;\n\n';
-	//this.precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
-    var _currentTextureUnit;
-    var _bufferWidth = 0;
+    //this.precision = '#version 300 es\nprecision highp float;\n\nprecision highp int;\n\n';
+    this._currentTextureUnit = 0;
+    this._bufferWidth = 0;
 
-	// QUAD
-	var mesh = this.utils.loadQuad(undefined,1.0,1.0);
-	this.vertexBuffer_QUAD = _gl.createBuffer();
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
-	_gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array(mesh.vertexArray), _gl.STATIC_DRAW);
-	this.indexBuffer_QUAD = _gl.createBuffer();
-	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
-	_gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indexArray), _gl.STATIC_DRAW);
+    // QUAD
+    var mesh = this.utils.loadQuad(undefined,1.0,1.0);
+    this.vertexBuffer_QUAD = this._gl.createBuffer();
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
+    this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(mesh.vertexArray), this._gl.STATIC_DRAW);
+    this.indexBuffer_QUAD = this._gl.createBuffer();
+    this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
+    this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indexArray), this._gl.STATIC_DRAW);
 
 
-    var arrayCopyTex = [];
+    this.arrayCopyTex = [];
 
-	// SHADER READPIXELS
-	var sourceVertex = 	this.precision+
-			'attribute vec3 aVertexPosition;\n'+
-			'varying vec2 vCoord;\n'+
+    // SHADER READPIXELS
+    var sourceVertex = 	this.precision+
+            'attribute vec3 aVertexPosition;\n'+
+            'varying vec2 vCoord;\n'+
 
-			'void main(void) {\n'+
-				'gl_Position = vec4(aVertexPosition, 1.0);\n'+
-				'vCoord = aVertexPosition.xy*0.5+0.5;\n'+
-			'}\n';
-	var sourceFragment = this.precision+
-			'uniform sampler2D sampler_buffer;\n'+
-			'varying vec2 vCoord;\n'+
+            'void main(void) {\n'+
+                'gl_Position = vec4(aVertexPosition, 1.0);\n'+
+                'vCoord = aVertexPosition.xy*0.5+0.5;\n'+
+            '}\n';
+    var sourceFragment = this.precision+
+            'uniform sampler2D sampler_buffer;\n'+
+            'varying vec2 vCoord;\n'+
 
             //'out vec4 fragmentColor;'+
-			'void main(void) {\n'+
-				'gl_FragColor = texture2D(sampler_buffer, vCoord);'+
-			'}\n';
+            'void main(void) {\n'+
+                'gl_FragColor = texture2D(sampler_buffer, vCoord);'+
+            '}\n';
 
-	this.shader_readpixels = _gl.createProgram();
-	this.utils.createShader(_gl, "CLGLREADPIXELS", sourceVertex, sourceFragment, this.shader_readpixels);
+    this.shader_readpixels = this._gl.createProgram();
+    this.utils.createShader(this._gl, "CLGLREADPIXELS", sourceVertex, sourceFragment, this.shader_readpixels);
 
-    this.attr_VertexPos = _gl.getAttribLocation(this.shader_readpixels, "aVertexPosition");
-    this.sampler_buffer = _gl.getUniformLocation(this.shader_readpixels, "sampler_buffer");
+    this.attr_VertexPos = this._gl.getAttribLocation(this.shader_readpixels, "aVertexPosition");
+    this.sampler_buffer = this._gl.getUniformLocation(this.shader_readpixels, "sampler_buffer");
 
     // SHADER COPYTEXTURE
     var lines_drawBuffersEnable = (function() {
-        return ((_maxDrawBuffers != null) ? '#extension GL_EXT_draw_buffers : require\n' : "");
+        return ((this._maxDrawBuffers != null) ? '#extension GL_EXT_draw_buffers : require\n' : "");
     }).bind(this);
     var lines_drawBuffersWriteInit = (function() {
         var str = '';
-        for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
+        for(var n= 0, fn=this._maxDrawBuffers; n < fn; n++)
             str += 'layout(location = '+n+') out vec4 outCol'+n+';\n';
 
         return str;
     }).bind(this);
     var lines_drawBuffersWrite = (function() {
         var str = '';
-        for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
+        for(var n= 0, fn=this._maxDrawBuffers; n < fn; n++)
             str += 'gl_FragData['+n+'] = texture2D(uArrayCT['+n+'], vCoord);\n';
 
         return str;
     }).bind(this);
-	var sourceVertex = 	""+
+    sourceVertex = 	""+
         this.precision+
-		'attribute vec3 aVertexPosition;\n'+
-		'varying vec2 vCoord;\n'+
+        'attribute vec3 aVertexPosition;\n'+
+        'varying vec2 vCoord;\n'+
 
-		'void main(void) {\n'+
-			'gl_Position = vec4(aVertexPosition, 1.0);\n'+
-			'vCoord = aVertexPosition.xy*0.5+0.5;\n'+
-		'}';
-	var sourceFragment = lines_drawBuffersEnable()+
-	    this.precision+
+        'void main(void) {\n'+
+            'gl_Position = vec4(aVertexPosition, 1.0);\n'+
+            'vCoord = aVertexPosition.xy*0.5+0.5;\n'+
+        '}';
+    sourceFragment = lines_drawBuffersEnable()+
+        this.precision+
 
-        'uniform sampler2D uArrayCT['+_maxDrawBuffers+'];\n'+
+        'uniform sampler2D uArrayCT['+this._maxDrawBuffers+'];\n'+
 
-		'varying vec2 vCoord;\n'+
+        'varying vec2 vCoord;\n'+
 
         //lines_drawBuffersWriteInit()+
-		'void main(void) {\n'+
+        'void main(void) {\n'+
             lines_drawBuffersWrite()+
-		'}';
-	this.shader_copyTexture = _gl.createProgram();
-	this.utils.createShader(_gl, "CLGLCOPYTEXTURE", sourceVertex, sourceFragment, this.shader_copyTexture);
+        '}';
+    this.shader_copyTexture = this._gl.createProgram();
+    this.utils.createShader(this._gl, "CLGLCOPYTEXTURE", sourceVertex, sourceFragment, this.shader_copyTexture);
 
-	this.attr_copyTexture_pos = _gl.getAttribLocation(this.shader_copyTexture, "aVertexPosition");
+    this.attr_copyTexture_pos = this._gl.getAttribLocation(this.shader_copyTexture, "aVertexPosition");
 
-    for(var n= 0, fn=_maxDrawBuffers; n < fn; n++)
-        arrayCopyTex[n] = _gl.getUniformLocation(this.shader_copyTexture, "uArrayCT["+n+"]");
+    for(var n= 0, fn=this._maxDrawBuffers; n < fn; n++)
+        this.arrayCopyTex[n] = this._gl.getUniformLocation(this.shader_copyTexture, "uArrayCT["+n+"]");
 
 
 
-    this.textureDataAux = _gl.createTexture();
-    _gl.bindTexture(_gl.TEXTURE_2D, this.textureDataAux);
-    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, 2, 2, 0, _gl.RGBA, _gl.FLOAT, new Float32Array([1,0,0,1, 0,1,0,1, 0,0,1,1, 1,1,1,1]));
-    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
-    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
-    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
-    _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
-    _gl.bindTexture(_gl.TEXTURE_2D, null);
+    this.textureDataAux = this._gl.createTexture();
+    this._gl.bindTexture(this._gl.TEXTURE_2D, this.textureDataAux);
+    this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, 2, 2, 0, this._gl.RGBA, this._gl.FLOAT, new Float32Array([1,0,0,1, 0,1,0,1, 0,0,1,1, 1,1,1,1]));
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
+    this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+
 
     /**
      * getContext
      * @returns {WebGLRenderingContext}
      */
     this.getContext = function() {
-        return _gl;
+        return this._gl;
     };
 
     /**
@@ -178,7 +167,7 @@ var WebCLGL = function(webglcontext) {
      * @returns {int}
      */
     this.getMaxDrawBuffers = function() {
-        return _maxDrawBuffers;
+        return this._maxDrawBuffers;
     };
 
     /**
@@ -189,45 +178,46 @@ var WebCLGL = function(webglcontext) {
     this.copy = function(pgr, webCLGLBuffers) {
         if(webCLGLBuffers != null) {
             if(webCLGLBuffers[0] != null) {
-                _gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
+                this._gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
 
-                _gl.bindFramebuffer(_gl.FRAMEBUFFER, webCLGLBuffers[0].fBuffer);
+                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, webCLGLBuffers[0].fBuffer);
                 var arrDBuff = [];
                 for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
                     if(webCLGLBuffers[n] != null) {
-                        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, webCLGLBuffers[n].textureData, 0);
-                        arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'];
+                        this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], this._gl.TEXTURE_2D, webCLGLBuffers[n].textureData, 0);
+                        arrDBuff[n] = this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'];
                     } else
-                        arrDBuff[n] = _gl['NONE'];
+                        arrDBuff[n] = this._gl['NONE'];
                 }
-                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+                this._arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
-                _gl.useProgram(this.shader_copyTexture);
+                this._gl.useProgram(this.shader_copyTexture);
 
                 for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
-                    _gl.activeTexture(_gl["TEXTURE"+n]);
+                    this._gl.activeTexture(this._gl["TEXTURE"+n]);
                     if(webCLGLBuffers[n] != null)
-                        _gl.bindTexture(_gl.TEXTURE_2D, webCLGLBuffers[n].textureDataTemp);
+                        this._gl.bindTexture(this._gl.TEXTURE_2D, webCLGLBuffers[n].textureDataTemp);
                     else
-                        _gl.bindTexture(_gl.TEXTURE_2D, this.textureDataAux);
-                    _gl.uniform1i(arrayCopyTex[n], n);
+                        this._gl.bindTexture(this._gl.TEXTURE_2D, this.textureDataAux);
+                    this._gl.uniform1i(this.arrayCopyTex[n], n);
                 }
 
-                copyNow(webCLGLBuffers);
+                this.copyNow(webCLGLBuffers);
             } else {
-                _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
             }
         } else
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
     };
-    var copyNow = (function(webCLGLBuffers) {
-        _gl.enableVertexAttribArray(this.attr_copyTexture_pos);
-        _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
-        _gl.vertexAttribPointer(this.attr_copyTexture_pos, 3, _gl.FLOAT, false, 0, 0);
 
-        _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
-        _gl.drawElements(_gl.TRIANGLES, 6, _gl.UNSIGNED_SHORT, 0);
-    }).bind(this);
+    this.copyNow = function(webCLGLBuffers) {
+        this._gl.enableVertexAttribArray(this.attr_copyTexture_pos);
+        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
+        this._gl.vertexAttribPointer(this.attr_copyTexture_pos, 3, this._gl.FLOAT, false, 0, 0);
+
+        this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
+        this._gl.drawElements(this._gl.TRIANGLES, 6, this._gl.UNSIGNED_SHORT, 0);
+    };
 
     /**
      * Create a empty WebCLGLBuffer
@@ -237,7 +227,7 @@ var WebCLGL = function(webglcontext) {
      * @returns {WebCLGLBuffer}
      */
     this.createBuffer = function(type, linear, mode) {
-        return new WebCLGLBuffer(_gl, type, linear, mode);
+        return new WebCLGLBuffer(this._gl, type, linear, mode);
     };
 
     /**
@@ -247,7 +237,7 @@ var WebCLGL = function(webglcontext) {
      * @param {String} [header=undefined] Additional functions
      */
     this.createKernel = function(source, header) {
-        return new WebCLGLKernel(_gl, source, header);
+        return new WebCLGLKernel(this._gl, source, header);
     };
 
     /**
@@ -259,7 +249,7 @@ var WebCLGL = function(webglcontext) {
      * @param {String} [fragmentHeader=undefined]
      */
     this.createVertexFragmentProgram = function(vertexSource, vertexHeader, fragmentSource, fragmentHeader) {
-        return new WebCLGLVertexFragmentProgram(_gl, vertexSource, vertexHeader, fragmentSource, fragmentHeader);
+        return new WebCLGLVertexFragmentProgram(this._gl, vertexSource, vertexHeader, fragmentSource, fragmentHeader);
     };
 
     /**
@@ -269,144 +259,136 @@ var WebCLGL = function(webglcontext) {
      * @param {WebGLFramebuffer} fBuffer
      */
     this.fillBuffer = function(texture, clearColor, fBuffer) {
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, fBuffer);
-        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'], _gl.TEXTURE_2D, texture, 0);
+        this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, fBuffer);
+        this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'], this._gl.TEXTURE_2D, texture, 0);
 
-        var arrDBuff = [_arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL']];
-        _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+        var arrDBuff = [this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL']];
+        this._arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
         if(clearColor != undefined)
-            _gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-        _gl.clear(_gl.COLOR_BUFFER_BIT);
+            this._gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+        this._gl.clear(this._gl.COLOR_BUFFER_BIT);
     };
 
     /**
      * bindAttributeValue
      * @param {Object} inValue
      * @param {WebCLGLBuffer} buff
-     * @private
      */
-    var bindAttributeValue = (function(inValue, buff) {
+    this.bindAttributeValue = function(inValue, buff) {
         if(buff != null) {
             if(inValue.type == 'float4_fromAttr') {
-                _gl.enableVertexAttribArray(inValue.location[0]);
-                _gl.bindBuffer(_gl.ARRAY_BUFFER, buff.vertexData0);
-                _gl.vertexAttribPointer(inValue.location[0], 4, _gl.FLOAT, false, 0, 0);
+                this._gl.enableVertexAttribArray(inValue.location[0]);
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buff.vertexData0);
+                this._gl.vertexAttribPointer(inValue.location[0], 4, this._gl.FLOAT, false, 0, 0);
             } else if(inValue.type == 'float_fromAttr') {
-                _gl.enableVertexAttribArray(inValue.location[0]);
-                _gl.bindBuffer(_gl.ARRAY_BUFFER, buff.vertexData0);
-                _gl.vertexAttribPointer(inValue.location[0], 1, _gl.FLOAT, false, 0, 0);
+                this._gl.enableVertexAttribArray(inValue.location[0]);
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buff.vertexData0);
+                this._gl.vertexAttribPointer(inValue.location[0], 1, this._gl.FLOAT, false, 0, 0);
             }
         } else
-            _gl.disableVertexAttribArray(inValue.location[0]);
-    }).bind(this);
+            this._gl.disableVertexAttribArray(inValue.location[0]);
+    };
 
     /**
      * bindSamplerValue
-     * @pram {WebGLLocation} uBufferWidth
+     * @param {WebGLUniformLocation} uBufferWidth
      * @param {Object} inValue
      * @param {WebCLGLBuffer} buff
-     * @private
      */
-    var bindSamplerValue = (function(uBufferWidth, inValue, buff) {
-        if(_currentTextureUnit < 16)
-            _gl.activeTexture(_gl["TEXTURE"+_currentTextureUnit]);
+    this.bindSamplerValue = function(uBufferWidth, inValue, buff) {
+        if(this._currentTextureUnit < 16)
+            this._gl.activeTexture(this._gl["TEXTURE"+this._currentTextureUnit]);
         else
-            _gl.activeTexture(_gl["TEXTURE16"]);
+            this._gl.activeTexture(this._gl["TEXTURE16"]);
 
         if(buff != null) {
-            _gl.bindTexture(_gl.TEXTURE_2D, buff.textureData);
+            this._gl.bindTexture(this._gl.TEXTURE_2D, buff.textureData);
 
-            if(_bufferWidth == 0) {
-                _bufferWidth = buff.W;
-                _gl.uniform1f(uBufferWidth, _bufferWidth);
+            if(this._bufferWidth == 0) {
+                this._bufferWidth = buff.W;
+                this._gl.uniform1f(uBufferWidth, this._bufferWidth);
             }
         } else
-            _gl.bindTexture(_gl.TEXTURE_2D, this.textureDataAux);
-        _gl.uniform1i(inValue.location[0], _currentTextureUnit);
+            this._gl.bindTexture(this._gl.TEXTURE_2D, this.textureDataAux);
+        this._gl.uniform1i(inValue.location[0], this._currentTextureUnit);
 
-        _currentTextureUnit++;
-    }).bind(this);
+        this._currentTextureUnit++;
+    };
 
     /**
      * bindUniformValue
      * @param {Object} inValue
-     * @param {WebCLGLBuffer} buff
-     * @private
+     * @param {WebCLGLBuffer|Number|Array<float>} buff
      */
-    var bindUniformValue = (function(inValue, buff) {
+    this.bindUniformValue = function(inValue, buff) {
         if(buff != null) {
             if(inValue.type == 'float')
-                _gl.uniform1f(inValue.location[0], buff);
+                this._gl.uniform1f(inValue.location[0], buff);
             else if(inValue.type == 'float4')
-                _gl.uniform4f(inValue.location[0], buff[0], buff[1], buff[2], buff[3]);
+                this._gl.uniform4f(inValue.location[0], buff[0], buff[1], buff[2], buff[3]);
             else if(inValue.type == 'mat4')
-                _gl.uniformMatrix4fv(inValue.location[0], false, buff);
+                this._gl.uniformMatrix4fv(inValue.location[0], false, buff);
         }
-    }).bind(this);
+    };
 
     /**
      * bindValue
      * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} webCLGLProgram
      * @param {Object} inValue
-     * @param {WebCLGLBuffer|Float|Array<Float>|Float32Array|Uint8Array} argValue
-     * @private
+     * @param {WebCLGLBuffer|float|Array<float>|Float32Array|Uint8Array} argValue
      */
-    var bindValue = (function(webCLGLProgram, inValue, argValue) {
+    this.bindValue = function(webCLGLProgram, inValue, argValue) {
         switch(inValue.expectedMode) {
             case "ATTRIBUTE":
-                bindAttributeValue(inValue, argValue);
+                this.bindAttributeValue(inValue, argValue);
                 break;
             case "SAMPLER":
-                bindSamplerValue(webCLGLProgram.uBufferWidth, inValue, argValue);
+                this.bindSamplerValue(webCLGLProgram.uBufferWidth, inValue, argValue);
                 break;
             case "UNIFORM":
-                bindUniformValue(inValue, argValue);
+                this.bindUniformValue(inValue, argValue);
                 break;
         }
-    }).bind(this);
+    };
 
     /**
      * bindFB
      * @param {Array<WebCLGLBuffer>} [webCLGLBuffers=null]
-     * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} pgr
      * @param {boolean} outputToTemp
-     * @private
      */
-    var bindFB = (function(webCLGLBuffers, pgr, outputToTemp) {
+    this.bindFB = function(webCLGLBuffers, outputToTemp) {
         if(webCLGLBuffers != null) {
             if(webCLGLBuffers[0] != null) {
-                _gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
+                this._gl.viewport(0, 0, webCLGLBuffers[0].W, webCLGLBuffers[0].H);
 
-                _gl.bindFramebuffer(_gl.FRAMEBUFFER, ((outputToTemp == true) ? webCLGLBuffers[0].fBufferTemp:webCLGLBuffers[0].fBuffer));
+                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, ((outputToTemp == true) ? webCLGLBuffers[0].fBufferTemp:webCLGLBuffers[0].fBuffer));
                 var arrDBuff = [];
                 for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
                     if(webCLGLBuffers[n] != null) {
                         var o = (outputToTemp == true) ? webCLGLBuffers[n].textureDataTemp : webCLGLBuffers[n].textureData;
-                        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], _gl.TEXTURE_2D, o, 0);
-                        arrDBuff[n] = _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'];
+                        this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'], this._gl.TEXTURE_2D, o, 0);
+                        arrDBuff[n] = this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT'+n+'_WEBGL'];
                     } else
-                        arrDBuff[n] = _gl['NONE'];
+                        arrDBuff[n] = this._gl['NONE'];
                 }
-                _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+                this._arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
                 // checkFramebufferStatus
-                var sta = _gl.checkFramebufferStatus(_gl.FRAMEBUFFER);
+                var sta = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
                 var ferrors = {};
-                ferrors[_gl.FRAMEBUFFER_COMPLETE] = true;
-                ferrors[_gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_ATTACHMENT: The attachment types are mismatched or not all framebuffer attachment points are framebuffer attachment complete";
-                ferrors[_gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: There is no attachment";
-                ferrors[_gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS] = "FRAMEBUFFER_INCOMPLETE_DIMENSIONS: Height and width of the attachment are not the same";
-                ferrors[_gl.FRAMEBUFFER_UNSUPPORTED] = "FRAMEBUFFER_UNSUPPORTED: The format of the attachment is not supported or if depth and stencil attachments are not the same renderbuffer";
-                if(ferrors[sta] != true) {
-                    console.log(ferrors[sta]); debugger;
-                }
-            } else {
-                _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
-            }
+                ferrors[this._gl.FRAMEBUFFER_COMPLETE] = true;
+                ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_ATTACHMENT: The attachment types are mismatched or not all framebuffer attachment points are framebuffer attachment complete";
+                ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: There is no attachment";
+                ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS] = "FRAMEBUFFER_INCOMPLETE_DIMENSIONS: Height and width of the attachment are not the same";
+                ferrors[this._gl.FRAMEBUFFER_UNSUPPORTED] = "FRAMEBUFFER_UNSUPPORTED: The format of the attachment is not supported or if depth and stencil attachments are not the same renderbuffer";
+                if(ferrors[sta] != true)
+                    console.log(ferrors[sta]);
+            } else
+                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
         } else
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
-    }).bind(this);
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+    };
 
     /**
      * Perform calculation and save the result on a WebCLGLBuffer
@@ -416,22 +398,22 @@ var WebCLGL = function(webglcontext) {
      * @param {Object} argValues
      */
     this.enqueueNDRangeKernel = function(webCLGLKernel, webCLGLBuffer, outputToTemp, argValues) {
-        _bufferWidth = 0;
+        this._bufferWidth = 0;
 
-        _gl.useProgram(webCLGLKernel.kernel);
+        this._gl.useProgram(webCLGLKernel.kernel);
 
-        bindFB(webCLGLBuffer, webCLGLKernel, outputToTemp);
+        this.bindFB(webCLGLBuffer, outputToTemp);
 
-        _currentTextureUnit = 0;
+        this._currentTextureUnit = 0;
         for(var key in webCLGLKernel.in_values)
-            bindValue(webCLGLKernel, webCLGLKernel.in_values[key], argValues[key]);
+            this.bindValue(webCLGLKernel, webCLGLKernel.in_values[key], argValues[key]);
 
-        _gl.enableVertexAttribArray(webCLGLKernel.attr_VertexPos);
-        _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
-        _gl.vertexAttribPointer(webCLGLKernel.attr_VertexPos, 3, _gl.FLOAT, false, 0, 0);
+        this._gl.enableVertexAttribArray(webCLGLKernel.attr_VertexPos);
+        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
+        this._gl.vertexAttribPointer(webCLGLKernel.attr_VertexPos, 3, this._gl.FLOAT, false, 0, 0);
 
-        _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
-        _gl.drawElements(_gl.TRIANGLES, 6, _gl.UNSIGNED_SHORT, 0);
+        this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
+        this._gl.drawElements(this._gl.TRIANGLES, 6, this._gl.UNSIGNED_SHORT, 0);
     };
 
     /**
@@ -444,27 +426,27 @@ var WebCLGL = function(webglcontext) {
      * @param {Object} argValues
      */
     this.enqueueVertexFragmentProgram = function(webCLGLVertexFragmentProgram, bufferInd, drawMode, webCLGLBuffer, outputToTemp, argValues) {
-        _bufferWidth = 0;
+        this._bufferWidth = 0;
 
-        _gl.useProgram(webCLGLVertexFragmentProgram.vertexFragmentProgram);
+        this._gl.useProgram(webCLGLVertexFragmentProgram.vertexFragmentProgram);
 
         var Dmode = (drawMode != undefined) ? drawMode : 4;
 
-        bindFB(webCLGLBuffer, webCLGLVertexFragmentProgram, outputToTemp);
+        this.bindFB(webCLGLBuffer, outputToTemp);
 
         if(bufferInd != undefined) {
-            _currentTextureUnit = 0;
+            this._currentTextureUnit = 0;
             for(var key in webCLGLVertexFragmentProgram.in_vertex_values)
-                bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_vertex_values[key], argValues[key]);
+                this.bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_vertex_values[key], argValues[key]);
 
             for(var key in webCLGLVertexFragmentProgram.in_fragment_values)
-                 bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_fragment_values[key], argValues[key]);
+                this.bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_fragment_values[key], argValues[key]);
 
             if(bufferInd.mode == "VERTEX_INDEX") {
-                _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, bufferInd.vertexData0);
-                _gl.drawElements(Dmode, bufferInd.length, _gl.UNSIGNED_SHORT, 0);
+                this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, bufferInd.vertexData0);
+                this._gl.drawElements(Dmode, bufferInd.length, this._gl.UNSIGNED_SHORT, 0);
             } else
-                _gl.drawArrays(Dmode, 0, bufferInd.length);
+                this._gl.drawArrays(Dmode, 0, bufferInd.length);
         }
     };
 
@@ -488,40 +470,71 @@ var WebCLGL = function(webglcontext) {
             this.e.height = buffer.H;
         }
 
-        _gl.useProgram(this.shader_readpixels);
+        this._gl.useProgram(this.shader_readpixels);
 
-        _gl.viewport(0, 0, buffer.W, buffer.H);
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, buffer.fBufferTemp);
-        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'], _gl.TEXTURE_2D, buffer.textureDataTemp, 0);
+        this._gl.viewport(0, 0, buffer.W, buffer.H);
+        this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, buffer.fBufferTemp);
+        this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL'], this._gl.TEXTURE_2D, buffer.textureDataTemp, 0);
 
-        var arrDBuff = [_arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL']];
-        _arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
+        var arrDBuff = [this._arrExt["WEBGL_draw_buffers"]['COLOR_ATTACHMENT0_WEBGL']];
+        this._arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
-        _gl.activeTexture(_gl.TEXTURE0);
-        _gl.bindTexture(_gl.TEXTURE_2D, buffer.textureData);
-        _gl.uniform1i(this.sampler_buffer, 0);
+        this._gl.activeTexture(this._gl.TEXTURE0);
+        this._gl.bindTexture(this._gl.TEXTURE_2D, buffer.textureData);
+        this._gl.uniform1i(this.sampler_buffer, 0);
 
-        _gl.enableVertexAttribArray(this.attr_VertexPos);
-        _gl.bindBuffer(_gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
-        _gl.vertexAttribPointer(this.attr_VertexPos, 3, buffer._supportFormat, false, 0, 0);
+        this._gl.enableVertexAttribArray(this.attr_VertexPos);
+        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
+        this._gl.vertexAttribPointer(this.attr_VertexPos, 3, buffer._supportFormat, false, 0, 0);
 
-        _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
-        _gl.drawElements(_gl.TRIANGLES, 6, _gl.UNSIGNED_SHORT, 0);
+        this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
+        this._gl.drawElements(this._gl.TRIANGLES, 6, this._gl.UNSIGNED_SHORT, 0);
 
-        var arrLength = buffer.W*buffer.H*4;
         if(buffer.outArrayFloat == undefined)
-            buffer.outArrayFloat = new Float32Array((buffer.W*buffer.H)*4);
-        _gl.readPixels(0, 0, buffer.W, buffer.H, _gl.RGBA, _gl.FLOAT, buffer.outArrayFloat);
-
+            buffer.outArrayFloat = new Float32Array(buffer.W*buffer.H*4);
+        this._gl.readPixels(0, 0, buffer.W, buffer.H, this._gl.RGBA, this._gl.FLOAT, buffer.outArrayFloat);
 
         if(buffer.type == "FLOAT") {
-            var Float_Un = new Float32Array(buffer.outArrayFloat.length/4);
+            var fd = new Float32Array(buffer.outArrayFloat.length/4);
             for(var n=0, fn= buffer.outArrayFloat.length/4; n < fn; n++)
-                Float_Un[n] = buffer.outArrayFloat[n*4];
+                fd[n] = buffer.outArrayFloat[n*4];
 
-            buffer.outArrayFloat = Float_Un;
+            buffer.outArrayFloat = fd;
         }
 
         return buffer.outArrayFloat;
     };
+
+};
+
+
+/**
+ * gpufor
+ * @returns {WebCLGLFor|Array<float>}
+ */
+var gpufor = function() {
+    "use strict";
+    var clglFor = new WebCLGLFor();
+    var _gl = null;
+    if(arguments[0] instanceof WebGLRenderingContext) {
+        _gl = arguments[0];
+
+        clglFor.setCtx(_gl);
+        clglFor._webCLGL = new WebCLGL(_gl);
+        clglFor.iniG(arguments);
+        return clglFor;
+    } else if(arguments[0] instanceof HTMLCanvasElement) {
+        _gl = new WebCLGLUtils().getWebGLContextFromCanvas(arguments[0]);
+
+        clglFor.setCtx(_gl);
+        clglFor._webCLGL = new WebCLGL(_gl);
+        clglFor.iniG(arguments);
+        return clglFor;
+    } else {
+        _gl = new WebCLGLUtils().getWebGLContextFromCanvas(document.createElement('canvas'), {antialias: false});
+
+        clglFor.setCtx(_gl);
+        clglFor._webCLGL = new WebCLGL(_gl);
+        return clglFor.ini(arguments);
+    }
 };
