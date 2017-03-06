@@ -171,6 +171,25 @@ var WebCLGL = function(webglcontext) {
     };
 
     /**
+     * checkFramebufferStatus
+     * @returns {boolean}
+     */
+    this.checkFramebufferStatus = function() {
+        var sta = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
+        var ferrors = {};
+        ferrors[this._gl.FRAMEBUFFER_COMPLETE] = true;
+        ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_ATTACHMENT: The attachment types are mismatched or not all framebuffer attachment points are framebuffer attachment complete";
+        ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: There is no attachment";
+        ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS] = "FRAMEBUFFER_INCOMPLETE_DIMENSIONS: Height and width of the attachment are not the same";
+        ferrors[this._gl.FRAMEBUFFER_UNSUPPORTED] = "FRAMEBUFFER_UNSUPPORTED: The format of the attachment is not supported or if depth and stencil attachments are not the same renderbuffer";
+        if(ferrors[sta] != true || ferrors[sta] == null) {
+            console.log(ferrors[sta]);
+            return false;
+        }
+        return true;
+    };
+
+    /**
      * copy
      * @param {WebCLGLKernel|WebCLGLVertexFragmentProgram} pgr
      * @param {Array<WebCLGLBuffer>} [webCLGLBuffers=null]
@@ -191,18 +210,20 @@ var WebCLGL = function(webglcontext) {
                 }
                 this._arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
-                this._gl.useProgram(this.shader_copyTexture);
+                if(this.checkFramebufferStatus() == true) {
+                    this._gl.useProgram(this.shader_copyTexture);
 
-                for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
-                    this._gl.activeTexture(this._gl["TEXTURE"+n]);
-                    if(webCLGLBuffers[n] != null)
-                        this._gl.bindTexture(this._gl.TEXTURE_2D, webCLGLBuffers[n].textureDataTemp);
-                    else
-                        this._gl.bindTexture(this._gl.TEXTURE_2D, this.textureDataAux);
-                    this._gl.uniform1i(this.arrayCopyTex[n], n);
+                    for(var n= 0, fn=webCLGLBuffers.length; n < fn; n++) {
+                        this._gl.activeTexture(this._gl["TEXTURE"+n]);
+                        if(webCLGLBuffers[n] != null)
+                            this._gl.bindTexture(this._gl.TEXTURE_2D, webCLGLBuffers[n].textureDataTemp);
+                        else
+                            this._gl.bindTexture(this._gl.TEXTURE_2D, this.textureDataAux);
+                        this._gl.uniform1i(this.arrayCopyTex[n], n);
+                    }
+
+                    this.copyNow(webCLGLBuffers);
                 }
-
-                this.copyNow(webCLGLBuffers);
             } else {
                 this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
             }
@@ -374,20 +395,15 @@ var WebCLGL = function(webglcontext) {
                 }
                 this._arrExt["WEBGL_draw_buffers"].drawBuffersWEBGL(arrDBuff);
 
-                // checkFramebufferStatus
-                var sta = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
-                var ferrors = {};
-                ferrors[this._gl.FRAMEBUFFER_COMPLETE] = true;
-                ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_ATTACHMENT: The attachment types are mismatched or not all framebuffer attachment points are framebuffer attachment complete";
-                ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT] = "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: There is no attachment";
-                ferrors[this._gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS] = "FRAMEBUFFER_INCOMPLETE_DIMENSIONS: Height and width of the attachment are not the same";
-                ferrors[this._gl.FRAMEBUFFER_UNSUPPORTED] = "FRAMEBUFFER_UNSUPPORTED: The format of the attachment is not supported or if depth and stencil attachments are not the same renderbuffer";
-                if(ferrors[sta] != true)
-                    console.log(ferrors[sta]);
-            } else
+                return this.checkFramebufferStatus();
+            } else {
                 this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
-        } else
+                return true;
+            }
+        } else {
             this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+            return true;
+        }
     };
 
     /**
@@ -402,18 +418,18 @@ var WebCLGL = function(webglcontext) {
 
         this._gl.useProgram(webCLGLKernel.kernel);
 
-        this.bindFB(webCLGLBuffer, outputToTemp);
+        if(this.bindFB(webCLGLBuffer, outputToTemp) == true) {
+            this._currentTextureUnit = 0;
+            for(var key in webCLGLKernel.in_values)
+                this.bindValue(webCLGLKernel, webCLGLKernel.in_values[key], argValues[key]);
 
-        this._currentTextureUnit = 0;
-        for(var key in webCLGLKernel.in_values)
-            this.bindValue(webCLGLKernel, webCLGLKernel.in_values[key], argValues[key]);
+            this._gl.enableVertexAttribArray(webCLGLKernel.attr_VertexPos);
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
+            this._gl.vertexAttribPointer(webCLGLKernel.attr_VertexPos, 3, this._gl.FLOAT, false, 0, 0);
 
-        this._gl.enableVertexAttribArray(webCLGLKernel.attr_VertexPos);
-        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.vertexBuffer_QUAD);
-        this._gl.vertexAttribPointer(webCLGLKernel.attr_VertexPos, 3, this._gl.FLOAT, false, 0, 0);
-
-        this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
-        this._gl.drawElements(this._gl.TRIANGLES, 6, this._gl.UNSIGNED_SHORT, 0);
+            this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_QUAD);
+            this._gl.drawElements(this._gl.TRIANGLES, 6, this._gl.UNSIGNED_SHORT, 0);
+        }
     };
 
     /**
@@ -432,21 +448,21 @@ var WebCLGL = function(webglcontext) {
 
         var Dmode = (drawMode != undefined) ? drawMode : 4;
 
-        this.bindFB(webCLGLBuffer, outputToTemp);
+        if(this.bindFB(webCLGLBuffer, outputToTemp) == true) {
+            if(bufferInd != undefined) {
+                this._currentTextureUnit = 0;
+                for(var key in webCLGLVertexFragmentProgram.in_vertex_values)
+                    this.bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_vertex_values[key], argValues[key]);
 
-        if(bufferInd != undefined) {
-            this._currentTextureUnit = 0;
-            for(var key in webCLGLVertexFragmentProgram.in_vertex_values)
-                this.bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_vertex_values[key], argValues[key]);
+                for(var key in webCLGLVertexFragmentProgram.in_fragment_values)
+                    this.bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_fragment_values[key], argValues[key]);
 
-            for(var key in webCLGLVertexFragmentProgram.in_fragment_values)
-                this.bindValue(webCLGLVertexFragmentProgram, webCLGLVertexFragmentProgram.in_fragment_values[key], argValues[key]);
-
-            if(bufferInd.mode == "VERTEX_INDEX") {
-                this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, bufferInd.vertexData0);
-                this._gl.drawElements(Dmode, bufferInd.length, this._gl.UNSIGNED_SHORT, 0);
-            } else
-                this._gl.drawArrays(Dmode, 0, bufferInd.length);
+                if(bufferInd.mode == "VERTEX_INDEX") {
+                    this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, bufferInd.vertexData0);
+                    this._gl.drawElements(Dmode, bufferInd.length, this._gl.UNSIGNED_SHORT, 0);
+                } else
+                    this._gl.drawArrays(Dmode, 0, bufferInd.length);
+            }
         }
     };
 

@@ -45,8 +45,9 @@
             var OFFSET = 1000.0;
             var offs = OFFSET/10;
 
-            var graph = new Graph(sce);
+            var graph = new Graph(sce,{"enableFonts":true});
             graph.enableNeuronalNetwork();
+
             graph.setOffset(OFFSET);
 
             var mesh_point = new Mesh().loadPoint();

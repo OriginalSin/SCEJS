@@ -197,9 +197,16 @@ var WebCLGLBuffer = function(gl, type, linear, mode) {
             this._gl.deleteTexture(this.textureData);
             this._gl.deleteTexture(this.textureDataTemp);
         }
+
         if(this.mode == "SAMPLER" || this.mode == "ATTRIBUTE" || this.mode == "VERTEX_INDEX") {
             this._gl.deleteBuffer(this.vertexData0);
         }
+
+        this._gl.deleteFramebuffer(this.fBuffer);
+        this._gl.deleteFramebuffer(this.fBufferTemp);
+
+        this._gl.deleteRenderbuffer(this.renderBuffer);
+        this._gl.deleteRenderbuffer(this.renderBufferTemp);
     };
 
 };

@@ -22,14 +22,14 @@ UIComponentGPU = function(compTypeKey, selectedNode) {
 
 
     // INDICES
-    new UIComponent_Indices(document.getElementById('DIVID_'+compTypeKey), selectedNode, comp, args);
+    new UIComponentGPU_Indices(document.getElementById('DIVID_'+compTypeKey), selectedNode, comp, args);
 
     // ARGS
-    new UIComponent_Argument(document.getElementById('DIVID_'+compTypeKey+'_args'), selectedNode, comp, args);
+    new UIComponentGPU_Argument(document.getElementById('DIVID_'+compTypeKey+'_args'), selectedNode, comp, args);
 
     //KERNELS
-    new UIComponent_Kernel(document.getElementById('DIVID_'+compTypeKey+'_kernelsvfps'), selectedNode, comp, args);
+    new UIComponentGPU_Kernel(document.getElementById('DIVID_'+compTypeKey+'_kernelsvfps'), selectedNode, comp, args);
 
     // VFPS
-    new UIComponent_Vfp(document.getElementById('DIVID_'+compTypeKey+'_kernelsvfps'), selectedNode, comp, args);
+    new UIComponentGPU_Vfp(document.getElementById('DIVID_'+compTypeKey+'_kernelsvfps'), selectedNode, comp, args);
 };
