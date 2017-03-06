@@ -36,7 +36,7 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) {
                             // FORCE LAYOUT
                         "if(enableForceLayout == 1.0 && performFL == 0.0) {"+
                             'idAdjMatrixResponse adjM = idAdjMatrix_ForceLayout(nodeId, currentPos, currentDir, numOfConnections, currentTimestamp, bornDate, dieDate, enableNeuronalNetwork);'+
-                            'currentDir = (adjM.collisionExists == 1.0) ? adjM.force : (currentDir+adjM.force);'+
+                            'currentDir = (adjM.collisionExists == 1.0) ? adjM.force : (currentDir+adjM.force)*0.5;'+
 
                             'if(enableNeuronalNetwork == 1.0) {'+ 
                                 //'if(makeNetworkStep == 1.0) {'+

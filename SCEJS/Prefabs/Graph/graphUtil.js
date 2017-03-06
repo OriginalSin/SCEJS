@@ -69,9 +69,11 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
 
                 'if(pass == 1) {'+
                     'if(enableNeuronalNetwork == 0.0) {'+
-                        'atraction += dirToBN*dist*0.5*ww;\n'+
-                        'atraction += dirToBN*-10.0;\n'+
-                        'acumAtraction += 1.0;\n'+
+                        //'if(itColRow.w == 1.0) {'+
+                            'atraction += dirToBN*max(0.0,dist-10.0)*0.5*ww;\n'+
+                            'atraction += dirToBN*-10.0*ww;\n'+
+                            'acumAtraction += 1.0;\n'+
+                        //'}'+
                     '} else {'+
                         'atraction += dirToBN*dist*0.0*ww;\n'+
                         'atraction += dirToBN*-0.0;\n'+
@@ -95,10 +97,12 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
                             'netError += (parentErrorData*ww);'+ // error*weight
                         '}'+
                     '}'+
+                    'if(enableForceLayoutRepulsion == 1.0) \n'+
+                        'repulsion += dirToBN*-(1.0);\n'+
                 '}'+
             '} else {'+
                 'if(enableForceLayoutRepulsion == 1.0) \n'+
-                    'repulsion += dirToBN*-(10.0);\n'+
+                    'repulsion += dirToBN*-(1.0);\n'+
             '}'+
         '}'+
         'return CalculationResponse(atraction, acumAtraction, repulsion, collisionExists, netProc, netError);'+
@@ -173,15 +177,12 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
             '}'+
             // SUMMATION
             'if(collisionExists == 0.0) {'+
-                'if(enableForceLayoutRepulsion == 1.0) {'+
-                    'vec3 cA = atraction/acumAtraction;'+
-                    'force += cA;'+
+                'vec3 cA = atraction/acumAtraction;'+
+                'force += cA;'+
 
-                    'vec3 cR = repulsion/(widthAdjMatrix-acumAtraction);'+
-                    'force += cR*(1.0-length(cA))*10.0;'+
-                '} else {'+
-                    'vec3 cA = atraction/acumAtraction;'+
-                    'force += cA;'+
+                'if(enableForceLayoutRepulsion == 1.0) {'+
+                    'vec3 cR = repulsion/(widthAdjMatrix);'+
+                    'force = ((force+cR)/2.0)*10.0;'+
                 '}'+
             '}'+
             // END SUMMATION

@@ -150,7 +150,7 @@ Component_GPU = function() { Component.call(this);
 
     /**
      * @param {String} argument Argument to set
-     * @param {Bool} value
+     * @param {boolean} value
      */
     this.setArgUpdatable = function(argument, value) {
         this.args[argument].updatable = value;

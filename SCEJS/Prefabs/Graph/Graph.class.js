@@ -7,8 +7,11 @@ for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="t
 
 /**
 * @class
+ * @param {SCE} sce
+ * @param {Object} jsonIn
+ * @param {boolean} jsonIn.enableFonts
 */
-Graph = function(sce) {
+Graph = function(sce, jsonIn) {
 	"use strict";
 
 	var _sce = sce;
@@ -22,7 +25,7 @@ Graph = function(sce) {
 	var NODE_IMG_SPRITE_WIDTH = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
 	var OFFSET = 1000.0;
 
-    var _enableFont = true;
+    var _enableFont = (jsonIn && jsonIn.enableFonts == true);
     var _enableHover = false;
     var _enableAutoLink = true;
     var _enabledForceLayout = false;
@@ -262,17 +265,19 @@ Graph = function(sce) {
     //**************************************************
     //  NODESTEXT
     //**************************************************
-    var nodesText = new Node();
-    nodesText.setName("graph_nodesText");
-    _project.getActiveStage().addNode(nodesText);
+    if(_enableFont == true) {
+        var nodesText = new Node();
+        nodesText.setName("graph_nodesText");
+        _project.getActiveStage().addNode(nodesText);
 
-    // ComponentTransform
-    var comp_transform = new ComponentTransform();
-    nodesText.addComponent(comp_transform);
+        // ComponentTransform
+        var comp_transform = new ComponentTransform();
+        nodesText.addComponent(comp_transform);
 
-    // Component_GPU
-    var comp_renderer_nodesText = new Component_GPU();
-    nodesText.addComponent(comp_renderer_nodesText);
+        // Component_GPU
+        var comp_renderer_nodesText = new Component_GPU();
+        nodesText.addComponent(comp_renderer_nodesText);
+    }
 
     /**
      * onClickNode
@@ -599,20 +604,6 @@ Graph = function(sce) {
     };
 
     /**
-     * enableFonts
-     */
-    this.enableFonts = function() {
-        _enableFont = true;
-    };
-
-    /**
-     * disableFonts
-     */
-    this.disableFonts = function() {
-        _enableFont = false;
-    };
-
-    /**
      * setNodeMesh
      * @param {Mesh} mesh
      */
@@ -834,6 +825,19 @@ Graph = function(sce) {
      * clear
      */
     this.clear = function() {
+        var removeBuffers = (function(comp) {
+            var args = comp.gpufG.getAllArgs();
+            for(var key in args) {
+                if(args[key] instanceof WebCLGLBuffer == true && key != "RGB")
+                    args[key].remove();
+            }
+        }).bind(this);
+        removeBuffers(comp_renderer_nodes);
+        removeBuffers(comp_renderer_links);
+        removeBuffers(comp_renderer_arrows);
+        if(_enableFont == true)
+            removeBuffers(comp_renderer_nodesText);
+
         _project.getActiveStage().removeNode(nodes);
         _project.getActiveStage().removeNode(links);
         _project.getActiveStage().removeNode(arrows);

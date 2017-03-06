@@ -60,10 +60,10 @@ var includesF = ['/StormMath.class.js',
 				'/UI/PanelNode.class.js',
 				'/UI/PanelNumberGenerator.class.js',
 				'/UI/UIComponentGPU.class.js',
-				'/UI/UIComponent_Indices.class.js',
-				'/UI/UIComponent_Argument.class.js',
-				'/UI/UIComponent_Kernel.class.js',
-				'/UI/UIComponent_Vfp.class.js'];
+				'/UI/UIComponentGPU_Indices.class.js',
+				'/UI/UIComponentGPU_Argument.class.js',
+				'/UI/UIComponentGPU_Kernel.class.js',
+				'/UI/UIComponentGPU_Vfp.class.js'];
 for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="text/javascript" src="'+sceDirectory+includesF[n]+'"></script>');
 
 //***********
