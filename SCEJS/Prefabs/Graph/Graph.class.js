@@ -1,4 +1,5 @@
 var includesF = [   '/graphUtil.js',
+                    '/ProccessImg.class.js',
                     '/KERNEL_ADJMATRIX_UPDATE.class.js',
                     '/KERNEL_DIR.class.js',
                     '/VFP_NODEPICKDRAG.class.js',
@@ -22,7 +23,6 @@ Graph = function(sce, jsonIn) {
 	var MAX_ITEMS_PER_ARRAY = (4294967295)/*4294967295*/; // unsigned int 65535 for limit on indices of 16bit; long unsigned int 4294967295
 	var NODE_IMG_COLUMNS = 8.0;
 	var NODE_IMG_WIDTH = 2048;
-	var NODE_IMG_SPRITE_WIDTH = NODE_IMG_WIDTH/NODE_IMG_COLUMNS;
 	var OFFSET = 1000.0;
 
     var _enableFont = (jsonIn && jsonIn.enableFonts == true);
@@ -43,7 +43,6 @@ Graph = function(sce, jsonIn) {
 
     var _enableNeuronalNetwork = false;
     var _only2d = false;
-    var _makeNetworkStep = false;
 
 
 
@@ -81,23 +80,9 @@ Graph = function(sce, jsonIn) {
 
 	// nodes image
 	var objNodeImages = {};
-	var canvasNodeImg = document.createElement('canvas');
-	canvasNodeImg.width = NODE_IMG_WIDTH;
-	canvasNodeImg.height = NODE_IMG_WIDTH;
-	var ctxNodeImg = canvasNodeImg.getContext('2d');
 
-	var canvasNodeImgCrosshair = document.createElement('canvas');
-	canvasNodeImgCrosshair.width = NODE_IMG_WIDTH;
-	canvasNodeImgCrosshair.height = NODE_IMG_WIDTH;
-	var ctxNodeImgCrosshair = canvasNodeImgCrosshair.getContext('2d');
-
-	var canvasNodeImgTMP = document.createElement('canvas');
-	canvasNodeImgTMP.width = NODE_IMG_SPRITE_WIDTH;
-	canvasNodeImgTMP.height = NODE_IMG_SPRITE_WIDTH;
-	var ctxNodeImgTMP = canvasNodeImgTMP.getContext('2d');
 
 	var _stackNodesImg = [];
-	var _makingNodesImg = false;
 	var nodesImgMask = null;
 	var nodesImgMaskLoaded = false;
 	var nodesImgCrosshair = null;
@@ -193,38 +178,15 @@ Graph = function(sce, jsonIn) {
 	nodes.addComponent(comp_mouseEvents);
 	comp_mouseEvents.onmousedown((function(evt) {
 		selectedId = -1
-		if(_enableHover == false) {
-		    readPixel = true;
-
-		    comp_renderer_nodes.gpufG.enableGraphic(1);
-        }
+        mouseDown();
 	}).bind(this));
 	comp_mouseEvents.onmouseup((function(evt) {
 		if(selectedId != -1) {
 			var n = _nodesById[selectedId];
-			if(n != undefined && n.onmouseup != undefined) n.onmouseup(n, evt);
+			if(n != undefined && n.onmouseup != undefined)
+			    n.onmouseup(n, evt);
 		}
-
-		comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
-		comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
-        if(_enableFont == true)
-		    comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
-
-		if(selectedId == -1) {
-			comp_renderer_nodes.setArg("idToDrag", (function() {return -1;}).bind(this));
-			comp_renderer_links.setArg("idToDrag", (function() {return -1;}).bind(this));
-			comp_renderer_arrows.setArg("idToDrag", (function() {return -1;}).bind(this));
-            if(_enableFont == true)
-			    comp_renderer_nodesText.setArg("idToDrag", (function() {return -1;}).bind(this));
-		}
-
-        if(_enableHover == true) {
-            readPixel = true;
-
-            comp_renderer_nodes.gpufG.enableGraphic(1);
-        }
-
+        mouseUp();
 	}).bind(this));
 	comp_mouseEvents.onmousemove((function(evt, dir) {
 		makeDrag(evt, dir);
@@ -590,6 +552,14 @@ Graph = function(sce, jsonIn) {
     };
 
     /**
+     *  only2d
+     *  @param {boolean} mode2d
+     */
+    this.only2d = function(mode2d) {
+        _only2d = mode2d;
+    };
+
+    /**
      * setFontsImage
      * @param {String} url
      */
@@ -842,91 +812,6 @@ Graph = function(sce, jsonIn) {
         _project.getActiveStage().removeNode(links);
         _project.getActiveStage().removeNode(arrows);
         _project.getActiveStage().removeNode(nodesText);
-
-        /*_nodesByName = {};
-         _nodesById = {};
-         _links = {};
-         adjacencyMatrix = null;
-
-         _customArgs = {}; // {ARG: {"arg": String, "value": Array<Float>}}
-
-         // nodes image
-         objNodeImages = {};
-         canvasNodeImg = document.createElement('canvas');
-         canvasNodeImg.width = NODE_IMG_WIDTH;
-         canvasNodeImg.height = NODE_IMG_WIDTH;
-         ctxNodeImg = canvasNodeImg.getContext('2d');
-
-         canvasNodeImgTMP = document.createElement('canvas');
-         canvasNodeImgTMP.width = NODE_IMG_SPRITE_WIDTH;
-         canvasNodeImgTMP.height = NODE_IMG_SPRITE_WIDTH;
-         ctxNodeImgTMP = canvasNodeImgTMP.getContext('2d');
-
-         nodesImgMask = null;
-         nodesImgMaskLoaded = false;
-
-         //**************************************************
-         //  NODES
-         //**************************************************
-         this.arrayNodeData = [];
-         this.arrayNodePosXYZW = [];
-         this.arrayNodeVertexPos = [];
-         this.arrayNodeVertexNormal = [];
-         this.arrayNodeVertexTexture = [];
-         this.startIndexId = 0;
-         this.arrayNodeIndices = [];
-
-         this.arrayNodeImgId = [];
-
-         this.arrayNodeDir = [];
-
-         this.currentNodeId = 0;
-         this.nodeArrayItemStart = 0;
-
-         //**************************************************
-         //  LINKS
-         //**************************************************
-         this.arrayLinkData = [];
-         this.arrayLinkNodeName = [];
-         this.arrayLinkPosXYZW = [];
-         this.arrayLinkVertexPos = [];
-         this.startIndexId_link = 0;
-         this.arrayLinkIndices = [];
-
-         this.currentLinkId = 0;
-
-         //**************************************************
-         //  ARROWS
-         //**************************************************
-         this.arrayArrowData = [];
-         this.arrayArrowNodeName = [];
-         this.arrayArrowPosXYZW = [];
-         this.arrayArrowVertexPos = [];
-         this.arrayArrowVertexNormal = [];
-         this.arrayArrowVertexTexture = [];
-         this.startIndexId_arrow = 0;
-         this.arrayArrowIndices = [];
-
-         this.currentArrowId = 0;
-         this.arrowArrayItemStart = 0;
-
-         //**************************************************
-         //  NODESTEXT
-         //**************************************************
-         this.arrayNodeTextData = [];
-         this.arrayNodeTextNodeName = [];
-         this.arrayNodeTextPosXYZW = [];
-         this.arrayNodeTextVertexPos = [];
-         this.arrayNodeTextVertexNormal = [];
-         this.arrayNodeTextVertexTexture = [];
-         this.startIndexId_nodestext = 0;
-         this.arrayNodeTextIndices = [];
-
-         this.arrayNodeText_itemStart = [];
-         this.arrayNodeTextLetterId = [];
-
-         this.currentNodeTextId = 0;
-         this.nodeTextArrayItemStart = 0;*/
     };
 
 
@@ -945,33 +830,6 @@ Graph = function(sce, jsonIn) {
      * @param {String} jsonIn.codeObject
      */
     this.applyLayout = function(jsonIn) {
-        var readPix = (function() {
-            var arrayPick = new Uint8Array(4);
-            var mousePos = _sce.getEvents().getMousePosition();
-            _gl.readPixels(mousePos.x, (_sce.getCanvas().height-(mousePos.y)), 1, 1, _gl.RGBA, _gl.UNSIGNED_BYTE, arrayPick);
-
-            var unpackValue = _utils.unpack([arrayPick[0]/255, arrayPick[1]/255, arrayPick[2]/255, arrayPick[3]/255]); // value from 0.0 to 1.0
-            selectedId = Math.round(unpackValue*1000000.0)-1.0;
-            //console.log("hoverId: "+selectedId);
-            if(selectedId != -1 && selectedId < this.currentNodeId) {
-                var node = _nodesById[selectedId];
-                if(node != undefined && node.onmousedown != undefined)
-                    node.onmousedown(node);
-
-                if(node != undefined && _onClickNode != undefined)
-                    _onClickNode(node);
-
-
-                var arr4Uint8_XYZW = comp_renderer_nodes.gpufG.readArg("posXYZW");
-                var x = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)];
-                var y = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+1];
-                var z = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+2];
-                _initialPosDrag = $V3([x,y,z]);
-
-                makeDrag(undefined, $V3([0.0, 0.0, 0.0]));
-            }
-        }).bind(this);
-
         // Create custom user arrays args
         var createCustomArgsArrays = (function(obj, arr) {
             for(var n=0, fn = arr.length; n < fn; n++) {
@@ -1028,7 +886,6 @@ Graph = function(sce, jsonIn) {
             'float efferentData': (function(){return null;}).bind(this),
             'float enableNeuronalNetwork': (function(){return null;}).bind(this),
             'float only2d': (function(){return null;}).bind(this),
-            'float makeNetworkStep': (function(){return null;}).bind(this),
             'float nodeImgColumns': (function(){return null;}).bind(this),
             'float fontImgColumns': (function(){return null;}).bind(this),
             'float4* fontsImg': (function(){return null;}).bind(this),
@@ -1049,7 +906,6 @@ Graph = function(sce, jsonIn) {
             "float enableForceLayout": (function(){return null;}).bind(this),
             'float performFL': (function(){return null;}).bind(this),
             'float enableForceLayoutCollision': (function(){return null;}).bind(this),
-            'float enableForceLayoutRepulsion': (function(){return null;}).bind(this),
             'float nodesCount': (function(){return null;}).bind(this),
             'float enableDrag': (function(){return null;}).bind(this),
             'float initialPosX': (function(){return null;}).bind(this),
@@ -1156,11 +1012,6 @@ Graph = function(sce, jsonIn) {
             comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
             comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
 
-            if(_makeNetworkStep == true) {
-                _makeNetworkStep = false;
-                comp_renderer_nodes.setArg("makeNetworkStep", (function() {return 1.0;}).bind(this));
-            }
-
             if(_playAnimation == true) {
                 _currentFrame++;
                 if(_onAnimationStep != undefined)
@@ -1188,9 +1039,6 @@ Graph = function(sce, jsonIn) {
             comp_renderer_nodes.setArg("enableNeuronalNetwork", (function() {return _enableNeuronalNetwork;}).bind(this));
             comp_renderer_nodes.setArg("only2d", (function() {return ((_only2d==true)?1.0:0.0);}).bind(this));
         }).bind(this));
-        comp_renderer_nodes.gpufG.onPostProcessKernel(0, (function() {
-            comp_renderer_nodes.setArg("makeNetworkStep", (function() {return 0.0;}).bind(this));
-        }).bind(this));
 
         // KERNEL_ADJMATRIX_UPDATE
         comp_renderer_nodes.gpufG.onPostProcessKernel(1, (function() {
@@ -1206,29 +1054,10 @@ Graph = function(sce, jsonIn) {
 
         // VFP_NODEPICKDRAG
         comp_renderer_nodes.gpufG.onPreProcessGraphic(1, (function() {
-            comp_renderer_nodes.gl.clear(comp_renderer_nodes.gl.COLOR_BUFFER_BIT | comp_renderer_nodes.gl.DEPTH_BUFFER_BIT);
+            //comp_renderer_nodes.gl.clear(comp_renderer_nodes.gl.COLOR_BUFFER_BIT | comp_renderer_nodes.gl.DEPTH_BUFFER_BIT);
         }).bind(this));
         comp_renderer_nodes.gpufG.onPostProcessGraphic(1, (function() {
-            if(_enableHover == false) {
-                if(readPixel == true) {
-                    readPixel = false;
-
-                    readPix();
-
-                    comp_renderer_nodes.gpufG.disableGraphic(1);
-                }
-            } else {
-                var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET);
-                if(comp_controller_trans_target.isLeftBtnActive() == true) {
-                    readPixel = false;
-                }
-
-                readPix();
-
-                if(comp_controller_trans_target.isLeftBtnActive() == true) {
-                    comp_renderer_nodes.gpufG.disableGraphic(1);
-                }
-            }
+            procSelectedOrHover();
         }).bind(this));
 
         comp_renderer_nodes.gpufG.disableGraphic(1);
@@ -1257,55 +1086,213 @@ Graph = function(sce, jsonIn) {
         enableHov(-1);
     };
 
+    var mouseDown = (function() {
+        if(_enableHover == false) {
+            readPixel = true;
 
+            comp_renderer_nodes.gpufG.enableGraphic(1);
+        }
+    }).bind(this);
 
-    /**
-     * setLayoutArgumentData
-     * @param {Object} jsonIn
-     * @param {String} jsonIn.argName
-     * @param {Float|Array<Float4>} jsonIn.value
-     */
-    this.setLayoutArgumentData = function(jsonIn) {
-        _customArgs[jsonIn.argName]["nodes_array_value"] = jsonIn.value;
-        _customArgs[jsonIn.argName]["links_array_value"] = jsonIn.value;
-        _customArgs[jsonIn.argName]["arrows_array_value"] = jsonIn.value;
-        _customArgs[jsonIn.argName]["nodestext_array_value"] = jsonIn.value;
-        comp_renderer_nodes.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
-        comp_renderer_links.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
-        comp_renderer_arrows.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+    var mouseUp = (function() {
+        comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
+        comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
+        comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
         if(_enableFont == true)
-            comp_renderer_nodesText.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
-    };
+            comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
 
-    /**
-     * getLayoutNodeArgumentData
-     * @param {Object} jsonIn
-     * @param {String} jsonIn.nodeName
-     * @param {String} jsonIn.argName
-     * @returns {Float|Array<Float4>}
-     */
-    this.getLayoutNodeArgumentData = function(jsonIn) {
-        var node = _nodesByName[jsonIn.nodeName];
-        var expl = _customArgs[jsonIn.argName].arg.split("*");
-        var type = expl[0]; // float or float4
+        if(selectedId == -1) {
+            comp_renderer_nodes.setArg("idToDrag", (function() {return -1;}).bind(this));
+            comp_renderer_links.setArg("idToDrag", (function() {return -1;}).bind(this));
+            comp_renderer_arrows.setArg("idToDrag", (function() {return -1;}).bind(this));
+            if(_enableFont == true)
+                comp_renderer_nodesText.setArg("idToDrag", (function() {return -1;}).bind(this));
+        }
 
-        for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-            if(jsonIn.nodeName != undefined && this.arrayNodeData[n*4] == node.nodeId) {
-                if(type == "float") {
-                    var id = n;
-                    if(_customArgs[jsonIn.argName]["nodes_array_value"][id] != undefined)
-                        return _customArgs[jsonIn.argName]["nodes_array_value"][id];
-                } else {
-                    var id = n*4;
-                    if(_customArgs[jsonIn.argName]["nodes_array_value"][id] != undefined)
-                        return [_customArgs[jsonIn.argName]["nodes_array_value"][id],
-                            _customArgs[jsonIn.argName]["nodes_array_value"][id+1],
-                            _customArgs[jsonIn.argName]["nodes_array_value"][id+2],
-                            _customArgs[jsonIn.argName]["nodes_array_value"][id+3]];
-                }
+        if(_enableHover == true) {
+            readPixel = true;
+
+            comp_renderer_nodes.gpufG.enableGraphic(1);
+        }
+    }).bind(this);
+
+    var procSelectedOrHover = (function() {
+        if(_enableHover == false) {
+            if(readPixel == true) {
+                readPixel = false;
+
+                readPix();
+
+                comp_renderer_nodes.gpufG.disableGraphic(1);
+            }
+        } else {
+            var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET);
+            if(comp_controller_trans_target.isLeftBtnActive() == true) {
+                readPixel = false;
+            }
+
+            readPix();
+
+            if(comp_controller_trans_target.isLeftBtnActive() == true) {
+                comp_renderer_nodes.gpufG.disableGraphic(1);
             }
         }
-    };
+    }).bind(this);
+
+    var readPix = (function() {
+        var arrayPick = new Uint8Array(4);
+        var mousePos = _sce.getEvents().getMousePosition();
+        _gl.readPixels(mousePos.x, (_sce.getCanvas().height-(mousePos.y)), 1, 1, _gl.RGBA, _gl.UNSIGNED_BYTE, arrayPick);
+
+        var unpackValue = _utils.unpack([arrayPick[0]/255, arrayPick[1]/255, arrayPick[2]/255, arrayPick[3]/255]); // value from 0.0 to 1.0
+        selectedId = Math.round(unpackValue*1000000.0)-1.0;
+        //console.log("hoverId: "+selectedId);
+        if(selectedId != -1 && selectedId < this.currentNodeId) {
+            var node = _nodesById[selectedId];
+            if(node != undefined && node.onmousedown != undefined)
+                node.onmousedown(node);
+
+            if(node != undefined && _onClickNode != undefined)
+                _onClickNode(node);
+
+
+            var arr4Uint8_XYZW = comp_renderer_nodes.gpufG.readArg("posXYZW");
+            var x = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)];
+            var y = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+1];
+            var z = arr4Uint8_XYZW[(_nodesById[selectedId].itemStart*4)+2];
+            _initialPosDrag = $V3([x,y,z]);
+
+            makeDrag(undefined, $V3([0.0, 0.0, 0.0]));
+        }
+    }).bind(this);
+
+    /**
+     * @private
+     * @param {MouseMoveEvent} [evt]
+     * @param {StormV3} dir
+     */
+    var makeDrag = (function(evt, dir) {
+        var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET);
+
+        if(_enableHover == false) {
+            if(comp_controller_trans_target.isLeftBtnActive() == true) {
+                if(selectedId == -1)
+                    disableDrag();
+                else
+                    enableDrag(selectedId, dir), console.log("selectedId: "+selectedId);
+            }
+        } else {
+            if(comp_controller_trans_target.isLeftBtnActive() == true) {
+                enableHov(-1);
+
+                if(selectedId == -1)
+                    disableDrag();
+                else
+                    enableDrag(selectedId, dir), console.log("selectedId: "+selectedId);
+            } else {
+                enableHov(selectedId);
+            }
+        }
+    }).bind(this);
+
+    /**
+     * enableHov
+     * @param {int} selectedId
+     * @private
+     */
+    var enableHov = (function(selectedId) {
+        comp_renderer_nodes.setArg("idToHover", (function() {return selectedId;}).bind(this));
+        comp_renderer_links.setArg("idToHover", (function() {return selectedId;}).bind(this));
+        comp_renderer_arrows.setArg("idToHover", (function() {return selectedId;}).bind(this));
+        if(_enableFont == true) {
+            comp_renderer_nodesText.setArg("idToHover", (function() {return selectedId;}).bind(this));
+        }
+    }).bind(this);
+
+    /**
+     * enableDrag
+     * @param {Int} selectedId
+     * @param {StormV3} dir
+     * @private
+     */
+    var enableDrag = (function(selectedId, dir) {
+        var comp_projection = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
+        var finalPos = _initialPosDrag.add(dir.x((comp_projection.getFov()*2.0)/_sce.getCanvas().width));
+
+        comp_renderer_nodes.setArg("enableDrag", (function() {return 1;}).bind(this));
+        comp_renderer_nodes.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+        comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+        comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+        comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+        comp_renderer_nodes.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
+        comp_renderer_nodes.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
+        comp_renderer_nodes.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+
+        comp_renderer_links.setArg("enableDrag", (function() {return 1;}).bind(this));
+        comp_renderer_links.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+        comp_renderer_links.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+        comp_renderer_links.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+        comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+        comp_renderer_links.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
+        comp_renderer_links.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
+        comp_renderer_links.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+
+        comp_renderer_arrows.setArg("enableDrag", (function() {return 1;}).bind(this));
+        comp_renderer_arrows.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+        comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+        comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+        comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+        comp_renderer_arrows.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
+        comp_renderer_arrows.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
+        comp_renderer_arrows.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+
+        if(_enableFont == true) {
+            comp_renderer_nodesText.setArg("enableDrag", (function() {return 1;}).bind(this));
+            comp_renderer_nodesText.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+            comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+            comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+            comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+            comp_renderer_nodesText.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
+            comp_renderer_nodesText.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
+            comp_renderer_nodesText.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+        }
+    }).bind(this);
+
+    /**
+     * disableDrag
+     * @private
+     */
+    var disableDrag = (function() {
+        comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
+        comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
+        comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+        comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+        comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+
+        comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
+        comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
+        comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+        comp_renderer_links.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+        comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+
+        comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
+        comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
+        comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+        comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+        comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+
+        if(_enableFont == true) {
+            comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
+            comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
+            comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+            comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+            comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+        }
+    }).bind(this);
+
+
+
+
 
     /**
      *  enableNeuronalNetwork
@@ -1354,14 +1341,6 @@ Graph = function(sce, jsonIn) {
      */
     this.disableNeuronalNetwork = function() {
         _enableNeuronalNetwork = false;
-    };
-
-    /**
-     *  only2d
-     *  @param {boolean} mode2d
-     */
-    this.only2d = function(mode2d) {
-        _only2d = mode2d;
     };
 
     /**
@@ -1455,10 +1434,6 @@ Graph = function(sce, jsonIn) {
         return [arr4Uint8_XYZW[n], arr4Uint8_XYZW[n+1], arr4Uint8_XYZW[n+2], arr4Uint8_XYZW[n+3]];
     };
 
-    this.makeNetworkStep = function() {
-        _makeNetworkStep = true;
-    };
-
     var currHiddenNeuron = 0;
     var nodSep = 5.0;
     this.createNeuronLayer = function(numX, numY, pos) {
@@ -1523,6 +1498,56 @@ Graph = function(sce, jsonIn) {
         }
 
         return arr;
+    };
+
+
+
+    /**
+     * setLayoutArgumentData
+     * @param {Object} jsonIn
+     * @param {String} jsonIn.argName
+     * @param {Float|Array<Float4>} jsonIn.value
+     */
+    this.setLayoutArgumentData = function(jsonIn) {
+        _customArgs[jsonIn.argName]["nodes_array_value"] = jsonIn.value;
+        _customArgs[jsonIn.argName]["links_array_value"] = jsonIn.value;
+        _customArgs[jsonIn.argName]["arrows_array_value"] = jsonIn.value;
+        _customArgs[jsonIn.argName]["nodestext_array_value"] = jsonIn.value;
+        comp_renderer_nodes.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+        comp_renderer_links.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+        comp_renderer_arrows.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+        if(_enableFont == true)
+            comp_renderer_nodesText.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+    };
+
+    /**
+     * getLayoutNodeArgumentData
+     * @param {Object} jsonIn
+     * @param {String} jsonIn.nodeName
+     * @param {String} jsonIn.argName
+     * @returns {Float|Array<Float4>}
+     */
+    this.getLayoutNodeArgumentData = function(jsonIn) {
+        var node = _nodesByName[jsonIn.nodeName];
+        var expl = _customArgs[jsonIn.argName].arg.split("*");
+        var type = expl[0]; // float or float4
+
+        for(var n=0; n < (this.arrayNodeData.length/4); n++) {
+            if(jsonIn.nodeName != undefined && this.arrayNodeData[n*4] == node.nodeId) {
+                if(type == "float") {
+                    var id = n;
+                    if(_customArgs[jsonIn.argName]["nodes_array_value"][id] != undefined)
+                        return _customArgs[jsonIn.argName]["nodes_array_value"][id];
+                } else {
+                    var id = n*4;
+                    if(_customArgs[jsonIn.argName]["nodes_array_value"][id] != undefined)
+                        return [_customArgs[jsonIn.argName]["nodes_array_value"][id],
+                            _customArgs[jsonIn.argName]["nodes_array_value"][id+1],
+                            _customArgs[jsonIn.argName]["nodes_array_value"][id+2],
+                            _customArgs[jsonIn.argName]["nodes_array_value"][id+3]];
+                }
+            }
+        }
     };
 
     /**
@@ -1719,129 +1744,9 @@ Graph = function(sce, jsonIn) {
         }
     };
 
-	/**
-	 * @private
-	 * @param {MouseMoveEvent} [evt]
-	 * @param {StormV3} dir
-	 */
-	var makeDrag = function(evt, dir) {
-        /**
-         * enableDrag
-         * @param {Int} selectedId
-         * @param {StormV3} dir
-         * @private
-         */
-        var enableDrag = (function(selectedId, dir) {
-            var comp_projection = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION);
-            var finalPos = _initialPosDrag.add(dir.x((comp_projection.getFov()*2.0)/_sce.getCanvas().width));
-
-            comp_renderer_nodes.setArg("enableDrag", (function() {return 1;}).bind(this));
-            comp_renderer_nodes.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-            comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-            comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-            comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-            comp_renderer_nodes.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
-            comp_renderer_nodes.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
-            comp_renderer_nodes.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
-
-            comp_renderer_links.setArg("enableDrag", (function() {return 1;}).bind(this));
-            comp_renderer_links.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-            comp_renderer_links.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-            comp_renderer_links.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-            comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-            comp_renderer_links.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
-            comp_renderer_links.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
-            comp_renderer_links.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
-
-            comp_renderer_arrows.setArg("enableDrag", (function() {return 1;}).bind(this));
-            comp_renderer_arrows.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-            comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-            comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-            comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-            comp_renderer_arrows.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
-            comp_renderer_arrows.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
-            comp_renderer_arrows.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
-
-            if(_enableFont == true) {
-                comp_renderer_nodesText.setArg("enableDrag", (function() {return 1;}).bind(this));
-                comp_renderer_nodesText.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-                comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-                comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-                comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-                comp_renderer_nodesText.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
-                comp_renderer_nodesText.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
-                comp_renderer_nodesText.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
-            }
-        }).bind(this);
-        /**
-         * disableDrag
-         * @private
-         */
-        var disableDrag = (function() {
-            comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
-            comp_renderer_nodes.setArg("idToDrag", (function() {return 0;}).bind(this));
-            comp_renderer_nodes.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-            comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-            comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-
-            comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
-            comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
-            comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-            comp_renderer_links.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-            comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-
-            comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
-            comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
-            comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-            comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-            comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-
-            if(_enableFont == true) {
-                comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
-                comp_renderer_nodesText.setArg("idToDrag", (function() {return 0;}).bind(this));
-                comp_renderer_nodesText.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-                comp_renderer_nodesText.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-                comp_renderer_nodesText.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
-            }
-        }).bind(this);
 
 
-		var comp_controller_trans_target = _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.CONTROLLER_TRANSFORM_TARGET);
 
-        if(_enableHover == false) {
-            if(comp_controller_trans_target.isLeftBtnActive() == true) {
-                if(selectedId == -1)
-                    disableDrag();
-                else
-                    enableDrag(selectedId, dir), console.log("selectedId: "+selectedId);
-            }
-        } else {
-            if(comp_controller_trans_target.isLeftBtnActive() == true) {
-                enableHov(-1);
-
-                if(selectedId == -1)
-                    disableDrag();
-                else
-                    enableDrag(selectedId, dir), console.log("selectedId: "+selectedId);
-            } else {
-                enableHov(selectedId);
-            }
-        }
-	};
-
-    /**
-     * enableHov
-     * @param {int} selectedId
-     * @private
-     */
-    var enableHov = function(selectedId) {
-        comp_renderer_nodes.setArg("idToHover", (function() {return selectedId;}).bind(this));
-        comp_renderer_links.setArg("idToHover", (function() {return selectedId;}).bind(this));
-        comp_renderer_arrows.setArg("idToHover", (function() {return selectedId;}).bind(this));
-        if(_enableFont == true) {
-            comp_renderer_nodesText.setArg("idToHover", (function() {return selectedId;}).bind(this));
-        }
-    };
 
 
 
@@ -1940,7 +1845,7 @@ Graph = function(sce, jsonIn) {
                 var locationIdx = Object.keys(objNodeImages).length;
                 objNodeImages[color] = locationIdx;
 
-                setNodesImage(color, locationIdx);
+                addNodesImage(color, locationIdx);
             }
             nodeImgId = objNodeImages[color];
         }
@@ -1952,6 +1857,7 @@ Graph = function(sce, jsonIn) {
             this.arrayNodeDataB.push(ts.bornDate, ts.dieDate, disabVal, disabVal); // bornDate, dieDate, networkWaitData, networkProcData
             this.arrayNodeDataF.push(disabVal, 0.0, 0.0, 0.0); // efferenceData, null, null, null
             this.arrayNodePosXYZW.push(pos[0], pos[1], pos[2], pos[3]);
+            this.arrayNodeDir.push(0, 0, 0, 1.0);
             this.arrayNodeVertexPos.push(mesh_nodes.vertexArray[idxVertex], mesh_nodes.vertexArray[idxVertex+1], mesh_nodes.vertexArray[idxVertex+2], 1.0);
             this.arrayNodeVertexNormal.push(mesh_nodes.normalArray[idxVertex], mesh_nodes.normalArray[idxVertex+1], mesh_nodes.normalArray[idxVertex+2], 1.0);
             this.arrayNodeVertexTexture.push(mesh_nodes.textureArray[idxVertex], mesh_nodes.textureArray[idxVertex+1], mesh_nodes.textureArray[idxVertex+2], 1.0);
@@ -2073,102 +1979,45 @@ Graph = function(sce, jsonIn) {
     }).bind(this);
 
     /**
-     * setNodesImage
-     * @private
+     * addNodesImage
      * @param {String} url
-     * @param {Int} locationIdx
+     * @param {int} locationIdx
      */
-    var setNodesImage = (function(url, locationIdx) {
-        var get2Dfrom1D = function(/*Int*/ idx, /*Int*/ columns) {
-            var n = idx/columns;
-            var row = parseFloat(parseInt(n));
-            var col = new Utils().fract(n)*columns;
+    var addNodesImage = (function(url, locationIdx) {
+        _stackNodesImg.push({
+            "url": url,
+            "locationIdx": locationIdx});
+    }).bind(this);
 
-            return {"col": col,
-                "row": row};
-        }
-
+    /**
+     * generateNodesImage
+     */
+    var generateNodesImage = (function() {
         if(nodesImgMaskLoaded == false) {
             nodesImgMask = new Image();
-            nodesImgMask.onload = (function(url, locationIdx) {
+            nodesImgMask.onload = (function() {
                 nodesImgMaskLoaded = true;
-                setNodesImage(url, locationIdx);
-            }).bind(this, url, locationIdx);
+                generateNodesImage();
+            }).bind(this);
             nodesImgMask.src = sceDirectory+"/Prefabs/Graph/nodesImgMask.png";
         } else if(nodesImgCrosshairLoaded == false) {
             nodesImgCrosshair = new Image();
-            nodesImgCrosshair.onload = (function(url, locationIdx) {
+            nodesImgCrosshair.onload = (function() {
                 nodesImgCrosshairLoaded = true;
-                setNodesImage(url, locationIdx);
-            }).bind(this, url, locationIdx);
+                generateNodesImage();
+            }).bind(this);
             nodesImgCrosshair.src = sceDirectory+"/Prefabs/Graph/nodesImgCrosshair.png";
         } else {
-            if(_makingNodesImg == false) {
-                _makingNodesImg = true;
-
-                var image = new Image();
-                image.onload = (function(nodesImgMask, nodesImgCrosshair, locationIdx) {
-                    // draw userImg on temporal canvas reducing the thumb size
-                    ctxNodeImgTMP.clearRect(0, 0, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-                    var quarter = NODE_IMG_SPRITE_WIDTH/4;
-                    ctxNodeImgTMP.drawImage(image, 0, 0, image.width, image.height, quarter, quarter, NODE_IMG_SPRITE_WIDTH/2, NODE_IMG_SPRITE_WIDTH/2);
-
-                    // apply mask to thumb image
-                    new Utils().getImageFromCanvas(canvasNodeImgTMP, (function(nodesImgMask, nodesImgCrosshair, locationIdx, img) {
-                        var newImgData = new Utils().getUint8ArrayFromHTMLImageElement( img );
-
-
-                        var datMask = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgMask);
-                        for(var n=0; n < datMask.length/4; n++) {
-                            var idx = n*4;
-                            if(newImgData[idx+3] > 0) newImgData[idx+3] = datMask[idx+3];
-                        }
-                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(locationIdx, imgB) {
-                            // draw thumb image on atlas & update the 'nodesImg' argument
-                            var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
-                            ctxNodeImg.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-
-                            new Utils().getImageFromCanvas(canvasNodeImg, (function(imgAtlas) {
-                                comp_renderer_nodes.setArg("nodesImg", (function(){return imgAtlas;}).bind(this));
-                            }).bind(this));
-                        }).bind(this, locationIdx));
-
-
-                        var datCrosshair = new Utils().getUint8ArrayFromHTMLImageElement(nodesImgCrosshair);
-                        for(var n=0; n < datCrosshair.length/4; n++) {
-                            var idx = n*4;
-
-                            newImgData[idx] = ((datCrosshair[idx]*datCrosshair[idx+3]) + (newImgData[idx]*(255-datCrosshair[idx+3])))/255;
-                            newImgData[idx+1] =( (datCrosshair[idx+1]*datCrosshair[idx+3]) + (newImgData[idx+1]*(255-datCrosshair[idx+3])))/255;
-                            newImgData[idx+2] = ((datCrosshair[idx+2]*datCrosshair[idx+3]) + (newImgData[idx+2]*(255-datCrosshair[idx+3])))/255;
-                            newImgData[idx+3] = ((datCrosshair[idx+3]*datCrosshair[idx+3]) + (newImgData[idx+3]*(255-datCrosshair[idx+3])))/255;
-                        }
-                        new Utils().getImageFromCanvas( new Utils().getCanvasFromUint8Array(newImgData, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH), (function(locationIdx, imgB) {
-                            // draw thumb image on atlas & update the 'nodesImg' argument
-                            var loc = get2Dfrom1D(locationIdx, NODE_IMG_COLUMNS);
-                            ctxNodeImgCrosshair.drawImage(imgB, loc.col*NODE_IMG_SPRITE_WIDTH, loc.row*NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH, NODE_IMG_SPRITE_WIDTH);
-
-                            new Utils().getImageFromCanvas(canvasNodeImgCrosshair, (function(imgAtlas) {
-                                comp_renderer_nodes.setArg("nodesImgCrosshair", (function(){return imgAtlas;}).bind(this));
-
-                                _makingNodesImg = false;
-                                if(_stackNodesImg.length > 0) {
-                                    var urlT = _stackNodesImg[0].url;
-                                    var locIdx = _stackNodesImg[0].locationIdx;
-                                    _stackNodesImg.shift();
-                                    setNodesImage(urlT, locIdx);
-                                }
-                            }).bind(this));
-                        }).bind(this, locationIdx));
-
-                    }).bind(this, nodesImgMask, nodesImgCrosshair, locationIdx));
-
-                }).bind(this, nodesImgMask, nodesImgCrosshair, locationIdx);
-                image.src = url;
-            } else {
-                _stackNodesImg.push({	"url": url,
-                    "locationIdx": locationIdx});
-            }
+            new ProccessImg({
+                "stackNodesImg": _stackNodesImg,
+                "NODE_IMG_WIDTH": NODE_IMG_WIDTH,
+                "NODE_IMG_COLUMNS": NODE_IMG_COLUMNS,
+                "nodesImgMask": nodesImgMask,
+                "nodesImgCrosshair": nodesImgCrosshair,
+                "onend": (function(jsonIn) {
+                    comp_renderer_nodes.setArg("nodesImg", (function(){return jsonIn.nodesImg;}).bind(this));
+                    comp_renderer_nodes.setArg("nodesImgCrosshair", (function(){return jsonIn.nodesImgCrosshair;}).bind(this));
+                }).bind(this)});
         }
     }).bind(this);
 
@@ -2447,7 +2296,7 @@ Graph = function(sce, jsonIn) {
         comp_renderer_nodes.setArg("dataF", (function() {return this.arrayNodeDataF;}).bind(this));
 
 		if(comp_renderer_nodes.getBuffers()["posXYZW"] != undefined)
-            this.arrayNodePosXYZW = comp_renderer_nodes.gpufG.readArg("posXYZW");
+            this.arrayNodePosXYZW = Array.prototype.slice.call(comp_renderer_nodes.gpufG.readArg("posXYZW"));
 		comp_renderer_nodes.setArg("posXYZW", (function() {return this.arrayNodePosXYZW;}).bind(this));
 
 		comp_renderer_nodes.setArg("nodeVertexPos", (function() {return this.arrayNodeVertexPos;}).bind(this));
@@ -2458,10 +2307,8 @@ Graph = function(sce, jsonIn) {
 		comp_renderer_nodes.setArg("nodeImgId", (function() {return this.arrayNodeImgId;}).bind(this));
 		comp_renderer_nodes.setArg("indices", (function() {return this.arrayNodeIndices;}).bind(this));
 
-		this.arrayNodeDir = [];
-		for(var n=0; n < (this.arrayNodeData.length/4); n++) {
-			this.arrayNodeDir.push(0, 0, 0, 1.0);
-		}
+        if(comp_renderer_nodes.getBuffers()["dir"] != undefined)
+            this.arrayNodeDir = Array.prototype.slice.call(comp_renderer_nodes.gpufG.readArg("dir"));
 		comp_renderer_nodes.setArg("dir", (function() {return this.arrayNodeDir;}).bind(this));
 
 		comp_renderer_nodes.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
@@ -2481,6 +2328,7 @@ Graph = function(sce, jsonIn) {
 			}
 		}
 
+        generateNodesImage();
 		if(_enableFont == true)
 		    updateNodesText();
 	};
@@ -2691,19 +2539,5 @@ Graph = function(sce, jsonIn) {
      */
     this.disableForceLayoutCollision = function() {
         comp_renderer_nodes.setArg("enableForceLayoutCollision", (function() {return 0.0;}).bind(this));
-    };
-
-    /**
-     * enableForceLayoutRepulsion
-     */
-    this.enableForceLayoutRepulsion = function() {
-        comp_renderer_nodes.setArg("enableForceLayoutRepulsion", (function() {return 1.0;}).bind(this));
-    };
-
-    /**
-     * disableForceLayoutRepulsion
-     */
-    this.disableForceLayoutRepulsion = function() {
-        comp_renderer_nodes.setArg("enableForceLayoutRepulsion", (function() {return 0.0;}).bind(this));
     };
 };

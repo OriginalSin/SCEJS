@@ -36,15 +36,13 @@ function KERNEL_DIR(customCode, geometryLength, _enableNeuronalNetwork) {
                             // FORCE LAYOUT
                         "if(enableForceLayout == 1.0 && performFL == 0.0) {"+
                             'idAdjMatrixResponse adjM = idAdjMatrix_ForceLayout(nodeId, currentPos, currentDir, numOfConnections, currentTimestamp, bornDate, dieDate, enableNeuronalNetwork);'+
-                            'currentDir = (adjM.collisionExists == 1.0) ? adjM.force : (currentDir+adjM.force)*0.5;'+
+                            'currentDir = (adjM.collisionExists == 1.0) ? adjM.force : currentDir+(adjM.force*1.0);'+
 
-                            'if(enableNeuronalNetwork == 1.0) {'+ 
-                                //'if(makeNetworkStep == 1.0) {'+
-                                    'float nProc = (adjM.netProcData != 0.0) ? adjM.netProcData : currentDataB.z;'+
-                                    'float nErr = (adjM.netErrorData != 0.0) ? adjM.netErrorData : currentDataB.w;'+
+                            'if(enableNeuronalNetwork == 1.0) {'+
+                                'float nProc = (adjM.netProcData != 0.0) ? adjM.netProcData : currentDataB.z;'+
+                                'float nErr = (adjM.netErrorData != 0.0) ? adjM.netErrorData : currentDataB.w;'+
 
-                                    'currentDataB = vec4(currentDataB.x, currentDataB.y, nProc, nErr);'+
-                                //'}'+
+                                'currentDataB = vec4(currentDataB.x, currentDataB.y, nProc, nErr);'+
                             '}'+
                         "}"+
 

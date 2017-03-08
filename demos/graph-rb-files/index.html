@@ -173,8 +173,7 @@
 
 				// NODES AND LINKS CREATION
 				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
-                                                            // TMP
-
+                                                            graph.enableForceLayout();
                                                         }).bind(this), false, false);
 			};			
 			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
@@ -194,7 +193,6 @@
 
         <button id="BTNID_AFFERENCEDATA">afference data</button> Input data<br />
         <button id="BTNID_EFFERENCEDATA">efference data</button> Train output from current afference data updating link weights<br />
-        <button id="BTNID_NETWORKSTEP">network step</button> <br />
 
 		<br />
 		Load RB: <select id="select_rb">			
@@ -210,30 +208,14 @@
 			<option>diag.rb (2559 2559 8184)</option>
 			<option>dwt_2680.rb (2680 2680 25026)</option>			
 			<option>utm3060.rb (3060 3060 42211)</option>
-			<option>cegb3306.rb (3306 3306 74916)</option>			
-			<option>G57.rb (5000 5000 20000)</option>
-			<option>man_5976.rb (5976 5976 225046)</option>
-			<option>G62.rb (7000 7000 28000)</option>
-			<option>G67.rb (10000 10000 40000)</option>
-			<option>big_dual.rb (30269 30269 89858)</option>
-			<option>jnlbrng1.rb (40000 40000 199200)</option>
-			<option>cvxbqp1.rb (50000 50000 349968)</option>
-			<option>n4c6-b11.rb (69235 132402 830820)</option>
-			<option>ford2.rb (100196 100196 544688)</option>
 		</select>Graph visualization of matrices from the <a href="http://www.cise.ufl.edu/research/sparse/matrices/">University of Florida Collection</a><br />
-		
-		<button id="BTNID_FORCELAYOUT_ON">ForceLayout On</button> <button id="BTNID_FORCELAYOUT_OFF">ForceLayout Off</button><br />
-		<button id="BTNID_FORCELAYOUT_COLLISION_ON">ForceLayoutCollision On</button> <button id="BTNID_FORCELAYOUT_COLLISION_OFF">ForceLayoutCollision Off</button><br />
-		<button id="BTNID_FORCELAYOUT_REPULSION_ON">ForceLayoutRepulsion On</button> <button id="BTNID_FORCELAYOUT_REPULSION_OFF">ForceLayoutRepulsion Off</button><br />
+
 		<br />
 		<button id="BTNID_RD">random destination</button><br />
 		<button id="BTNID_WH">widthheight destination</button><br />
 		<button id="BTNID_SPHERICAL">spherical destination</button><br />
 		<button id="BTNID_HEM">hemispherical destination</button><br />
 		<button id="BTNID_DESTINATION_OFF">Destination Off</button><br />
-        <br />
-        <button id="BTNID_playTimeline">play</button><br />
-        <button id="BTNID_pauseTimeline">pause</button><br />
 		<br />
 		<button id="BTNID_DIR">random direction</button><br />
 		<button id="BTNID_DIRECTION_OFF">Direction Off</button><br />
@@ -260,30 +242,6 @@
 		
 			// BUTTONS UI
 			var arrayGenerator = new ArrayGenerator();
-												
-												
-												
-			document.getElementById("BTNID_FORCELAYOUT_ON").addEventListener("click", (function() {
-				graph.enableForceLayout();
-			}).bind(this));
-			document.getElementById("BTNID_FORCELAYOUT_OFF").addEventListener("click", (function() {
-				graph.disableForceLayout();
-			}).bind(this));
-			
-			document.getElementById("BTNID_FORCELAYOUT_COLLISION_ON").addEventListener("click", (function() {
-				graph.enableForceLayoutCollision();
-			}).bind(this));
-			document.getElementById("BTNID_FORCELAYOUT_COLLISION_OFF").addEventListener("click", (function() {
-				graph.disableForceLayoutCollision();
-			}).bind(this));
-
-			document.getElementById("BTNID_FORCELAYOUT_REPULSION_ON").addEventListener("click", (function() {
-				graph.enableForceLayoutRepulsion();
-			}).bind(this));
-			document.getElementById("BTNID_FORCELAYOUT_REPULSION_OFF").addEventListener("click", (function() {
-				graph.disableForceLayoutRepulsion();
-			}).bind(this));
-			
 
 
 			document.getElementById("BTNID_RD").addEventListener("click", (function() {
@@ -340,15 +298,6 @@
             }).bind(this));
 
 
-            document.getElementById("BTNID_playTimeline").addEventListener("click", (function() {
-                graph.playTimeline();
-            }).bind(this));
-
-            document.getElementById("BTNID_pauseTimeline").addEventListener("click", (function() {
-                graph.pauseTimeline();
-            }).bind(this));
-
-
 
 
 			document.getElementById("BTNID_ADDNODE").addEventListener("click", (function() {				
@@ -359,9 +308,9 @@
 					"data": "",
                     "label": document.getElementById("INPUTID_ADDNODE_ID").value,
 					"position": pos,
-					"color": ((n % 2) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
-                    "bornDate": "RANDOM",
-                    "dieDate": "RANDOM",
+					"color": ((Math.floor(n%2) == 0.0) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+                    /*"bornDate": "RANDOM",
+                    "dieDate": "RANDOM",*/
 					"layoutNodeArgumentData": {
 												// dir
 												"ndirect": [0.0, 0.0, 0.0, 1.0],
@@ -385,9 +334,9 @@
 			document.getElementById("BTNID_ADDLINK").addEventListener("click", (function() {
 				graph.addLink({	"origin": document.getElementById("INPUTID_ADDLINK_ORIGIN").value,
 								"target": document.getElementById("INPUTID_ADDLINK_TARGET").value,
-								"directed": true,
+								"directed": true/*,
                                 "bornDate": "RANDOM",
-                                "dieDate": "RANDOM"});
+                                "dieDate": "RANDOM"*/});
 				graph.updateLinks();
 			}).bind(this));
 
@@ -411,25 +360,16 @@
                 var randNumber = Math.random();
                 console.log(randNode+" "+randNumber);
                 var ob = {};
-                ob[randNode] = randNumber;
+                ob[randNode] = (randNumber*2.0)-1.0;
                 graph.setAfferentData(ob);
             }).bind(this));
 
             document.getElementById("BTNID_EFFERENCEDATA").addEventListener("click", (function() {
                 var randNode = parseInt(Math.random()*graph.getNodesCount()).toString();
 
-                var randNumber = Math.random()*1000.0;
-                randNumber = ((Math.floor(randNumber%2) == 0.0)?0.0:1.0);
-                console.log(randNode+" "+randNumber);
                 var ob = {};
-                ob[randNode] = randNumber;
+                ob[randNode] = 1.0;
                 graph.setEfferentData(ob);
-            }).bind(this));
-
-
-
-            document.getElementById("BTNID_NETWORKSTEP").addEventListener("click", (function() {
-                graph.makeNetworkStep();
             }).bind(this));
 		</script>
 
