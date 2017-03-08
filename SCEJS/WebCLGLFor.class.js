@@ -302,11 +302,13 @@ var WebCLGLFor = function() {
     this.getGPUForArg = function(argument, gpufor) {
         if(this.calledArgs.hasOwnProperty(argument) == false)
             this.calledArgs[argument] = [];
-        this.calledArgs[argument].push(gpufor);
+        if(this.calledArgs[argument].indexOf(gpufor) == -1)
+            this.calledArgs[argument].push(gpufor);
 
         if(gpufor.calledArgs.hasOwnProperty(argument) == false)
             gpufor.calledArgs[argument] = [];
-        gpufor.calledArgs[argument].push(this);
+        if(gpufor.calledArgs[argument].indexOf(this) == -1)
+            gpufor.calledArgs[argument].push(this);
 
 
         for(var key in gpufor._args) {

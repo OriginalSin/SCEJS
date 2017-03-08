@@ -32,7 +32,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
         'vec3 dirToB = (currentPosB-currentPos);\n'+
         'vec3 dirToBN = normalize(dirToB);\n'+
         'float dist = distance(currentPosB, currentPos);\n'+ // near=0.0 ; far=1.0
-
+        'float distN = max(0.0,dist-10.0)/100000.0;'+
 
         'float disabVal = -2.0;'+
         'float ww = (itColRow.z != disabVal) ? itColRow.z : itRowCol.z;'+
@@ -69,14 +69,12 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
 
                 'if(pass == 1) {'+
                     'if(enableNeuronalNetwork == 0.0) {'+
-                        //'if(itColRow.w == 1.0) {'+
-                            'atraction += dirToBN*max(0.0,dist-10.0)*0.5*ww;\n'+
-                            'atraction += dirToBN*-10.0*ww;\n'+
-                            'acumAtraction += 1.0;\n'+
-                        //'}'+
+                        'atraction += (dirToBN*distN)*ww;\n'+
+                        'atraction += dirToBN*(-10.0/100000.0);\n'+
+                        'acumAtraction += 1.0;\n'+
                     '} else {'+
-                        'atraction += dirToBN*dist*0.0*ww;\n'+
-                        'atraction += dirToBN*-0.0;\n'+
+                        'atraction += (dirToBN*distN)*ww*0.0;\n'+
+                        'atraction += dirToBN*(-10.0/100000.0)*0.0;\n'+
                         'acumAtraction += 1.0;\n'+
 
                         'if(itColRow.w == 0.0) {'+ // parent. get data to be proccess
@@ -97,13 +95,9 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
                             'netError += (parentErrorData*ww);'+ // error*weight
                         '}'+
                     '}'+
-                    'if(enableForceLayoutRepulsion == 1.0) \n'+
-                        'repulsion += dirToBN*-(1.0);\n'+
                 '}'+
-            '} else {'+
-                'if(enableForceLayoutRepulsion == 1.0) \n'+
-                    'repulsion += dirToBN*-(1.0);\n'+
             '}'+
+            'repulsion += -dirToBN*(1.0-distN);\n'+
         '}'+
         'return CalculationResponse(atraction, acumAtraction, repulsion, collisionExists, netProc, netError);'+
     '}'+
@@ -135,7 +129,7 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
 
         // END INIT VARS
 
-        'if(nodeId < widthAdjMatrix) {\n'+
+        'if(nodeId < nodesCount) {\n'+
 
             'vec2 xGeom_adjCol = get_global_id(nodeId, uBufferWidth, '+geometryLength.toFixed(1)+');\n'+
 
@@ -177,13 +171,11 @@ var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
             '}'+
             // SUMMATION
             'if(collisionExists == 0.0) {'+
-                'vec3 cA = atraction/acumAtraction;'+
+                'vec3 cA = (atraction/acumAtraction)*190000.0;'+
                 'force += cA;'+
 
-                'if(enableForceLayoutRepulsion == 1.0) {'+
-                    'vec3 cR = repulsion/(widthAdjMatrix);'+
-                    'force = ((force+cR)/2.0)*10.0;'+
-                '}'+
+                'vec3 cR = (repulsion/(nodesCount))*5.0;'+
+                'force = (force+cR)/2.0;'+
             '}'+
             // END SUMMATION
 
@@ -232,7 +224,7 @@ var adjMatrix_Autolink_GLSLFunctionString = function(geometryLength) {
         'float totalAngleRelations = 0.0;'+
         // END INIT VARS
 
-        'if(nodeId < widthAdjMatrix) {\n'+
+        'if(nodeId < nodesCount) {\n'+
 
             'for(int n=0; n < 4096; n++) {\n'+
                 'if(float(n) >= nodesCount) break;\n'+
@@ -249,7 +241,7 @@ var adjMatrix_Autolink_GLSLFunctionString = function(geometryLength) {
                         'vec2 IDrelation = vec2(0.0, 0.0);'+
                         'float angleRelations = 360.0;'+
 
-                        'if(nodeId < widthAdjMatrix) {\n'+
+                        'if(nodeId < nodesCount) {\n'+
 
                             'for(int nB=0; nB < 4096; nB++) {\n'+
                                 'if(float(nB) >= nodesCount) break;\n'+

@@ -49,6 +49,13 @@ var WebCLGLBuffer = function(gl, type, linear, mode) {
             return rBuffer;
         }).bind(this);
 
+        if(this.fBuffer != null) {
+            this._gl.deleteFramebuffer(this.fBuffer);
+            this._gl.deleteFramebuffer(this.fBufferTemp);
+
+            this._gl.deleteRenderbuffer(this.renderBuffer);
+            this._gl.deleteRenderbuffer(this.renderBufferTemp);
+        }
         this.fBuffer = this._gl.createFramebuffer();
         this.renderBuffer = createWebGLRenderBuffer();
         this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this.fBuffer);

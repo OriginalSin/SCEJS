@@ -35,7 +35,6 @@ window.requestAnimFrame = (function(){
 
 /**
 * @class
-* @constructor
 */
 Utils = function() {
 	
@@ -43,10 +42,10 @@ Utils = function() {
 
 /**
 * Get HTMLCanvasElement from Uint8Array
-* @returns {HTMLCanvasElement}
-* @param {Uint8Array} array
-* @param {Int} width
-* @param {Int} height
+* @param {Uint8Array} uint8arr
+* @param {int} width
+* @param {int} height
+ * @returns {HTMLCanvasElement}
 */
 Utils.prototype.getCanvasFromUint8Array = function(uint8arr, width, height) {
 	var e = document.createElement('canvas');
@@ -65,8 +64,8 @@ Utils.prototype.getCanvasFromUint8Array = function(uint8arr, width, height) {
  */
 /**
 * Get HTMLImageElement from canvas
-* @param {HTMLCanvasElement} canvasElement
-* @param {Utils~getImageFromCanvas~onload} canvasElement
+* @param {HTMLCanvasElement} oldCanvas
+* @param {Utils~getImageFromCanvas~onload} onload
 */
 Utils.prototype.getImageFromCanvas = function(oldCanvas, onload) {
 	var imagen = document.createElement('img');
@@ -94,9 +93,9 @@ Utils.prototype.getUint8ArrayFromHTMLImageElement = function(imageElement) {
 
 /**
 * Get random vector from vecNormal with deviation in degrees
-* @returns {StormV3}
-* @param {StormV3} normalVector
-* @param {Float} degrees
+* @param {StormV3} vecNormal
+* @param {float} degrees
+ * @returns {StormV3}
 */
 Utils.prototype.getVector = function(vecNormal, degrees) {
 	var ob = this.cartesianToSpherical(vecNormal);
@@ -148,7 +147,7 @@ Utils.prototype.cartesianToSpherical = function(vec) {
 	return {"radius": r,
 			"lat": angleLat,
 			"lng": angleLng};
-}	
+};
 /**
  * cartesianToSpherical (GLSL)
 * @returns {String}
@@ -166,9 +165,9 @@ Utils.prototype.cartesianToSphericalGLSLFunctionString = function() {
 
 /**
  * sphericalToCartesian
- * @param {Float} radius
- * @param {Float} lat Lat in degrees
- * @param {Float} lng Lng in degrees
+ * @param {float} radius
+ * @param {float} lat Lat in degrees
+ * @param {float} lng Lng in degrees
  * @returns {StormV3}
  * @example
  * (1.0, 90.0, 0.0).e) return $V3([1,0,0])
@@ -185,8 +184,8 @@ Utils.prototype.sphericalToCartesian = function(radius, lat, lng) {
 	var z = r*Math.sin(angleLat)*Math.sin(angleLng);
 	var y = r*Math.cos(angleLat);
 	
-	return new $V3([x,y,z]);
-}
+	return new StormV3([x,y,z]);
+};
 /**
  * sphericalToCartesian (GLSL)
 * @returns {String}
@@ -207,11 +206,11 @@ Utils.prototype.sphericalToCartesianGLSLFunctionString = function() {
 
 /**
 * Refract
-* @returns {StormV3}
 * @param {StormV3} V
 * @param {StormV3} N
-* @param {Float} n1 Refract index way 1
-* @param {Float} n2 Refract index way 2
+* @param {float} n1 Refract index way 1
+* @param {float} n2 Refract index way 2
+ * @returns {StormV3}
 */
 Utils.prototype.refract = function(V, N, n1, n2) {
 	var refrIndex = n1/n2;
@@ -223,11 +222,11 @@ Utils.prototype.refract = function(V, N, n1, n2) {
 
 /**
 * Degrees to radians. Full circle = 360 degrees.
-* @returns {Float}
-* @param {Float} degrees
+* @param {float} degrees
+ * @returns {number}
 */
-Utils.prototype.degToRad = function(deg) {
-	return (deg*3.14159)/180;
+Utils.prototype.degToRad = function(degrees) {
+	return (degrees*3.14159)/180;
 };
 /**
  * Degrees to radians. Full circle = 360 degrees. (GLSL)
@@ -241,11 +240,11 @@ Utils.prototype.degToRadGLSLFunctionString = function() {
 
 /**
 * Radians to degrees
-* @returns {Float}
-* @param {Float} radians
+* @param {float} radians
+ * @returns {number}
 */
-Utils.prototype.radToDeg = function(rad) {
-	return rad*(180/3.14159);
+Utils.prototype.radToDeg = function(radians) {
+	return radians*(180/3.14159);
 };
 /**
  * Radians to degrees (GLSL)
@@ -258,9 +257,9 @@ Utils.prototype.radToDegGLSLFunctionString = function() {
 };
 
 /**
- * 
+ * hexToRgb
  * @param {String} hex
- * @returns  {Array<Float>} rgb values from 0 to 255
+ * @returns  {Array<float>} rgb values from 0 to 255
  */
 Utils.prototype.hexToRgb = function(hex) {
     // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
@@ -275,20 +274,21 @@ Utils.prototype.hexToRgb = function(hex) {
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16)
     } : null;
-}
+};
 /**
- * @param {Array<Float>} rgb values from 0 to 255
+ * rgbToHex
+ * @param {Array<float>} rgb values from 0 to 255
  * @returns {String}
  */
 Utils.prototype.rgbToHex = function(rgb) {
     var rgbVal = rgb[2] | (rgb[1] << 8) | (rgb[0] << 16);
     return '#' + (0x1000000 + rgbVal).toString(16).slice(1);
-}
+};
 
 /**
 * Inverse sqrt
-* @returns {Float}
-* @param {Float} value
+* @param {float} value
+ * @returns {number}
 */
 Utils.prototype.invsqrt = function(value) {
 	return 1.0/value;
@@ -296,24 +296,25 @@ Utils.prototype.invsqrt = function(value) {
 
 /**
 * Smoothstep
-* @returns {Float}
-* @param {Float} edge0
-* @param {Float} edge1
-* @param {Float} current
+* @param {float} edge0
+* @param {float} edge1
+* @param {float} current
+ * @returns {number}
 */
-Utils.prototype.smoothstep = function(edge0, edge1, x) {
-    if (x < edge0) return 0;
-    if (x >= edge1) return 1;
+Utils.prototype.smoothstep = function(edge0, edge1, current) {
+    if (current < edge0) return 0;
+    if (current >= edge1) return 1;
     if (edge0 == edge1) return -1;
-    var p = (x - edge0) / (edge1 - edge0);
+    var p = (current - edge0) / (edge1 - edge0);
 	
     return (p * p * (3 - 2 * p));
 };
 
 /**
 * Dot product vector4float
-* @param {Array<Float>} vector Vector a
-* @param {Array<Float>} vector Vector b
+* @param {Array<float>} vector4A Vector a
+* @param {Array<float>} vector4B Vector b
+ * @returns {number}
 */
 Utils.prototype.dot4 = function(vector4A,vector4B) {
 	return vector4A[0]*vector4B[0] + vector4A[1]*vector4B[1] + vector4A[2]*vector4B[2] + vector4A[3]*vector4B[3];
@@ -321,10 +322,11 @@ Utils.prototype.dot4 = function(vector4A,vector4B) {
 
 /**
 * Compute the fractional part of the argument. Example: fract(pi)=0.14159265...
-* @param {Float} value
+* @param {number} value
+ * @returns {number}
 */
-Utils.prototype.fract = function(number) {
-	return number - Math.floor(number);
+Utils.prototype.fract = function(value) {
+	return value - Math.floor(value);
 };
 
 /**
@@ -351,14 +353,14 @@ Utils.prototype.angle = function(vA, vB) {
 
 /**
 * Pack 1float (0.0-1.0) to 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0)*
-* @param {Float} value
-* @returns {Array<Float>}
+* @param {float} value
+* @returns {Array<float>}
 *
 */
-Utils.prototype.pack = function(v) {
+Utils.prototype.pack = function(value) {
 	var bias = [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0];
 
-	var r = v;
+	var r = value;
 	var g = this.fract(r * 255.0);
 	var b = this.fract(g * 255.0);
 	var a = this.fract(b * 255.0);
@@ -390,12 +392,12 @@ Utils.prototype.packGLSLFunctionString = function() {
 };
 /**
 * Unpack 4float rgba (0.0-1.0, 0.0-1.0, 0.0-1.0, 0.0-1.0) to 1float (0.0-1.0)
-* @returns {Float}
-* @param {Array<Float>} value
+* @param {Array<float>} value
+ * @returns {number}
 */
-Utils.prototype.unpack = function(colour) {
+Utils.prototype.unpack = function(value) {
 	var bitShifts = [1.0, 1.0/255.0, 1.0/(255.0*255.0), 1.0/(255.0*255.0*255.0)];
-	return this.dot4(colour, bitShifts);
+	return this.dot4(value, bitShifts);
 };
 /**
 * Get unpack GLSL function string
