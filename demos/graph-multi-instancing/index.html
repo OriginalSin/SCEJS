@@ -84,27 +84,27 @@
      var pos = [-(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), -(offs/2)+(Math.random()*offs), 1.0];
 
      var node = graph.addNode({
-     "name": "#"+n.toString()+":"+n.toString(),
-     "data": "#"+n.toString()+":"+n.toString(),
-     "position": pos,
-     "color": ((Math.floor(n%2) == 0.0) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
-     "layoutNodeArgumentData": { // nodeColor
-     "nodeColor": [Math.random(), Math.random(), Math.random(), 1.0]},
-     "onmouseup": (function(nodeData) {
+         "name": "#"+n.toString()+":"+n.toString(),
+         "data": "#"+n.toString()+":"+n.toString(),
+         "position": pos,
+         "color": ((Math.floor(n%2) == 0.0) ? "../_RESOURCES/lena_128x128.jpg" : "../_RESOURCES/cartman08.jpg"),
+         "layoutNodeArgumentData": { // nodeColor
+         "nodeColor": [Math.random(), Math.random(), Math.random(), 1.0]},
+         "onmouseup": (function(nodeData) {
 
-     }).bind(this)});
+         }).bind(this)});
      }
-     graph.updateNodes();
 
      for(var n=0; n < numLinks; n++) {
      var A = parseInt(Math.random()*numNodes).toString();
      var B = parseInt(Math.random()*numNodes).toString();
 
      graph.addLink({	"origin": "#"+A+":"+A,
-     "target": "#"+B+":"+B,
-     "directed": true});
+         "target": "#"+B+":"+B,
+         "directed": true});
      }
-     graph.updateLinks();
+
+    graph.createWebGLBuffers();
 
     //*********
     // RENDER STAGE
@@ -197,7 +197,6 @@
 
             }).bind(this)});
     }
-    graphB.updateNodes();
 
     for(var n=0; n < numLinks; n++) {
         var A = parseInt(Math.random()*numNodes).toString();
@@ -207,7 +206,8 @@
             "target": "#"+B+":"+B,
             "directed": true});
     }
-    graphB.updateLinks();
+
+    graphB.createWebGLBuffers();
 
 
     //*********

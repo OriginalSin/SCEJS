@@ -91,7 +91,6 @@
 
 				}).bind(this)});
 			}
-			graph.updateNodes();
 
 			for(var n=0; n < numLinks; n++) {
 				var A = parseInt(Math.random()*numNodes).toString();
@@ -103,7 +102,10 @@
                                 "bornDate": "RANDOM",
                                 "dieDate": "RANDOM"});
 			}
-			graph.updateLinks();
+
+            graph.createWebGLBuffers();
+
+
 												
 			//*********
 			// RENDER STAGE

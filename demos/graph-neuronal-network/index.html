@@ -71,8 +71,9 @@
             graph.connectNeuronLayerWithNeuron(neuronLayer2, "color");
 
 
-            graph.updateNodes();
-            graph.updateLinks();
+            graph.createWebGLBuffers();
+
+            graph.enableForceLayout();
 
 			//*********
 			// RENDER STAGE
