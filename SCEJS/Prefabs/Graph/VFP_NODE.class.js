@@ -143,8 +143,8 @@ function VFP_NODE(customCode, geometryLength) {
             'float nodeId = data[].x;'+
             'float nodeIdOpposite = data[].y;'+
 
-            'vec2 xGeometryNode = get_global_id(nodeId, bufferNodesWidth, 4.0);'+ // bufferWidth6, geometryLength
-            'vec2 xGeometryNode_opposite = get_global_id(nodeIdOpposite, bufferNodesWidth, 4.0);'+
+            'vec2 xGeometryNode = get_global_id(nodeId, bufferNodesWidth, '+geometryLength.toFixed(1)+');'+ // bufferWidth6, geometryLength
+            'vec2 xGeometryNode_opposite = get_global_id(nodeIdOpposite, bufferNodesWidth, '+geometryLength.toFixed(1)+');'+
 
             'vec2 xGeometryLinks = get_global_id(nodeId, bufferLinksWidth, 2.0);'+ // bufferWidth, geometryLength
             'vec2 xGeometryLinks_opposite = get_global_id(nodeIdOpposite, bufferLinksWidth, 2.0);'+
@@ -197,7 +197,7 @@ function VFP_NODE(customCode, geometryLength) {
 
             'vec3 dir = XYZW_opposite-vec3(nodePosition.x, nodePosition.y, nodePosition.z);'+
             'float dist = length(dir);'+
-            'float vertexCount = 4.0;'+
+            'float vertexCount = 1.0;'+
             'float lineIncrements = dist/vertexCount;'+
             'vec3 dirN = normalize(dir);'+
 
@@ -368,7 +368,6 @@ function VFP_NODE(customCode, geometryLength) {
             'gl_Position = PMatrix * cameraWMatrix * nodepos * nodeVertexPosition;\n',
 
 
-
             //███████╗██████╗  █████╗  ██████╗ ███╗   ███╗███████╗███╗   ██╗████████╗    ██╗  ██╗███████╗ █████╗ ██████╗
             //██╔════╝██╔══██╗██╔══██╗██╔════╝ ████╗ ████║██╔════╝████╗  ██║╚══██╔══╝    ██║  ██║██╔════╝██╔══██╗██╔══██╗
             //█████╗  ██████╔╝███████║██║  ███╗██╔████╔██║█████╗  ██╔██╗ ██║   ██║       ███████║█████╗  ███████║██║  ██║
@@ -412,7 +411,7 @@ function VFP_NODE(customCode, geometryLength) {
                     '} else {'+
                         'tex = nodesImg[vVertexUV.xy];'+
                     '}'+
-                    'color = vec4(tex.rgb*color.rgb, tex.a);\n'+
+                    'color = '+nodesDrawMode(geometryLength)+';\n'+
                 '}'+
                 'if(color.a < 0.1) discard;'+
                 'fcolor = color;'+

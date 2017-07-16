@@ -130,28 +130,13 @@
 										'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
 
 									});
-
-
-                // SET LAYOUT GLOBAL ARGUMENTS DATA
-                // pp
-                for(var n = 0, f = arrPP.length; n < f; n++) {
-                    graph.setLayoutArgumentData({"argName": 'pole'+n+'X', "value": arrPP[n].x});
-                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Y', "value": arrPP[n].y});
-                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Z', "value": arrPP[n].z});
-                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Polarity', "value": arrPP[n].polarity});
-                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Orbit', "value": arrPP[n].orbit});
-                    graph.setLayoutArgumentData({"argName": 'pole'+n+'Force', "value": arrPP[n].force});
-                }
-				// destination
-				graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
-				graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
             };
 
 			var graph;
 			var loadGraph = function(rbUrl) {
 				if(graph != undefined) graph.clear();
 				
-				graph = new Graph(sce);
+				graph = new Graph(sce, {"nodeDrawMode": "point"});
                 graph.setOffset(OFFSET);
 
                 graph.disableAutoLink();
@@ -168,16 +153,33 @@
                 aL();
 
                 graph.setFontsImage("../../SCEJS/Prefabs/Graph/fonts.png");
-                graph.enableHover();
+
 
 
 				// NODES AND LINKS CREATION
 				graph.loadRBFromFile(rbUrl.split(" ")[0], (function() {
+                                                            graph.createWebGLBuffers();
+
+                    graph.enableHover();
+                                                            // SET LAYOUT GLOBAL ARGUMENTS DATA
+                                                            // pp
+                                                            for(var n = 0, f = arrPP.length; n < f; n++) {
+                                                                graph.setLayoutArgumentData({"argName": 'pole'+n+'X', "value": arrPP[n].x});
+                                                                graph.setLayoutArgumentData({"argName": 'pole'+n+'Y', "value": arrPP[n].y});
+                                                                graph.setLayoutArgumentData({"argName": 'pole'+n+'Z', "value": arrPP[n].z});
+                                                                graph.setLayoutArgumentData({"argName": 'pole'+n+'Polarity', "value": arrPP[n].polarity});
+                                                                graph.setLayoutArgumentData({"argName": 'pole'+n+'Orbit', "value": arrPP[n].orbit});
+                                                                graph.setLayoutArgumentData({"argName": 'pole'+n+'Force', "value": arrPP[n].force});
+                                                            }
+                                                            // destination
+                                                            graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
+                                                            graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
+
+
                                                             graph.enableForceLayout();
                                                         }).bind(this), false, false);
 			};			
-			loadGraph("../_RESOURCES/rb-files/b1_ss.rb");
-			
+			loadGraph("../_RESOURCES/rb-files/utm3060.rb");
 			
 			//*********
 			// RENDER STAGE

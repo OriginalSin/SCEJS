@@ -177,7 +177,6 @@
 					"onmouseup": (function(nodeData) {
 
 					}).bind(this)});
-			graph.updateNodes();
 
 			graph.addLink({	"origin": "#0",
 							"target": "#1",
@@ -197,7 +196,8 @@
 			graph.addLink({	"origin": "#6",
 							"target": "#7",
 							"directed": true});
-			graph.updateLinks();
+
+            graph.createWebGLBuffers();
 
 			//*********
 			// RENDER STAGE

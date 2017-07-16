@@ -1,3 +1,9 @@
+var nodesDrawMode = function(geometryLength) {
+    if(geometryLength == 1)
+        return "vec4(color.rgb, 1.0)";
+    else
+        return "vec4(tex.rgb*color.rgb, tex.a)";
+};
 var adjMatrix_ForceLayout_GLSLFunctionString = function(geometryLength) {
     var str = ''+
     'vec3 sphericalColl(vec3 currentDir, vec3 currentDirB, vec3 dirToBN) {'+

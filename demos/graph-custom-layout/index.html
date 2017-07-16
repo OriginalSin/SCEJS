@@ -162,28 +162,6 @@
 									'gl_PointSize = 10.0;\n'});
 
 
-			// SET LAYOUT GLOBAL ARGUMENTS DATA
-			// pp
-			for(var n = 0, f = arrPP.length; n < f; n++) {
-				graph.setLayoutArgumentData({"argName": 'pole'+n+'X', "value": arrPP[n].x});
-				graph.setLayoutArgumentData({"argName": 'pole'+n+'Y', "value": arrPP[n].y});
-				graph.setLayoutArgumentData({"argName": 'pole'+n+'Z', "value": arrPP[n].z});
-				graph.setLayoutArgumentData({"argName": 'pole'+n+'Polarity', "value": arrPP[n].polarity});
-				graph.setLayoutArgumentData({"argName": 'pole'+n+'Orbit', "value": arrPP[n].orbit});
-				graph.setLayoutArgumentData({"argName": 'pole'+n+'Force', "value": arrPP[n].force});
-			}
-			// destination
-			graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
-			graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
-			// lifeDistance
-			graph.setLayoutArgumentData({"argName": "lifeDistance", "value": 0.0});
-			// selfShadows
-			graph.setLayoutArgumentData({"argName": "sunPos", "value": [0.2, -0.5, 0.4, 1.0]});
-			graph.setLayoutArgumentData({"argName": "selfShadows", "value": 0.0});
-			graph.setLayoutArgumentData({"argName": "ambientColor", "value": [0.2, 0.2, 0.2, 1.0]});
-
-
-
 			// NODES AND LINKS CREATION
 			var numNodes = 200;
 			var numLinks = 100;
@@ -212,7 +190,6 @@
 
 				}).bind(this)});
 			}
-			graph.updateNodes();
 
 			for(var n=0; n < numLinks; n++) {
 				var A = parseInt(Math.random()*numNodes).toString();
@@ -222,7 +199,28 @@
 								"target": "#"+B+":"+B,
 								"directed": true});
 			}
-			graph.updateLinks();
+
+            graph.createWebGLBuffers();
+
+            // SET LAYOUT GLOBAL ARGUMENTS DATA
+            // pp
+            for(var n = 0, f = arrPP.length; n < f; n++) {
+                graph.setLayoutArgumentData({"argName": 'pole'+n+'X', "value": arrPP[n].x});
+                graph.setLayoutArgumentData({"argName": 'pole'+n+'Y', "value": arrPP[n].y});
+                graph.setLayoutArgumentData({"argName": 'pole'+n+'Z', "value": arrPP[n].z});
+                graph.setLayoutArgumentData({"argName": 'pole'+n+'Polarity', "value": arrPP[n].polarity});
+                graph.setLayoutArgumentData({"argName": 'pole'+n+'Orbit', "value": arrPP[n].orbit});
+                graph.setLayoutArgumentData({"argName": 'pole'+n+'Force', "value": arrPP[n].force});
+            }
+            // destination
+            graph.setLayoutArgumentData({"argName": "destinationForce", "value": 0.1});
+            graph.setLayoutArgumentData({"argName": "enableDestination", "value": 0.0});
+            // lifeDistance
+            graph.setLayoutArgumentData({"argName": "lifeDistance", "value": 0.0});
+            // selfShadows
+            graph.setLayoutArgumentData({"argName": "sunPos", "value": [0.2, -0.5, 0.4, 1.0]});
+            graph.setLayoutArgumentData({"argName": "selfShadows", "value": 0.0});
+            graph.setLayoutArgumentData({"argName": "ambientColor", "value": [0.2, 0.2, 0.2, 1.0]});
 
 			/*graph.adjacencyMatrixToImage(function(im) {
 				document.body.appendChild(im);

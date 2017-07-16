@@ -34,7 +34,7 @@
 			simpleCamera.setView(Constants.VIEW_TYPES.TOP);
 			simpleCamera.setVelocity(1.0);
 			sce.setDimensions(512, 512);
-			
+
 			// GRID
 			//var grid = new Grid(sce);
 			//grid.generate(100.0, 1.0);
@@ -83,8 +83,7 @@
             graph.addNeuron("color", [posInputNeuron[0]+((W*(n+2))*(nodSep*1.2)), 0.0, 0.0, 1.0]);
             graph.connectNeuronLayerWithNeuron(neuronLayer1, "color");
 
-            graph.updateNodes();
-            graph.updateLinks();
+            graph.createWebGLBuffers();
 
 			//*********
 			// RENDER STAGE

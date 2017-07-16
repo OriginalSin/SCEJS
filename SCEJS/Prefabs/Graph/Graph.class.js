@@ -11,6 +11,7 @@ for(var n = 0, f = includesF.length; n < f; n++) document.write('<script type="t
  * @param {SCE} sce
  * @param {Object} jsonIn
  * @param {boolean} jsonIn.enableFonts
+ * @param {String} [jsonIn.nodeDrawMode="plane"] - "plane" or "point"
 */
 Graph = function(sce, jsonIn) {
 	"use strict";
@@ -35,11 +36,11 @@ Graph = function(sce, jsonIn) {
     var _loop = false;
     var _animationFrames = 500;
 
-    var _geometryLength = 4;
+    var _geometryLength = (jsonIn == undefined || (jsonIn && jsonIn.nodeDrawMode == undefined) || (jsonIn && jsonIn.nodeDrawMode == "plane")) ? 4 : 1;
     var circleSegments = 12;
     var nodesTextPlanes = 12;
 
-    var lineVertexCount = 4;
+    var lineVertexCount = 1;
 
     var _enableNeuronalNetwork = false;
     var _only2d = false;
@@ -74,7 +75,7 @@ Graph = function(sce, jsonIn) {
 	var _onAnimationEnd;
 
 	// meshes
-	var mesh_nodes = new Mesh().loadQuad(4.0, 4.0);
+	var mesh_nodes = (_geometryLength == 1) ? new Mesh().loadPoint() : new Mesh().loadQuad(4.0, 4.0);
 	var mesh_arrows = new Mesh().loadTriangle({"scale": 1.75, "side": 0.3});
 	var mesh_nodesText = new Mesh().loadQuad(4.0, 4.0);
 
@@ -115,18 +116,63 @@ Graph = function(sce, jsonIn) {
     this.nodeArrayItemStart = 0;
 
     // links
-    this.arrayLinkData = []; // nodeId origin, nodeId target, currentLineVertex, repeatId
-    this.arrayLinkDataC = []; // linkBornDate, linkDieDate, linkWeight, 0
-    this.arrayLinkNodeName = [];
-    this.arrayLinkPosXYZW = [];
-    this.arrayLinkVertexPos = [];
-    this.startIndexId_link = 0;
-    this.arrayLinkIndices = [];
-
+    this.linksObj = [];
+    this.currentLinksObjItem = -1;
     this.currentLinkId = 0;
+    this.createLinksObjItem = function() {
+        this.currentLinksObjItem++;
+
+        this.linksObj.push({
+            "node": new Node(),
+            "componentTransform": new ComponentTransform(),
+            "componentRenderer": new Component_GPU(),
+            "arrayLinkData": [], // nodeId origin, nodeId target, currentLineVertex, repeatId
+            "arrayLinkDataC": [], // linkBornDate, linkDieDate, linkWeight, 0
+            "arrayLinkNodeName": [],
+            "arrayLinkPosXYZW": [],
+            "arrayLinkVertexPos": [],
+            "startIndexId_link": 0,
+            "arrayLinkIndices": []});
+
+        this.linksObj[this.currentLinksObjItem].node.setName("graph_links"+this.currentLinksObjItem);
+        _project.getActiveStage().addNode(this.linksObj[this.currentLinksObjItem].node);
+
+        this.linksObj[this.currentLinksObjItem].node.addComponent(this.linksObj[this.currentLinksObjItem].componentTransform);
+
+        this.linksObj[this.currentLinksObjItem].node.addComponent(this.linksObj[this.currentLinksObjItem].componentRenderer);
+    };
 
     // arrows
-    this.arrayArrowData = [];
+    this.arrowsObj = [];
+    this.currentArrowsObjItem = -1;
+    this.currentArrowId = 0;
+    this.createArrowsObjItem = function() {
+        this.currentArrowsObjItem++;
+
+        this.arrowsObj.push({
+            "node": new Node(),
+            "componentTransform": new ComponentTransform(),
+            "componentRenderer": new Component_GPU(),
+            "arrayArrowData": [],
+            "arrayArrowDataC": [],
+            "arrayArrowNodeName": [],
+            "arrayArrowPosXYZW": [],
+            "arrayArrowVertexPos": [],
+            "arrayArrowVertexNormal": [],
+            "arrayArrowVertexTexture": [],
+            "startIndexId_arrow": 0,
+            "arrayArrowIndices": [],
+            "arrowArrayItemStart": 0});
+
+        this.arrowsObj[this.currentArrowsObjItem].node.setName("graph_arrows"+this.currentArrowsObjItem);
+        _project.getActiveStage().addNode(this.arrowsObj[this.currentArrowsObjItem].node);
+
+        this.arrowsObj[this.currentArrowsObjItem].node.addComponent(this.arrowsObj[this.currentArrowsObjItem].componentTransform);
+
+        this.arrowsObj[this.currentArrowsObjItem].node.addComponent(this.arrowsObj[this.currentArrowsObjItem].componentRenderer);
+    };
+
+    /*this.arrayArrowData = [];
     this.arrayArrowDataC = [];
     this.arrayArrowNodeName = [];
     this.arrayArrowPosXYZW = [];
@@ -137,7 +183,7 @@ Graph = function(sce, jsonIn) {
     this.arrayArrowIndices = [];
 
     this.currentArrowId = 0;
-    this.arrowArrayItemStart = 0;
+    this.arrowArrayItemStart = 0;*/
 
     // nodesText
     this.arrayNodeTextData = [];
@@ -197,22 +243,14 @@ Graph = function(sce, jsonIn) {
     //**************************************************
     //  LINKS
     //**************************************************
-    var links = new Node();
-    links.setName("graph_links");
-    _project.getActiveStage().addNode(links);
-
-    // ComponentTransform
-    var comp_transform = new ComponentTransform();
-    links.addComponent(comp_transform);
-
-    // Component_GPU
-    var comp_renderer_links = new Component_GPU();
-    links.addComponent(comp_renderer_links);
+    this.createLinksObjItem();
 
     //**************************************************
     //  ARROWS
     //**************************************************
-    var arrows = new Node();
+    this.createArrowsObjItem();
+
+    /*var arrows = new Node();
     arrows.setName("graph_arrows");
     _project.getActiveStage().addNode(arrows);
 
@@ -222,7 +260,7 @@ Graph = function(sce, jsonIn) {
 
     // Component_GPU
     var comp_renderer_arrows = new Component_GPU();
-    arrows.addComponent(comp_renderer_arrows);
+    arrows.addComponent(comp_renderer_arrows);*/
 
     //**************************************************
     //  NODESTEXT
@@ -632,7 +670,6 @@ Graph = function(sce, jsonIn) {
 
                 }).bind(this)});
         }
-        this.updateNodes();
 
         for(var key in links) {
             var A = links[key].origin_nodeName;
@@ -640,7 +677,6 @@ Graph = function(sce, jsonIn) {
 
             this.addLink({	"origin": A, "target": B, "directed": true});
         }
-        this.updateLinks();
     };
 
     /**
@@ -744,8 +780,6 @@ Graph = function(sce, jsonIn) {
                 }).bind(this)});
         }
 
-        this.updateNodes();
-
 
         var startValues = 4;
         var str = "";
@@ -788,7 +822,6 @@ Graph = function(sce, jsonIn) {
 
             yy++;
         }
-        this.updateLinks();
     };
 
     /**
@@ -803,14 +836,18 @@ Graph = function(sce, jsonIn) {
             }
         }).bind(this);
         removeBuffers(comp_renderer_nodes);
-        removeBuffers(comp_renderer_links);
-        removeBuffers(comp_renderer_arrows);
+        for(var na=0; na < this.linksObj.length; na++)
+            removeBuffers(this.linksObj[na].componentRenderer);
+        for(var na=0; na < this.arrowsObj.length; na++)
+            removeBuffers(this.arrowsObj[na].componentRenderer);
         if(_enableFont == true)
             removeBuffers(comp_renderer_nodesText);
 
         _project.getActiveStage().removeNode(nodes);
-        _project.getActiveStage().removeNode(links);
-        _project.getActiveStage().removeNode(arrows);
+        for(var na=0; na < this.linksObj.length; na++)
+            _project.getActiveStage().removeNode(this.linksObj[na].node);
+        for(var na=0; na < this.arrowsObj.length; na++)
+            _project.getActiveStage().removeNode(this.arrowsObj[na].node);
         _project.getActiveStage().removeNode(nodesText);
     };
 
@@ -829,7 +866,9 @@ Graph = function(sce, jsonIn) {
      * @param {String} jsonIn.argsObject - example "float4* argA, float* argB, mat4 argC, float4 argD, float argE"
      * @param {String} jsonIn.codeObject
      */
+    var layout = null;
     this.applyLayout = function(jsonIn) {
+        layout = jsonIn;
         // Create custom user arrays args
         var createCustomArgsArrays = (function(obj, arr) {
             for(var n=0, fn = arr.length; n < fn; n++) {
@@ -842,16 +881,17 @@ Graph = function(sce, jsonIn) {
             return obj;
         }).bind(this);
 
-        var arrArgsDirection = (jsonIn.argsDirection != undefined) ? jsonIn.argsDirection.split(",") : null;
-        var arrArgsObject = (jsonIn.argsObject != undefined) ? jsonIn.argsObject.split(",") : null;
+        layout.argsDirection = (layout.argsDirection != undefined) ? layout.argsDirection.split(",") : null;
+        layout.argsObject = (layout.argsObject != undefined) ? layout.argsObject.split(",") : null;
 
         _customArgs = {};
-        if(arrArgsDirection != null)
-            _customArgs = createCustomArgsArrays(_customArgs, arrArgsDirection);
+        if(layout.argsDirection != null)
+            _customArgs = createCustomArgsArrays(_customArgs, layout.argsDirection);
 
-        if(arrArgsObject != null)
-            _customArgs = createCustomArgsArrays(_customArgs, arrArgsObject);
-
+        if(layout.argsObject != null)
+            _customArgs = createCustomArgsArrays(_customArgs, layout.argsObject);
+    };
+    this.createWebGLBuffers = function() {
         var varDef_VFPNode = {
             'float4* posXYZW': (function(){return null;}).bind(this),
             "float4* dataB": (function(){return null;}).bind(this), // in nodes (SHARED with LINKS, ARROWS & NODESTEXT)
@@ -892,13 +932,13 @@ Graph = function(sce, jsonIn) {
             'float4* nodesImg': (function(){return null;}).bind(this),
             'float4* nodesImgCrosshair': (function(){return null;}).bind(this)
             };
-        if(arrArgsDirection != null)
-            for(var n=0; n < arrArgsDirection.length; n++)
-                varDef_VFPNode[arrArgsDirection[n]] = (function(){return null;}).bind(this);
+        if(layout.argsDirection != null)
+            for(var n=0; n < layout.argsDirection.length; n++)
+                varDef_VFPNode[layout.argsDirection[n]] = (function(){return null;}).bind(this);
 
-        if(arrArgsObject != null)
-            for(var n=0; n < arrArgsObject.length; n++)
-                varDef_VFPNode[arrArgsObject[n]] = (function(){return null;}).bind(this);
+        if(layout.argsObject != null)
+            for(var n=0; n < layout.argsObject.length; n++)
+                varDef_VFPNode[layout.argsObject[n]] = (function(){return null;}).bind(this);
 
 
         var varDef_NodesKernel = {
@@ -920,37 +960,39 @@ Graph = function(sce, jsonIn) {
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          LINKS
         ///////////////////////////////////////////////////////////////////////////////////////////
-        comp_renderer_links.setGPUFor(  comp_renderer_links.gl,
-                                        Object.create(varDef_VFPNode),
-                                        {"type": "GRAPHIC",
-                                        "name": "LINKS_VFP_NODE",
-                                        "viewSource": false,
-                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
-                                        "drawMode": 1,
-                                        "depthTest": true,
-                                        "blend": false,
-                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
-                                        "blendSrcMode": Constants.BLENDING_MODES.ONE,
-                                        "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
-        comp_renderer_links.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
-
+        for(var na=0; na < this.linksObj.length; na++) {
+            this.linksObj[na].componentRenderer.setGPUFor(  this.linksObj[na].componentRenderer.gl,
+                                            Object.create(varDef_VFPNode),
+                                            {"type": "GRAPHIC",
+                                            "name": "LINKS_VFP_NODE",
+                                            "viewSource": false,
+                                            "config": new VFP_NODE(layout.codeObject, _geometryLength).getSrc(),
+                                            "drawMode": 1,
+                                            "depthTest": true,
+                                            "blend": false,
+                                            "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                            "blendSrcMode": Constants.BLENDING_MODES.ONE,
+                                            "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
+            this.linksObj[na].componentRenderer.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          ARROWS
         ///////////////////////////////////////////////////////////////////////////////////////////
-        comp_renderer_arrows.setGPUFor( comp_renderer_arrows.gl,
-                                        Object.create(varDef_VFPNode),
-                                        {"type": "GRAPHIC",
-                                        "name": "ARROWS_VFP_NODE",
-                                        "viewSource": false,
-                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
-                                        "drawMode": 4,
-                                        "depthTest": true,
-                                        "blend": true,
-                                        "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
-                                        "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
-                                        "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
-        comp_renderer_arrows.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
-
+        for(var na=0; na < this.arrowsObj.length; na++) {
+            this.arrowsObj[na].componentRenderer.setGPUFor( this.arrowsObj[na].componentRenderer.gl,
+                                            Object.create(varDef_VFPNode),
+                                            {"type": "GRAPHIC",
+                                            "name": "ARROWS_VFP_NODE",
+                                            "viewSource": false,
+                                            "config": new VFP_NODE(layout.codeObject, _geometryLength).getSrc(),
+                                            "drawMode": 4,
+                                            "depthTest": true,
+                                            "blend": true,
+                                            "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
+                                            "blendSrcMode": Constants.BLENDING_MODES.SRC_ALPHA,
+                                            "blendDstMode": Constants.BLENDING_MODES.ONE_MINUS_SRC_ALPHA});
+            this.arrowsObj[na].componentRenderer.getComponentBufferArg("RGB", _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.GPU));
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         //                          NODES
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -966,8 +1008,8 @@ Graph = function(sce, jsonIn) {
                                         {"type": "KERNEL",
                                         "name": "NODES_KERNEL_DIR",
                                         "viewSource": false,
-                                        "config": new KERNEL_DIR(jsonIn.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc(),
-                                        "drawMode": 4,
+                                        "config": new KERNEL_DIR(layout.codeDirection, _geometryLength, _enableNeuronalNetwork).getSrc(),
+                                        "drawMode": ((_geometryLength == 1) ? 0 : 4),
                                         "depthTest": true,
                                         "blend": false,
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
@@ -977,7 +1019,7 @@ Graph = function(sce, jsonIn) {
                                         "name": "NODES_KERNEL_ADJMATRIX_UPDATE",
                                         "viewSource": false,
                                         "config": new KERNEL_ADJMATRIX_UPDATE(_geometryLength).getSrc(),
-                                        "drawMode": 4,
+                                        "drawMode": ((_geometryLength == 1) ? 0 : 4),
                                         "depthTest": true,
                                         "blend": false,
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
@@ -986,8 +1028,8 @@ Graph = function(sce, jsonIn) {
                                         {"type": "GRAPHIC",
                                         "name": "NODES_VFP_NODE",
                                         "viewSource": false,
-                                        "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
-                                        "drawMode": 4,
+                                        "config": new VFP_NODE(layout.codeObject, _geometryLength).getSrc(),
+                                        "drawMode": ((_geometryLength == 1) ? 0 : 4),
                                         "depthTest": true,
                                         "blend": true,
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
@@ -997,7 +1039,7 @@ Graph = function(sce, jsonIn) {
                                         "name": "NODES_VFP_NODEPICKDRAG",
                                         "viewSource": false,
                                         "config": new VFP_NODEPICKDRAG(_geometryLength).getSrc(),
-                                        "drawMode": 4,
+                                        "drawMode": ((_geometryLength == 1) ? 0 : 4),
                                         "depthTest": true,
                                         "blend": true,
                                         "blendEquation": Constants.BLENDING_EQUATION_TYPES.FUNC_ADD,
@@ -1009,8 +1051,10 @@ Graph = function(sce, jsonIn) {
         comp_renderer_nodes.gpufG.onPreProcessKernel(0, (function() {
             var currentTimestamp = _initTimestamp+(_currentFrame*_timeFrameIncrement);
             comp_renderer_nodes.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
-            comp_renderer_links.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
-            comp_renderer_arrows.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+            for(var na=0; na < this.linksObj.length; na++)
+                this.linksObj[na].componentRenderer.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
+            for(var na=0; na < this.arrowsObj.length; na++)
+                this.arrowsObj[na].componentRenderer.setArg("currentTimestamp", (function(ts) {return ts;}).bind(this, currentTimestamp));
 
             if(_playAnimation == true) {
                 _currentFrame++;
@@ -1030,8 +1074,10 @@ Graph = function(sce, jsonIn) {
 
             if(this.currentNodeId > 0 && _enabledForceLayout == true) {
                 comp_renderer_nodes.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
-                comp_renderer_links.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
-                comp_renderer_arrows.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
+                for(var na=0; na < this.linksObj.length; na++)
+                    this.linksObj[na].componentRenderer.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
+                for(var na=0; na < this.arrowsObj.length; na++)
+                    this.arrowsObj[na].componentRenderer.setArg("nodesCount", (function() {return this.currentNodeId;}).bind(this));
 
                 comp_renderer_nodes.setArg("performFL", (function() {return 0;}).bind(this));
             }
@@ -1073,7 +1119,7 @@ Graph = function(sce, jsonIn) {
                                                 {"type": "GRAPHIC",
                                                 "name": "NODESTEXT_VFP_NODE",
                                                 "viewSource": false,
-                                                "config": new VFP_NODE(jsonIn.codeObject, _geometryLength).getSrc(),
+                                                "config": new VFP_NODE(layout.codeObject, _geometryLength).getSrc(),
                                                 "drawMode": 4,
                                                 "depthTest": true,
                                                 "blend": true,
@@ -1084,6 +1130,9 @@ Graph = function(sce, jsonIn) {
         }
 
         enableHov(-1);
+
+        this.updateNodes();
+        this.updateLinks();
     };
 
     var mouseDown = (function() {
@@ -1096,15 +1145,19 @@ Graph = function(sce, jsonIn) {
 
     var mouseUp = (function() {
         comp_renderer_nodes.setArg("enableDrag", (function() {return 0;}).bind(this));
-        comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
-        comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
+        for(var na=0; na < this.linksObj.length; na++)
+            this.linksObj[na].componentRenderer.setArg("enableDrag", (function() {return 0;}).bind(this));
+        for(var na=0; na < this.arrowsObj.length; na++)
+            this.arrowsObj[na].componentRenderer.setArg("enableDrag", (function() {return 0;}).bind(this));
         if(_enableFont == true)
             comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
 
         if(selectedId == -1) {
             comp_renderer_nodes.setArg("idToDrag", (function() {return -1;}).bind(this));
-            comp_renderer_links.setArg("idToDrag", (function() {return -1;}).bind(this));
-            comp_renderer_arrows.setArg("idToDrag", (function() {return -1;}).bind(this));
+            for(var na=0; na < this.linksObj.length; na++)
+                this.linksObj[na].componentRenderer.setArg("idToDrag", (function() {return -1;}).bind(this));
+            for(var na=0; na < this.arrowsObj.length; na++)
+                this.arrowsObj[na].componentRenderer.setArg("idToDrag", (function() {return -1;}).bind(this));
             if(_enableFont == true)
                 comp_renderer_nodesText.setArg("idToDrag", (function() {return -1;}).bind(this));
         }
@@ -1202,8 +1255,10 @@ Graph = function(sce, jsonIn) {
      */
     var enableHov = (function(selectedId) {
         comp_renderer_nodes.setArg("idToHover", (function() {return selectedId;}).bind(this));
-        comp_renderer_links.setArg("idToHover", (function() {return selectedId;}).bind(this));
-        comp_renderer_arrows.setArg("idToHover", (function() {return selectedId;}).bind(this));
+        for(var na=0; na < this.linksObj.length; na++)
+            this.linksObj[na].componentRenderer.setArg("idToHover", (function() {return selectedId;}).bind(this));
+        for(var na=0; na < this.arrowsObj.length; na++)
+            this.arrowsObj[na].componentRenderer.setArg("idToHover", (function() {return selectedId;}).bind(this));
         if(_enableFont == true) {
             comp_renderer_nodesText.setArg("idToHover", (function() {return selectedId;}).bind(this));
         }
@@ -1228,23 +1283,27 @@ Graph = function(sce, jsonIn) {
         comp_renderer_nodes.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
         comp_renderer_nodes.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
 
-        comp_renderer_links.setArg("enableDrag", (function() {return 1;}).bind(this));
-        comp_renderer_links.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-        comp_renderer_links.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-        comp_renderer_links.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-        comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-        comp_renderer_links.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
-        comp_renderer_links.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
-        comp_renderer_links.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+        for(var na=0; na < this.linksObj.length; na++) {
+            this.linksObj[na].componentRenderer.setArg("enableDrag", (function() {return 1;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+        }
 
-        comp_renderer_arrows.setArg("enableDrag", (function() {return 1;}).bind(this));
-        comp_renderer_arrows.setArg("idToDrag", (function() {return selectedId;}).bind(this));
-        comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
-        comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
-        comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
-        comp_renderer_arrows.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
-        comp_renderer_arrows.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
-        comp_renderer_arrows.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+        for(var na=0; na < this.arrowsObj.length; na++) {
+            this.arrowsObj[na].componentRenderer.setArg("enableDrag", (function() {return 1;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("idToDrag", (function() {return selectedId;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("MouseDragTranslationX", (function() {return finalPos.e[0];}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("MouseDragTranslationY", (function() {return finalPos.e[1];}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("MouseDragTranslationZ", (function() {return finalPos.e[2];}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("initialPosX", (function() {return _initialPosDrag.e[0];}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("initialPosY", (function() {return _initialPosDrag.e[1];}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("initialPosZ", (function() {return _initialPosDrag.e[2];}).bind(this));
+        }
 
         if(_enableFont == true) {
             comp_renderer_nodesText.setArg("enableDrag", (function() {return 1;}).bind(this));
@@ -1269,17 +1328,21 @@ Graph = function(sce, jsonIn) {
         comp_renderer_nodes.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
         comp_renderer_nodes.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
 
-        comp_renderer_links.setArg("enableDrag", (function() {return 0;}).bind(this));
-        comp_renderer_links.setArg("idToDrag", (function() {return 0;}).bind(this));
-        comp_renderer_links.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-        comp_renderer_links.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-        comp_renderer_links.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+        for(var na=0; na < this.linksObj.length; na++) {
+            this.linksObj[na].componentRenderer.setArg("enableDrag", (function() {return 0;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("idToDrag", (function() {return 0;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+        }
 
-        comp_renderer_arrows.setArg("enableDrag", (function() {return 0;}).bind(this));
-        comp_renderer_arrows.setArg("idToDrag", (function() {return 0;}).bind(this));
-        comp_renderer_arrows.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
-        comp_renderer_arrows.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
-        comp_renderer_arrows.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+        for(var na=0; na < this.arrowsObj.length; na++) {
+            this.arrowsObj[na].componentRenderer.setArg("enableDrag", (function() {return 0;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("idToDrag", (function() {return 0;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("MouseDragTranslationX", (function() {return 0;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("MouseDragTranslationY", (function() {return 0;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("MouseDragTranslationZ", (function() {return 0;}).bind(this));
+        }
 
         if(_enableFont == true) {
             comp_renderer_nodesText.setArg("enableDrag", (function() {return 0;}).bind(this));
@@ -1333,7 +1396,6 @@ Graph = function(sce, jsonIn) {
                 'if(isArrow == 1.0 && currentLineVertex == 0.0) nodeVertexColor = vec4(1.0, 0.0, 0.0, 0.0);' // this is isTarget for arrows
 
         });
-        this.enableForceLayout();
     };
 
     /**
@@ -1514,8 +1576,10 @@ Graph = function(sce, jsonIn) {
         _customArgs[jsonIn.argName]["arrows_array_value"] = jsonIn.value;
         _customArgs[jsonIn.argName]["nodestext_array_value"] = jsonIn.value;
         comp_renderer_nodes.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
-        comp_renderer_links.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
-        comp_renderer_arrows.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+        for(var na=0; na < this.linksObj.length; na++)
+            this.linksObj[na].componentRenderer.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
+        for(var na=0; na < this.arrowsObj.length; na++)
+            this.arrowsObj[na].componentRenderer.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
         if(_enableFont == true)
             comp_renderer_nodesText.setArg(jsonIn.argName, (function(value) {return value;}).bind(this, jsonIn.value));
     };
@@ -1601,36 +1665,40 @@ Graph = function(sce, jsonIn) {
         comp_renderer_nodes.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].nodes_array_value;}).bind(this));
 
         // link id
-        for(var n=0; n < (this.arrayLinkData.length/4); n++) {
-            if(jsonIn.nodeName == undefined || (jsonIn.nodeName != undefined && this.arrayLinkData[n*4] == node.nodeId))
-                setVal(type, jsonIn.argName, "links_array_value", n, jsonIn.value);
-            else {
-                var id = (type == "float") ? n : n*4;
-                if(_customArgs[jsonIn.argName]["links_array_value"][id] == undefined && jsonIn.update == false) {
-                    if(type == "float")
-                        setVal(type, jsonIn.argName, "links_array_value", n, 0.0);
-                    else
-                        setVal(type, jsonIn.argName, "links_array_value", n, [0.0,0.0,0.0,0.0]);
+        for(var na=0; na < this.linksObj.length; na++) {
+            for(var n=0; n < (this.linksObj[na].arrayLinkData.length/4); n++) {
+                if(jsonIn.nodeName == undefined || (jsonIn.nodeName != undefined && this.linksObj[na].arrayLinkData[n*4] == node.nodeId))
+                    setVal(type, jsonIn.argName, "links_array_value", n, jsonIn.value);
+                else {
+                    var id = (type == "float") ? n : n*4;
+                    if(_customArgs[jsonIn.argName]["links_array_value"][id] == undefined && jsonIn.update == false) {
+                        if(type == "float")
+                            setVal(type, jsonIn.argName, "links_array_value", n, 0.0);
+                        else
+                            setVal(type, jsonIn.argName, "links_array_value", n, [0.0,0.0,0.0,0.0]);
+                    }
                 }
             }
+            this.linksObj[na].componentRenderer.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this));
         }
-        comp_renderer_links.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this));
 
         // arrow id
-        for(var n=0; n < (this.arrayArrowData.length/4); n++) {
-            if(jsonIn.nodeName == undefined || (jsonIn.nodeName != undefined && this.arrayArrowData[n*4] == node.nodeId))
-                setVal(type, jsonIn.argName, "arrows_array_value", n, jsonIn.value);
-            else {
-                var id = (type == "float") ? n : n*4;
-                if(_customArgs[jsonIn.argName]["arrows_array_value"][id] == undefined && jsonIn.update == false) {
-                    if(type == "float")
-                        setVal(type, jsonIn.argName, "arrows_array_value", n, 0.0);
-                    else
-                        setVal(type, jsonIn.argName, "arrows_array_value", n, [0.0,0.0,0.0,0.0]);
+        for(var na=0; na < this.arrowsObj.length; na++) {
+            for(var n=0; n < (this.arrowsObj[na].arrayArrowData.length/4); n++) {
+                if(jsonIn.nodeName == undefined || (jsonIn.nodeName != undefined && this.arrowsObj[na].arrayArrowData[n*4] == node.nodeId))
+                    setVal(type, jsonIn.argName, "arrows_array_value", n, jsonIn.value);
+                else {
+                    var id = (type == "float") ? n : n*4;
+                    if(_customArgs[jsonIn.argName]["arrows_array_value"][id] == undefined && jsonIn.update == false) {
+                        if(type == "float")
+                            setVal(type, jsonIn.argName, "arrows_array_value", n, 0.0);
+                        else
+                            setVal(type, jsonIn.argName, "arrows_array_value", n, [0.0,0.0,0.0,0.0]);
+                    }
                 }
             }
+            this.arrowsObj[na].componentRenderer.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this));
         }
-        comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this));
 
         if(_enableFont == true) {
             // nodeText id
@@ -1692,37 +1760,41 @@ Graph = function(sce, jsonIn) {
 
         // links
         _customArgs[jsonIn.argName].links_array_value = [];
-        for(var n=0; n < this.arrayLinkNodeName.length; n++) {
-            var currentLinkNodeName = this.arrayLinkNodeName[n];
-            var nodeNameItemStart = _nodesByName[currentLinkNodeName].itemStart;
+        for(var na=0; na < this.linksObj.length; na++) {
+            for(var n=0; n < this.linksObj[na].arrayLinkNodeName.length; n++) {
+                var currentLinkNodeName = this.linksObj[na].arrayLinkNodeName[n];
+                var nodeNameItemStart = _nodesByName[currentLinkNodeName].itemStart;
 
-            if(type == "float") {
-                _customArgs[jsonIn.argName].links_array_value.push(	_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart)]);
-            } else {
-                _customArgs[jsonIn.argName].links_array_value.push(	_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)],
-                    _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+1],
-                    _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+2],
-                    _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+3]);
+                if(type == "float") {
+                    _customArgs[jsonIn.argName].links_array_value.push(	_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart)]);
+                } else {
+                    _customArgs[jsonIn.argName].links_array_value.push(	_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)],
+                        _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+1],
+                        _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+2],
+                        _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+3]);
+                }
             }
+            this.linksObj[na].componentRenderer.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this));
         }
-        comp_renderer_links.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].links_array_value;}).bind(this));
 
         // arrows
         _customArgs[jsonIn.argName].arrows_array_value = [];
-        for(var n=0; n < this.arrayArrowNodeName.length; n++) {
-            var currentArrowNodeName = this.arrayArrowNodeName[n];
-            var nodeNameItemStart = _nodesByName[currentArrowNodeName].itemStart;
+        for(var na=0; na < this.arrowsObj.length; na++) {
+            for(var n=0; n < this.arrowsObj[na].arrayArrowNodeName.length; n++) {
+                var currentArrowNodeName = this.arrowsObj[na].arrayArrowNodeName[n];
+                var nodeNameItemStart = _nodesByName[currentArrowNodeName].itemStart;
 
-            if(type == "float") {
-                _customArgs[jsonIn.argName].arrows_array_value.push(_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart)]);
-            } else {
-                _customArgs[jsonIn.argName].arrows_array_value.push(_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)],
-                    _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+1],
-                    _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+2],
-                    _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+3]);
+                if(type == "float") {
+                    _customArgs[jsonIn.argName].arrows_array_value.push(_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart)]);
+                } else {
+                    _customArgs[jsonIn.argName].arrows_array_value.push(_customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)],
+                        _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+1],
+                        _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+2],
+                        _customArgs[jsonIn.argName].nodes_array_value[(nodeNameItemStart*4)+3]);
+                }
             }
+            this.arrowsObj[na].componentRenderer.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this));
         }
-        comp_renderer_arrows.setArg(jsonIn.argName, (function() {return _customArgs[jsonIn.argName].arrows_array_value;}).bind(this));
 
         // nodestext
         if(_enableFont == true) {
@@ -2123,17 +2195,20 @@ Graph = function(sce, jsonIn) {
      * @private
      */
     var createLink = (function(jsonIn) {
+        if(this.currentLinkId % 60000 == 0)
+            this.createLinksObjItem();
+
         for(var n=0; n < lineVertexCount*2; n++) {
-            this.arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), jsonIn.repeatId);
-            this.arrayLinkDataC.push(jsonIn.bornDate, jsonIn.dieDate, jsonIn.weight, 0.0);
+            this.linksObj[this.currentLinksObjItem].arrayLinkData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, Math.ceil(n/2), jsonIn.repeatId);
+            this.linksObj[this.currentLinksObjItem].arrayLinkDataC.push(jsonIn.bornDate, jsonIn.dieDate, jsonIn.weight, 0.0);
 
             if(Math.ceil(n/2) != (lineVertexCount-1)) {
-                this.arrayLinkNodeName.push(jsonIn.origin_nodeName);
+                this.linksObj[this.currentLinksObjItem].arrayLinkNodeName.push(jsonIn.origin_nodeName);
             } else {
-                this.arrayLinkNodeName.push(jsonIn.target_nodeName);
+                this.linksObj[this.currentLinksObjItem].arrayLinkNodeName.push(jsonIn.target_nodeName);
             }
-            this.arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
-            this.arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
+            this.linksObj[this.currentLinksObjItem].arrayLinkPosXYZW.push(	0.0, 0.0, 0.0, 1.0);
+            this.linksObj[this.currentLinksObjItem].arrayLinkVertexPos.push(0.0, 0.0, 0.0, 1.0);
 
             if(jsonIn.origin_layoutNodeArgumentData != undefined) {
                 for(var argNameKey in _customArgs) {
@@ -2154,7 +2229,7 @@ Graph = function(sce, jsonIn) {
         }
 
         for(var n=0; n < lineVertexCount*2; n++)
-            this.arrayLinkIndices.push(	this.startIndexId_link++);
+            this.linksObj[this.currentLinksObjItem].arrayLinkIndices.push(	this.linksObj[this.currentLinksObjItem].startIndexId_link++);
 
         this.currentLinkId += 2; // augment link id
 
@@ -2179,6 +2254,9 @@ Graph = function(sce, jsonIn) {
      * @private
      */
     var createArrow = (function(jsonIn) {
+        if(this.currentArrowId % 20000 == 0)
+            this.createArrowsObjItem();
+
         if(jsonIn != undefined && jsonIn.node != undefined)
             mesh_arrows = jsonIn.node;
 
@@ -2187,16 +2265,16 @@ Graph = function(sce, jsonIn) {
         for(var o=0; o < 2; o++) {
             for(var n=0; n < mesh_arrows.vertexArray.length/4; n++) {
                 var idxVertex = n*4;
-                if(o == 0) oppositeId = this.arrowArrayItemStart;
+                if(o == 0) oppositeId = this.arrowsObj[this.currentArrowsObjItem].arrowArrayItemStart;
 
-                this.arrayArrowPosXYZW.push(0.0, 0.0, 0.0, 1.0);
-                this.arrayArrowVertexPos.push(mesh_arrows.vertexArray[idxVertex], mesh_arrows.vertexArray[idxVertex+1], mesh_arrows.vertexArray[idxVertex+2], 1.0);
-                this.arrayArrowVertexNormal.push(mesh_arrows.normalArray[idxVertex], mesh_arrows.normalArray[idxVertex+1], mesh_arrows.normalArray[idxVertex+2], 1.0);
-                this.arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
+                this.arrowsObj[this.currentArrowsObjItem].arrayArrowPosXYZW.push(0.0, 0.0, 0.0, 1.0);
+                this.arrowsObj[this.currentArrowsObjItem].arrayArrowVertexPos.push(mesh_arrows.vertexArray[idxVertex], mesh_arrows.vertexArray[idxVertex+1], mesh_arrows.vertexArray[idxVertex+2], 1.0);
+                this.arrowsObj[this.currentArrowsObjItem].arrayArrowVertexNormal.push(mesh_arrows.normalArray[idxVertex], mesh_arrows.normalArray[idxVertex+1], mesh_arrows.normalArray[idxVertex+2], 1.0);
+                this.arrowsObj[this.currentArrowsObjItem].arrayArrowVertexTexture.push(mesh_arrows.textureArray[idxVertex], mesh_arrows.textureArray[idxVertex+1], mesh_arrows.textureArray[idxVertex+2], 1.0);
                 if(o == 0) {
-                    this.arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, jsonIn.repeatId);
-                    this.arrayArrowDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
-                    this.arrayArrowNodeName.push(jsonIn.origin_nodeName);
+                    this.arrowsObj[this.currentArrowsObjItem].arrayArrowData.push(jsonIn.origin_nodeId, jsonIn.target_nodeId, 0.0, jsonIn.repeatId);
+                    this.arrowsObj[this.currentArrowsObjItem].arrayArrowDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
+                    this.arrowsObj[this.currentArrowsObjItem].arrayArrowNodeName.push(jsonIn.origin_nodeName);
                     if(jsonIn.origin_layoutNodeArgumentData != undefined) {
                         for(var argNameKey in _customArgs) {
                             var expl = _customArgs[argNameKey].arg.split("*");
@@ -2214,9 +2292,9 @@ Graph = function(sce, jsonIn) {
                         }
                     }
                 } else {
-                    this.arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, jsonIn.repeatId);
-                    this.arrayArrowDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
-                    this.arrayArrowNodeName.push(jsonIn.target_nodeName);
+                    this.arrowsObj[this.currentArrowsObjItem].arrayArrowData.push(jsonIn.target_nodeId, jsonIn.origin_nodeId, 1.0, jsonIn.repeatId);
+                    this.arrowsObj[this.currentArrowsObjItem].arrayArrowDataC.push(jsonIn.bornDate, jsonIn.dieDate, 0.0, 0.0);
+                    this.arrowsObj[this.currentArrowsObjItem].arrayArrowNodeName.push(jsonIn.target_nodeName);
                     if(jsonIn.target_layoutNodeArgumentData != undefined) {
                         for(var argNameKey in _customArgs) {
                             var expl = _customArgs[argNameKey].arg.split("*");
@@ -2235,20 +2313,20 @@ Graph = function(sce, jsonIn) {
                     }
                 }
 
-                this.arrowArrayItemStart++;
+                this.arrowsObj[this.currentArrowsObjItem].arrowArrayItemStart++;
             }
 
             var maxArrowIndexId = 0;
             for(var n=0; n < mesh_arrows.indexArray.length; n++) {
                 var idxIndex = n;
 
-                this.arrayArrowIndices.push(this.startIndexId_arrow+mesh_arrows.indexArray[idxIndex]);
+                this.arrowsObj[this.currentArrowsObjItem].arrayArrowIndices.push(this.arrowsObj[this.currentArrowsObjItem].startIndexId_arrow+mesh_arrows.indexArray[idxIndex]);
 
                 if(mesh_arrows.indexArray[idxIndex] > maxArrowIndexId) {
                     maxArrowIndexId = mesh_arrows.indexArray[idxIndex];
                 }
             }
-            this.startIndexId_arrow += (maxArrowIndexId+1);
+            this.arrowsObj[this.currentArrowsObjItem].startIndexId_arrow += (maxArrowIndexId+1);
 
 
             this.currentArrowId++; // augment arrow id
@@ -2280,16 +2358,22 @@ Graph = function(sce, jsonIn) {
         _ADJ_MATRIX_WIDTH = _MAX_ADJ_MATRIX_WIDTH;
 
         comp_renderer_nodes.setArg("adjacencyMatrix", (function() {return new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);}).bind(this));
-        comp_renderer_links.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
-        comp_renderer_arrows.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
+        for(var na=0; na < this.linksObj.length; na++)
+            this.linksObj[na].componentRenderer.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
+        for(var na=0; na < this.arrowsObj.length; na++)
+            this.arrowsObj[na].componentRenderer.getComponentBufferArg("adjacencyMatrix", comp_renderer_nodes);
 
         comp_renderer_nodes.setArg("adjacencyMatrixB", (function() {return new Float32Array(_ADJ_MATRIX_WIDTH*_ADJ_MATRIX_WIDTH*4);}).bind(this));
-        comp_renderer_links.getComponentBufferArg("adjacencyMatrixB", comp_renderer_nodes);
-        comp_renderer_arrows.getComponentBufferArg("adjacencyMatrixB", comp_renderer_nodes);
+        for(var na=0; na < this.linksObj.length; na++)
+            this.linksObj[na].componentRenderer.getComponentBufferArg("adjacencyMatrixB", comp_renderer_nodes);
+        for(var na=0; na < this.arrowsObj.length; na++)
+            this.arrowsObj[na].componentRenderer.getComponentBufferArg("adjacencyMatrixB", comp_renderer_nodes);
 
         comp_renderer_nodes.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_links.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
-        comp_renderer_arrows.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        for(var na=0; na < this.linksObj.length; na++)
+            this.linksObj[na].componentRenderer.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
+        for(var na=0; na < this.arrowsObj.length; na++)
+            this.arrowsObj[na].componentRenderer.setArg("widthAdjMatrix", (function() {return _ADJ_MATRIX_WIDTH;}).bind(this));
 
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this));
         comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
@@ -2380,30 +2464,32 @@ Graph = function(sce, jsonIn) {
 		comp_renderer_nodes.setArg("data", (function() {return this.arrayNodeData;}).bind(this));
         //comp_renderer_nodes.setArg("dataB", (function() {return this.arrayNodeDataB;}).bind(this));
 
-		comp_renderer_links.setArg("data", (function() {return this.arrayLinkData;}).bind(this));
-        comp_renderer_links.setArg("dataC", (function() {return this.arrayLinkDataC;}).bind(this));
-        comp_renderer_links.getComponentBufferArg("dataB", comp_renderer_nodes);
-		comp_renderer_links.getComponentBufferArg("posXYZW", comp_renderer_nodes);
-		comp_renderer_links.setArg("nodeVertexPos", (function() {return this.arrayLinkVertexPos;}).bind(this));
-		comp_renderer_links.setArg("indices", (function() {return this.arrayLinkIndices;}).bind(this));
+        for(var na=0; na < this.linksObj.length; na++) {
+            this.linksObj[na].componentRenderer.setArg("data", (function() {return this.linksObj[na].arrayLinkData;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("dataC", (function() {return this.linksObj[na].arrayLinkDataC;}).bind(this));
+            this.linksObj[na].componentRenderer.getComponentBufferArg("dataB", comp_renderer_nodes);
+            this.linksObj[na].componentRenderer.getComponentBufferArg("posXYZW", comp_renderer_nodes);
+            this.linksObj[na].componentRenderer.setArg("nodeVertexPos", (function() {return this.linksObj[na].arrayLinkVertexPos;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("indices", (function() {return this.linksObj[na].arrayLinkIndices;}).bind(this));
 
-		comp_renderer_links.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
-		comp_renderer_links.setArgUpdatable("PMatrix", true);
-		comp_renderer_links.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
-		comp_renderer_links.setArgUpdatable("cameraWMatrix", true);
-		comp_renderer_links.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
-		comp_renderer_links.setArgUpdatable("nodeWMatrix", true);
+            this.linksObj[na].componentRenderer.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
+            this.linksObj[na].componentRenderer.setArgUpdatable("PMatrix", true);
+            this.linksObj[na].componentRenderer.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
+            this.linksObj[na].componentRenderer.setArgUpdatable("cameraWMatrix", true);
+            this.linksObj[na].componentRenderer.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+            this.linksObj[na].componentRenderer.setArgUpdatable("nodeWMatrix", true);
 
-		comp_renderer_links.setArg("isLink", (function() {return 1;}).bind(this));
-        comp_renderer_links.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
-        comp_renderer_links.setArg("bufferLinksWidth", (function() {return comp_renderer_links.getBuffers()["data"].W;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("isLink", (function() {return 1;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
+            this.linksObj[na].componentRenderer.setArg("bufferLinksWidth", (function() {return this.linksObj[na].componentRenderer.getBuffers()["data"].W;}).bind(this));
 
-		for(var argNameKey in _customArgs) {
-			var expl = _customArgs[argNameKey].arg.split("*");
-			if(expl.length > 0) { // argument is type buffer
-				comp_renderer_links.setArg(argNameKey, (function() {return _customArgs[argNameKey].links_array_value;}).bind(this));
-			}
-		}
+            for(var argNameKey in _customArgs) {
+                var expl = _customArgs[argNameKey].arg.split("*");
+                if(expl.length > 0) { // argument is type buffer
+                    this.linksObj[na].componentRenderer.setArg(argNameKey, (function() {return _customArgs[argNameKey].links_array_value;}).bind(this));
+                }
+            }
+        }
 
 		updateArrows();
 
@@ -2413,31 +2499,33 @@ Graph = function(sce, jsonIn) {
 
     /** @private */
     var updateArrows = (function() {
-        comp_renderer_arrows.setArg("data", (function() {return this.arrayArrowData;}).bind(this));
-        comp_renderer_arrows.setArg("dataC", (function() {return this.arrayArrowDataC;}).bind(this));
-        comp_renderer_arrows.getComponentBufferArg("dataB", comp_renderer_nodes);
-        comp_renderer_arrows.getComponentBufferArg("posXYZW", comp_renderer_nodes);
+        for(var na=0; na < this.arrowsObj.length; na++) {
+            this.arrowsObj[na].componentRenderer.setArg("data", (function() {return this.arrowsObj[na].arrayArrowData;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("dataC", (function() {return this.arrowsObj[na].arrayArrowDataC;}).bind(this));
+            this.arrowsObj[na].componentRenderer.getComponentBufferArg("dataB", comp_renderer_nodes);
+            this.arrowsObj[na].componentRenderer.getComponentBufferArg("posXYZW", comp_renderer_nodes);
 
-        comp_renderer_arrows.setArg("nodeVertexPos", (function() {return this.arrayArrowVertexPos;}).bind(this));
-        comp_renderer_arrows.setArg("nodeVertexNormal", (function() {return this.arrayArrowVertexNormal;}).bind(this));
-        comp_renderer_arrows.setArg("nodeVertexTexture", (function() {return this.arrayArrowVertexTexture;}).bind(this));
-        comp_renderer_arrows.setArg("indices", (function() {return this.arrayArrowIndices;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("nodeVertexPos", (function() {return this.arrowsObj[na].arrayArrowVertexPos;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("nodeVertexNormal", (function() {return this.arrowsObj[na].arrayArrowVertexNormal;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("nodeVertexTexture", (function() {return this.arrowsObj[na].arrayArrowVertexTexture;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("indices", (function() {return this.arrowsObj[na].arrayArrowIndices;}).bind(this));
 
-        comp_renderer_arrows.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
-        comp_renderer_arrows.setArgUpdatable("PMatrix", true);
-        comp_renderer_arrows.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
-        comp_renderer_arrows.setArgUpdatable("cameraWMatrix", true);
-        comp_renderer_arrows.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
-        comp_renderer_arrows.setArgUpdatable("nodeWMatrix", true);
+            this.arrowsObj[na].componentRenderer.setArg("PMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.PROJECTION).getMatrix().transpose().e;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArgUpdatable("PMatrix", true);
+            this.arrowsObj[na].componentRenderer.setArg("cameraWMatrix", (function() {return _project.getActiveStage().getActiveCamera().getComponent(Constants.COMPONENT_TYPES.TRANSFORM_TARGET).getMatrix().transpose().e;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArgUpdatable("cameraWMatrix", true);
+            this.arrowsObj[na].componentRenderer.setArg("nodeWMatrix", (function() {return nodes.getComponent(Constants.COMPONENT_TYPES.TRANSFORM).getMatrixPosition().transpose().e;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArgUpdatable("nodeWMatrix", true);
 
-        comp_renderer_arrows.setArg("isArrow", (function() {return 1.0;}).bind(this));
-        comp_renderer_arrows.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
-        comp_renderer_arrows.setArg("bufferArrowsWidth", (function() {return comp_renderer_arrows.getBuffers()["data"].W;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("isArrow", (function() {return 1.0;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("bufferNodesWidth", (function() {return comp_renderer_nodes.getBuffers()["posXYZW"].W;}).bind(this));
+            this.arrowsObj[na].componentRenderer.setArg("bufferArrowsWidth", (function() {return this.arrowsObj[na].componentRenderer.getBuffers()["data"].W;}).bind(this));
 
-        for(var argNameKey in _customArgs) {
-            var expl = _customArgs[argNameKey].arg.split("*");
-            if(expl.length > 0) { // argument is type buffer
-                comp_renderer_arrows.setArg(argNameKey, (function() {return _customArgs[argNameKey].arrows_array_value;}).bind(this));
+            for(var argNameKey in _customArgs) {
+                var expl = _customArgs[argNameKey].arg.split("*");
+                if(expl.length > 0) { // argument is type buffer
+                    this.arrowsObj[na].componentRenderer.setArg(argNameKey, (function() {return _customArgs[argNameKey].arrows_array_value;}).bind(this));
+                }
             }
         }
     }).bind(this);
